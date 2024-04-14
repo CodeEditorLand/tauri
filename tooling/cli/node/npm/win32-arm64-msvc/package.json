@@ -1,21 +1,41 @@
 {
-  "name": "@tauri-apps/cli-win32-arm64-msvc",
-  "version": "0.0.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "os": [
-    "win32"
-  ],
-  "cpu": [
-    "arm64"
-  ],
-  "main": "cli.win32-arm64-msvc.node",
-  "files": [
-    "cli.win32-arm64-msvc.node"
-  ],
-  "license": "MIT",
-  "engines": {
-    "node": ">= 10"
-  }
+	"name": "@tauri-apps/cli-win32-arm64-msvc",
+	"version": "0.0.1",
+	"private": false,
+	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
+	"bugs": {
+		"url": "https://github.com/CodeEditorLand/Foundation/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Foundation.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Land",
+		"email": "Land@Playform.Cloud",
+		"url": "HTTPS://Land.Playform.Cloud"
+	},
+	"type": "module",
+	"main": "cli.win32-arm64-msvc.node",
+	"files": [
+		"cli.win32-arm64-msvc.node"
+	],
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"devDependencies": {
+		"@playform/build": "0.0.5",
+		"@playform/document": "0.0.6"
+	},
+	"os": [
+		"win32"
+	],
+	"cpu": [
+		"arm64"
+	],
+	"publishConfig": {
+		"access": "public"
+	}
 }
