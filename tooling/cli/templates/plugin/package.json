@@ -1,49 +1,28 @@
 {
-	"name": "tauri-plugin-{{ plugin_name }}-api",
-	"version": "0.0.1",
-	"private": false,
+	"dependencies": {
+		"@tauri-apps/api": ">=2.0.0-beta.6"
+	},
 	"description": "",
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	"devDependencies": {
+		"@playform/build": "0.0.7",
+		"tslib": "2.6.2"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "Land",
-		"email": "Land@Playform.Cloud",
-		"url": "HTTPS://Land.Playform.Cloud"
-	},
-	"type": "module",
 	"exports": {
 		"import": "./dist-js/index.js",
 		"require": "./dist-js/index.cjs",
 		"types": "./dist-js/index.d.ts"
 	},
-	"main": "./dist-js/index.cjs",
-	"module": "./dist-js/index.js",
-	"types": "./dist-js/index.d.ts",
 	"files": [
 		"dist-js",
 		"README.md"
 	],
+	"main": "./dist-js/index.cjs",
+	"module": "./dist-js/index.js",
+	"name": "tauri-plugin-{{ plugin_name }}-api",
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
 		"build": "rollup -c",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"dependencies": {
-		"@tauri-apps/api": ">=2.0.0-beta.6"
-	},
-	"devDependencies": {
-		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6",
-		"tslib": "2.6.2"
-	},
-	"publishConfig": {
-		"access": "public"
-	}
+	"types": "./dist-js/index.d.ts"
 }

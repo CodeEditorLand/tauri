@@ -1,36 +1,15 @@
 {
-	"name": "app",
-	"version": "0.0.1",
-	"private": false,
-	"description": "",
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "Land",
-		"email": "Land@Playform.Cloud",
-		"url": "HTTPS://Land.Playform.Cloud"
-	},
-	"type": "module",
-	"main": "index.js",
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
 	"dependencies": {
 		"@tauri-apps/cli": "2.0.0-alpha.17"
 	},
+	"description": "",
 	"devDependencies": {
-		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6"
+		"@playform/build": "0.0.7"
 	},
-	"publishConfig": {
-		"access": "public"
+	"main": "index.js",
+	"name": "app",
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"prepublishOnly": "Build 'Source/**/*.ts'"
 	}
 }
