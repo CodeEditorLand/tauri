@@ -47,9 +47,9 @@
 		"ts:check": "tsc -noEmit"
 	},
 	"devDependencies": {
-		"@playform/build": "0.0.5",
+		"@playform/build": "0.0.7",
 		"@playform/document": "0.0.6",
-		"@types/node": "20.11.24",
+		"@types/node": "20.12.7",
 		"fast-glob": "3.3.2",
 		"tslib": "2.6.2"
 	},

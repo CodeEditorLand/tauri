@@ -29,12 +29,12 @@
 		"@tauri-apps/api": "../../tooling/api/dist"
 	},
 	"devDependencies": {
-		"@iconify-json/codicon": "1.1.10",
-		"@iconify-json/ph": "1.1.1",
-		"@playform/build": "0.0.5",
+		"@iconify-json/codicon": "1.1.46",
+		"@iconify-json/ph": "1.1.12",
+		"@playform/build": "0.0.7",
 		"@playform/document": "0.0.6",
-		"internal-ip": "7.0.0",
-		"unocss": "0.39.3"
+		"internal-ip": "8.0.0",
+		"unocss": "0.59.2"
 	},
 	"publishConfig": {
 		"access": "public"
