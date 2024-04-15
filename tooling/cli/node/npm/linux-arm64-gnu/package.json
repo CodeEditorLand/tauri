@@ -1,23 +1,44 @@
 {
+	"author": {
+		"email": "Land@Playform.Cloud",
+		"name": "Land",
+		"url": "HTTPS://Land.Playform.Cloud"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
 	"cpu": [
 		"arm64"
 	],
 	"devDependencies": {
-		"@playform/build": "0.0.7"
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6"
 	},
 	"files": [
 		"cli.linux-arm64-gnu.node"
 	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"libc": [
 		"glibc"
 	],
+	"license": "SEE LICENSE IN LICENSE",
 	"main": "cli.linux-arm64-gnu.node",
 	"name": "@tauri-apps/cli-linux-arm64-gnu",
 	"os": [
 		"linux"
 	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
-	}
+	},
+	"type": "module",
+	"version": "0.0.1"
 }
