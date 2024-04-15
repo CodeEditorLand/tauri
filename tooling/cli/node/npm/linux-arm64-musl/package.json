@@ -1,44 +1,44 @@
 {
-	"author": {
-		"email": "Land@Playform.Cloud",
-		"name": "Land",
-		"url": "HTTPS://Land.Playform.Cloud"
-	},
+	"name": "@tauri-apps/cli-linux-arm64-musl",
+	"version": "0.0.1",
+	"private": false,
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"cpu": [
-		"arm64"
-	],
-	"devDependencies": {
-		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6"
-	},
-	"files": [
-		"cli.linux-arm64-musl.node"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"libc": [
-		"musl"
-	],
-	"license": "SEE LICENSE IN LICENSE",
-	"main": "cli.linux-arm64-musl.node",
-	"name": "@tauri-apps/cli-linux-arm64-musl",
-	"os": [
-		"linux"
-	],
-	"private": false,
-	"publishConfig": {
-		"access": "public"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Land",
+		"email": "Land@Playform.Cloud",
+		"url": "HTTPS://Land.Playform.Cloud"
+	},
+	"type": "module",
+	"main": "cli.linux-arm64-musl.node",
+	"files": [
+		"cli.linux-arm64-musl.node"
+	],
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"devDependencies": {
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6"
+	},
+	"os": [
+		"linux"
+	],
+	"cpu": [
+		"arm64"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"libc": [
+		"musl"
+	]
 }

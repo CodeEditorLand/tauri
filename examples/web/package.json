@@ -1,33 +1,22 @@
 {
-	"author": {
-		"email": "Land@Playform.Cloud",
-		"name": "Land",
-		"url": "HTTPS://Land.Playform.Cloud"
-	},
+	"name": "web",
+	"version": "0.0.1",
+	"private": false,
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"dependencies": {
-		"@tauri-apps/api": "../../tooling/api/dist",
-		"wasm": "core/wasm/pkg"
-	},
-	"devDependencies": {
-		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6",
-		"cross-env": "7.0.3",
-		"tslib": "2.6.2"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"license": "SEE LICENSE IN LICENSE",
-	"name": "web",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Land",
+		"email": "Land@Playform.Cloud",
+		"url": "HTTPS://Land.Playform.Cloud"
+	},
+	"type": "module",
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
 		"build:tauri": "cross-env TARGET=tauri vite build",
@@ -41,6 +30,17 @@
 		"tauri": "node ../../tooling/cli/node/tauri.js",
 		"wasm": "wasm-pack build ./core/wasm --target web"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"dependencies": {
+		"@tauri-apps/api": "../../tooling/api/dist",
+		"wasm": "core/wasm/pkg"
+	},
+	"devDependencies": {
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6",
+		"cross-env": "7.0.3",
+		"tslib": "2.6.2"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }

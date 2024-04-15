@@ -1,23 +1,30 @@
 {
-	"author": {
-		"email": "Land@Playform.Cloud",
-		"name": "Land",
-		"url": "HTTPS://Land.Playform.Cloud"
-	},
+	"name": "@tauri-apps/api",
+	"version": "0.0.1",
+	"private": false,
+	"description": "Tauri API definitions",
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Land",
+		"email": "Land@Playform.Cloud",
+		"url": "HTTPS://Land.Playform.Cloud"
 	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"description": "Tauri API definitions",
-	"devDependencies": {
-		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6",
-		"@types/node": "20.12.7",
-		"fast-glob": "3.3.2",
-		"tslib": "2.6.2"
-	},
+	"type": "module",
 	"exports": {
 		".": {
 			"import": "./index.js",
@@ -29,23 +36,8 @@
 		},
 		"./package.json": "./package.json"
 	},
-	"funding": {
-		"type": "opencollective",
-		"url": "https://opencollective.com/tauri"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"license": "SEE LICENSE IN LICENSE",
 	"main": "./index.cjs",
 	"module": "./index.js",
-	"name": "@tauri-apps/api",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
 		"build": "rollup -c --configPlugin typescript",
@@ -54,6 +46,14 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "tsc -noEmit"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"devDependencies": {
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6",
+		"@types/node": "20.12.7",
+		"fast-glob": "3.3.2",
+		"tslib": "2.6.2"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
