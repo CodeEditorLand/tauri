@@ -3,13 +3,13 @@
 	"version": "0.0.1",
 	"private": false,
 	"description": "Tauri API definitions",
-	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"bugs": {
-		"url": "https://github.com/CodeEditorLand/Foundation/issues"
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Foundation.git"
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
 	"funding": {
 		"type": "opencollective",
