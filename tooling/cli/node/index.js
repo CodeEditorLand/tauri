@@ -23,7 +23,7 @@ function isMusl() {
     try {
       const lddPath = require('child_process').execSync('which ldd').toString().trim()
       return readFileSync(lddPath, 'utf8').includes('musl')
-    } catch (e) {
+    } catch (_Error) {
       return true
     }
   } else {
@@ -43,7 +43,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-android-arm64')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break
@@ -55,7 +55,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-android-arm-eabi')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break
@@ -75,7 +75,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-win32-x64-msvc')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break
@@ -89,7 +89,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-win32-ia32-msvc')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break
@@ -103,7 +103,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-win32-arm64-msvc')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break
@@ -130,7 +130,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-darwin-x64')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break
@@ -144,7 +144,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-darwin-arm64')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break
@@ -163,7 +163,7 @@ switch (platform) {
       } else {
         nativeBinding = require('@tauri-apps/cli-freebsd-x64')
       }
-    } catch (e) {
+    } catch (_Error) {
       loadError = e
     }
     break
@@ -180,7 +180,7 @@ switch (platform) {
             } else {
               nativeBinding = require('@tauri-apps/cli-linux-x64-musl')
             }
-          } catch (e) {
+          } catch (_Error) {
             loadError = e
           }
         } else {
@@ -193,7 +193,7 @@ switch (platform) {
             } else {
               nativeBinding = require('@tauri-apps/cli-linux-x64-gnu')
             }
-          } catch (e) {
+          } catch (_Error) {
             loadError = e
           }
         }
@@ -209,7 +209,7 @@ switch (platform) {
             } else {
               nativeBinding = require('@tauri-apps/cli-linux-arm64-musl')
             }
-          } catch (e) {
+          } catch (_Error) {
             loadError = e
           }
         } else {
@@ -222,7 +222,7 @@ switch (platform) {
             } else {
               nativeBinding = require('@tauri-apps/cli-linux-arm64-gnu')
             }
-          } catch (e) {
+          } catch (_Error) {
             loadError = e
           }
         }
@@ -237,7 +237,7 @@ switch (platform) {
           } else {
             nativeBinding = require('@tauri-apps/cli-linux-arm-gnueabihf')
           }
-        } catch (e) {
+        } catch (_Error) {
           loadError = e
         }
         break

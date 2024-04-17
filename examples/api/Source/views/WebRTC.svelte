@@ -36,7 +36,7 @@
     try {
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       handleSuccess(stream)
-    } catch (e) {
+    } catch (_Error) {
       handleError(e)
     }
   })
