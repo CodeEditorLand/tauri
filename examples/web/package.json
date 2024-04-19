@@ -2,6 +2,9 @@
 	"name": "web",
 	"version": "0.0.1",
 	"private": false,
+	"keywords": [
+		"land"
+	],
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
