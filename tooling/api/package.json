@@ -1,9 +1,19 @@
 {
+	"author": {
+		"email": "Land@PlayForm.Cloud",
+		"name": "🌆 — Land —",
+		"url": "HTTPS://Land.PlayForm.Cloud"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
 	"description": "Tauri API definitions",
 	"devDependencies": {
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6",
 		"@types/node": "20.11.24",
 		"fast-glob": "3.3.2",
 		"tslib": "2.6.2"
@@ -25,14 +35,31 @@
 		"type": "opencollective",
 		"url": "https://opencollective.com/tauri"
 	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"land"
+	],
+	"license": "SEE LICENSE IN LICENSE",
 	"main": "./index.cjs",
 	"module": "./index.js",
 	"name": "@tauri-apps/api",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
 	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
 		"build": "rollup -c --configPlugin typescript",
 		"npm-pack": "yarn build && cd ./dist && npm pack",
 		"npm-publish": "yarn build && cd ./dist && yarn publish --access public --loglevel silly --tag next",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "tsc -noEmit"
 	},
-	"types": "./index.d.ts"
+	"type": "module",
+	"types": "./index.d.ts",
+	"version": "0.0.1"
 }

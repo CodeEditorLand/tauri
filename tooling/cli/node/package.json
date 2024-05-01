@@ -1,6 +1,14 @@
 {
+	"author": {
+		"email": "Land@PlayForm.Cloud",
+		"name": "🌆 — Land —",
+		"url": "HTTPS://Land.PlayForm.Cloud"
+	},
 	"bin": {
 		"tauri": "./tauri.js"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"contributors": [
 		"Tauri Team <team@tauri-apps.org> (https://tauri.app)"
@@ -8,6 +16,8 @@
 	"description": "Command line interface for building Tauri apps",
 	"devDependencies": {
 		"@napi-rs/cli": "2.16.1",
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6",
 		"cross-env": "7.0.3",
 		"cross-spawn": "7.0.3",
 		"fs-extra": "11.1.1"
@@ -16,6 +26,11 @@
 		"type": "opencollective",
 		"url": "https://opencollective.com/tauri"
 	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"land"
+	],
+	"license": "SEE LICENSE IN LICENSE",
 	"main": "main.js",
 	"name": "@tauri-apps/cli",
 	"napi": {
@@ -32,17 +47,28 @@
 			]
 		}
 	},
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
 	"resolutions": {
 		"json5": "2.2.3"
 	},
 	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
 		"artifacts": "napi artifacts",
 		"build": "cross-env TARGET=node napi build --platform",
 		"build:release": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
 		"prepack": "cp ../schema.json .",
-		"prepublishOnly": "napi prepublish -t npm --gh-release-id $RELEASE_ID",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"tauri": "node ./tauri.js",
 		"version": "napi version"
 	},
-	"types": "main.d.ts"
+	"type": "module",
+	"types": "main.d.ts",
+	"version": "0.0.1"
 }
