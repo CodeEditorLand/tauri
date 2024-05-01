@@ -1,21 +1,13 @@
 {
-  "name": "@tauri-apps/cli-linux-arm-gnueabihf",
-  "version": "0.0.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "os": [
-    "linux"
-  ],
-  "cpu": [
-    "arm"
-  ],
-  "main": "cli.linux-arm-gnueabihf.node",
-  "files": [
-    "cli.linux-arm-gnueabihf.node"
-  ],
-  "license": "MIT",
-  "engines": {
-    "node": ">= 10"
-  }
+	"cpu": [
+		"arm"
+	],
+	"files": [
+		"cli.linux-arm-gnueabihf.node"
+	],
+	"main": "cli.linux-arm-gnueabihf.node",
+	"name": "@tauri-apps/cli-linux-arm-gnueabihf",
+	"os": [
+		"linux"
+	]
 }
