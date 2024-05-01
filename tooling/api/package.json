@@ -1,23 +1,33 @@
 {
-	"author": {
-		"email": "Land@PlayForm.Cloud",
-		"name": "🌆 — Land —",
-		"url": "HTTPS://Land.PlayForm.Cloud"
-	},
+	"name": "@tauri-apps/api",
+	"version": "0.0.1",
+	"private": false,
+	"description": "Tauri API definitions",
+	"keywords": [
+		"land"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🌆 — Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Land.PlayForm.Cloud"
 	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"description": "Tauri API definitions",
-	"devDependencies": {
-		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6",
-		"@types/node": "20.11.24",
-		"fast-glob": "3.3.2",
-		"tslib": "2.6.2"
-	},
+	"type": "module",
 	"exports": {
 		".": {
 			"import": "./index.js",
@@ -31,26 +41,9 @@
 		},
 		"./package.json": "./package.json"
 	},
-	"funding": {
-		"type": "opencollective",
-		"url": "https://opencollective.com/tauri"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"keywords": [
-		"land"
-	],
-	"license": "SEE LICENSE IN LICENSE",
 	"main": "./index.cjs",
 	"module": "./index.js",
-	"name": "@tauri-apps/api",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
+	"types": "./index.d.ts",
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
 		"build": "rollup -c --configPlugin typescript",
@@ -59,7 +52,14 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "tsc -noEmit"
 	},
-	"type": "module",
-	"types": "./index.d.ts",
-	"version": "0.0.1"
+	"devDependencies": {
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6",
+		"@types/node": "20.11.24",
+		"fast-glob": "3.3.2",
+		"tslib": "2.6.2"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
