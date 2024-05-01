@@ -47,12 +47,12 @@
 		"json5": "2.2.3"
 	},
 	"devDependencies": {
-		"@napi-rs/cli": "2.16.1",
+		"@napi-rs/cli": "2.18.2",
 		"@playform/build": "0.0.7",
 		"@playform/document": "0.0.6",
 		"cross-env": "7.0.3",
 		"cross-spawn": "7.0.3",
-		"fs-extra": "11.1.1"
+		"fs-extra": "11.2.0"
 	},
 	"publishConfig": {
 		"access": "public"
