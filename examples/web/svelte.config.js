@@ -8,7 +8,7 @@ import preprocess from 'svelte-preprocess'
 
 const TARGET = process.env.TARGET
 
-/** @type {import('@sveltejs/kit').Config} */
+
 const config = {
   // Consult https://github.com/sveltejs/svelte-preprocess
   // for more information about preprocessors
