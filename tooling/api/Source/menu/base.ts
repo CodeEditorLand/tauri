@@ -99,9 +99,9 @@ export async function newMenu(
 }
 
 export class MenuItemBase extends Resource {
-  /** @ignore */
+  
   readonly #id: string
-  /** @ignore */
+  
   readonly #kind: ItemKind
 
   /** The id of this item. */
@@ -109,12 +109,12 @@ export class MenuItemBase extends Resource {
     return this.#id
   }
 
-  /** @ignore */
+  
   get kind(): string {
     return this.#kind
   }
 
-  /** @ignore */
+  
   protected constructor(rid: number, id: string, kind: ItemKind) {
     super(rid)
     this.#id = id

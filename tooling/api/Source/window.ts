@@ -222,10 +222,10 @@ function getAll(): Window[] {
   )
 }
 
-/** @ignore */
+
 // events that are emitted right here instead of by the created window
 const localTauriEvents = ['tauri://created', 'tauri://error']
-/** @ignore */
+
 export type WindowLabel = string
 
 /**
@@ -474,7 +474,7 @@ class Window {
     return emitTo(target, event, payload)
   }
 
-  /** @ignore */
+  
   _handleTauriEvent<T>(event: string, handler: EventCallback<T>): boolean {
     if (localTauriEvents.includes(event)) {
       if (!(event in this.listeners)) {

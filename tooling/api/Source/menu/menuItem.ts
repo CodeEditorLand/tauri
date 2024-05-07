@@ -21,7 +21,7 @@ export interface MenuItemOptions {
 
 /** A menu item inside a {@linkcode Menu} or {@linkcode Submenu} and contains only text. */
 export class MenuItem extends MenuItemBase {
-  /** @ignore */
+  
   protected constructor(rid: number, id: string) {
     super(rid, id, 'MenuItem')
   }

@@ -142,7 +142,7 @@ export interface IconMenuItemOptions extends MenuItemOptions {
  * and usually contains an icon and a text.
  */
 export class IconMenuItem extends MenuItemBase {
-  /** @ignore */
+  
   protected constructor(rid: number, id: string) {
     super(rid, id, 'Icon')
   }

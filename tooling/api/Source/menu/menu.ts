@@ -70,7 +70,7 @@ export interface MenuOptions {
  * on Windows and Linux or as a global menu in the menubar on macOS.
  */
 export class Menu extends MenuItemBase {
-  /** @ignore */
+  
   protected constructor(rid: number, id: string) {
     super(rid, id, 'Menu')
   }

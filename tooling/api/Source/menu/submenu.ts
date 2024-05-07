@@ -49,7 +49,7 @@ export type SubmenuOptions = Omit<MenuItemOptions, 'accelerator' | 'action'> &
 
 /** A type that is a submenu inside a {@linkcode Menu} or {@linkcode Submenu}. */
 export class Submenu extends MenuItemBase {
-  /** @ignore */
+  
   protected constructor(rid: number, id: string) {
     super(rid, id, 'Submenu')
   }

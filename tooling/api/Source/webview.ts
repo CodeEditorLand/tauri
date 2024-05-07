@@ -81,10 +81,10 @@ function getAll(): Webview[] {
   )
 }
 
-/** @ignore */
+
 // events that are emitted right here instead of by the created webview
 const localTauriEvents = ['tauri://created', 'tauri://error']
-/** @ignore */
+
 export type WebviewLabel = string
 
 /**
@@ -329,7 +329,7 @@ class Webview {
     return emitTo(target, event, payload)
   }
 
-  /** @ignore */
+  
   _handleTauriEvent<T>(event: string, handler: EventCallback<T>): boolean {
     if (localTauriEvents.includes(event)) {
       if (!(event in this.listeners)) {

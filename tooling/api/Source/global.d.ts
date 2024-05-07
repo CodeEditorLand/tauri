@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-/** @ignore */
+
 
 import type { invoke, transformCallback, convertFileSrc } from './core'
 
-/** @ignore */
+
 declare global {
   interface Window {
     __TAURI_INTERNALS__: {
@@ -36,13 +36,13 @@ declare global {
   }
 }
 
-/** @ignore */
+
 interface WebviewDef {
   windowLabel: string
   label: string
 }
 
-/** @ignore */
+
 interface WindowDef {
   label: string
 }

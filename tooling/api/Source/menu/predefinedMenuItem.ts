@@ -109,7 +109,7 @@ export interface PredefinedMenuItemOptions {
 
 /** A predefined (native) menu item which has a predefined behavior by the OS or by tauri.  */
 export class PredefinedMenuItem extends MenuItemBase {
-  /** @ignore */
+  
   protected constructor(rid: number, id: string) {
     super(rid, id, 'Predefined')
   }

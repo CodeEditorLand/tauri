@@ -18,7 +18,7 @@ export interface CheckMenuItemOptions extends MenuItemOptions {
  * that corresponds to a checked and unchecked states.
  */
 export class CheckMenuItem extends MenuItemBase {
-  /** @ignore */
+  
   protected constructor(rid: number, id: string) {
     super(rid, id, 'Check')
   }
