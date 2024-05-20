@@ -1,26 +1,39 @@
 {
-  "name": "tauri-workspace",
-  "version": "0.0.0",
-  "license": "Apache-2.0 OR MIT",
-  "private": true,
-  "contributors": [
-    "Tauri Programme within The Commons Conservancy"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tauri-apps/tauri.git"
-  },
-  "scripts": {
-    "format": "prettier --write . --config .prettierrc --ignore-path .prettierignore",
-    "format:check": "prettier --check . --config .prettierrc --ignore-path .prettierignore",
-    "postinstall": "husky install"
-  },
-  "devDependencies": {
-    "covector": "^0.9.0",
-    "husky": "^6.0.0",
-    "prettier": "^2.5.1"
-  },
-  "dependencies": {
-    "typescript": "^4.5.4"
-  }
+	"name": "tauri-workspace",
+	"version": "0.0.1",
+	"private": false,
+	"keywords": [
+		"land"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🛬 Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Editor.Land"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"type": "module",
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@playform/build": "0.0.8",
+		"@playform/document": "0.0.6",
+		"covector": "^0.9.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
