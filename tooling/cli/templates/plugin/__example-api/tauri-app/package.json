@@ -29,14 +29,14 @@
 		"tauri": "tauri"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^2.0.0-alpha.11",
+		"@tauri-apps/api": "2.0.0-alpha.11",
 		"tauri-plugin-{{ plugin_name }}-api": "link:../../"
 	},
 	"devDependencies": {
 		"@playform/build": "0.0.8",
 		"@playform/document": "0.0.6",
-		"@tauri-apps/cli": "^2.0.0-alpha.17",
-		"internal-ip": "^7.0.0"
+		"@tauri-apps/cli": "2.0.0-alpha.17",
+		"internal-ip": "7.0.0"
 	},
 	"publishConfig": {
 		"access": "public"
