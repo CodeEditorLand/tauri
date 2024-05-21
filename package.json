@@ -31,7 +31,7 @@
 	"devDependencies": {
 		"@playform/build": "0.0.8",
 		"@playform/document": "0.0.6",
-		"covector": "0.9.0"
+		"covector": "0.10.2"
 	},
 	"publishConfig": {
 		"access": "public"
