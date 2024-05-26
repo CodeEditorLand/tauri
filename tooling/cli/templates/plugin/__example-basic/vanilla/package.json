@@ -30,8 +30,8 @@
 		"@tauri-apps/cli": "2.0.0-alpha.17"
 	},
 	"devDependencies": {
-		"@playform/build": "0.0.8",
-		"@playform/document": "0.0.6"
+		"@playform/build": "0.0.9",
+		"@playform/document": "0.0.7"
 	},
 	"publishConfig": {
 		"access": "public"

@@ -42,8 +42,8 @@
 		"@tauri-apps/api": ">=2.0.0-beta.6"
 	},
 	"devDependencies": {
-		"@playform/build": "0.0.8",
-		"@playform/document": "0.0.6",
+		"@playform/build": "0.0.9",
+		"@playform/document": "0.0.7",
 		"tslib": "2.6.2"
 	},
 	"publishConfig": {

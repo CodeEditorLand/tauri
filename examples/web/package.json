@@ -38,8 +38,8 @@
 		"wasm": "core/wasm/pkg"
 	},
 	"devDependencies": {
-		"@playform/build": "0.0.8",
-		"@playform/document": "0.0.6",
+		"@playform/build": "0.0.9",
+		"@playform/document": "0.0.7",
 		"cross-env": "7.0.3",
 		"tslib": "2.6.2"
 	},
