@@ -34,7 +34,6 @@
 		"README.md"
 	],
 	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
 		"build": "rollup -c",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},

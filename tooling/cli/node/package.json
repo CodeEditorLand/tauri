@@ -34,7 +34,6 @@
 		"tauri": "./tauri.js"
 	},
 	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
 		"artifacts": "napi artifacts",
 		"build": "cross-env TARGET=node napi build --platform",
 		"build:release": "cross-env TARGET=node napi build --platform --profile release-size-optimized",

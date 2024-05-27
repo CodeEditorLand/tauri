@@ -45,7 +45,6 @@
 	"module": "./index.js",
 	"types": "./index.d.ts",
 	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
 		"build": "rollup -c --configPlugin typescript",
 		"npm-pack": "yarn build && cd ./dist && npm pack",
 		"npm-publish": "yarn build && cd ./dist && yarn publish --access public --loglevel silly --tag next",
