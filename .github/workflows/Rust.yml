@@ -86,6 +86,21 @@ jobs:
                       ~/.cargo/git/db/
                       target/
                       Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./core/tauri-acl-schema/Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./core/tauri-acl-schema/Cargo.toml
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
                   key: ${{ runner.os }}-cargo-${{ hashFiles('./core/tauri-build/Cargo.toml') }}
             - uses: actions-rs/cargo@v1.0.3
               with:
@@ -211,6 +226,36 @@ jobs:
               with:
                 command: build
                 args: --release --all-features --manifest-path ./core/tauri/Cargo.toml
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./core/tests/acl/Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./core/tests/acl/Cargo.toml
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./core/tests/restart/Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./core/tests/restart/Cargo.toml
 
             - uses: actions/cache@v4.0.2
               with:
@@ -406,6 +451,66 @@ jobs:
               with:
                 command: build
                 args: --release --all-features --manifest-path ./tooling/bench/Cargo.toml
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./tooling/bench/tests/Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./tooling/bench/tests/Cargo.toml
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./tooling/bench/tests/cpu_intensive/src-tauri/Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./tooling/bench/tests/cpu_intensive/src-tauri/Cargo.toml
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./tooling/bench/tests/files_transfer/src-tauri/Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./tooling/bench/tests/files_transfer/src-tauri/Cargo.toml
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./tooling/bench/tests/helloworld/src-tauri/Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./tooling/bench/tests/helloworld/src-tauri/Cargo.toml
 
             - uses: actions/cache@v4.0.2
               with:
