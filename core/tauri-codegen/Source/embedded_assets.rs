@@ -48,9 +48,6 @@ pub enum EmbeddedAssetsError {
   #[error("invalid prefix {prefix} used while including path {path}")]
   PrefixInvalid { prefix: PathBuf, path: PathBuf },
 
-  #[error("invalid extension {extension} used for image {path}, must be `ico` or `png`")]
-  InvalidImageExtension { extension: PathBuf, path: PathBuf },
-
   #[error("failed to walk directory {path} because {error}")]
   Walkdir {
     path: PathBuf,
@@ -63,8 +60,6 @@ pub enum EmbeddedAssetsError {
   #[error("version error: {0}")]
   Version(#[from] semver::Error),
 }
-
-pub type EmbeddedAssetsResult<T> = Result<T, EmbeddedAssetsError>;
 
 /// Represent a directory of assets that are compressed and embedded.
 ///
@@ -443,15 +438,4 @@ impl ToTokens for EmbeddedAssets {
         EmbeddedAssets::new(phf_map! { #assets }, &[#global_hashes], phf_map! { #html_hashes })
     }});
   }
-}
-
-pub(crate) fn ensure_out_dir() -> EmbeddedAssetsResult<PathBuf> {
-  let out_dir = std::env::var("OUT_DIR")
-    .map_err(|_| EmbeddedAssetsError::OutDir)
-    .map(PathBuf::from)
-    .and_then(|p| p.canonicalize().map_err(|_| EmbeddedAssetsError::OutDir))?;
-
-  // make sure that our output directory is created
-  std::fs::create_dir_all(&out_dir).map_err(|_| EmbeddedAssetsError::OutDir)?;
-  Ok(out_dir)
 }
