@@ -1,13 +1,12 @@
 {
-  "name": "file-associations",
-  "version": "1.0.0",
-  "pkg": {
-    "assets": [
-      "src/**/*"
-    ]
-  },
-  "scripts": {
-    "tauri": "node ../../tooling/cli/node/tauri.js"
-  },
-  "devDependencies": {}
+	"devDependencies": {},
+	"name": "file-associations",
+	"pkg": {
+		"assets": [
+			"src/**/*"
+		]
+	},
+	"scripts": {
+		"tauri": "node ../../tooling/cli/node/tauri.js"
+	}
 }

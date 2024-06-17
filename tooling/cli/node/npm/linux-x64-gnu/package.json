@@ -1,24 +1,16 @@
 {
-  "name": "@tauri-apps/cli-linux-x64-gnu",
-  "version": "0.0.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "os": [
-    "linux"
-  ],
-  "cpu": [
-    "x64"
-  ],
-  "libc": [
-    "glibc"
-  ],
-  "main": "cli.linux-x64-gnu.node",
-  "files": [
-    "cli.linux-x64-gnu.node"
-  ],
-  "license": "MIT",
-  "engines": {
-    "node": ">= 10"
-  }
+	"cpu": [
+		"x64"
+	],
+	"files": [
+		"cli.linux-x64-gnu.node"
+	],
+	"libc": [
+		"glibc"
+	],
+	"main": "cli.linux-x64-gnu.node",
+	"name": "@tauri-apps/cli-linux-x64-gnu",
+	"os": [
+		"linux"
+	]
 }
