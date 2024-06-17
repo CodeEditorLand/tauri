@@ -1,23 +1,62 @@
 {
-	"bin": {
-		"tauri": "./tauri.js"
-	},
-	"contributors": [
-		"Tauri Team <team@tauri-apps.org> (https://tauri.app)"
-	],
+	"name": "@tauri-apps/cli",
+	"version": "0.0.1",
+	"private": false,
 	"description": "Command line interface for building Tauri apps",
-	"devDependencies": {
-		"@napi-rs/cli": "2.18.3",
-		"cross-env": "7.0.3",
-		"cross-spawn": "7.0.3",
-		"fs-extra": "11.2.0"
+	"keywords": [
+		"land"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
 	"funding": {
 		"type": "opencollective",
 		"url": "https://opencollective.com/tauri"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🛬 Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Editor.Land"
+	},
+	"contributors": [
+		"Tauri Team <team@tauri-apps.org> (https://tauri.app)"
+	],
+	"type": "module",
 	"main": "main.js",
-	"name": "@tauri-apps/cli",
+	"types": "main.d.ts",
+	"bin": {
+		"tauri": "./tauri.js"
+	},
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"artifacts": "napi artifacts",
+		"build": "cross-env TARGET=node napi build --platform",
+		"build:release": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+		"prepack": "cp ../schema.json .",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"tauri": "node ./tauri.js",
+		"version": "napi version"
+	},
+	"resolutions": {
+		"json5": "2.2.3"
+	},
+	"devDependencies": {
+		"@napi-rs/cli": "2.18.3",
+		"@playform/build": "0.0.9",
+		"@playform/document": "0.0.7",
+		"cross-env": "7.0.3",
+		"cross-spawn": "7.0.3",
+		"fs-extra": "11.2.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"napi": {
 		"name": "cli",
 		"triples": {
@@ -31,18 +70,5 @@
 				"aarch64-pc-windows-msvc"
 			]
 		}
-	},
-	"resolutions": {
-		"json5": "2.2.3"
-	},
-	"scripts": {
-		"artifacts": "napi artifacts",
-		"build": "cross-env TARGET=node napi build --platform",
-		"build:release": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
-		"prepack": "cp ../schema.json .",
-		"prepublishOnly": "napi prepublish -t npm --gh-release-id $RELEASE_ID",
-		"tauri": "node ./tauri.js",
-		"version": "napi version"
-	},
-	"types": "main.d.ts"
+	}
 }
