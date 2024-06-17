@@ -2,8 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-import { defineConfig, presetIcons, presetUno, presetWebFonts } from 'unocss'
-import extractorSvelte from '@unocss/extractor-svelte'
+import {
+  defineConfig,
+  presetIcons,
+  presetUno,
+  extractorSvelte,
+  presetWebFonts
+} from 'unocss'
 
 export default defineConfig({
   theme: {

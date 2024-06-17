@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { invoke } from './core'
-import { Image } from './image'
 
 /**
  * Application metadata and related APIs.
@@ -84,21 +83,4 @@ async function hide(): Promise<void> {
   return invoke('plugin:app|app_hide')
 }
 
-/**
- * Get the default window icon.
- *
- * @example
- * ```typescript
- * import { defaultWindowIcon } from '@tauri-apps/api/app';
- * await defaultWindowIcon();
- * ```
- *
- * @since 2.0.0
- */
-async function defaultWindowIcon(): Promise<Image | null> {
-  return invoke<number | null>('plugin:app|default_window_icon').then((rid) =>
-    rid ? new Image(rid) : null
-  )
-}
-
-export { getName, getVersion, getTauriVersion, show, hide, defaultWindowIcon }
+export { getName, getVersion, getTauriVersion, show, hide }
