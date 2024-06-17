@@ -1,47 +1,24 @@
 {
-	"name": "@tauri-apps/cli-linux-arm64-gnu",
-	"version": "0.0.1",
-	"private": false,
-	"keywords": [
-		"land"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🛬 Land —",
-		"email": "Land@PlayForm.Cloud",
-		"url": "HTTPS://Editor.Land"
-	},
-	"type": "module",
-	"main": "cli.linux-arm64-gnu.node",
-	"files": [
-		"cli.linux-arm64-gnu.node"
-	],
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"devDependencies": {
-		"@playform/build": "0.0.11",
-		"@playform/document": "0.0.11"
-	},
-	"os": [
-		"linux"
-	],
-	"cpu": [
-		"arm64"
-	],
-	"publishConfig": {
-		"access": "public"
-	},
-	"libc": [
-		"glibc"
-	]
+  "name": "@tauri-apps/cli-linux-arm64-gnu",
+  "version": "0.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "libc": [
+    "glibc"
+  ],
+  "main": "cli.linux-arm64-gnu.node",
+  "files": [
+    "cli.linux-arm64-gnu.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
 }
