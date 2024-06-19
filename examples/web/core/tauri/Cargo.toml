@@ -15,4 +15,4 @@ tauri-build = { path = "../../../../core/tauri-build", features = [] }
 [dependencies]
 api = { path = "../api" }
 tauri = { path = "../../../../core/tauri" }
-tauri-plugin-dialog = "2.0.0-beta.0"
+tauri-plugin-dialog = "2.0.0-alpha.7"
