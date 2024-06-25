@@ -1,21 +1,13 @@
 {
-  "name": "@tauri-apps/cli-win32-ia32-msvc",
-  "version": "0.0.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "os": [
-    "win32"
-  ],
-  "cpu": [
-    "ia32"
-  ],
-  "main": "cli.win32-ia32-msvc.node",
-  "files": [
-    "cli.win32-ia32-msvc.node"
-  ],
-  "license": "MIT",
-  "engines": {
-    "node": ">= 10"
-  }
+	"cpu": [
+		"ia32"
+	],
+	"files": [
+		"cli.win32-ia32-msvc.node"
+	],
+	"main": "cli.win32-ia32-msvc.node",
+	"name": "@tauri-apps/cli-win32-ia32-msvc",
+	"os": [
+		"win32"
+	]
 }
