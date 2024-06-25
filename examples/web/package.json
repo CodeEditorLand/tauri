@@ -1,49 +1,37 @@
 {
-	"name": "web",
-	"version": "0.0.1",
-	"private": false,
-	"keywords": [
-		"land"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🛬 Land —",
-		"email": "Land@PlayForm.Cloud",
-		"url": "HTTPS://Editor.Land"
-	},
-	"type": "module",
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"build:tauri": "cross-env TARGET=tauri vite build",
-		"build:web": "yarn wasm && cross-env TARGET=web vite build",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"dev:tauri": "cross-env TARGET=tauri vite dev",
-		"dev:web": "yarn wasm && cross-env TARGET=web vite dev",
-		"preinstall": "yarn wasm",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"preview": "vite preview",
-		"tauri": "node ../../tooling/cli/node/tauri.js",
-		"wasm": "wasm-pack build ./core/wasm --target web"
-	},
-	"dependencies": {
-		"@tauri-apps/api": "../../tooling/api/dist",
-		"wasm": "core/wasm/pkg"
-	},
-	"devDependencies": {
-		"@playform/build": "0.0.11",
-		"@playform/document": "0.0.11",
-		"cross-env": "^7.0.3",
-		"tslib": "^2.6.3"
-	},
-	"publishConfig": {
-		"access": "public"
-	}
+  "name": "web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "preinstall": "yarn wasm",
+    "dev:web": "yarn wasm && cross-env TARGET=web vite dev",
+    "build:web": "yarn wasm && cross-env TARGET=web vite build",
+    "preview": "vite preview",
+    "dev:tauri": "cross-env TARGET=tauri vite dev",
+    "build:tauri": "cross-env TARGET=tauri vite build",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "tauri": "node ../../tooling/cli/node/tauri.js",
+    "wasm": "wasm-pack build ./core/wasm --target web"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "../../tooling/api/dist",
+    "wasm": "core/wasm/pkg"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "next",
+    "@sveltejs/adapter-static": "^1.0.0-next.47",
+    "@sveltejs/kit": "next",
+    "cross-env": "^7.0.3",
+    "svelte": "^3.44.0",
+    "svelte-check": "^2.7.1",
+    "svelte-preprocess": "^4.10.6",
+    "tslib": "^2.3.1",
+    "typescript": "^4.7.4",
+    "vite": "^3.1.0",
+    "vite-plugin-static-copy": "^0.11.1",
+    "vite-plugin-top-level-await": "^1.2.1",
+    "vite-plugin-wasm": "^3.1.0"
+  },
+  "type": "module"
 }
