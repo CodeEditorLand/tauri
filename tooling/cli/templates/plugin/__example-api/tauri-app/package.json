@@ -1,23 +1,44 @@
 {
-  "name": "tauri-app",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "tauri": "tauri"
-  },
-  "dependencies": {
-    "@tauri-apps/api": "^2.0.0-alpha.11",
-    "tauri-plugin-{{ plugin_name }}-api": "link:../../"
-  },
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^1.0.1",
-    "internal-ip": "^7.0.0",
-    "svelte": "^3.49.0",
-    "vite": "^3.0.2",
-    "@tauri-apps/cli": "^2.0.0-alpha.17"
-  }
+	"name": "tauri-app",
+	"version": "0.0.1",
+	"private": false,
+	"keywords": [
+		"land"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🛬 Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Editor.Land"
+	},
+	"type": "module",
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"build": "vite build",
+		"dev": "vite",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"preview": "vite preview",
+		"tauri": "tauri"
+	},
+	"dependencies": {
+		"@tauri-apps/api": "^2.0.0-alpha.11",
+		"tauri-plugin-{{ plugin_name }}-api": "link:../../"
+	},
+	"devDependencies": {
+		"@playform/build": "0.0.11",
+		"@playform/document": "0.0.11",
+		"@tauri-apps/cli": "^2.0.0-alpha.17",
+		"internal-ip": "^7.0.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
