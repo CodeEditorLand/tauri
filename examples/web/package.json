@@ -39,7 +39,6 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.0.11",
-		"@playform/document": "0.0.11",
 		"cross-env": "7.0.3",
 		"tslib": "2.6.3"
 	},
