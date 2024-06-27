@@ -24,7 +24,7 @@ jobs:
             id-token: write
 
         steps:
-            - uses: actions/checkout@v4.1.6
+            - uses: actions/checkout@v4.1.7
 
             - uses: actions/setup-node@v4.0.2
               with:
@@ -41,9 +41,121 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+            - name: Publish ./examples/file-associations
+              continue-on-error: true
+              working-directory: ./examples/file-associations
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./examples/resources
+              continue-on-error: true
+              working-directory: ./examples/resources
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./examples/web
+              continue-on-error: true
+              working-directory: ./examples/web
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish .
+              continue-on-error: true
+              working-directory: .
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
             - name: Publish ./tooling/api
               continue-on-error: true
               working-directory: ./tooling/api
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/darwin-arm64
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/darwin-arm64
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/darwin-x64
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/darwin-x64
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/linux-arm-gnueabihf
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/linux-arm-gnueabihf
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/linux-arm64-gnu
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/linux-arm64-gnu
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/linux-arm64-musl
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/linux-arm64-musl
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/linux-x64-gnu
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/linux-x64-gnu
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/linux-x64-musl
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/linux-x64-musl
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/win32-arm64-msvc
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/win32-arm64-msvc
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/win32-ia32-msvc
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/win32-ia32-msvc
+              run: |
+                  npm publish --legacy-peer-deps --provenance --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish ./tooling/cli/node/npm/win32-x64-msvc
+              continue-on-error: true
+              working-directory: ./tooling/cli/node/npm/win32-x64-msvc
               run: |
                   npm publish --legacy-peer-deps --provenance --ignore-scripts
               env:
@@ -57,17 +169,17 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - name: Publish ./tooling/cli/node/test/jest/fixtures/empty
+            - name: Publish ./tooling/cli/templates/plugin/__example-api/tauri-app
               continue-on-error: true
-              working-directory: ./tooling/cli/node/test/jest/fixtures/empty
+              working-directory: ./tooling/cli/templates/plugin/__example-api/tauri-app
               run: |
                   npm publish --legacy-peer-deps --provenance --ignore-scripts
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - name: Publish ./tooling/cli/templates/plugin/__example-api/tauri-app
+            - name: Publish ./tooling/cli/templates/plugin/__example-basic/vanilla
               continue-on-error: true
-              working-directory: ./tooling/cli/templates/plugin/__example-api/tauri-app
+              working-directory: ./tooling/cli/templates/plugin/__example-basic/vanilla
               run: |
                   npm publish --legacy-peer-deps --provenance --ignore-scripts
               env:

@@ -73,18 +73,6 @@ updates:
           interval: "daily"
       versioning-strategy: lockfile-only
 
-    - package-ecosystem: "cargo"
-      directory: "/core/tests/acl"
-      schedule:
-          interval: "daily"
-      versioning-strategy: lockfile-only
-
-    - package-ecosystem: "cargo"
-      directory: "/core/tests/restart"
-      schedule:
-          interval: "daily"
-      versioning-strategy: lockfile-only
-
     - package-ecosystem: "npm"
       directory: "/examples/api"
       schedule:
@@ -200,30 +188,6 @@ updates:
       versioning-strategy: lockfile-only
 
     - package-ecosystem: "cargo"
-      directory: "/tooling/bench/tests"
-      schedule:
-          interval: "daily"
-      versioning-strategy: lockfile-only
-
-    - package-ecosystem: "cargo"
-      directory: "/tooling/bench/tests/cpu_intensive/src-tauri"
-      schedule:
-          interval: "daily"
-      versioning-strategy: lockfile-only
-
-    - package-ecosystem: "cargo"
-      directory: "/tooling/bench/tests/files_transfer/src-tauri"
-      schedule:
-          interval: "daily"
-      versioning-strategy: lockfile-only
-
-    - package-ecosystem: "cargo"
-      directory: "/tooling/bench/tests/helloworld/src-tauri"
-      schedule:
-          interval: "daily"
-      versioning-strategy: lockfile-only
-
-    - package-ecosystem: "cargo"
       directory: "/tooling/bundler"
       schedule:
           interval: "daily"
@@ -303,12 +267,6 @@ updates:
 
     - package-ecosystem: "npm"
       directory: "/tooling/cli/node"
-      schedule:
-          interval: "daily"
-      versioning-strategy: increase
-
-    - package-ecosystem: "npm"
-      directory: "/tooling/cli/node/test/jest/fixtures/empty"
       schedule:
           interval: "daily"
       versioning-strategy: increase

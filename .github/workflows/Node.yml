@@ -57,7 +57,7 @@ jobs:
                 node-version: [18, 19, 20]
 
         steps:
-            - uses: actions/checkout@v4.1.6
+            - uses: actions/checkout@v4.1.7
 
             - uses: pnpm/action-setup@v4.0.0
               with:
@@ -91,6 +91,14 @@ jobs:
                   name: .-examples-api-Node-${{ matrix.node-version }}-Target
                   path: ./examples/api/Target
 
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-examples-api-Node-${{ matrix.node-version }}-Target
+                  path: ./examples/api/Target
+
             - uses: actions/setup-node@v4.0.2
               with:
                   node-version: ${{ matrix.node-version }}
@@ -99,6 +107,31 @@ jobs:
 
             - run: pnpm install
               working-directory: ./examples/file-associations
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-examples-file-associations-Node-${{ matrix.node-version }}-Target
+                  path: ./examples/file-associations/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./examples/resources/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./examples/resources
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-examples-resources-Node-${{ matrix.node-version }}-Target
+                  path: ./examples/resources/Target
 
             - uses: actions/setup-node@v4.0.2
               with:
@@ -109,6 +142,14 @@ jobs:
             - run: pnpm install
               working-directory: ./examples/web
 
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-examples-web-Node-${{ matrix.node-version }}-Target
+                  path: ./examples/web/Target
+
             - uses: actions/setup-node@v4.0.2
               with:
                   node-version: ${{ matrix.node-version }}
@@ -117,6 +158,14 @@ jobs:
 
             - run: pnpm install
               working-directory: .
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-Node-${{ matrix.node-version }}-Target
+                  path: ./Target
 
             - uses: actions/setup-node@v4.0.2
               with:
@@ -134,6 +183,184 @@ jobs:
               with:
                   name: .-tooling-api-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/api/Target
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-api-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/api/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/darwin-arm64/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/darwin-arm64
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-darwin-arm64-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/darwin-arm64/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/darwin-x64/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/darwin-x64
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-darwin-x64-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/darwin-x64/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/linux-arm-gnueabihf/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/linux-arm-gnueabihf
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-linux-arm-gnueabihf-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/linux-arm-gnueabihf/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/linux-arm64-gnu/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/linux-arm64-gnu
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-linux-arm64-gnu-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/linux-arm64-gnu/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/linux-arm64-musl/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/linux-arm64-musl
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-linux-arm64-musl-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/linux-arm64-musl/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/linux-x64-gnu/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/linux-x64-gnu
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-linux-x64-gnu-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/linux-x64-gnu/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/linux-x64-musl/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/linux-x64-musl
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-linux-x64-musl-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/linux-x64-musl/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/win32-arm64-msvc/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/win32-arm64-msvc
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-win32-arm64-msvc-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/win32-arm64-msvc/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/win32-ia32-msvc/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/win32-ia32-msvc
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-win32-ia32-msvc-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/win32-ia32-msvc/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./tooling/cli/node/npm/win32-x64-msvc/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./tooling/cli/node/npm/win32-x64-msvc
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-node-npm-win32-x64-msvc-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/node/npm/win32-x64-msvc/Target
 
             - uses: actions/setup-node@v4.0.2
               with:
@@ -160,17 +387,6 @@ jobs:
                   name: .-tooling-cli-node-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/Target
 
-            - run: pnpm run test
-              working-directory: ./tooling/cli/node
-
-            - run: pnpm run build
-              working-directory: .
-
-            - uses: actions/upload-artifact@v4.3.3
-              with:
-                  name: .-tooling-cli-node-test-jest-fixtures-empty-Node-${{ matrix.node-version }}-Target
-                  path: ./tooling/cli/node/test/jest/fixtures/empty/Target
-
             - uses: actions/setup-node@v4.0.2
               with:
                   node-version: ${{ matrix.node-version }}
@@ -188,6 +404,14 @@ jobs:
                   name: .-tooling-cli-templates-plugin-__example-api-tauri-app-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/__example-api/tauri-app/Target
 
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-templates-plugin-__example-api-tauri-app-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/templates/plugin/__example-api/tauri-app/Target
+
             - uses: actions/setup-node@v4.0.2
               with:
                   node-version: ${{ matrix.node-version }}
@@ -197,8 +421,13 @@ jobs:
             - run: pnpm install
               working-directory: ./tooling/cli/templates/plugin/__example-basic/vanilla
 
-            - run: pnpm run test
-              working-directory: ./tooling/cli/templates/plugin/__example-basic/vanilla
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-tooling-cli-templates-plugin-__example-basic-vanilla-Node-${{ matrix.node-version }}-Target
+                  path: ./tooling/cli/templates/plugin/__example-basic/vanilla/Target
 
             - uses: actions/setup-node@v4.0.2
               with:
