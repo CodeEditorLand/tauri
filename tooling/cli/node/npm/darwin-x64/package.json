@@ -25,7 +25,6 @@
 		"cli.darwin-x64.node"
 	],
 	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {

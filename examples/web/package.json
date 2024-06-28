@@ -21,7 +21,6 @@
 	},
 	"type": "module",
 	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
 		"build:tauri": "cross-env TARGET=tauri vite build",
 		"build:web": "yarn wasm && cross-env TARGET=web vite build",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
