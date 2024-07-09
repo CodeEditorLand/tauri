@@ -51,6 +51,7 @@ jobs:
             STNOUPGRADE: 1
             STRIPE_CLI_TELEMETRY_OPTOUT: 1
             TELEMETRY_DISABLED: 1
+            TERRAFORM_TELEMETRY: 0
 
         strategy:
             matrix:
@@ -86,7 +87,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-examples-api-Node-${{ matrix.node-version }}-Target
                   path: ./examples/api/Target
@@ -94,7 +95,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-examples-api-Node-${{ matrix.node-version }}-Target
                   path: ./examples/api/Target
@@ -111,7 +112,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-examples-file-associations-Node-${{ matrix.node-version }}-Target
                   path: ./examples/file-associations/Target
@@ -128,7 +129,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-examples-resources-Node-${{ matrix.node-version }}-Target
                   path: ./examples/resources/Target
@@ -145,7 +146,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-examples-web-Node-${{ matrix.node-version }}-Target
                   path: ./examples/web/Target
@@ -162,7 +163,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-Node-${{ matrix.node-version }}-Target
                   path: ./Target
@@ -179,7 +180,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-api-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/api/Target
@@ -187,7 +188,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-api-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/api/Target
@@ -204,7 +205,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-darwin-arm64-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/darwin-arm64/Target
@@ -221,7 +222,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-darwin-x64-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/darwin-x64/Target
@@ -238,7 +239,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-linux-arm-gnueabihf-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-arm-gnueabihf/Target
@@ -255,7 +256,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-linux-arm64-gnu-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-arm64-gnu/Target
@@ -272,7 +273,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-linux-arm64-musl-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-arm64-musl/Target
@@ -289,7 +290,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-linux-x64-gnu-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-x64-gnu/Target
@@ -306,7 +307,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-linux-x64-musl-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-x64-musl/Target
@@ -323,7 +324,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-win32-arm64-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/win32-arm64-msvc/Target
@@ -340,7 +341,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-win32-ia32-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/win32-ia32-msvc/Target
@@ -357,7 +358,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-npm-win32-x64-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/win32-x64-msvc/Target
@@ -374,7 +375,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/Target
@@ -382,7 +383,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-node-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/Target
@@ -399,7 +400,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-templates-plugin-__example-api-tauri-app-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/__example-api/tauri-app/Target
@@ -407,7 +408,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-templates-plugin-__example-api-tauri-app-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/__example-api/tauri-app/Target
@@ -424,7 +425,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-templates-plugin-__example-basic-vanilla-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/__example-basic/vanilla/Target
@@ -441,7 +442,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-templates-plugin-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/Target
@@ -449,7 +450,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.3.3
+            - uses: actions/upload-artifact@v4.3.4
               with:
                   name: .-tooling-cli-templates-plugin-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/Target
