@@ -27,6 +27,7 @@
 		"cli.linux-arm-gnueabihf.node"
 	],
 	"scripts": {
+		"Run": "Build 'Source/**/*.ts' -W",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {

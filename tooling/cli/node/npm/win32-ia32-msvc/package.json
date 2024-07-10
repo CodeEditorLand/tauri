@@ -27,6 +27,7 @@
 		"cli.win32-ia32-msvc.node"
 	],
 	"scripts": {
+		"Run": "Build 'Source/**/*.ts' -W",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {

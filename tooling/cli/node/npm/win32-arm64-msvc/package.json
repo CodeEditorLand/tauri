@@ -27,6 +27,7 @@
 		"cli.win32-arm64-msvc.node"
 	],
 	"scripts": {
+		"Run": "Build 'Source/**/*.ts' -W",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {

@@ -27,6 +27,7 @@
 		"cli.darwin-arm64.node"
 	],
 	"scripts": {
+		"Run": "Build 'Source/**/*.ts' -W",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {

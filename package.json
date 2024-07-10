@@ -26,6 +26,7 @@
 	],
 	"type": "module",
 	"scripts": {
+		"Run": "Build 'Source/**/*.ts' -W",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"dependencies": {},

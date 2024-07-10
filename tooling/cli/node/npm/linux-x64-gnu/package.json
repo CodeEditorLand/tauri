@@ -27,6 +27,7 @@
 		"cli.linux-x64-gnu.node"
 	],
 	"scripts": {
+		"Run": "Build 'Source/**/*.ts' -W",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {
