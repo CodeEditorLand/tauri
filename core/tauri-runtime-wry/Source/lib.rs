@@ -2774,7 +2774,15 @@ fn handle_user_message<T: UserEvent>(
           WindowMessage::RequestUserAttention(request_type) => {
             window.request_user_attention(request_type.map(|r| r.0));
           }
-          WindowMessage::SetResizable(resizable) => window.set_resizable(resizable),
+          WindowMessage::SetResizable(resizable) => {
+            window.set_resizable(resizable);
+            #[cfg(windows)]
+            if !resizable {
+              undecorated_resizing::detach_resize_handler(window.hwnd());
+            } else if !window.is_decorated() {
+              undecorated_resizing::attach_resize_handler(window.hwnd());
+            }
+          }
           WindowMessage::SetMaximizable(maximizable) => window.set_maximizable(maximizable),
           WindowMessage::SetMinimizable(minimizable) => window.set_minimizable(minimizable),
           WindowMessage::SetClosable(closable) => window.set_closable(closable),
@@ -2796,7 +2804,7 @@ fn handle_user_message<T: UserEvent>(
             #[cfg(windows)]
             if decorations {
               undecorated_resizing::detach_resize_handler(window.hwnd());
-            } else {
+            } else if window.is_resizable() {
               undecorated_resizing::attach_resize_handler(window.hwnd());
             }
           }
@@ -3857,21 +3865,21 @@ fn create_webview<T: UserEvent>(
         WryDragDropEvent::Enter {
           paths,
           position: (x, y),
-        } => DragDropEvent::Dragged {
+        } => DragDropEvent::Enter {
           paths,
           position: PhysicalPosition::new(x as _, y as _),
         },
-        WryDragDropEvent::Over { position: (x, y) } => DragDropEvent::DragOver {
+        WryDragDropEvent::Over { position: (x, y) } => DragDropEvent::Over {
           position: PhysicalPosition::new(x as _, y as _),
         },
         WryDragDropEvent::Drop {
           paths,
           position: (x, y),
-        } => DragDropEvent::Dropped {
+        } => DragDropEvent::Drop {
           paths,
           position: PhysicalPosition::new(x as _, y as _),
         },
-        WryDragDropEvent::Leave => DragDropEvent::Cancelled,
+        WryDragDropEvent::Leave => DragDropEvent::Leave,
         _ => unimplemented!(),
       };
 
