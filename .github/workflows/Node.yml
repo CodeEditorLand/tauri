@@ -75,7 +75,7 @@ jobs:
                           --unsafe-perm=true
                         ]
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -100,7 +100,7 @@ jobs:
                   name: .-examples-api-Node-${{ matrix.node-version }}-Target
                   path: ./examples/api/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -117,7 +117,7 @@ jobs:
                   name: .-examples-file-associations-Node-${{ matrix.node-version }}-Target
                   path: ./examples/file-associations/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -134,7 +134,7 @@ jobs:
                   name: .-examples-resources-Node-${{ matrix.node-version }}-Target
                   path: ./examples/resources/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -151,7 +151,7 @@ jobs:
                   name: .-examples-web-Node-${{ matrix.node-version }}-Target
                   path: ./examples/web/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -168,7 +168,7 @@ jobs:
                   name: .-Node-${{ matrix.node-version }}-Target
                   path: ./Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -193,7 +193,7 @@ jobs:
                   name: .-tooling-api-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/api/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -210,7 +210,7 @@ jobs:
                   name: .-tooling-cli-node-npm-darwin-arm64-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/darwin-arm64/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -227,7 +227,7 @@ jobs:
                   name: .-tooling-cli-node-npm-darwin-x64-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/darwin-x64/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -244,7 +244,7 @@ jobs:
                   name: .-tooling-cli-node-npm-linux-arm-gnueabihf-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-arm-gnueabihf/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -261,7 +261,7 @@ jobs:
                   name: .-tooling-cli-node-npm-linux-arm64-gnu-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-arm64-gnu/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -278,7 +278,7 @@ jobs:
                   name: .-tooling-cli-node-npm-linux-arm64-musl-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-arm64-musl/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -295,7 +295,7 @@ jobs:
                   name: .-tooling-cli-node-npm-linux-x64-gnu-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-x64-gnu/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -312,7 +312,7 @@ jobs:
                   name: .-tooling-cli-node-npm-linux-x64-musl-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/linux-x64-musl/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -329,7 +329,7 @@ jobs:
                   name: .-tooling-cli-node-npm-win32-arm64-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/win32-arm64-msvc/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -346,7 +346,7 @@ jobs:
                   name: .-tooling-cli-node-npm-win32-ia32-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/win32-ia32-msvc/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -363,7 +363,7 @@ jobs:
                   name: .-tooling-cli-node-npm-win32-x64-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/npm/win32-x64-msvc/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -388,7 +388,7 @@ jobs:
                   name: .-tooling-cli-node-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/node/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -413,7 +413,7 @@ jobs:
                   name: .-tooling-cli-templates-plugin-__example-api-tauri-app-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/__example-api/tauri-app/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -430,7 +430,7 @@ jobs:
                   name: .-tooling-cli-templates-plugin-__example-basic-vanilla-Node-${{ matrix.node-version }}-Target
                   path: ./tooling/cli/templates/plugin/__example-basic/vanilla/Target
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"

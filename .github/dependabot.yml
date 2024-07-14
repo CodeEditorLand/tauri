@@ -290,6 +290,12 @@ updates:
       versioning-strategy: increase
 
     - package-ecosystem: "cargo"
+      directory: "/tooling/macos-sign"
+      schedule:
+          interval: "daily"
+      versioning-strategy: lockfile-only
+
+    - package-ecosystem: "cargo"
       directory: "/tooling/webdriver"
       schedule:
           interval: "daily"
