@@ -48,7 +48,7 @@
 		"json5": "2.2.3"
 	},
 	"devDependencies": {
-		"@napi-rs/cli": "2.18.3",
+		"@napi-rs/cli": "2.18.4",
 		"@playform/build": "0.1.1",
 		"cross-env": "7.0.3",
 		"cross-spawn": "7.0.3",

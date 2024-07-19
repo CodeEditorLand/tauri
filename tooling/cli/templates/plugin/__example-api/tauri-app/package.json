@@ -36,7 +36,7 @@
 	"devDependencies": {
 		"@playform/build": "0.1.1",
 		"@tauri-apps/cli": "2.0.0-alpha.17",
-		"internal-ip": "7.0.0"
+		"internal-ip": "8.0.0"
 	},
 	"publishConfig": {
 		"access": "public"
