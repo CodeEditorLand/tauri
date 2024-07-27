@@ -1,31 +1,31 @@
 [workspace]
 resolver = "2"
 members = [
-  # core
-  "core/tauri",
-  "core/tauri-runtime",
-  "core/tauri-runtime-wry",
-  "core/tauri-macros",
-  "core/tauri-utils",
-  "core/tauri-build",
-  "core/tauri-codegen",
-  "core/tauri-config-schema",
-  "core/tauri-acl-schema",
-  "core/tauri-plugin",
+	# core
+	"core/tauri",
+	"core/tauri-runtime",
+	"core/tauri-runtime-wry",
+	"core/tauri-macros",
+	"core/tauri-utils",
+	"core/tauri-build",
+	"core/tauri-codegen",
+	"core/tauri-config-schema",
+	"core/tauri-acl-schema",
+	"core/tauri-plugin",
 
-  # integration tests
-  "core/tests/restart",
-  "core/tests/acl",
+	# integration tests
+	"core/tests/restart",
+	"core/tests/acl",
 ]
 
 exclude = [
-  # examples that can be compiled with the tauri CLI
-  "examples/api/src-tauri",
-  "examples/resources/src-tauri",
-  "examples/web/core",
-  "examples/file-associations/src-tauri",
-  "examples/workspace",
-  "examples/plugins/tauri-plugin-example",
+	# examples that can be compiled with the tauri CLI
+	"examples/api/src-tauri",
+	"examples/resources/src-tauri",
+	"examples/web/core",
+	"examples/file-associations/src-tauri",
+	"examples/workspace",
+	"examples/plugins/tauri-plugin-example",
 ]
 
 [workspace.package]
