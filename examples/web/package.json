@@ -13,8 +13,8 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.1.1",
-		"cross-env": "^7.0.3",
-		"tslib": "^2.3.1"
+		"cross-env": "7.0.3",
+		"tslib": "2.3.1"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
