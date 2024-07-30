@@ -50,7 +50,7 @@ This soft fork was introduced to the Tauri Codebase [here](https://github.com/ta
 `console`
 
 ```
-license = "MIT"
+license = "SEE LICENSE IN LICENSE"
 authors = [
 	"Armin Ronacher <armin.ronacher@active-4.com>"
 ]
@@ -59,7 +59,7 @@ authors = [
 `dialoguer`
 
 ```
-license = "MIT"
+license = "SEE LICENSE IN LICENSE"
 authors = [
 	"Armin Ronacher <armin.ronacher@active-4.com>",
 	"Pavan Kumar Sunkara <pavan.sss1991@gmail.com>"
