@@ -12,9 +12,9 @@
 		"wasm": "core/wasm/pkg"
 	},
 	"devDependencies": {
-		"@playform/build": "0.1.1",
+		"@playform/build": "0.1.2",
 		"cross-env": "7.0.3",
-		"tslib": "2.3.1"
+		"tslib": "2.6.3"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
