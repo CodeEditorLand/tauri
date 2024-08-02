@@ -1,8 +1,8 @@
 # The Tauri Architecture
 
-https://tauri.app
+<https://tauri.app>
 
-https://github.com/tauri-apps/tauri
+<https://github.com/tauri-apps/tauri>
 
 ## Introduction
 
@@ -164,9 +164,9 @@ be official, supported plugins). A plugin generally does 3 things:
 
 Here are several examples of Tauri Plugins:
 
--   https://github.com/tauri-apps/tauri-plugin-sql
--   https://github.com/tauri-apps/tauri-plugin-stronghold
--   https://github.com/tauri-apps/tauri-plugin-authenticator
+- <https://github.com/tauri-apps/tauri-plugin-sql>
+- <https://github.com/tauri-apps/tauri-plugin-stronghold>
+- <https://github.com/tauri-apps/tauri-plugin-authenticator>
 
 # Workflows
 
