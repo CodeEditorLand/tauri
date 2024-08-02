@@ -11,7 +11,7 @@
 		"arm64"
 	],
 	"devDependencies": {
-		"@playform/build": "0.1.2"
+		"@playform/build": "0.1.1"
 	},
 	"files": [
 		"cli.linux-arm64-musl.node"

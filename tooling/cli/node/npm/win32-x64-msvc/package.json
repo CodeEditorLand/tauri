@@ -11,7 +11,7 @@
 		"x64"
 	],
 	"devDependencies": {
-		"@playform/build": "0.1.2"
+		"@playform/build": "0.1.1"
 	},
 	"files": [
 		"cli.win32-x64-msvc.node"
