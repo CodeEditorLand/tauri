@@ -1,39 +1,27 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
-	"dependencies": {},
-	"devDependencies": {
-		"@playform/build": "0.1.1",
-		"covector": "0.12.3"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"license": "SEE LICENSE IN LICENSE",
-	"name": "tauri-workspace",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"type": "module",
-	"version": "0.0.1"
+  "name": "tauri-workspace",
+  "version": "0.0.0",
+  "license": "Apache-2.0 OR MIT",
+  "private": true,
+  "contributors": [
+    "Tauri Programme within The Commons Conservancy"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tauri-apps/tauri.git"
+  },
+  "scripts": {
+    "format": "prettier --write . --config .prettierrc --ignore-path .prettierignore",
+    "format:check": "prettier --check . --config .prettierrc --ignore-path .prettierignore",
+    "postinstall": "husky install"
+  },
+  "devDependencies": {
+    "covector": "^0.9.0",
+    "husky": "^6.0.0",
+    "prettier": "^3.3.2"
+  },
+  "dependencies": {
+    "typescript": "^5.4.5"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
