@@ -43,7 +43,9 @@ panic = "abort"
 codegen-units = 1
 lto = true
 incremental = false
-opt-level = "s"
+opt-level = 3
+debug = false
+strip = true
 
 # Temporary patch to schemars to preserve newlines in docstrings for our reference docs schemas
 # See https://github.com/GREsau/schemars/issues/120 for reference

@@ -12,8 +12,8 @@ crate-type = ["staticlib", "cdylib", "lib"]
 
 [build-dependencies]
 tauri-build = { path = "../../../core/tauri-build", features = [
-  "codegen",
-  "isolation",
+	"codegen",
+	"isolation",
 ] }
 
 [dependencies]
@@ -26,12 +26,12 @@ tauri-plugin-sample = { path = "./tauri-plugin-sample/" }
 [dependencies.tauri]
 path = "../../../core/tauri"
 features = [
-  "protocol-asset",
-  "image-ico",
-  "image-png",
-  "isolation",
-  "macos-private-api",
-  "tray-icon",
+	"protocol-asset",
+	"image-ico",
+	"image-png",
+	"isolation",
+	"macos-private-api",
+	"tray-icon",
 ]
 
 [dev-dependencies.tauri]
@@ -47,4 +47,6 @@ panic = "abort"
 codegen-units = 1
 lto = true
 incremental = false
-opt-level = "s"
+opt-level = 3
+debug = false
+strip = true
