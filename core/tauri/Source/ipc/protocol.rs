@@ -10,7 +10,10 @@ use crate::{
   Runtime,
 };
 use http::{
-  header::{ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE},
+  header::{
+    ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_ORIGIN, ACCESS_CONTROL_EXPOSE_HEADERS,
+    CONTENT_TYPE,
+  },
   HeaderValue, Method, Request, StatusCode,
 };
 use url::Url;
@@ -20,6 +23,10 @@ use super::{CallbackFn, InvokeBody, InvokeResponse};
 const TAURI_CALLBACK_HEADER_NAME: &str = "Tauri-Callback";
 const TAURI_ERROR_HEADER_NAME: &str = "Tauri-Error";
 const TAURI_INVOKE_KEY_HEADER_NAME: &str = "Tauri-Invoke-Key";
+
+const TAURI_RESPONSE_HEADER_NAME: &str = "Tauri-Response";
+const TAURI_RESPONSE_HEADER_ERROR: &str = "error";
+const TAURI_RESPONSE_HEADER_OK: &str = "ok";
 
 pub fn message_handler<R: Runtime>(
   manager: Arc<AppManager<R>>,
@@ -44,6 +51,10 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
       response
         .headers_mut()
         .insert(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"));
+      response.headers_mut().insert(
+        ACCESS_CONTROL_EXPOSE_HEADERS,
+        HeaderValue::from_static(TAURI_RESPONSE_HEADER_NAME),
+      );
       responder.respond(response);
     };
 
@@ -81,6 +92,11 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
                   )
                   .entered();
 
+                  let response_header = match &response {
+                    InvokeResponse::Ok(_) => TAURI_RESPONSE_HEADER_OK,
+                    InvokeResponse::Err(_) => TAURI_RESPONSE_HEADER_ERROR,
+                  };
+
                   let (mut response, mime_type) = match response {
                     InvokeResponse::Ok(InvokeBody::Json(v)) => (
                       http::Response::new(serde_json::to_vec(&v).unwrap().into()),
@@ -90,13 +106,15 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
                       http::Response::new(v.into()),
                       mime::APPLICATION_OCTET_STREAM,
                     ),
-                    InvokeResponse::Err(e) => {
-                      let mut response =
-                        http::Response::new(serde_json::to_vec(&e.0).unwrap().into());
-                      *response.status_mut() = StatusCode::BAD_REQUEST;
-                      (response, mime::APPLICATION_JSON)
-                    }
+                    InvokeResponse::Err(e) => (
+                      http::Response::new(serde_json::to_vec(&e.0).unwrap().into()),
+                      mime::APPLICATION_JSON,
+                    ),
                   };
+
+                  response
+                    .headers_mut()
+                    .insert(TAURI_RESPONSE_HEADER_NAME, response_header.parse().unwrap());
 
                   #[cfg(feature = "tracing")]
                   response_span.record("mime_type", mime_type.essence_str());
@@ -113,7 +131,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
             Err(e) => {
               respond(
                 http::Response::builder()
-                  .status(StatusCode::BAD_REQUEST)
+                  .status(StatusCode::INTERNAL_SERVER_ERROR)
                   .header(CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
                   .body(e.as_bytes().to_vec().into())
                   .unwrap(),
@@ -123,7 +141,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
         } else {
           respond(
             http::Response::builder()
-              .status(StatusCode::BAD_REQUEST)
+              .status(StatusCode::INTERNAL_SERVER_ERROR)
               .header(CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
               .body(
                 "failed to acquire webview reference"
@@ -140,6 +158,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
         let mut r = http::Response::new(Vec::new().into());
         r.headers_mut()
           .insert(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"));
+
         respond(r);
       }
 
@@ -174,6 +193,7 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 
     use serde::{Deserialize, Deserializer};
 
+    #[derive(Default)]
     pub(crate) struct HeaderMap(http::HeaderMap);
 
     impl<'de> Deserialize<'de> for HeaderMap {
@@ -199,9 +219,13 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
       }
     }
 
-    #[derive(Deserialize)]
+    #[derive(Deserialize, Default)]
+    #[serde(rename_all = "camelCase")]
     struct RequestOptions {
+      #[serde(default)]
       headers: HeaderMap,
+      #[serde(default)]
+      custom_protocol_ipc_blocked: bool,
     }
 
     #[derive(Deserialize)]
@@ -260,13 +284,15 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 
     match message {
       Ok(message) => {
+        let options = message.options.unwrap_or_default();
+
         let request = InvokeRequest {
           cmd: message.cmd,
           callback: message.callback,
           error: message.error,
           url: Url::parse(&request.uri().to_string()).expect("invalid IPC request URL"),
           body: message.payload.into(),
-          headers: message.options.map(|o| o.headers.0).unwrap_or_default(),
+          headers: options.headers.0,
           invoke_key: message.invoke_key,
         };
 
@@ -293,9 +319,7 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
             .entered();
 
             // the channel data command is the only command that uses a custom protocol on Linux
-            if webview.manager().webview.invoke_responder.is_none()
-              && cmd != crate::ipc::channel::FETCH_CHANNEL_DATA_COMMAND
-            {
+            if webview.manager().webview.invoke_responder.is_none() {
               fn responder_eval<R: Runtime>(
                 webview: &crate::Webview<R>,
                 js: crate::Result<String>,
@@ -309,6 +333,10 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 
                 let _ = webview.eval(&eval_js);
               }
+
+              let can_use_channel_for_response = cmd
+                != crate::ipc::channel::FETCH_CHANNEL_DATA_COMMAND
+                && !options.custom_protocol_ipc_blocked;
 
               #[cfg(feature = "tracing")]
               let _response_span = tracing::trace_span!(
@@ -327,6 +355,7 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
                 InvokeResponse::Ok(InvokeBody::Json(v)) => {
                   if !(cfg!(target_os = "macos") || cfg!(target_os = "ios"))
                     && matches!(v, JsonValue::Object(_) | JsonValue::Array(_))
+                    && can_use_channel_for_response
                   {
                     let _ = Channel::from_callback_fn(webview, callback).send(v);
                   } else {
@@ -338,7 +367,10 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
                   }
                 }
                 InvokeResponse::Ok(InvokeBody::Raw(v)) => {
-                  if cfg!(target_os = "macos") || cfg!(target_os = "ios") {
+                  if cfg!(target_os = "macos")
+                    || cfg!(target_os = "ios")
+                    || !can_use_channel_for_response
+                  {
                     responder_eval(
                       &webview,
                       format_callback_result(Result::<_, ()>::Ok(v), callback, error),
