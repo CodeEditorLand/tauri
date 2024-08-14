@@ -14,7 +14,7 @@ use crate::{
     flock,
   },
   interface::{AppInterface, AppSettings, Interface, MobileOptions, Options as InterfaceOptions},
-  mobile::{write_options, CliOptions, DevChild, DevProcess},
+  mobile::{write_options, CliOptions, DevChild, DevProcess, TargetDevice},
   ConfigValue, Result,
 };
 use clap::{ArgAction, Parser};
@@ -222,7 +222,7 @@ fn run_dev(
       debug: !options.release_mode,
       features: options.features,
       args: Vec::new(),
-      config: options.config,
+      config: dev_options.config.clone(),
       no_watch: options.no_watch,
     },
     |options| {
@@ -232,6 +232,11 @@ fn run_dev(
         args: options.args.clone(),
         noise_level,
         vars: Default::default(),
+        config: dev_options.config.clone(),
+        target_device: device.as_ref().map(|d| TargetDevice {
+          id: d.serial_no().to_string(),
+          name: d.name().to_string(),
+        }),
       };
 
       let _handle = write_options(
