@@ -12,8 +12,8 @@
 	],
 	"dependencies": {},
 	"devDependencies": {
-		"@playform/build": "0.1.1",
-		"covector": "^0.9.0"
+		"@playform/build": "0.1.3",
+		"covector": "0.12.3"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
