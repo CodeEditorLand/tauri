@@ -21,6 +21,7 @@
 		"guest-js/*.ts",
 		"Source",
 		"Source",
+		"Source",
 		"Source"
 	]
 }
