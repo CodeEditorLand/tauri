@@ -1,6 +1,6 @@
 [package]
 name = "tauri-utils"
-version = "2.0.0-rc.2"
+version = "2.0.0-rc.3"
 description = "Utilities for Tauri"
 exclude = [ "CHANGELOG.md", "/target" ]
 readme = "README.md"
@@ -46,6 +46,10 @@ serde-untagged = "0.1"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 swift-rs = { version = "1.0.6", optional = true, features = [ "build" ] }
+
+[dev-dependencies]
+getrandom = { version = "0.2", features = [ "std" ] }
+serial_test = "3.1"
 
 [features]
 build = [

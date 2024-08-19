@@ -1328,6 +1328,53 @@ impl<R: Runtime> Builder<R> {
     self
   }
 
+  /// Append a custom initialization script.
+  ///
+  /// Allow to append custom initialization script instend of replacing entire invoke system.
+  ///
+  /// # Examples
+  ///
+  /// ```
+  /// let custom_script = r#"
+  /// // A custom call system bridge build on top of tauri invoke system.
+  /// async function invoke(cmd, args = {}) {
+  ///   if (!args) args = {};
+  ///
+  ///   let prefix = "";
+  ///
+  ///   if (args?.__module) {
+  ///     prefix = `plugin:hybridcall.${args.__module}|`;
+  ///   }
+  ///
+  ///   const command = `${prefix}tauri_${cmd}`;
+  ///
+  ///   const invoke = window.__TAURI_INTERNALS__.invoke;
+  ///
+  ///   return invoke(command, args).then(result => {
+  ///     if (window.build.debug) {
+  ///       console.log(`call: ${command}`);
+  ///       console.log(`args: ${JSON.stringify(args)}`);
+  ///       console.log(`return: ${JSON.stringify(result)}`);
+  ///     }
+  ///
+  ///     return result;
+  ///   });
+  /// }
+  /// "#;
+  ///
+  /// tauri::Builder::default()
+  ///   .append_invoke_initialization_script(custom_script);
+  /// ```
+  pub fn append_invoke_initialization_script(
+    mut self,
+    initialization_script: impl AsRef<str>,
+  ) -> Self {
+    self
+      .invoke_initialization_script
+      .push_str(initialization_script.as_ref());
+    self
+  }
+
   /// Defines the setup hook.
   ///
   /// # Examples
@@ -1741,6 +1788,13 @@ tauri::Builder::default()
       self.invoke_key,
     ));
 
+    #[cfg(any(
+      target_os = "linux",
+      target_os = "dragonfly",
+      target_os = "freebsd",
+      target_os = "netbsd",
+      target_os = "openbsd"
+    ))]
     let app_id = if manager.config.app.enable_gtk_app_id {
       Some(manager.config.identifier.clone())
     } else {
@@ -1766,7 +1820,7 @@ tauri::Builder::default()
             let msg = msg as *const MSG;
             for menu in menus.lock().unwrap().values() {
               let translated =
-                TranslateAcceleratorW((*msg).hwnd, HACCEL(menu.inner().haccel()), msg);
+                TranslateAcceleratorW((*msg).hwnd, HACCEL(menu.inner().haccel() as _), msg);
               if translated == 1 {
                 return true;
               }

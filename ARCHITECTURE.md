@@ -185,7 +185,7 @@ node.js runtime.)
 The easiest way to do this is to run the following:
 
 ```
-npx create-tauri-app
+npm create tauri-app
 ```
 
 Which will ask you a bunch of questions about the framework you want to install
@@ -199,6 +199,8 @@ framework.
 Once everything is installed, you can run:
 
 ```
+pnpm tauri dev
+-or-
 yarn tauri dev
 -or-
 npm run tauri dev
@@ -222,7 +224,7 @@ If you need to get deeper insight into your current project, or triage requires
 investigation of installed components, just run:
 
 ```
-yarn tauri info
+pnpm tauri info
 ```
 
 ## What does the Release flow look like?
@@ -241,7 +243,7 @@ build for all platforms.)
 To kick off this process, just:
 
 ```
-yarn tauri build
+pnpm tauri build
 ```
 
 After some time, the process will end and you can see the results in the
