@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use super::{
-  configure_cargo, device_prompt, ensure_init, env, get_app, get_config, inject_assets,
+  configure_cargo, device_prompt, ensure_init, env, get_app, get_config, inject_resources,
   merge_plist, open_and_wait, MobileTarget,
 };
 use crate::{
@@ -159,7 +159,7 @@ fn run_command(options: Options, noise_level: NoiseLevel) -> Result<()> {
 
     let interface = AppInterface::new(tauri_config_, Some(target_triple))?;
 
-    let app = get_app(tauri_config_, &interface);
+    let app = get_app(MobileTarget::Ios, tauri_config_, &interface);
     let (config, _metadata) = get_config(
       &app,
       tauri_config_,
@@ -179,19 +179,18 @@ fn run_command(options: Options, noise_level: NoiseLevel) -> Result<()> {
     config.project_dir(),
     MobileTarget::Ios,
   )?;
-  inject_assets(&config)?;
+  inject_resources(&config, tauri_config.lock().unwrap().as_ref().unwrap())?;
 
   let info_plist_path = config
     .project_dir()
     .join(config.scheme())
     .join("Info.plist");
-  merge_plist(
-    vec![
-      tauri_path.join("Info.plist").into(),
-      tauri_path.join("Info.ios.plist").into(),
-    ],
-    &info_plist_path,
-  )?;
+  let merged_info_plist = merge_plist(vec![
+    info_plist_path.clone().into(),
+    tauri_path.join("Info.plist").into(),
+    tauri_path.join("Info.ios.plist").into(),
+  ])?;
+  merged_info_plist.to_file_xml(&info_plist_path)?;
 
   run_dev(
     interface,

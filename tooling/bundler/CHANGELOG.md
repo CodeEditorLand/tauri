@@ -1,5 +1,31 @@
 # Changelog
 
+## \[2.0.1-rc.5]
+
+### What's Changed
+
+- [`f4d5241b3`](https://www.github.com/tauri-apps/tauri/commit/f4d5241b377d0f7a1b58100ee19f7843384634ac) ([#10731](https://www.github.com/tauri-apps/tauri/pull/10731) by [@amrbashir](https://www.github.com/tauri-apps/tauri/../../amrbashir)) Update documentation icon path.
+
+### Dependencies
+
+- Upgraded to `tauri-utils@2.0.0-rc.6`
+
+## \[2.0.1-rc.4]
+
+### Dependencies
+
+- Upgraded to `tauri-utils@2.0.0-rc.5`
+
+## \[2.0.1-rc.3]
+
+### New Features
+
+- [`8d148a9e2`](https://www.github.com/tauri-apps/tauri/commit/8d148a9e2566edebfea2d75f32df7c9396d765a4) ([#10634](https://www.github.com/tauri-apps/tauri/pull/10634) by [@anatawa12](https://www.github.com/tauri-apps/tauri/../../anatawa12)) Custom sign command with object notation for whitespaces in the command path and arguments.
+
+### Dependencies
+
+- Upgraded to `tauri-utils@2.0.0-rc.4`
+
 ## \[2.0.1-rc.2]
 
 ### New Features

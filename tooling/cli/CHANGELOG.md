@@ -1,5 +1,62 @@
 # Changelog
 
+## \[2.0.0-rc.7]
+
+### Enhancements
+
+- [`da8c9a7d3`](https://www.github.com/tauri-apps/tauri/commit/da8c9a7d3069398c26826aeb082caa44b7c92809) ([#10669](https://www.github.com/tauri-apps/tauri/pull/10669) by [@lucasfernog](https://www.github.com/tauri-apps/tauri/../../lucasfernog)) Modify both ExportOptions.plist and project.pbxproj to reflect changes for the `IOS_CERTIFICATE`, `IOS_CERTIFICATE_PASSWORD` and `IOS_MOBILE_PROVISION` environment variables.
+
+### Bug Fixes
+
+- [`793ee0531`](https://www.github.com/tauri-apps/tauri/commit/793ee0531730597e6008c9c0dedabbab7a2bef53) ([#10700](https://www.github.com/tauri-apps/tauri/pull/10700) by [@lucasfernog](https://www.github.com/tauri-apps/tauri/../../lucasfernog)) Allow hyphens and underscores on app identifiers.
+- [`da8c9a7d3`](https://www.github.com/tauri-apps/tauri/commit/da8c9a7d3069398c26826aeb082caa44b7c92809) ([#10669](https://www.github.com/tauri-apps/tauri/pull/10669) by [@lucasfernog](https://www.github.com/tauri-apps/tauri/../../lucasfernog)) Synchronize Xcode project changes with the ExportOptions.plist file so `ios build` calls can work with code signing changes made in Xcode.
+
+### What's Changed
+
+- [`f4d5241b3`](https://www.github.com/tauri-apps/tauri/commit/f4d5241b377d0f7a1b58100ee19f7843384634ac) ([#10731](https://www.github.com/tauri-apps/tauri/pull/10731) by [@amrbashir](https://www.github.com/tauri-apps/tauri/../../amrbashir)) Update documentation icon path.
+
+### Dependencies
+
+- Upgraded to `tauri-utils@2.0.0-rc.6`
+- Upgraded to `tauri-bundler@2.0.1-rc.5`
+
+### Breaking Changes
+
+- [`da8c9a7d3`](https://www.github.com/tauri-apps/tauri/commit/da8c9a7d3069398c26826aeb082caa44b7c92809) ([#10669](https://www.github.com/tauri-apps/tauri/pull/10669) by [@lucasfernog](https://www.github.com/tauri-apps/tauri/../../lucasfernog)) The `IOS_CERTIFICATE`, `IOS_CERTIFICATE_PASSWORD` and `IOS_MOBILE_PROVISION` environment variables are now read by the `ios build` command instead of `ios init`.
+
+## \[2.0.0-rc.6]
+
+### New Features
+
+- [`da381e07f`](https://www.github.com/tauri-apps/tauri/commit/da381e07f3770988fe6d0859a02331b87cc6723f) ([#10696](https://www.github.com/tauri-apps/tauri/pull/10696) by [@lucasfernog](https://www.github.com/tauri-apps/tauri/../../lucasfernog)) Inject configured resources on mobile apps.
+
+### Bug Fixes
+
+- [`1a60822a4`](https://www.github.com/tauri-apps/tauri/commit/1a60822a4220b6dbb1ad7295a2e37d6c3004edad) ([#10699](https://www.github.com/tauri-apps/tauri/pull/10699) by [@lucasfernog](https://www.github.com/tauri-apps/tauri/../../lucasfernog)) Changed the `add` command to use a version requirement that matches the CLI's stable and prerelease numbers.
+
+### Dependencies
+
+- Upgraded to `tauri-utils@2.0.0-rc.5`
+- Upgraded to `tauri-bundler@2.0.1-rc.4`
+
+## \[2.0.0-rc.5]
+
+### New Features
+
+- [`8d148a9e2`](https://www.github.com/tauri-apps/tauri/commit/8d148a9e2566edebfea2d75f32df7c9396d765a4) ([#10634](https://www.github.com/tauri-apps/tauri/pull/10634) by [@anatawa12](https://www.github.com/tauri-apps/tauri/../../anatawa12)) Custom sign command with object notation for whitespaces in the command path and arguments.
+
+### Bug Fixes
+
+- [`8ae52a615`](https://www.github.com/tauri-apps/tauri/commit/8ae52a615a11d934930001da63ce6ac8442c7efc) ([#10676](https://www.github.com/tauri-apps/tauri/pull/10676) by [@rdlabo](https://www.github.com/tauri-apps/tauri/../../rdlabo)) Change plugin template call to `register_ios_plugin` params to snake case
+- [`7796a8fc6`](https://www.github.com/tauri-apps/tauri/commit/7796a8fc649cd7397a67048c71f8d1fbf822122a) ([#10687](https://www.github.com/tauri-apps/tauri/pull/10687) by [@lucasfernog](https://www.github.com/tauri-apps/tauri/../../lucasfernog)) Fix Swift plugin compilation on older versions.
+- [`9b99ebab1`](https://www.github.com/tauri-apps/tauri/commit/9b99ebab17d6a043d82a7aeecfb76c56a995c287) ([#10431](https://www.github.com/tauri-apps/tauri/pull/10431) by [@mrguiman](https://www.github.com/tauri-apps/tauri/../../mrguiman)) Do not include the target arch when building and archiving the iOS application,
+  which makes Xcode project modifications more flexible.
+
+### Dependencies
+
+- Upgraded to `tauri-utils@2.0.0-rc.4`
+- Upgraded to `tauri-bundler@2.0.1-rc.3`
+
 ## \[2.0.0-rc.4]
 
 ### New Features

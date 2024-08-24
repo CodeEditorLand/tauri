@@ -7,8 +7,8 @@
 //! This applies the macros at build-time in order to rig some special features needed by `cargo`.
 
 #![doc(
-  html_logo_url = "https://github.com/tauri-apps/tauri/raw/dev/app-icon.png",
-  html_favicon_url = "https://github.com/tauri-apps/tauri/raw/dev/app-icon.png"
+  html_logo_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png",
+  html_favicon_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png"
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
@@ -476,9 +476,12 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
   let mut android_package_prefix = String::new();
   for (i, w) in s.enumerate() {
     if i == last {
-      println!("cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_APP_NAME={w}");
+      println!(
+        "cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_APP_NAME={}",
+        w.replace('-', "_")
+      );
     } else {
-      android_package_prefix.push_str(w);
+      android_package_prefix.push_str(&w.replace(['_', '-'], "_1"));
       android_package_prefix.push('_');
     }
   }

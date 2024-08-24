@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use super::{
-  configure_cargo, delete_codegen_vars, ensure_init, env, get_app, get_config, inject_assets,
+  configure_cargo, delete_codegen_vars, ensure_init, env, get_app, get_config, inject_resources,
   log_finished, open_and_wait, MobileTarget, OptionsHandle,
 };
 use crate::{
@@ -114,7 +114,7 @@ pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
     let interface = AppInterface::new(tauri_config_, build_options.target.clone())?;
     interface.build_options(&mut Vec::new(), &mut build_options.features, true);
 
-    let app = get_app(tauri_config_, &interface);
+    let app = get_app(MobileTarget::Android, tauri_config_, &interface);
     let (config, metadata) = get_config(
       &app,
       tauri_config_,
@@ -209,7 +209,7 @@ fn run_build(
     cli_options,
   )?;
 
-  inject_assets(config, tauri_config.lock().unwrap().as_ref().unwrap())?;
+  inject_resources(config, tauri_config.lock().unwrap().as_ref().unwrap())?;
 
   let apk_outputs = if options.apk {
     apk::build(
