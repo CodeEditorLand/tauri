@@ -9,10 +9,10 @@
 	},
 	"dependencies": {
 		"@tauri-apps/api": "../../tooling/api/dist",
-		"wasm": "core/wasm/pkg"
+		"wasm": "./core/wasm/pkg"
 	},
 	"devDependencies": {
-		"@playform/build": "0.1.1",
+		"@playform/build": "0.1.3",
 		"cross-env": "7.0.3",
 		"tslib": "2.7.0"
 	},
