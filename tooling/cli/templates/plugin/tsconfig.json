@@ -7,7 +7,7 @@
 		"noImplicitAny": true,
 		"noUnusedLocals": true,
 		"outDir": "Target",
-		"rootDir": "Source",
+		"rootDir": "src",
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "es2021"
@@ -30,6 +30,7 @@
 		"Source",
 		"Source",
 		"Source",
-		"Source"
+		"Source",
+		"src"
 	]
 }
