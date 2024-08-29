@@ -31,7 +31,7 @@ exclude = [
 [workspace.package]
 authors = ["Tauri Programme within The Commons Conservancy"]
 homepage = "https://tauri.app/"
-repository = "https://github.com/tauri-apps/tauri"
+repository = "HTTPS://GitHub.Com/tauri-apps/tauri"
 categories = ["gui", "web-programming"]
 license = "Apache-2.0 OR MIT"
 edition = "2021"
