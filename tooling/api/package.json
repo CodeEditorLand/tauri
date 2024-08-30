@@ -12,8 +12,8 @@
 	],
 	"description": "Tauri API definitions",
 	"devDependencies": {
-		"@playform/build": "0.1.3",
-		"@types/node": "22.5.0",
+		"@playform/build": "0.1.4",
+		"@types/node": "22.5.1",
 		"fast-glob": "3.3.2",
 		"globals": "15.9.0",
 		"tslib": "2.7.0"

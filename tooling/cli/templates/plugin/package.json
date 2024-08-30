@@ -11,7 +11,7 @@
 		"@tauri-apps/api": "2.0.0-rc.3"
 	},
 	"devDependencies": {
-		"@playform/build": "0.1.3",
+		"@playform/build": "0.1.4",
 		"tslib": "2.7.0"
 	},
 	"exports": {
