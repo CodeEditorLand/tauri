@@ -12,7 +12,10 @@
 		"strict": true,
 		"target": "es2021"
 	},
-	"exclude": ["dist-js", "node_modules"],
+	"exclude": [
+		"dist-js",
+		"node_modules"
+	],
 	"extends": "@playform/build/tsconfig",
 	"include": [
 		"guest-js/*.ts",
@@ -28,6 +31,7 @@
 		"Source",
 		"Source",
 		"Source",
+		"src",
 		"src",
 		"src",
 		"src",
