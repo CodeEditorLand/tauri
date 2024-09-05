@@ -8,7 +8,7 @@
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"dependencies": {
-		"@tauri-apps/cli": "2.0.0-rc.10"
+		"@tauri-apps/cli": "2.0.0-rc.12"
 	},
 	"devDependencies": {
 		"@playform/build": "0.1.4"
