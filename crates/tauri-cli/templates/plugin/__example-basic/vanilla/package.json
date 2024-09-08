@@ -5,7 +5,7 @@
 		"url": "HTTPS://Editor.Land"
 	},
 	"bugs": {
-		"url": "HTTPS://GitHub.Com//issues"
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"dependencies": {
 		"@tauri-apps/cli": "2.0.0-rc.12"
@@ -13,7 +13,7 @@
 	"devDependencies": {
 		"@playform/build": "0.1.4"
 	},
-	"homepage": "HTTPS://GitHub.Com/#readme",
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
 		"codeeditorland",
 		"land",
@@ -28,7 +28,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+HTTPS://github.com/.git"
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
