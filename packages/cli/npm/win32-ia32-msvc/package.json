@@ -14,7 +14,7 @@
 		"ia32"
 	],
 	"devDependencies": {
-		"@playform/build": "0.1.4"
+		"@playform/build": "0.1.6"
 	},
 	"files": [
 		"cli.win32-ia32-msvc.node"
