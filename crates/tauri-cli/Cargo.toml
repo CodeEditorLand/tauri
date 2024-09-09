@@ -7,7 +7,7 @@ rust-version = "1.71"
 categories = ["gui", "web-programming"]
 license = "Apache-2.0 OR MIT"
 homepage = "https://tauri.app"
-repository = "HTTPS://GitHub.Com/tauri-apps/tauri"
+repository = "https://github.com/tauri-apps/tauri"
 description = "Command line interface for building Tauri apps"
 include = [
   "src/",

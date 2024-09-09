@@ -26,12 +26,12 @@ tauri-plugin-sample = { path = "./tauri-plugin-sample/" }
 [dependencies.tauri]
 path = "../../../crates/tauri"
 features = [
-	"protocol-asset",
-	"image-ico",
-	"image-png",
-	"isolation",
-	"macos-private-api",
-	"tray-icon",
+  "protocol-asset",
+  "image-ico",
+  "image-png",
+  "isolation",
+  "macos-private-api",
+  "tray-icon",
 ]
 
 [dev-dependencies.tauri]

@@ -27,7 +27,7 @@ This is a typescript library that creates `cjs` and `esm` JavaScript endpoints f
 
 To learn more about the details of how all of these pieces fit together, please consult this [ARCHITECTURE.md](https://github.com/tauri-apps/tauri/blob/dev/ARCHITECTURE.md) document.
 
-## 🚀 Installation
+## Installation
 
 The preferred method is to install this module locally as a dependency:
 

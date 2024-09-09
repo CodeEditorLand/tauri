@@ -11,34 +11,17 @@
 
 ## Introduction
 
-Tauri is a framework for building tiny, blazingly fast binaries for all major
-desktop platforms. Developers can integrate any front-end framework that
-compiles to HTML, JS and CSS for building their user interface. The backend of
-the application is a rust-sourced binary with an API that the front-end can
-interact with.
+Tauri is a framework for building tiny, blazingly fast binaries for all major desktop platforms. Developers can integrate any front-end framework that compiles to HTML, JS and CSS for building their user interface. The backend of the application is a rust-sourced binary with an API that the front-end can interact with.
 
-The user interface in Tauri apps currently leverages
-[`tao`](https://docs.rs/tao) as a window handling library on macOS, Windows,
-Linux, Android and iOS. To render your application, Tauri uses
-[WRY](https://github.com/tauri-apps/wry), a library which provides a unified
-interface to the system webview, leveraging WKWebView on macOS & iOS, WebView2
-on Windows, WebKitGTK on Linux and Android System WebView on Android.
+The user interface in Tauri apps currently leverages [`tao`](https://docs.rs/tao) as a window handling library on macOS, Windows, Linux, Android and iOS. To render your application, Tauri uses [WRY](https://github.com/tauri-apps/wry), a library which provides a unified interface to the system webview, leveraging WKWebView on macOS & iOS, WebView2 on Windows, WebKitGTK on Linux and Android System WebView on Android.
 
-To learn more about the details of how all of these pieces fit together, please
-consult this
-[ARCHITECTURE.md](https://github.com/tauri-apps/tauri/blob/dev/ARCHITECTURE.md)
-document.
+To learn more about the details of how all of these pieces fit together, please consult this [ARCHITECTURE.md](https://github.com/tauri-apps/tauri/blob/dev/ARCHITECTURE.md) document.
 
 ## Getting Started
 
-If you are interested in making a tauri app, please visit the
-[documentation website](https://tauri.app).
+If you are interested in making a tauri app, please visit the [documentation website](https://tauri.app).
 
-The quickest way to get started is to install the
-[prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for
-your system and create a new project with
-[`create-tauri-app`](https://github.com/tauri-apps/create-tauri-app/#usage). For
-example with `npm`:
+The quickest way to get started is to install the [prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for your system and create a new project with [`create-tauri-app`](https://github.com/tauri-apps/create-tauri-app/#usage). For example with `npm`:
 
 ```sh
 npm create tauri-app@latest
@@ -58,8 +41,7 @@ The list of Tauri's features includes, but is not limited to:
 
 ### Platforms
 
-Tauri currently supports development and distribution on the following
-platforms:
+Tauri currently supports development and distribution on the following platforms:
 
 | Platform          | Versions                                                                                                        |
 | :---------------- | :-------------------------------------------------------------------------------------------------------------- |
@@ -71,13 +53,9 @@ platforms:
 
 ## Contributing
 
-Before you start working on something, it's best to check if there is an
-existing issue first. It's also a good idea to stop by the Discord server and
-confirm with the team if it makes sense or if someone else is already working on
-it.
+Before you start working on something, it's best to check if there is an existing issue first. It's also a good idea to stop by the Discord server and confirm with the team if it makes sense or if someone else is already working on it.
 
-Please make sure to read the [Contributing Guide](./.github/CONTRIBUTING.md)
-before making a pull request.
+Please make sure to read the [Contributing Guide](./.github/CONTRIBUTING.md) before making a pull request.
 
 Thank you to everyone contributing to Tauri!
 
@@ -99,17 +77,11 @@ Documentation in a polyglot system is a tricky proposition. To this end, we pref
   </tbody>
 </table>
 
-For the complete list of sponsors please visit our
-[website](https://tauri.app#sponsors) and
-[Open Collective](https://opencollective.com/tauri).
+For the complete list of sponsors please visit our [website](https://tauri.app#sponsors) and [Open Collective](https://opencollective.com/tauri).
 
 ## Organization
 
-Tauri aims to be a sustainable collective based on principles that guide
-[sustainable free and open software communities](https://sfosc.org). To this end
-it has become a Programme within the
-[Commons Conservancy](https://commonsconservancy.org/), and you can contribute
-financially via [Open Collective](https://opencollective.com/tauri).
+Tauri aims to be a sustainable collective based on principles that guide [sustainable free and open software communities](https://sfosc.org). To this end it has become a Programme within the [Commons Conservancy](https://commonsconservancy.org/), and you can contribute financially via [Open Collective](https://opencollective.com/tauri).
 
 ## Licenses
 
@@ -119,8 +91,6 @@ MIT or MIT/Apache 2.0 where applicable.
 
 Logo: CC-BY-NC-ND
 
--   Original Tauri Logo Designs by [Alve Larsson](https://alve.io/),
-    [Daniel Thompson-Yvetot](https://github.com/nothingismagick) and
-    [Guillaume Chau](https://github.com/akryum)
+- Original Tauri Logo Designs by [Alve Larsson](https://alve.io/), [Daniel Thompson-Yvetot](https://github.com/nothingismagick) and [Guillaume Chau](https://github.com/akryum)
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftauri-apps%2Ftauri.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftauri-apps%2Ftauri?ref=badge_large)

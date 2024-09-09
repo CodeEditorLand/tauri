@@ -37,7 +37,7 @@ resolver = "2"
 [workspace.package]
 authors = ["Tauri Programme within The Commons Conservancy"]
 homepage = "https://tauri.app/"
-repository = "HTTPS://GitHub.Com/tauri-apps/tauri"
+repository = "https://github.com/tauri-apps/tauri"
 categories = ["gui", "web-programming"]
 license = "Apache-2.0 OR MIT"
 edition = "2021"
@@ -49,9 +49,7 @@ panic = "abort"
 codegen-units = 1
 lto = true
 incremental = false
-opt-level = 3
-debug = false
-strip = true
+opt-level = "s"
 
 # profiles for tauri-cli
 [profile.dev.package.miniz_oxide]
