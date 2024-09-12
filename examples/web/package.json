@@ -1,0 +1,49 @@
+{
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"dependencies": {
+		"@tauri-apps/api": "../../tooling/api/dist",
+		"wasm": "./core/wasm/pkg"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.6",
+		"cross-env": "7.0.3",
+		"tslib": "2.7.0"
+	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"name": "web",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"build:tauri": "cross-env TARGET=tauri vite build",
+		"build:web": "yarn wasm && cross-env TARGET=web vite build",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"dev:tauri": "cross-env TARGET=tauri vite dev",
+		"dev:web": "yarn wasm && cross-env TARGET=web vite dev",
+		"preinstall": "yarn wasm",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"preview": "vite preview",
+		"tauri": "node ../../tooling/cli/node/tauri.js",
+		"wasm": "wasm-pack build ./core/wasm --target web"
+	},
+	"type": "module",
+	"version": "0.0.1"
+}
