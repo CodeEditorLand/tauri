@@ -71,7 +71,7 @@ rpm = "0.15.0"
 
 [lib]
 name = "tauri_bundler"
-path = "src/lib.rs"
+path = "Source/lib.rs"
 
 [features]
 default = ["rustls"]

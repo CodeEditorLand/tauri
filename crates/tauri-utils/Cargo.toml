@@ -62,3 +62,6 @@ process-relaunch-dangerous-allow-symlink-macos = []
 config-json5 = ["json5"]
 config-toml = []
 resources = ["walkdir"]
+
+[lib]
+path = "Source/lib.rs"

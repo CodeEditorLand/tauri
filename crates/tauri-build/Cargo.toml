@@ -53,3 +53,6 @@ isolation = ["tauri-codegen/isolation", "tauri-utils/isolation"]
 config-json = []
 config-json5 = ["tauri-utils/config-json5"]
 config-toml = ["tauri-utils/config-toml"]
+
+[lib]
+path = "Source/lib.rs"
