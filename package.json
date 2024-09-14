@@ -1,29 +1,45 @@
 {
-  "name": "tauri-workspace",
-  "version": "0.0.0",
-  "license": "Apache-2.0 OR MIT",
-  "private": true,
-  "contributors": [
-    "Tauri Programme within The Commons Conservancy"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tauri-apps/tauri.git"
-  },
-  "scripts": {
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "eslint:check": "pnpm run -r eslint:check",
-    "ts:check": "pnpm run -r ts:check"
-  },
-  "devDependencies": {
-    "prettier": "^3.3.3"
-  },
-  "packageManager": "pnpm@9.7.1",
-  "pnpm": {
-    "overrides": {
-      "micromatch@<4.0.8": ">=4.0.8",
-      "svelte@<4.2.19": ">=4.2.19"
-    }
-  }
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"devDependencies": {
+		"@playform/build": "0.1.6"
+	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"name": "tauri-workspace",
+	"pnpm": {
+		"overrides": {
+			"micromatch@<4.0.8": ">=4.0.8",
+			"svelte@<4.2.19": ">=4.2.19"
+		}
+	},
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"eslint:check": "pnpm run -r eslint:check",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"ts:check": "pnpm run -r ts:check"
+	},
+	"type": "module",
+	"version": "0.0.1"
 }

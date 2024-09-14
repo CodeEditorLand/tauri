@@ -524,11 +524,17 @@ pub fn build_wix_app_installer(
   data.insert("manufacturer", to_json(manufacturer));
   let upgrade_code = Uuid::new_v5(
     &Uuid::NAMESPACE_DNS,
-    format!("{}.app.x64", &settings.main_binary_name()).as_bytes(),
+    format!("{}.exe.app.x64", &settings.product_name()).as_bytes(),
   )
   .to_string();
 
   data.insert("upgrade_code", to_json(upgrade_code.as_str()));
+  let product_code = Uuid::new_v5(
+    &Uuid::NAMESPACE_DNS,
+    &settings.bundle_identifier().as_bytes(),
+  )
+  .to_string();
+  data.insert("product_code", to_json(product_code.as_str()));
   data.insert(
     "allow_downgrades",
     to_json(settings.windows().allow_downgrades),
@@ -540,8 +546,9 @@ pub fn build_wix_app_installer(
   let shortcut_guid = generate_package_guid(settings).to_string();
   data.insert("shortcut_guid", to_json(shortcut_guid.as_str()));
 
-  let app_exe_name = settings.main_binary_name().to_string();
-  data.insert("app_exe_name", to_json(app_exe_name));
+  // Note: `main_binary_name` is not used in our template but we keep it as it is potentially useful for custom temples
+  let main_binary_name = settings.main_binary_name().to_string();
+  data.insert("main_binary_name", to_json(&main_binary_name));
 
   let binaries = generate_binaries_data(settings)?;
 

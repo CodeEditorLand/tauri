@@ -1,14 +1,24 @@
 {
-  "compilerOptions": {
-    "target": "es2021",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "skipLibCheck": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noImplicitAny": true,
-    "noEmit": true
-  },
-  "include": ["guest-js/*.ts"],
-  "exclude": ["dist-js", "node_modules"]
+	"compilerOptions": {
+		"baseUrl": "./",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
+		"outDir": "Target",
+		"rootDir": "src",
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "es2021"
+	},
+	"exclude": [
+		"dist-js",
+		"node_modules"
+	],
+	"extends": "@playform/build/tsconfig",
+	"include": [
+		"guest-js/*.ts",
+		"src"
+	]
 }

@@ -212,7 +212,7 @@ impl schemars::JsonSchema for BundleTarget {
   fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
     let any_of = vec![
       schemars::schema::SchemaObject {
-        enum_values: Some(vec!["all".into()]),
+        const_value: Some("all".into()),
         metadata: Some(Box::new(schemars::schema::Metadata {
           description: Some("Bundle all targets.".to_owned()),
           ..Default::default()
@@ -404,7 +404,7 @@ pub struct RpmConfig {
   /// in order for the package to be installed.
   pub conflicts: Option<Vec<String>>,
   /// The list of RPM dependencies your application supersedes - if this package is installed,
-  /// packages listed as “obsoletes” will be automatically removed (if they are present).
+  /// packages listed as "obsoletes" will be automatically removed (if they are present).
   pub obsoletes: Option<Vec<String>>,
   /// The RPM release tag.
   #[serde(default = "default_release")]
@@ -1058,7 +1058,7 @@ pub struct FileAssociation {
   pub mime_type: Option<String>,
 }
 
-/// File association
+/// Deep link protocol configuration.
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
