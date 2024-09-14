@@ -41,6 +41,3 @@ walkdir = { version = "2", optional = true }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 plist = { version = "1", optional = true }
-
-[lib]
-path = "Source/lib.rs"

@@ -10,7 +10,7 @@ homepage = "https://tauri.app"
 repository = "https://github.com/tauri-apps/tauri"
 description = "Command line interface for building Tauri apps"
 include = [
-  "Source/",
+  "src/",
   "/templates",
   "scripts/",
   "*.json",
@@ -33,10 +33,10 @@ pkg-fmt = "zip"
 
 [[bin]]
 name = "cargo-tauri"
-path = "Source/main.rs"
+path = "src/main.rs"
 
 [target."cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\", target_os = \"windows\", target_os = \"macos\"))".dependencies]
-cargo-mobile2 = { version = "0.17.2", path = "../../../CargoMobile2", default-features = false }
+cargo-mobile2 = { version = "0.17", default-features = false }
 
 [dependencies]
 jsonrpsee = { version = "0.24", features = ["server"] }
@@ -146,6 +146,3 @@ native-tls = [
 ]
 native-tls-vendored = ["native-tls", "tauri-bundler/native-tls-vendored"]
 rustls = ["tauri-bundler/rustls", "cargo-mobile2/rustls", "ureq/tls"]
-
-[lib]
-path = "Source/lib.rs"

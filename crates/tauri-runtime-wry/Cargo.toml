@@ -62,6 +62,3 @@ objc-exception = ["wry/objc-exception"]
 tracing = ["dep:tracing", "wry/tracing"]
 macos-proxy = ["wry/mac-proxy"]
 unstable = []
-
-[lib]
-path = "Source/lib.rs"

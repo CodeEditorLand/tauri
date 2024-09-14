@@ -18,19 +18,19 @@ members = [
   "packages/cli",
 
   # integration tests
-#   "crates/tests/restart",
-#   "crates/tests/acl",
+  "crates/tests/restart",
+  "crates/tests/acl",
 
   # bench
-#   "bench",
-#   "bench/tests/cpu_intensive/src-tauri",
-#   "bench/tests/files_transfer/src-tauri",
-#   "bench/tests/helloworld/src-tauri",
+  "bench",
+  "bench/tests/cpu_intensive/src-tauri",
+  "bench/tests/files_transfer/src-tauri",
+  "bench/tests/helloworld/src-tauri",
 
   # examples
-#   "examples/file-associations/src-tauri",
-#   "examples/api/src-tauri",
-#   "examples/api/src-tauri/tauri-plugin-sample",
+  "examples/file-associations/src-tauri",
+  "examples/api/src-tauri",
+  "examples/api/src-tauri/tauri-plugin-sample",
 ]
 resolver = "2"
 

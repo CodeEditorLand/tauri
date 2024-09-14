@@ -21,6 +21,3 @@ plist = "1"
 rand = "0.8"
 dirs-next = "2"
 log = { version = "0.4.21", features = ["kv"] }
-
-[lib]
-path = "Source/lib.rs"

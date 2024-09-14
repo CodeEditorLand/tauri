@@ -14,7 +14,6 @@ rust-version.workspace = true
 
 [lib]
 proc-macro = true
-path = "Source/lib.rs"
 
 [dependencies]
 proc-macro2 = { version = "1", features = ["span-locations"] }
@@ -31,5 +30,3 @@ isolation = ["tauri-codegen/isolation"]
 config-json5 = ["tauri-codegen/config-json5", "tauri-utils/config-json5"]
 config-toml = ["tauri-codegen/config-toml", "tauri-utils/config-toml"]
 tracing = []
-
-

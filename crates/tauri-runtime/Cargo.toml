@@ -51,6 +51,3 @@ url = "2"
 [features]
 devtools = []
 macos-private-api = []
-
-[lib]
-path = "Source/lib.rs"
