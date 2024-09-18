@@ -7,11 +7,9 @@
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
 	"devDependencies": {
-		"@playform/build": "0.1.6"
+		"@playform/build": "0.1.6",
+		"wrangler": "^3.75"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
@@ -20,7 +18,7 @@
 		"playform"
 	],
 	"license": "SEE LICENSE IN LICENSE",
-	"name": "tauri-workspace",
+	"name": "tauri-schema-worker",
 	"private": false,
 	"publishConfig": {
 		"access": "public"
@@ -30,9 +28,9 @@
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
 	"scripts": {
-		"eslint:check": "pnpm run -r eslint:check",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"ts:check": "pnpm run -r ts:check"
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"type": "module",
 	"version": "0.0.1"
