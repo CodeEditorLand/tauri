@@ -658,6 +658,16 @@ impl Default for WixLanguage {
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WixConfig {
+  /// A GUID upgrade code for MSI installer. This code **_must stay the same across all of your updates_**,
+  /// otherwise, Windows will treat your update as a different app and your users will have duplicate versions of your app.
+  ///
+  /// By default, tauri generates this code by generating a Uuid v5 using the string `<productName>.exe.app.x64` in the DNS namespace.
+  /// You can use Tauri's CLI to generate and print this code for you, run `tauri inspect wix-upgrade-code`.
+  ///
+  /// It is recommended that you set this value in your tauri config file to avoid accidental changes in your upgrade code
+  /// whenever you want to change your product name.
+  #[serde(alias = "upgrade-code")]
+  pub upgrade_code: Option<uuid::Uuid>,
   /// The installer languages to build. See <https://docs.microsoft.com/en-us/windows/win32/msi/localizing-the-error-and-actiontext-tables>.
   #[serde(default)]
   pub language: WixLanguage,
@@ -1454,6 +1464,14 @@ pub struct WindowConfig {
   /// - **Android / iOS**: Unsupported.
   #[serde(default)]
   pub zoom_hotkeys_enabled: bool,
+  /// Whether browser extensions can be installed for the webview process
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **Windows**: Enables the WebView2 environment's [`AreBrowserExtensionsEnabled`](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/winrt/microsoft_web_webview2_core/corewebview2environmentoptions?view=webview2-winrt-1.0.2739.15#arebrowserextensionsenabled)
+  /// - **MacOS / Linux / iOS / Android** - Unsupported.
+  #[serde(default)]
+  pub browser_extensions_enabled: bool,
 }
 
 impl Default for WindowConfig {
@@ -1501,6 +1519,7 @@ impl Default for WindowConfig {
       parent: None,
       proxy_url: None,
       zoom_hotkeys_enabled: false,
+      browser_extensions_enabled: false,
     }
   }
 }
@@ -2471,6 +2490,7 @@ mod build {
       let incognito = self.incognito;
       let parent = opt_str_lit(self.parent.as_ref());
       let zoom_hotkeys_enabled = self.zoom_hotkeys_enabled;
+      let browser_extensions_enabled = self.browser_extensions_enabled;
 
       literal_struct!(
         tokens,
@@ -2516,7 +2536,8 @@ mod build {
         window_effects,
         incognito,
         parent,
-        zoom_hotkeys_enabled
+        zoom_hotkeys_enabled,
+        browser_extensions_enabled
       );
     }
   }

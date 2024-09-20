@@ -1239,6 +1239,7 @@ pub enum WebviewMessage {
   Reparent(WindowId, Sender<Result<()>>),
   SetAutoResize(bool),
   SetZoom(f64),
+  ClearAllBrowsingData,
   // Getters
   Url(Sender<Result<String>>),
   Bounds(Sender<Result<tauri_runtime::Rect>>),
@@ -1513,6 +1514,17 @@ impl<T: UserEvent> WebviewDispatch<T> for WryWebviewDispatcher<T> {
         *self.window_id.lock().unwrap(),
         self.webview_id,
         WebviewMessage::SetZoom(scale_factor),
+      ),
+    )
+  }
+
+  fn clear_all_browsing_data(&self) -> Result<()> {
+    send_user_message(
+      &self.context,
+      Message::Webview(
+        *self.window_id.lock().unwrap(),
+        self.webview_id,
+        WebviewMessage::ClearAllBrowsingData,
       ),
     )
   }
@@ -3157,6 +3169,11 @@ fn handle_user_message<T: UserEvent>(
               log::error!("failed to set webview zoom: {e}");
             }
           }
+          WebviewMessage::ClearAllBrowsingData => {
+            if let Err(e) = webview.clear_all_browsing_data() {
+              log::error!("failed to clear webview browsing data: {e}");
+            }
+          }
           // Getters
           WebviewMessage::Url(tx) => {
             tx.send(
@@ -4070,6 +4087,12 @@ fn create_webview<T: UserEvent>(
   #[cfg(windows)]
   {
     webview_builder = webview_builder.with_https_scheme(false);
+  }
+
+  #[cfg(windows)]
+  {
+    webview_builder = webview_builder
+      .with_browser_extensions_enabled(webview_attributes.browser_extensions_enabled);
   }
 
   webview_builder = webview_builder.with_ipc_handler(create_ipc_handler(
