@@ -14,7 +14,6 @@ rust-version.workspace = true
 
 [lib]
 proc-macro = true
-path = "Source/lib.rs"
 
 [dependencies]
 proc-macro2 = { version = "1", features = ["span-locations"] }

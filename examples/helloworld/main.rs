@@ -6,12 +6,14 @@
 
 #[tauri::command]
 fn greet(name: &str) -> String {
-	format!("Hello {name}, You have been greeted from Rust!")
+  format!("Hello {name}, You have been greeted from Rust!")
 }
 
 fn main() {
-	tauri::Builder::default()
-		.invoke_handler(tauri::generate_handler![greet])
-		.run(tauri::generate_context!("../../examples/helloworld/tauri.conf.json"))
-		.expect("error while running tauri application");
+  tauri::Builder::default()
+    .invoke_handler(tauri::generate_handler![greet])
+    .run(tauri::generate_context!(
+      "../../examples/helloworld/tauri.conf.json"
+    ))
+    .expect("error while running tauri application");
 }
