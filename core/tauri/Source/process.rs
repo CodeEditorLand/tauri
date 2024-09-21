@@ -46,13 +46,13 @@ use std::path::PathBuf;
 ///
 /// [AppImage]: https://appimage.org/
 pub fn current_binary(_env: &Env) -> std::io::Result<PathBuf> {
-  // if we are running from an AppImage, we ONLY want the set AppImage path
-  #[cfg(target_os = "linux")]
-  if let Some(app_image_path) = &_env.appimage {
-    return Ok(PathBuf::from(app_image_path));
-  }
+	// if we are running from an AppImage, we ONLY want the set AppImage path
+	#[cfg(target_os = "linux")]
+	if let Some(app_image_path) = &_env.appimage {
+		return Ok(PathBuf::from(app_image_path));
+	}
 
-  tauri_utils::platform::current_exe()
+	tauri_utils::platform::current_exe()
 }
 
 /// Restarts the currently running binary.
@@ -72,15 +72,15 @@ pub fn current_binary(_env: &Env) -> std::io::Result<PathBuf> {
 ///   });
 /// ```
 pub fn restart(env: &Env) -> ! {
-  use std::process::{exit, Command};
+	use std::process::{exit, Command};
 
-  if let Ok(path) = current_binary(env) {
-    Command::new(path)
+	if let Ok(path) = current_binary(env) {
+		Command::new(path)
       // first arg is the binary name, must skip it
       .args(env.args_os.iter().skip(1).collect::<Vec<_>>())
       .spawn()
       .expect("application failed to start");
-  }
+	}
 
-  exit(0);
+	exit(0);
 }

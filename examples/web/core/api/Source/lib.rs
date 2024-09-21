@@ -3,5 +3,5 @@
 // SPDX-License-Identifier: MIT
 
 pub fn greet(name: &str) -> String {
-  format!("Hello, {name}!")
+	format!("Hello, {name}!")
 }

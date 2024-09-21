@@ -7,18 +7,18 @@ use tauri::ipc::Channel;
 
 #[derive(Serialize)]
 pub struct Event {
-  pub kind: String,
-  pub value: Option<String>,
+	pub kind: String,
+	pub value: Option<String>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PingRequest {
-  pub value: Option<String>,
-  pub on_event: Channel<Event>,
+	pub value: Option<String>,
+	pub on_event: Channel<Event>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct PingResponse {
-  pub value: Option<String>,
+	pub value: Option<String>,
 }

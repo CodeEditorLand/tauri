@@ -6,6 +6,7 @@ publish = false
 
 [lib]
 crate-type = ["cdylib"]
+path = "Source/lib.rs"
 
 [dependencies]
 worker = { version = "0.3", features = ['http', 'axum'] }
