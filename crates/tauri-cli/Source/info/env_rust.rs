@@ -2,31 +2,32 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{SectionItem, Status};
+use super::SectionItem;
+use super::Status;
 use colored::Colorize;
 use std::process::Command;
 
 fn component_version(component: &str) -> Option<(String, Status)> {
-	Command::new(component)
-		.arg("-V")
-		.output()
-		.map(|o| String::from_utf8_lossy(o.stdout.as_slice()).to_string())
-		.map(|v| {
-			format!(
-				"{component}: {}",
-				v.split('\n')
-					.next()
-					.unwrap()
-					.strip_prefix(&format!("{component} "))
-					.unwrap_or_default()
-			)
-		})
-		.map(|desc| (desc, Status::Success))
-		.ok()
+  Command::new(component)
+    .arg("-V")
+    .output()
+    .map(|o| String::from_utf8_lossy(o.stdout.as_slice()).to_string())
+    .map(|v| {
+      format!(
+        "{component}: {}",
+        v.split('\n')
+          .next()
+          .unwrap()
+          .strip_prefix(&format!("{component} "))
+          .unwrap_or_default()
+      )
+    })
+    .map(|desc| (desc, Status::Success))
+    .ok()
 }
 
 pub fn items() -> Vec<SectionItem> {
-	vec![
+  vec![
     SectionItem::new().action(|| {
        component_version("rustc")
           .unwrap_or_else(|| {

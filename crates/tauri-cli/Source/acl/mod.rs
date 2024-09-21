@@ -10,32 +10,32 @@ pub mod permission;
 
 #[derive(Debug, clap::ValueEnum, Clone)]
 enum FileFormat {
-	Json,
-	Toml,
+  Json,
+  Toml,
 }
 
 impl Display for FileFormat {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		match self {
-			Self::Json => write!(f, "json"),
-			Self::Toml => write!(f, "toml"),
-		}
-	}
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::Json => write!(f, "json"),
+      Self::Toml => write!(f, "toml"),
+    }
+  }
 }
 
 impl FileFormat {
-	pub fn extension(&self) -> &'static str {
-		match self {
-			Self::Json => "json",
-			Self::Toml => "toml",
-		}
-	}
+  pub fn extension(&self) -> &'static str {
+    match self {
+      Self::Json => "json",
+      Self::Toml => "toml",
+    }
+  }
 
-	pub fn serialize<S: Serialize>(&self, s: &S) -> crate::Result<String> {
-		let contents = match self {
-			Self::Json => serde_json::to_string_pretty(s)?,
-			Self::Toml => toml_edit::ser::to_string_pretty(s)?,
-		};
-		Ok(contents)
-	}
+  pub fn serialize<S: Serialize>(&self, s: &S) -> crate::Result<String> {
+    let contents = match self {
+      Self::Json => serde_json::to_string_pretty(s)?,
+      Self::Toml => toml_edit::ser::to_string_pretty(s)?,
+    };
+    Ok(contents)
+  }
 }

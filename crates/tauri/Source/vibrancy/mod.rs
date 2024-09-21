@@ -14,17 +14,17 @@ mod macos;
 mod windows;
 
 pub fn set_window_effects<R: Runtime>(
-	window: &Window<R>,
-	effects: Option<WindowEffectsConfig>,
+  window: &Window<R>,
+  effects: Option<WindowEffectsConfig>,
 ) -> crate::Result<()> {
-	if let Some(_effects) = effects {
-		#[cfg(windows)]
-		windows::apply_effects(window, _effects);
-		#[cfg(target_os = "macos")]
-		macos::apply_effects(window, _effects);
-	} else {
-		#[cfg(windows)]
-		windows::clear_effects(window);
-	}
-	Ok(())
+  if let Some(_effects) = effects {
+    #[cfg(windows)]
+    windows::apply_effects(window, _effects);
+    #[cfg(target_os = "macos")]
+    macos::apply_effects(window, _effects);
+  } else {
+    #[cfg(windows)]
+    windows::clear_effects(window);
+  }
+  Ok(())
 }

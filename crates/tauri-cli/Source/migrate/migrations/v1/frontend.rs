@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 use crate::{
-	helpers::{app_paths::walk_builder, npm::PackageManager},
-	Result,
+  helpers::{app_paths::walk_builder, npm::PackageManager},
+  Result,
 };
 use anyhow::Context;
 use itertools::Itertools;
@@ -23,17 +23,17 @@ const RENAMED_MODULES: phf::Map<&str, &str> = phf::phf_map! {
   "window" => "webviewWindow"
 };
 const PLUGINIFIED_MODULES: [&str; 11] = [
-	"cli",
-	"clipboard",
-	"dialog",
-	"fs",
-	"globalShortcut",
-	"http",
-	"notification",
-	"os",
-	"process",
-	"shell",
-	"updater",
+  "cli",
+  "clipboard",
+  "dialog",
+  "fs",
+  "globalShortcut",
+  "http",
+  "notification",
+  "os",
+  "process",
+  "shell",
+  "updater",
 ];
 // (from, to)
 const MODULES_MAP: phf::Map<&str, &str> = phf::phf_map! {
@@ -69,279 +69,289 @@ const JS_EXTENSIONS: &[&str] = &["js", "mjs", "jsx", "ts", "mts", "tsx", "svelte
 
 /// Returns a list of migrated plugins
 pub fn migrate(app_dir: &Path) -> Result<Vec<String>> {
-	let mut new_npm_packages = Vec::new();
-	let mut new_plugins = Vec::new();
-	let mut npm_packages_to_remove = Vec::new();
+  let mut new_npm_packages = Vec::new();
+  let mut new_plugins = Vec::new();
+  let mut npm_packages_to_remove = Vec::new();
 
-	let pre = env!("CARGO_PKG_VERSION_PRE");
-	let npm_version = if pre.is_empty() {
-		format!("{}.0.0", env!("CARGO_PKG_VERSION_MAJOR"))
-	} else {
-		format!("{}.0.0-{}.0", env!("CARGO_PKG_VERSION_MAJOR"), pre.split('.').next().unwrap())
-	};
+  let pre = env!("CARGO_PKG_VERSION_PRE");
+  let npm_version = if pre.is_empty() {
+    format!("{}.0.0", env!("CARGO_PKG_VERSION_MAJOR"))
+  } else {
+    format!(
+      "{}.0.0-{}.0",
+      env!("CARGO_PKG_VERSION_MAJOR"),
+      pre.split('.').next().unwrap()
+    )
+  };
 
-	let pm =
-		PackageManager::from_project(app_dir).into_iter().next().unwrap_or(PackageManager::Npm);
+  let pm = PackageManager::from_project(app_dir)
+    .into_iter()
+    .next()
+    .unwrap_or(PackageManager::Npm);
 
-	for pkg in ["@tauri-apps/cli", "@tauri-apps/api"] {
-		let version =
-			pm.current_package_version(pkg, app_dir).unwrap_or_default().unwrap_or_default();
-		if version.starts_with('1') {
-			new_npm_packages.push(format!("{pkg}@^{npm_version}"));
-		}
-	}
+  for pkg in ["@tauri-apps/cli", "@tauri-apps/api"] {
+    let version = pm
+      .current_package_version(pkg, app_dir)
+      .unwrap_or_default()
+      .unwrap_or_default();
+    if version.starts_with('1') {
+      new_npm_packages.push(format!("{pkg}@^{npm_version}"));
+    }
+  }
 
-	for entry in walk_builder(app_dir).build().flatten() {
-		if entry.file_type().map(|t| t.is_file()).unwrap_or_default() {
-			let path = entry.path();
-			let ext = path.extension().unwrap_or_default();
-			if JS_EXTENSIONS.iter().any(|e| e == &ext) {
-				let js_contents = std::fs::read_to_string(path)?;
-				let new_contents = migrate_imports(
-					path,
-					&js_contents,
-					&mut new_plugins,
-					&mut npm_packages_to_remove,
-				)?;
-				if new_contents != js_contents {
-					fs::write(path, new_contents)
-						.with_context(|| format!("Error writing {}", path.display()))?;
-				}
-			}
-		}
-	}
+  for entry in walk_builder(app_dir).build().flatten() {
+    if entry.file_type().map(|t| t.is_file()).unwrap_or_default() {
+      let path = entry.path();
+      let ext = path.extension().unwrap_or_default();
+      if JS_EXTENSIONS.iter().any(|e| e == &ext) {
+        let js_contents = std::fs::read_to_string(path)?;
+        let new_contents = migrate_imports(
+          path,
+          &js_contents,
+          &mut new_plugins,
+          &mut npm_packages_to_remove,
+        )?;
+        if new_contents != js_contents {
+          fs::write(path, new_contents)
+            .with_context(|| format!("Error writing {}", path.display()))?;
+        }
+      }
+    }
+  }
 
-	if !npm_packages_to_remove.is_empty() {
-		npm_packages_to_remove.sort();
-		npm_packages_to_remove.dedup();
-		pm.remove(&npm_packages_to_remove, app_dir).context("Error removing npm packages")?;
-	}
+  if !npm_packages_to_remove.is_empty() {
+    npm_packages_to_remove.sort();
+    npm_packages_to_remove.dedup();
+    pm.remove(&npm_packages_to_remove, app_dir)
+      .context("Error removing npm packages")?;
+  }
 
-	if !new_npm_packages.is_empty() {
-		new_npm_packages.sort();
-		new_npm_packages.dedup();
-		pm.install(&new_npm_packages, app_dir).context("Error installing new npm packages")?;
-	}
+  if !new_npm_packages.is_empty() {
+    new_npm_packages.sort();
+    new_npm_packages.dedup();
+    pm.install(&new_npm_packages, app_dir)
+      .context("Error installing new npm packages")?;
+  }
 
-	Ok(new_plugins)
+  Ok(new_plugins)
 }
 
 fn migrate_imports<'a>(
-	path: &'a Path,
-	js_source: &'a str,
-	new_plugins: &mut Vec<String>,
-	npm_packages_to_remove: &mut Vec<String>,
+  path: &'a Path,
+  js_source: &'a str,
+  new_plugins: &mut Vec<String>,
+  npm_packages_to_remove: &mut Vec<String>,
 ) -> crate::Result<String> {
-	let mut magic_js_source = MagicString::new(js_source);
+  let mut magic_js_source = MagicString::new(js_source);
 
-	let has_partial_js = path.extension().map_or(false, |ext| ext == "vue" || ext == "svelte");
+  let has_partial_js = path
+    .extension()
+    .map_or(false, |ext| ext == "vue" || ext == "svelte");
 
-	let sources = if !has_partial_js {
-		vec![(SourceType::from_path(path).unwrap(), js_source, 0i64)]
-	} else {
-		partial_loader::PartialLoader::parse(
-			path.extension().unwrap_or_default().to_str().unwrap_or_default(),
-			js_source,
-		)
-		.unwrap()
-		.into_iter()
-		.map(|s| (s.source_type, s.source_text, s.start as i64))
-		.collect()
-	};
+  let sources = if !has_partial_js {
+    vec![(SourceType::from_path(path).unwrap(), js_source, 0i64)]
+  } else {
+    partial_loader::PartialLoader::parse(
+      path
+        .extension()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default(),
+      js_source,
+    )
+    .unwrap()
+    .into_iter()
+    .map(|s| (s.source_type, s.source_text, s.start as i64))
+    .collect()
+  };
 
-	for (source_type, js_source, script_start) in sources {
-		let allocator = Allocator::default();
-		let ret = Parser::new(&allocator, js_source, source_type).parse();
-		if !ret.errors.is_empty() {
-			anyhow::bail!("failed to parse {} as valid Javascript/Typescript file", path.display())
-		}
+  for (source_type, js_source, script_start) in sources {
+    let allocator = Allocator::default();
+    let ret = Parser::new(&allocator, js_source, source_type).parse();
+    if !ret.errors.is_empty() {
+      anyhow::bail!(
+        "failed to parse {} as valid Javascript/Typescript file",
+        path.display()
+      )
+    }
 
-		let mut program = ret.program;
+    let mut program = ret.program;
 
-		let mut stmts_to_add = Vec::new();
-		let mut imports_to_add = Vec::new();
+    let mut stmts_to_add = Vec::new();
+    let mut imports_to_add = Vec::new();
 
-		for import in program.body.iter_mut() {
-			if let Statement::ImportDeclaration(stmt) = import {
-				let module = stmt.source.value.as_str();
+    for import in program.body.iter_mut() {
+      if let Statement::ImportDeclaration(stmt) = import {
+        let module = stmt.source.value.as_str();
 
-				// convert module to its pluginfied module or renamed one
-				// import { ... } from "@tauri-apps/api/window" -> import { ... } from "@tauri-apps/api/webviewWindow"
-				// import { ... } from "@tauri-apps/api/cli" -> import { ... } from "@tauri-apps/plugin-cli"
-				if let Some(&new_module) = MODULES_MAP.get(module) {
-					// +1 and -1, to skip modifying the import quotes
-					magic_js_source
-						.overwrite(
-							script_start + stmt.source.span.start as i64 + 1,
-							script_start + stmt.source.span.end as i64 - 1,
-							new_module,
-							Default::default(),
-						)
-						.map_err(|e| anyhow::anyhow!("{e}"))
-						.context("failed to replace import source")?;
+        // convert module to its pluginfied module or renamed one
+        // import { ... } from "@tauri-apps/api/window" -> import { ... } from "@tauri-apps/api/webviewWindow"
+        // import { ... } from "@tauri-apps/api/cli" -> import { ... } from "@tauri-apps/plugin-cli"
+        if let Some(&new_module) = MODULES_MAP.get(module) {
+          // +1 and -1, to skip modifying the import quotes
+          magic_js_source
+            .overwrite(
+              script_start + stmt.source.span.start as i64 + 1,
+              script_start + stmt.source.span.end as i64 - 1,
+              new_module,
+              Default::default(),
+            )
+            .map_err(|e| anyhow::anyhow!("{e}"))
+            .context("failed to replace import source")?;
 
-					// if module was pluginified, add to packages
-					if let Some(plugin_name) = new_module.strip_prefix("@tauri-apps/plugin-") {
-						new_plugins.push(plugin_name.to_string());
-					}
+          // if module was pluginified, add to packages
+          if let Some(plugin_name) = new_module.strip_prefix("@tauri-apps/plugin-") {
+            new_plugins.push(plugin_name.to_string());
+          }
 
-					// if the module is a v1 plugin, we should remove it
-					if module.starts_with("tauri-plugin-") {
-						npm_packages_to_remove.push(module.to_string());
-					}
-				}
+          // if the module is a v1 plugin, we should remove it
+          if module.starts_with("tauri-plugin-") {
+            npm_packages_to_remove.push(module.to_string());
+          }
+        }
 
-				// skip parsing non @tauri-apps/api imports
-				if !module.starts_with("@tauri-apps/api") {
-					continue;
-				}
+        // skip parsing non @tauri-apps/api imports
+        if !module.starts_with("@tauri-apps/api") {
+          continue;
+        }
 
-				let Some(specifiers) = &mut stmt.specifiers else {
-					continue;
-				};
+        let Some(specifiers) = &mut stmt.specifiers else {
+          continue;
+        };
 
-				for specifier in specifiers.iter() {
-					if let ImportDeclarationSpecifier::ImportSpecifier(specifier) = specifier {
-						let new_identifier = match specifier.imported.name().as_str() {
-							// migrate appWindow from:
-							// ```
-							// import { appWindow } from "@tauri-apps/api/window"
-							// ```
-							// to:
-							// ```
-							// import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
-							// const appWindow = getCurrentWebviewWindow()
-							// ```
-							"appWindow" if module == "@tauri-apps/api/window" => {
-								stmts_to_add.push("\nconst appWindow = getCurrentWebviewWindow()");
-								Some("getCurrentWebviewWindow")
-							}
+        for specifier in specifiers.iter() {
+          if let ImportDeclarationSpecifier::ImportSpecifier(specifier) = specifier {
+            let new_identifier = match specifier.imported.name().as_str() {
+              // migrate appWindow from:
+              // ```
+              // import { appWindow } from "@tauri-apps/api/window"
+              // ```
+              // to:
+              // ```
+              // import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
+              // const appWindow = getCurrentWebviewWindow()
+              // ```
+              "appWindow" if module == "@tauri-apps/api/window" => {
+                stmts_to_add.push("\nconst appWindow = getCurrentWebviewWindow()");
+                Some("getCurrentWebviewWindow")
+              }
 
-							// migrate pluginified modules from:
-							// ```
-							// import { dialog, cli as superCli } from "@tauri-apps/api"
-							// ```
-							// to:
-							// ```
-							// import * as dialog from "@tauri-apps/plugin-dialog"
-							// import * as cli as superCli from "@tauri-apps/plugin-cli"
-							// ```
-							import
-								if PLUGINIFIED_MODULES.contains(&import)
-									&& module == "@tauri-apps/api" =>
-							{
-								let js_plugin: &str =
-									MODULES_MAP[&format!("@tauri-apps/api/{import}")];
-								let (_, plugin_name) = js_plugin.split_once("plugin-").unwrap();
+              // migrate pluginified modules from:
+              // ```
+              // import { dialog, cli as superCli } from "@tauri-apps/api"
+              // ```
+              // to:
+              // ```
+              // import * as dialog from "@tauri-apps/plugin-dialog"
+              // import * as cli as superCli from "@tauri-apps/plugin-cli"
+              // ```
+              import if PLUGINIFIED_MODULES.contains(&import) && module == "@tauri-apps/api" => {
+                let js_plugin: &str = MODULES_MAP[&format!("@tauri-apps/api/{import}")];
+                let (_, plugin_name) = js_plugin.split_once("plugin-").unwrap();
 
-								new_plugins.push(plugin_name.to_string());
+                new_plugins.push(plugin_name.to_string());
 
-								if specifier.local.name.as_str() != import {
-									let local = &specifier.local.name;
-									imports_to_add.push(format!(
-										"\nimport * as {import} as {local} from \"{js_plugin}\""
-									));
-								} else {
-									imports_to_add.push(format!(
-										"\nimport * as {import} from \"{js_plugin}\""
-									));
-								};
-								None
-							}
+                if specifier.local.name.as_str() != import {
+                  let local = &specifier.local.name;
+                  imports_to_add.push(format!(
+                    "\nimport * as {import} as {local} from \"{js_plugin}\""
+                  ));
+                } else {
+                  imports_to_add.push(format!("\nimport * as {import} from \"{js_plugin}\""));
+                };
+                None
+              }
 
-							import if module == "@tauri-apps/api" => {
-								match RENAMED_MODULES.get(import) {
-									Some(m) => Some(*m),
-									None => continue,
-								}
-							}
+              import if module == "@tauri-apps/api" => match RENAMED_MODULES.get(import) {
+                Some(m) => Some(*m),
+                None => continue,
+              },
 
-							// nothing to do, go to next specifier
-							_ => continue,
-						};
+              // nothing to do, go to next specifier
+              _ => continue,
+            };
 
-						// if identifier was renamed, it will be Some()
-						// and so we convert the import
-						// import { appWindow } from "@tauri-apps/api/window" -> import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
-						if let Some(new_identifier) = new_identifier {
-							magic_js_source
-								.overwrite(
-									script_start + specifier.span.start as i64,
-									script_start + specifier.span.end as i64,
-									new_identifier,
-									Default::default(),
-								)
-								.map_err(|e| anyhow::anyhow!("{e}"))
-								.context("failed to rename identifier")?;
-						} else {
-							// if None, we need to remove this specifier,
-							// it will also be replaced with an import from its new plugin below
+            // if identifier was renamed, it will be Some()
+            // and so we convert the import
+            // import { appWindow } from "@tauri-apps/api/window" -> import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
+            if let Some(new_identifier) = new_identifier {
+              magic_js_source
+                .overwrite(
+                  script_start + specifier.span.start as i64,
+                  script_start + specifier.span.end as i64,
+                  new_identifier,
+                  Default::default(),
+                )
+                .map_err(|e| anyhow::anyhow!("{e}"))
+                .context("failed to rename identifier")?;
+            } else {
+              // if None, we need to remove this specifier,
+              // it will also be replaced with an import from its new plugin below
 
-							// find the next comma or the bracket ending the import
-							let start = specifier.span.start as usize;
-							let sliced = &js_source[start..];
-							let comma_or_bracket =
-								sliced.chars().find_position(|&c| c == ',' || c == '}');
-							let end = match comma_or_bracket {
-								Some((n, ',')) => n + start + 1,
-								Some((_, '}')) => specifier.span.end as _,
-								_ => continue,
-							};
+              // find the next comma or the bracket ending the import
+              let start = specifier.span.start as usize;
+              let sliced = &js_source[start..];
+              let comma_or_bracket = sliced.chars().find_position(|&c| c == ',' || c == '}');
+              let end = match comma_or_bracket {
+                Some((n, ',')) => n + start + 1,
+                Some((_, '}')) => specifier.span.end as _,
+                _ => continue,
+              };
 
-							magic_js_source
-								.remove(script_start + start as i64, script_start + end as i64)
-								.map_err(|e| anyhow::anyhow!("{e}"))
-								.context("failed to remove identifier")?;
-						}
-					}
-				}
-			}
-		}
+              magic_js_source
+                .remove(script_start + start as i64, script_start + end as i64)
+                .map_err(|e| anyhow::anyhow!("{e}"))
+                .context("failed to remove identifier")?;
+            }
+          }
+        }
+      }
+    }
 
-		// find the end of import list
-		// fallback to the program start
-		let start = program
-			.body
-			.iter()
-			.rev()
-			.find(|s| matches!(s, Statement::ImportDeclaration(_)))
-			.map(|s| match s {
-				Statement::ImportDeclaration(s) => s.span.end,
-				_ => unreachable!(),
-			})
-			.unwrap_or(program.span.start);
+    // find the end of import list
+    // fallback to the program start
+    let start = program
+      .body
+      .iter()
+      .rev()
+      .find(|s| matches!(s, Statement::ImportDeclaration(_)))
+      .map(|s| match s {
+        Statement::ImportDeclaration(s) => s.span.end,
+        _ => unreachable!(),
+      })
+      .unwrap_or(program.span.start);
 
-		if !imports_to_add.is_empty() {
-			for import in imports_to_add {
-				magic_js_source
-					.append_right(script_start as u32 + start, &import)
-					.map_err(|e| anyhow::anyhow!("{e}"))
-					.context("failed to add import")?;
-			}
-		}
+    if !imports_to_add.is_empty() {
+      for import in imports_to_add {
+        magic_js_source
+          .append_right(script_start as u32 + start, &import)
+          .map_err(|e| anyhow::anyhow!("{e}"))
+          .context("failed to add import")?;
+      }
+    }
 
-		if !stmts_to_add.is_empty() {
-			for stmt in stmts_to_add {
-				magic_js_source
-					.append_right(script_start as u32 + start, stmt)
-					.map_err(|e| anyhow::anyhow!("{e}"))
-					.context("failed to add statement")?;
-			}
-		}
-	}
+    if !stmts_to_add.is_empty() {
+      for stmt in stmts_to_add {
+        magic_js_source
+          .append_right(script_start as u32 + start, stmt)
+          .map_err(|e| anyhow::anyhow!("{e}"))
+          .context("failed to add statement")?;
+      }
+    }
+  }
 
-	Ok(magic_js_source.to_string())
+  Ok(magic_js_source.to_string())
 }
 
 #[cfg(test)]
 mod tests {
 
-	use super::*;
-	use pretty_assertions::assert_eq;
+  use super::*;
+  use pretty_assertions::assert_eq;
 
-	#[test]
-	fn migrates_vue() {
-		let input = r#"
+  #[test]
+  fn migrates_vue() {
+    let input = r#"
 <template>
     <div>Tauri!</div>
 </template>
@@ -367,7 +377,7 @@ mod tests {
 </style>
 "#;
 
-		let expected = r#"
+    let expected = r#"
 <template>
     <div>Tauri!</div>
 </template>
@@ -396,29 +406,36 @@ const appWindow = getCurrentWebviewWindow()
 </style>
 "#;
 
-		let mut new_plugins = Vec::new();
-		let mut npm_packages_to_remove = Vec::new();
+    let mut new_plugins = Vec::new();
+    let mut npm_packages_to_remove = Vec::new();
 
-		let migrated = migrate_imports(
-			Path::new("file.vue"),
-			input,
-			&mut new_plugins,
-			&mut npm_packages_to_remove,
-		)
-		.unwrap();
+    let migrated = migrate_imports(
+      Path::new("file.vue"),
+      input,
+      &mut new_plugins,
+      &mut npm_packages_to_remove,
+    )
+    .unwrap();
 
-		assert_eq!(migrated, expected);
+    assert_eq!(migrated, expected);
 
-		assert_eq!(
-			new_plugins,
-			vec!["dialog", "cli", "dialog", "global-shortcut", "clipboard-manager", "fs"]
-		);
-		assert_eq!(npm_packages_to_remove, Vec::<String>::new());
-	}
+    assert_eq!(
+      new_plugins,
+      vec![
+        "dialog",
+        "cli",
+        "dialog",
+        "global-shortcut",
+        "clipboard-manager",
+        "fs"
+      ]
+    );
+    assert_eq!(npm_packages_to_remove, Vec::<String>::new());
+  }
 
-	#[test]
-	fn migrates_svelte() {
-		let input = r#"
+  #[test]
+  fn migrates_svelte() {
+    let input = r#"
 <form>
 </form>
 
@@ -436,7 +453,7 @@ const appWindow = getCurrentWebviewWindow()
 </script>
 "#;
 
-		let expected = r#"
+    let expected = r#"
 <form>
 </form>
 
@@ -457,29 +474,36 @@ const appWindow = getCurrentWebviewWindow()
 </script>
 "#;
 
-		let mut new_plugins = Vec::new();
-		let mut npm_packages_to_remove = Vec::new();
+    let mut new_plugins = Vec::new();
+    let mut npm_packages_to_remove = Vec::new();
 
-		let migrated = migrate_imports(
-			Path::new("file.svelte"),
-			input,
-			&mut new_plugins,
-			&mut npm_packages_to_remove,
-		)
-		.unwrap();
+    let migrated = migrate_imports(
+      Path::new("file.svelte"),
+      input,
+      &mut new_plugins,
+      &mut npm_packages_to_remove,
+    )
+    .unwrap();
 
-		assert_eq!(migrated, expected);
+    assert_eq!(migrated, expected);
 
-		assert_eq!(
-			new_plugins,
-			vec!["dialog", "cli", "dialog", "global-shortcut", "clipboard-manager", "fs"]
-		);
-		assert_eq!(npm_packages_to_remove, Vec::<String>::new());
-	}
+    assert_eq!(
+      new_plugins,
+      vec![
+        "dialog",
+        "cli",
+        "dialog",
+        "global-shortcut",
+        "clipboard-manager",
+        "fs"
+      ]
+    );
+    assert_eq!(npm_packages_to_remove, Vec::<String>::new());
+  }
 
-	#[test]
-	fn migrates_js() {
-		let input = r#"
+  #[test]
+  fn migrates_js() {
+    let input = r#"
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke, dialog, cli as superCli } from "@tauri-apps/api";
@@ -550,7 +574,7 @@ function App() {
 export default App;
 "#;
 
-		let expected = r#"
+    let expected = r#"
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke,   } from "@tauri-apps/api";
@@ -624,32 +648,35 @@ function App() {
 export default App;
 "#;
 
-		let mut new_plugins = Vec::new();
-		let mut npm_packages_to_remove = Vec::new();
+    let mut new_plugins = Vec::new();
+    let mut npm_packages_to_remove = Vec::new();
 
-		let migrated = migrate_imports(
-			Path::new("file.js"),
-			input,
-			&mut new_plugins,
-			&mut npm_packages_to_remove,
-		)
-		.unwrap();
+    let migrated = migrate_imports(
+      Path::new("file.js"),
+      input,
+      &mut new_plugins,
+      &mut npm_packages_to_remove,
+    )
+    .unwrap();
 
-		assert_eq!(migrated, expected);
+    assert_eq!(migrated, expected);
 
-		assert_eq!(
-			new_plugins,
-			vec![
-				"dialog",
-				"cli",
-				"dialog",
-				"global-shortcut",
-				"clipboard-manager",
-				"fs",
-				"store",
-				"sql"
-			]
-		);
-		assert_eq!(npm_packages_to_remove, vec!["tauri-plugin-store-api", "tauri-plugin-sql-api"]);
-	}
+    assert_eq!(
+      new_plugins,
+      vec![
+        "dialog",
+        "cli",
+        "dialog",
+        "global-shortcut",
+        "clipboard-manager",
+        "fs",
+        "store",
+        "sql"
+      ]
+    );
+    assert_eq!(
+      npm_packages_to_remove,
+      vec!["tauri-plugin-store-api", "tauri-plugin-sql-api"]
+    );
+  }
 }

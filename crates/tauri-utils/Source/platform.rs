@@ -25,76 +25,76 @@ pub const ANDROID_ASSET_PROTOCOL_URI_PREFIX: &str = "asset://localhost/";
 #[serde(rename_all = "camelCase")]
 #[non_exhaustive]
 pub enum Target {
-	/// MacOS.
-	#[serde(rename = "macOS")]
-	MacOS,
-	/// Windows.
-	Windows,
-	/// Linux.
-	Linux,
-	/// Android.
-	Android,
-	/// iOS.
-	#[serde(rename = "iOS")]
-	Ios,
+  /// MacOS.
+  #[serde(rename = "macOS")]
+  MacOS,
+  /// Windows.
+  Windows,
+  /// Linux.
+  Linux,
+  /// Android.
+  Android,
+  /// iOS.
+  #[serde(rename = "iOS")]
+  Ios,
 }
 
 impl Display for Target {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(
-			f,
-			"{}",
-			match self {
-				Self::MacOS => "macOS",
-				Self::Windows => "windows",
-				Self::Linux => "linux",
-				Self::Android => "android",
-				Self::Ios => "iOS",
-			}
-		)
-	}
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f,
+      "{}",
+      match self {
+        Self::MacOS => "macOS",
+        Self::Windows => "windows",
+        Self::Linux => "linux",
+        Self::Android => "android",
+        Self::Ios => "iOS",
+      }
+    )
+  }
 }
 
 impl Target {
-	/// Parses the target from the given target triple.
-	pub fn from_triple(target: &str) -> Self {
-		if target.contains("darwin") {
-			Self::MacOS
-		} else if target.contains("windows") {
-			Self::Windows
-		} else if target.contains("android") {
-			Self::Android
-		} else if target.contains("ios") {
-			Self::Ios
-		} else {
-			Self::Linux
-		}
-	}
+  /// Parses the target from the given target triple.
+  pub fn from_triple(target: &str) -> Self {
+    if target.contains("darwin") {
+      Self::MacOS
+    } else if target.contains("windows") {
+      Self::Windows
+    } else if target.contains("android") {
+      Self::Android
+    } else if target.contains("ios") {
+      Self::Ios
+    } else {
+      Self::Linux
+    }
+  }
 
-	/// Gets the current build target.
-	pub fn current() -> Self {
-		if cfg!(target_os = "macos") {
-			Self::MacOS
-		} else if cfg!(target_os = "windows") {
-			Self::Windows
-		} else if cfg!(target_os = "ios") {
-			Self::Ios
-		} else if cfg!(target_os = "android") {
-			Self::Android
-		} else {
-			Self::Linux
-		}
-	}
+  /// Gets the current build target.
+  pub fn current() -> Self {
+    if cfg!(target_os = "macos") {
+      Self::MacOS
+    } else if cfg!(target_os = "windows") {
+      Self::Windows
+    } else if cfg!(target_os = "ios") {
+      Self::Ios
+    } else if cfg!(target_os = "android") {
+      Self::Android
+    } else {
+      Self::Linux
+    }
+  }
 
-	/// Whether the target is mobile or not.
-	pub fn is_mobile(&self) -> bool {
-		matches!(self, Target::Android | Target::Ios)
-	}
+  /// Whether the target is mobile or not.
+  pub fn is_mobile(&self) -> bool {
+    matches!(self, Target::Android | Target::Ios)
+  }
 
-	/// Whether the target is desktop or not.
-	pub fn is_desktop(&self) -> bool {
-		!self.is_mobile()
-	}
+  /// Whether the target is desktop or not.
+  pub fn is_desktop(&self) -> bool {
+    !self.is_mobile()
+  }
 }
 
 /// Retrieves the currently running binary's path, taking into account security considerations.
@@ -170,7 +170,7 @@ impl Target {
 /// [Hard Link]: https://en.wikipedia.org/wiki/Hard_link
 /// [See the patch that enabled this]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=800179c9b8a1e796e441674776d11cd4c05d61d7
 pub fn current_exe() -> std::io::Result<PathBuf> {
-	self::starting_binary::STARTING_BINARY.cloned()
+  self::starting_binary::STARTING_BINARY.cloned()
 }
 
 /// Try to determine the current target triple.
@@ -183,52 +183,52 @@ pub fn current_exe() -> std::io::Result<PathBuf> {
 /// * Errors:
 ///     * Unexpected system config
 pub fn target_triple() -> crate::Result<String> {
-	let arch = if cfg!(target_arch = "x86") {
-		"i686"
-	} else if cfg!(target_arch = "x86_64") {
-		"x86_64"
-	} else if cfg!(target_arch = "arm") {
-		"armv7"
-	} else if cfg!(target_arch = "aarch64") {
-		"aarch64"
-	} else {
-		return Err(crate::Error::Architecture);
-	};
+  let arch = if cfg!(target_arch = "x86") {
+    "i686"
+  } else if cfg!(target_arch = "x86_64") {
+    "x86_64"
+  } else if cfg!(target_arch = "arm") {
+    "armv7"
+  } else if cfg!(target_arch = "aarch64") {
+    "aarch64"
+  } else {
+    return Err(crate::Error::Architecture);
+  };
 
-	let os = if cfg!(target_os = "linux") {
-		"unknown-linux"
-	} else if cfg!(target_os = "macos") {
-		"apple-darwin"
-	} else if cfg!(target_os = "windows") {
-		"pc-windows"
-	} else if cfg!(target_os = "freebsd") {
-		"unknown-freebsd"
-	} else {
-		return Err(crate::Error::Os);
-	};
+  let os = if cfg!(target_os = "linux") {
+    "unknown-linux"
+  } else if cfg!(target_os = "macos") {
+    "apple-darwin"
+  } else if cfg!(target_os = "windows") {
+    "pc-windows"
+  } else if cfg!(target_os = "freebsd") {
+    "unknown-freebsd"
+  } else {
+    return Err(crate::Error::Os);
+  };
 
-	let os = if cfg!(target_os = "macos") || cfg!(target_os = "freebsd") {
-		String::from(os)
-	} else {
-		let env = if cfg!(target_env = "gnu") {
-			"gnu"
-		} else if cfg!(target_env = "musl") {
-			"musl"
-		} else if cfg!(target_env = "msvc") {
-			"msvc"
-		} else {
-			return Err(crate::Error::Environment);
-		};
+  let os = if cfg!(target_os = "macos") || cfg!(target_os = "freebsd") {
+    String::from(os)
+  } else {
+    let env = if cfg!(target_env = "gnu") {
+      "gnu"
+    } else if cfg!(target_env = "musl") {
+      "musl"
+    } else if cfg!(target_env = "msvc") {
+      "msvc"
+    } else {
+      return Err(crate::Error::Environment);
+    };
 
-		format!("{os}-{env}")
-	};
+    format!("{os}-{env}")
+  };
 
-	Ok(format!("{arch}-{os}"))
+  Ok(format!("{arch}-{os}"))
 }
 
 #[cfg(all(not(test), not(target_os = "android")))]
 fn is_cargo_output_directory(path: &std::path::Path) -> bool {
-	path.join(".cargo-lock").exists()
+  path.join(".cargo-lock").exists()
 }
 
 #[cfg(test)]
@@ -236,8 +236,16 @@ const CARGO_OUTPUT_DIRECTORIES: &[&str] = &["debug", "release", "custom-profile"
 
 #[cfg(test)]
 fn is_cargo_output_directory(path: &std::path::Path) -> bool {
-	let last_component = path.components().last().unwrap().as_os_str().to_str().unwrap();
-	CARGO_OUTPUT_DIRECTORIES.iter().any(|dirname| &last_component == dirname)
+  let last_component = path
+    .components()
+    .last()
+    .unwrap()
+    .as_os_str()
+    .to_str()
+    .unwrap();
+  CARGO_OUTPUT_DIRECTORIES
+    .iter()
+    .any(|dirname| &last_component == dirname)
 }
 
 /// Computes the resource directory of the current environment.
@@ -257,133 +265,143 @@ fn is_cargo_output_directory(path: &std::path::Path) -> bool {
 ///
 /// Android uses a special URI prefix that is resolved by the Tauri file system plugin `asset://localhost/`
 pub fn resource_dir(package_info: &PackageInfo, env: &Env) -> crate::Result<PathBuf> {
-	#[cfg(target_os = "android")]
-	return resource_dir_android(package_info, env);
-	#[cfg(not(target_os = "android"))]
-	{
-		let exe = current_exe()?;
-		resource_dir_from(exe, package_info, env)
-	}
+  #[cfg(target_os = "android")]
+  return resource_dir_android(package_info, env);
+  #[cfg(not(target_os = "android"))]
+  {
+    let exe = current_exe()?;
+    resource_dir_from(exe, package_info, env)
+  }
 }
 
 #[cfg(target_os = "android")]
 fn resource_dir_android(_package_info: &PackageInfo, _env: &Env) -> crate::Result<PathBuf> {
-	Ok(PathBuf::from(ANDROID_ASSET_PROTOCOL_URI_PREFIX))
+  Ok(PathBuf::from(ANDROID_ASSET_PROTOCOL_URI_PREFIX))
 }
 
 #[cfg(not(target_os = "android"))]
 #[allow(unused_variables)]
 fn resource_dir_from<P: AsRef<std::path::Path>>(
-	exe: P,
-	package_info: &PackageInfo,
-	env: &Env,
+  exe: P,
+  package_info: &PackageInfo,
+  env: &Env,
 ) -> crate::Result<PathBuf> {
-	let exe_dir = exe.as_ref().parent().expect("failed to get exe directory");
-	let curr_dir = exe_dir.display().to_string();
+  let exe_dir = exe.as_ref().parent().expect("failed to get exe directory");
+  let curr_dir = exe_dir.display().to_string();
 
-	let parts: Vec<&str> = curr_dir.split(std::path::MAIN_SEPARATOR).collect();
-	let len = parts.len();
+  let parts: Vec<&str> = curr_dir.split(std::path::MAIN_SEPARATOR).collect();
+  let len = parts.len();
 
-	// Check if running from the Cargo output directory, which means it's an executable in a development machine
-	// We check if the binary is inside a `target` folder which can be either `target/$profile` or `target/$triple/$profile`
-	// and see if there's a .cargo-lock file along the executable
-	// This ensures the check is safer so it doesn't affect apps in production
-	// Windows also includes the resources in the executable folder so we check that too
-	if cfg!(target_os = "windows")
-		|| ((len >= 2 && parts[len - 2] == "target") || (len >= 3 && parts[len - 3] == "target"))
-			&& is_cargo_output_directory(exe_dir)
-	{
-		return Ok(exe_dir.to_path_buf());
-	}
+  // Check if running from the Cargo output directory, which means it's an executable in a development machine
+  // We check if the binary is inside a `target` folder which can be either `target/$profile` or `target/$triple/$profile`
+  // and see if there's a .cargo-lock file along the executable
+  // This ensures the check is safer so it doesn't affect apps in production
+  // Windows also includes the resources in the executable folder so we check that too
+  if cfg!(target_os = "windows")
+    || ((len >= 2 && parts[len - 2] == "target") || (len >= 3 && parts[len - 3] == "target"))
+      && is_cargo_output_directory(exe_dir)
+  {
+    return Ok(exe_dir.to_path_buf());
+  }
 
-	#[allow(unused_mut, unused_assignments)]
-	let mut res = Err(crate::Error::UnsupportedPlatform);
+  #[allow(unused_mut, unused_assignments)]
+  let mut res = Err(crate::Error::UnsupportedPlatform);
 
-	#[cfg(target_os = "linux")]
-	{
-		res = if curr_dir.ends_with("/data/usr/bin") {
-			// running from the deb bundle dir
-			exe_dir.join(format!("../lib/{}", package_info.name)).canonicalize().map_err(Into::into)
-		} else if let Some(appdir) = &env.appdir {
-			let appdir: &std::path::Path = appdir.as_ref();
-			Ok(PathBuf::from(format!("{}/usr/lib/{}", appdir.display(), package_info.name)))
-		} else {
-			// running bundle
-			Ok(PathBuf::from(format!("/usr/lib/{}", package_info.name)))
-		};
-	}
+  #[cfg(target_os = "linux")]
+  {
+    res = if curr_dir.ends_with("/data/usr/bin") {
+      // running from the deb bundle dir
+      exe_dir
+        .join(format!("../lib/{}", package_info.name))
+        .canonicalize()
+        .map_err(Into::into)
+    } else if let Some(appdir) = &env.appdir {
+      let appdir: &std::path::Path = appdir.as_ref();
+      Ok(PathBuf::from(format!(
+        "{}/usr/lib/{}",
+        appdir.display(),
+        package_info.name
+      )))
+    } else {
+      // running bundle
+      Ok(PathBuf::from(format!("/usr/lib/{}", package_info.name)))
+    };
+  }
 
-	#[cfg(target_os = "macos")]
-	{
-		res = exe_dir.join("../Resources").canonicalize().map_err(Into::into);
-	}
+  #[cfg(target_os = "macos")]
+  {
+    res = exe_dir
+      .join("../Resources")
+      .canonicalize()
+      .map_err(Into::into);
+  }
 
-	#[cfg(target_os = "ios")]
-	{
-		res = exe_dir.join("assets").canonicalize().map_err(Into::into);
-	}
+  #[cfg(target_os = "ios")]
+  {
+    res = exe_dir.join("assets").canonicalize().map_err(Into::into);
+  }
 
-	res
+  res
 }
 
 #[cfg(feature = "build")]
 mod build {
-	use proc_macro2::TokenStream;
-	use quote::{quote, ToTokens, TokenStreamExt};
+  use proc_macro2::TokenStream;
+  use quote::{quote, ToTokens, TokenStreamExt};
 
-	use super::*;
+  use super::*;
 
-	impl ToTokens for Target {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
-			let prefix = quote! { ::tauri::utils::platform::Target };
+  impl ToTokens for Target {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+      let prefix = quote! { ::tauri::utils::platform::Target };
 
-			tokens.append_all(match self {
-				Self::MacOS => quote! { #prefix::MacOS },
-				Self::Linux => quote! { #prefix::Linux },
-				Self::Windows => quote! { #prefix::Windows },
-				Self::Android => quote! { #prefix::Android },
-				Self::Ios => quote! { #prefix::Ios },
-			});
-		}
-	}
+      tokens.append_all(match self {
+        Self::MacOS => quote! { #prefix::MacOS },
+        Self::Linux => quote! { #prefix::Linux },
+        Self::Windows => quote! { #prefix::Windows },
+        Self::Android => quote! { #prefix::Android },
+        Self::Ios => quote! { #prefix::Ios },
+      });
+    }
+  }
 }
 
 #[cfg(test)]
 mod tests {
-	use std::path::PathBuf;
+  use std::path::PathBuf;
 
-	use crate::{Env, PackageInfo};
+  use crate::{Env, PackageInfo};
 
-	#[test]
-	fn resolve_resource_dir() {
-		let package_info = PackageInfo {
-			name: "MyApp".into(),
-			version: "1.0.0".parse().unwrap(),
-			authors: "",
-			description: "",
-			crate_name: "my-app",
-		};
-		let env = Env::default();
+  #[test]
+  fn resolve_resource_dir() {
+    let package_info = PackageInfo {
+      name: "MyApp".into(),
+      version: "1.0.0".parse().unwrap(),
+      authors: "",
+      description: "",
+      crate_name: "my-app",
+    };
+    let env = Env::default();
 
-		let path = PathBuf::from("/path/to/target/aarch64-apple-darwin/debug/app");
-		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
-		assert_eq!(resource_dir, path.parent().unwrap());
+    let path = PathBuf::from("/path/to/target/aarch64-apple-darwin/debug/app");
+    let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+    assert_eq!(resource_dir, path.parent().unwrap());
 
-		let path = PathBuf::from("/path/to/target/custom-profile/app");
-		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
-		assert_eq!(resource_dir, path.parent().unwrap());
+    let path = PathBuf::from("/path/to/target/custom-profile/app");
+    let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+    assert_eq!(resource_dir, path.parent().unwrap());
 
-		let path = PathBuf::from("/path/to/target/release/app");
-		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
-		assert_eq!(resource_dir, path.parent().unwrap());
+    let path = PathBuf::from("/path/to/target/release/app");
+    let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+    assert_eq!(resource_dir, path.parent().unwrap());
 
-		let path = PathBuf::from("/path/to/target/unknown-profile/app");
-		let resource_dir = super::resource_dir_from(&path, &package_info, &env);
-		#[cfg(target_os = "macos")]
-		assert!(resource_dir.is_err());
-		#[cfg(target_os = "linux")]
-		assert_eq!(resource_dir.unwrap(), PathBuf::from("/usr/lib/my-app"));
-		#[cfg(windows)]
-		assert_eq!(resource_dir.unwrap(), path.parent().unwrap());
-	}
+    let path = PathBuf::from("/path/to/target/unknown-profile/app");
+    let resource_dir = super::resource_dir_from(&path, &package_info, &env);
+    #[cfg(target_os = "macos")]
+    assert!(resource_dir.is_err());
+    #[cfg(target_os = "linux")]
+    assert_eq!(resource_dir.unwrap(), PathBuf::from("/usr/lib/my-app"));
+    #[cfg(windows)]
+    assert_eq!(resource_dir.unwrap(), path.parent().unwrap());
+  }
 }
