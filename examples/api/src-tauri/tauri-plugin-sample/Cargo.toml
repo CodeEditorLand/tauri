@@ -12,5 +12,5 @@ thiserror = "1"
 
 [build-dependencies]
 tauri-plugin = { path = "../../../../crates/tauri-plugin", features = [
-  "build",
+	"build",
 ] }
