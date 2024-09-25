@@ -1,36 +1,27 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"dependencies": {
-		"@tauri-apps/api": "^2.0.0-alpha.11",
-		"tauri-plugin-{{ plugin_name }}-api": "file:../../"
-	},
-	"devDependencies": {
-		"@playform/build": "0.1.6",
-		"@tauri-apps/cli": "^2.0.0-alpha.17"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"name": "tauri-app",
+	"version": "0.0.1",
+	"private": false,
 	"keywords": [
 		"codeeditorland",
 		"land",
 		"playform"
 	],
-	"license": "SEE LICENSE IN LICENSE",
-	"name": "tauri-app",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"type": "module",
 	"scripts": {
 		"build": "vite build",
 		"dev": "vite",
@@ -38,6 +29,15 @@
 		"preview": "vite preview",
 		"tauri": "tauri"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"dependencies": {
+		"@tauri-apps/api": "2.0.0-alpha.11",
+		"tauri-plugin-{{ plugin_name }}-api": "file:../../"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.6",
+		"@tauri-apps/cli": "2.0.0-alpha.17"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
