@@ -17,13 +17,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 build = [
-  "dep:anyhow",
-  "dep:serde",
-  "dep:serde_json",
-  "dep:glob",
-  "dep:toml",
-  "dep:plist",
-  "dep:walkdir",
+	"dep:anyhow",
+	"dep:serde",
+	"dep:serde_json",
+	"dep:glob",
+	"dep:toml",
+	"dep:plist",
+	"dep:walkdir",
 ]
 runtime = []
 
@@ -31,7 +31,7 @@ runtime = []
 anyhow = { version = "1", optional = true }
 serde = { version = "1", optional = true }
 tauri-utils = { version = "2.0.0-rc.12", default-features = false, features = [
-  "build",
+	"build",
 ], path = "../tauri-utils" }
 serde_json = { version = "1", optional = true }
 glob = { version = "0.3", optional = true }
