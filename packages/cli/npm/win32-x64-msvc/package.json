@@ -1,22 +1,22 @@
 {
+	"name": "@tauri-apps/cli-win32-x64-msvc",
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"cpu": [
-		"x64"
-	],
-	"devDependencies": {
-		"@playform/build": "0.1.6"
-	},
+	"main": "cli.win32-x64-msvc.node",
 	"files": [
 		"cli.win32-x64-msvc.node"
 	],
-	"main": "cli.win32-x64-msvc.node",
-	"name": "@tauri-apps/cli-win32-x64-msvc",
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.6"
+	},
 	"os": [
 		"win32"
 	],
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	}
+	"cpu": [
+		"x64"
+	]
 }

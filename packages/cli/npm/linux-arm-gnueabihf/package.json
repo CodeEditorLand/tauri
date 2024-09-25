@@ -1,22 +1,22 @@
 {
+	"name": "@tauri-apps/cli-linux-arm-gnueabihf",
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"cpu": [
-		"arm"
-	],
-	"devDependencies": {
-		"@playform/build": "0.1.6"
-	},
+	"main": "cli.linux-arm-gnueabihf.node",
 	"files": [
 		"cli.linux-arm-gnueabihf.node"
 	],
-	"main": "cli.linux-arm-gnueabihf.node",
-	"name": "@tauri-apps/cli-linux-arm-gnueabihf",
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.6"
+	},
 	"os": [
 		"linux"
 	],
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	}
+	"cpu": [
+		"arm"
+	]
 }

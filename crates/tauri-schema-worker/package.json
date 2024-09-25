@@ -1,12 +1,12 @@
 {
-	"devDependencies": {
-		"@playform/build": "0.1.6",
-		"wrangler": "^3.75"
-	},
 	"name": "tauri-schema-worker",
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.6",
+		"wrangler": "3.75"
 	}
 }

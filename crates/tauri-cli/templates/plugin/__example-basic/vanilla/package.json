@@ -1,14 +1,14 @@
 {
-	"dependencies": {
-		"@tauri-apps/cli": "^2.0.0-alpha.17"
-	},
-	"description": "",
-	"devDependencies": {
-		"@playform/build": "0.1.6"
-	},
-	"main": "index.js",
 	"name": "app",
+	"description": "",
+	"main": "index.js",
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"dependencies": {
+		"@tauri-apps/cli": "2.0.0-alpha.17"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.6"
 	}
 }

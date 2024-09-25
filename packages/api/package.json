@@ -1,15 +1,13 @@
 {
+	"name": "@tauri-apps/api",
+	"description": "Tauri API definitions",
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"description": "Tauri API definitions",
-	"devDependencies": {
-		"@playform/build": "0.1.6",
-		"@types/node": "20.16.1",
-		"fast-glob": "3.3.2",
-		"globals": "^15.4.0",
-		"tslib": "^2.6.3"
-	},
 	"exports": {
 		".": {
 			"import": "./index.js",
@@ -23,13 +21,9 @@
 		},
 		"./package.json": "./package.json"
 	},
-	"funding": {
-		"type": "opencollective",
-		"url": "https://opencollective.com/tauri"
-	},
 	"main": "./index.cjs",
 	"module": "./index.js",
-	"name": "@tauri-apps/api",
+	"types": "./index.d.ts",
 	"scripts": {
 		"build": "rollup -c --configPlugin typescript",
 		"eslint:check": "eslint src/**.ts",
@@ -39,5 +33,11 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "tsc --noEmit"
 	},
-	"types": "./index.d.ts"
+	"devDependencies": {
+		"@playform/build": "0.1.6",
+		"@types/node": "20.16.1",
+		"fast-glob": "3.3.2",
+		"globals": "15.4.0",
+		"tslib": "2.6.3"
+	}
 }

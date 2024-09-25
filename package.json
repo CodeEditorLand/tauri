@@ -1,16 +1,8 @@
 {
+	"name": "tauri-workspace",
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"devDependencies": {
-		"@playform/build": "0.1.6"
-	},
-	"name": "tauri-workspace",
-	"pnpm": {
-		"overrides": {
-			"rollup@>=4.0.0 <4.22.4": ">=4.22.4"
-		}
-	},
 	"scripts": {
 		"build": "pnpm run -r build",
 		"build:api": "pnpm run --filter \"@tauri-apps/api\" build",
@@ -20,5 +12,13 @@
 		"example:api:dev": "pnpm run --filter \"api\" tauri dev",
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "pnpm run -r ts:check"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.6"
+	},
+	"pnpm": {
+		"overrides": {
+			"rollup@>=4.0.0 <4.22.4": ">=4.22.4"
+		}
 	}
 }
