@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+
+=======
 {
 	"author": {
 		"email": "Source/Open@Editor.Land",
@@ -50,3 +53,4 @@
 	"types": "./dist-js/index.d.ts",
 	"version": "0.0.1"
 }
+>>>>>>> 98d352f25c85ca7ab7e05e8d462e5f238ebfb862
