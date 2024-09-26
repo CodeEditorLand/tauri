@@ -18,10 +18,10 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 wry = { version = "0.44.0", default-features = false, features = [
-  "drag-drop",
-  "protocol",
-  "os-webview",
-  "linux-body",
+	"drag-drop",
+	"protocol",
+	"os-webview",
+	"linux-body",
 ] }
 tao = { version = "0.30.2", default-features = false, features = ["rwh_06"] }
 tauri-runtime = { version = "2.0.0-rc.12", path = "../tauri-runtime" }
@@ -49,9 +49,9 @@ percent-encoding = "2.1"
 objc2 = "0.5.2"
 objc2-foundation = { version = "0.2.2", features = [] }
 objc2-app-kit = { version = "0.2.2", features = [
-  "NSResponder",
-  "NSView",
-  "NSWindow",
+	"NSResponder",
+	"NSView",
+	"NSWindow",
 ] }
 
 [target."cfg(target_os = \"android\")".dependencies]
@@ -60,9 +60,9 @@ jni = "0.21"
 [features]
 devtools = ["wry/devtools", "tauri-runtime/devtools"]
 macos-private-api = [
-  "wry/fullscreen",
-  "wry/transparent",
-  "tauri-runtime/macos-private-api",
+	"wry/fullscreen",
+	"wry/transparent",
+	"tauri-runtime/macos-private-api",
 ]
 objc-exception = ["wry/objc-exception"]
 tracing = ["dep:tracing", "wry/tracing"]
