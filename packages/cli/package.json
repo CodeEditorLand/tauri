@@ -1,1 +1,76 @@
+<<<<<<< HEAD
 
+=======
+{
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bin": {
+		"tauri": "./tauri.js"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"description": "Command line interface for building Tauri apps",
+	"devDependencies": {
+		"@napi-rs/cli": "2.18.3",
+		"@playform/build": "0.1.6",
+		"@types/node": "20.16.1",
+		"cross-env": "7.0.3"
+	},
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "main.js",
+	"name": "@tauri-apps/cli",
+	"napi": {
+		"name": "cli",
+		"triples": {
+			"additional": [
+				"aarch64-apple-darwin",
+				"aarch64-unknown-linux-gnu",
+				"aarch64-unknown-linux-musl",
+				"armv7-unknown-linux-gnueabihf",
+				"x86_64-unknown-linux-musl",
+				"i686-pc-windows-msvc",
+				"aarch64-pc-windows-msvc"
+			]
+		}
+	},
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"artifacts": "napi artifacts",
+		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+		"build:debug": "cross-env TARGET=node napi build --platform",
+		"postbuild": "node append-headers.js",
+		"postbuild:debug": "node append-headers.js",
+		"prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"tauri": "node ./tauri.js",
+		"version": "napi version"
+	},
+	"type": "module",
+	"types": "main.d.ts",
+	"version": "0.0.1"
+}
+>>>>>>> 98d352f25c85ca7ab7e05e8d462e5f238ebfb862

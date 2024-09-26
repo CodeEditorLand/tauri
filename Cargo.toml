@@ -1,38 +1,38 @@
 [workspace]
 members = [
-	"crates/tauri",
-	"crates/tauri-runtime",
-	"crates/tauri-runtime-wry",
-	"crates/tauri-macros",
-	"crates/tauri-utils",
-	"crates/tauri-build",
-	"crates/tauri-codegen",
-	"crates/tauri-plugin",
-	"crates/tauri-schema-generator",
-	"crates/tauri-schema-worker",
-	"crates/tauri-cli",
-	"crates/tauri-bundler",
-	"crates/tauri-macos-sign",
-	"crates/tauri-driver",
+  "crates/tauri",
+  "crates/tauri-runtime",
+  "crates/tauri-runtime-wry",
+  "crates/tauri-macros",
+  "crates/tauri-utils",
+  "crates/tauri-build",
+  "crates/tauri-codegen",
+  "crates/tauri-plugin",
+  "crates/tauri-schema-generator",
+  "crates/tauri-schema-worker",
+  "crates/tauri-cli",
+  "crates/tauri-bundler",
+  "crates/tauri-macos-sign",
+  "crates/tauri-driver",
 
-	# @tauri-apps/cli rust project
-	"packages/cli",
+  # @tauri-apps/cli rust project
+  "packages/cli",
 
-	# integration tests
-	"crates/tests/restart",
-	"crates/tests/acl",
+  # integration tests
+  "crates/tests/restart",
+  "crates/tests/acl",
 
-	# bench
-	"bench",
-	"bench/tests/cpu_intensive/src-tauri",
-	"bench/tests/files_transfer/src-tauri",
-	"bench/tests/helloworld/src-tauri",
+  # bench
+  "bench",
+  "bench/tests/cpu_intensive/src-tauri",
+  "bench/tests/files_transfer/src-tauri",
+  "bench/tests/helloworld/src-tauri",
 
-	# examples
-	"examples/file-associations/src-tauri",
-	"examples/api/src-tauri",
-	"examples/resources/src-tauri",
-	"examples/api/src-tauri/tauri-plugin-sample",
+  # examples
+  "examples/file-associations/src-tauri",
+  "examples/api/src-tauri",
+  "examples/resources/src-tauri",
+  "examples/api/src-tauri/tauri-plugin-sample",
 ]
 resolver = "2"
 
