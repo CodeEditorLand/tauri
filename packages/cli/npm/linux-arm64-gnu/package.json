@@ -1,50 +1,50 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
-	"cpu": [
-		"arm64"
-	],
-	"devDependencies": {
-		"@playform/build": "0.1.6"
-	},
-	"files": [
-		"cli.linux-arm64-gnu.node"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"name": "@tauri-apps/cli-linux-arm64-gnu",
+	"version": "0.0.1",
+	"private": false,
 	"keywords": [
 		"codeeditorland",
 		"land",
 		"playform"
 	],
-	"libc": [
-		"glibc"
-	],
-	"license": "SEE LICENSE IN LICENSE",
-	"main": "cli.linux-arm64-gnu.node",
-	"name": "@tauri-apps/cli-linux-arm64-gnu",
-	"os": [
-		"linux"
-	],
-	"private": false,
-	"publishConfig": {
-		"access": "public"
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"type": "module",
+	"main": "cli.linux-arm64-gnu.node",
+	"files": [
+		"cli.linux-arm64-gnu.node"
+	],
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"devDependencies": {
+		"@playform/build": "0.1.6"
+	},
+	"os": [
+		"linux"
+	],
+	"cpu": [
+		"arm64"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"libc": [
+		"glibc"
+	]
 }
