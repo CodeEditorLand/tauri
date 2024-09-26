@@ -28,8 +28,8 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {
-		"@playform/build": "0.1.6",
-		"wrangler": "3.75"
+		"@playform/build": "0.1.7",
+		"wrangler": "3.78"
 	},
 	"publishConfig": {
 		"access": "public"
