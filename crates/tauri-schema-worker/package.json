@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-
-=======
 {
 	"author": {
 		"email": "Source/Open@Editor.Land",
@@ -12,7 +9,7 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.1.6",
-		"wrangler": "^3.75"
+		"wrangler": "3.75"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
@@ -38,4 +35,3 @@
 	"type": "module",
 	"version": "0.0.1"
 }
->>>>>>> 98d352f25c85ca7ab7e05e8d462e5f238ebfb862

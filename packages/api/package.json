@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-
-=======
 {
 	"author": {
 		"email": "Source/Open@Editor.Land",
@@ -18,8 +15,8 @@
 		"@playform/build": "0.1.6",
 		"@types/node": "20.16.1",
 		"fast-glob": "3.3.2",
-		"globals": "^15.4.0",
-		"tslib": "^2.6.3"
+		"globals": "15.4.0",
+		"tslib": "2.6.3"
 	},
 	"exports": {
 		".": {
@@ -69,4 +66,3 @@
 	"types": "./index.d.ts",
 	"version": "0.0.1"
 }
->>>>>>> 98d352f25c85ca7ab7e05e8d462e5f238ebfb862

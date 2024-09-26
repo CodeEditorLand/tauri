@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-
-=======
 {
 	"author": {
 		"email": "Source/Open@Editor.Land",
@@ -14,11 +11,11 @@
 		"@tauri-apps/api": "../../packages/api/dist"
 	},
 	"devDependencies": {
-		"@iconify-json/codicon": "^1.1.49",
-		"@iconify-json/ph": "^1.1.13",
+		"@iconify-json/codicon": "1.1.49",
+		"@iconify-json/ph": "1.1.13",
 		"@playform/build": "0.1.6",
-		"@unocss/extractor-svelte": "^0.61.0",
-		"unocss": "^0.61.0"
+		"@unocss/extractor-svelte": "0.61.0",
+		"unocss": "0.61.0"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
@@ -46,4 +43,3 @@
 	"type": "module",
 	"version": "0.0.1"
 }
->>>>>>> 98d352f25c85ca7ab7e05e8d462e5f238ebfb862
