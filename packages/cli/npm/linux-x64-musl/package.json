@@ -1,35 +1,50 @@
 {
-  "name": "@tauri-apps/cli-linux-x64-musl",
-  "version": "0.0.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tauri-apps/tauri.git"
-  },
-  "homepage": "https://github.com/tauri-apps/tauri#readme",
-  "bugs": {
-    "url": "https://github.com/tauri-apps/tauri/issues"
-  },
-  "contributors": [
-    "Tauri Programme within The Commons Conservancy"
-  ],
-  "license": "Apache-2.0 OR MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "os": [
-    "linux"
-  ],
-  "cpu": [
-    "x64"
-  ],
-  "libc": [
-    "musl"
-  ],
-  "main": "cli.linux-x64-musl.node",
-  "files": [
-    "cli.linux-x64-musl.node"
-  ],
-  "engines": {
-    "node": ">= 10"
-  }
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"cpu": [
+		"x64"
+	],
+	"devDependencies": {
+		"@playform/build": "0.1.7"
+	},
+	"files": [
+		"cli.linux-x64-musl.node"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"libc": [
+		"musl"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "cli.linux-x64-musl.node",
+	"name": "@tauri-apps/cli-linux-x64-musl",
+	"os": [
+		"linux"
+	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"type": "module",
+	"version": "0.0.1"
 }
