@@ -1,4 +1,11 @@
 {
+<<<<<<< HEAD
+	"devDependencies": {
+		"@playform/build": "0.1.7",
+		"wrangler": "3.78"
+	},
+	"name": "tauri-schema-worker",
+=======
 	"author": {
 		"email": "Source/Open@Editor.Land",
 		"name": "🖋️ Source — 👐🏻 Open —",
@@ -27,11 +34,16 @@
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
+<<<<<<< HEAD
+	}
+=======
 	},
 	"type": "module",
 	"version": "0.0.1"
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }

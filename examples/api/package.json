@@ -1,4 +1,6 @@
 {
+<<<<<<< HEAD
+=======
 	"author": {
 		"email": "Source/Open@Editor.Land",
 		"name": "🖋️ Source — 👐🏻 Open —",
@@ -7,12 +9,27 @@
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"dependencies": {
 		"@tauri-apps/api": "../../packages/api/dist"
 	},
 	"devDependencies": {
+<<<<<<< HEAD
 		"@iconify-json/codicon": "1.2.1",
 		"@iconify-json/ph": "1.2.0",
+=======
+<<<<<<< HEAD
+		"@iconify-json/codicon": "1.2.1",
+		"@iconify-json/ph": "1.2.0",
+		"@playform/build": "0.1.7",
+		"@unocss/extractor-svelte": "0.62.4",
+		"unocss": "0.62.4"
+	},
+	"name": "api",
+=======
+		"@iconify-json/codicon": "1.1.49",
+		"@iconify-json/ph": "1.1.13",
+>>>>>>> a4328dd3d725ca41310e4c41184073037b802bf4
 		"@playform/build": "0.1.7",
 		"@unocss/extractor-svelte": "0.62.4",
 		"unocss": "0.62.4"
@@ -33,13 +50,18 @@
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"scripts": {
 		"build": "vite build",
 		"dev": "vite",
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"preview": "vite preview",
 		"tauri": "node ../../packages/cli/tauri.js"
+<<<<<<< HEAD
+	}
+=======
 	},
 	"type": "module",
 	"version": "0.0.1"
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }
