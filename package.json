@@ -1,48 +1,30 @@
 {
-<<<<<<< HEAD
-=======
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
-	"devDependencies": {
-		"@playform/build": "0.1.7"
-	},
-<<<<<<< HEAD
-=======
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"name": "tauri-workspace",
+	"version": "0.0.1",
+	"private": false,
 	"keywords": [
 		"codeeditorland",
 		"land",
 		"playform"
 	],
-	"license": "SEE LICENSE IN LICENSE",
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
-	"name": "tauri-workspace",
-	"pnpm": {
-		"overrides": {
-			"rollup@>=4.0.0 <4.22.4": ">=4.22.4"
-		}
-	},
-<<<<<<< HEAD
-=======
-	"private": false,
-	"publishConfig": {
-		"access": "public"
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"type": "module",
 	"scripts": {
 		"build": "pnpm run -r build",
 		"build:api": "pnpm run --filter \"@tauri-apps/api\" build",
@@ -52,11 +34,16 @@
 		"example:api:dev": "pnpm run --filter \"api\" tauri dev",
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "pnpm run -r ts:check"
-<<<<<<< HEAD
-	}
-=======
 	},
-	"type": "module",
-	"version": "0.0.1"
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
+	"devDependencies": {
+		"@playform/build": "0.1.7"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"pnpm": {
+		"overrides": {
+			"rollup@>=4.0.0 <4.22.4": ">=4.22.4"
+		}
+	}
 }

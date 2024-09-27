@@ -1,59 +1,47 @@
 {
-<<<<<<< HEAD
-=======
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
-	"cpu": [
-		"arm"
-	],
-	"devDependencies": {
-		"@playform/build": "0.1.7"
-	},
-	"files": [
-		"cli.linux-arm-gnueabihf.node"
-	],
-<<<<<<< HEAD
-=======
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"name": "@tauri-apps/cli-linux-arm-gnueabihf",
+	"version": "0.0.1",
+	"private": false,
 	"keywords": [
 		"codeeditorland",
 		"land",
 		"playform"
 	],
-	"license": "SEE LICENSE IN LICENSE",
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
-	"main": "cli.linux-arm-gnueabihf.node",
-	"name": "@tauri-apps/cli-linux-arm-gnueabihf",
-	"os": [
-		"linux"
-	],
-<<<<<<< HEAD
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	}
-=======
-	"private": false,
-	"publishConfig": {
-		"access": "public"
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"type": "module",
+	"main": "cli.linux-arm-gnueabihf.node",
+	"files": [
+		"cli.linux-arm-gnueabihf.node"
+	],
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"type": "module",
-	"version": "0.0.1"
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
+	"devDependencies": {
+		"@playform/build": "0.1.7"
+	},
+	"os": [
+		"linux"
+	],
+	"cpu": [
+		"arm"
+	],
+	"publishConfig": {
+		"access": "public"
+	}
 }
