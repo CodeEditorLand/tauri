@@ -1,39 +1,39 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
-	"devDependencies": {
-		"@playform/build": "0.1.6"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"name": "tauri-workspace",
+	"version": "0.0.1",
+	"private": false,
 	"keywords": [
 		"codeeditorland",
 		"land",
 		"playform"
 	],
-	"license": "SEE LICENSE IN LICENSE",
-	"name": "tauri-workspace",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"type": "module",
 	"scripts": {
 		"eslint:check": "pnpm run -r eslint:check",
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "pnpm run -r ts:check"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"devDependencies": {
+		"@playform/build": "0.1.6"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
