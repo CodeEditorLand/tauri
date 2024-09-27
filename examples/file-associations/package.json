@@ -1,9 +1,4 @@
 {
-<<<<<<< HEAD
-	"devDependencies": {
-		"@playform/build": "0.1.7"
-	},
-=======
 	"author": {
 		"email": "Source/Open@Editor.Land",
 		"name": "🖋️ Source — 👐🏻 Open —",
@@ -22,19 +17,12 @@
 		"playform"
 	],
 	"license": "SEE LICENSE IN LICENSE",
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"name": "file-associations",
 	"pkg": {
 		"assets": [
 			"src/**/*"
 		]
 	},
-<<<<<<< HEAD
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"tauri": "node ../../packages/cli/node/tauri.js"
-	}
-=======
 	"private": false,
 	"publishConfig": {
 		"access": "public"
@@ -49,5 +37,4 @@
 	},
 	"type": "module",
 	"version": "0.0.1"
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }

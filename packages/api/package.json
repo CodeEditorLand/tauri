@@ -1,6 +1,4 @@
 {
-<<<<<<< HEAD
-=======
 	"author": {
 		"email": "Source/Open@Editor.Land",
 		"name": "🖋️ Source — 👐🏻 Open —",
@@ -9,31 +7,24 @@
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
 	"description": "Tauri API definitions",
 	"devDependencies": {
 		"@playform/build": "0.1.7",
-<<<<<<< HEAD
 		"@types/node": "22.7.3",
 		"fast-glob": "3.3.2",
 		"globals": "15.9.0",
-		"tslib": "2.7.0"
-=======
-<<<<<<< HEAD
+		"tslib": "2.7.0",
 		"@types/node": "22.7.3",
 		"fast-glob": "3.3.2",
 		"globals": "15.9.0",
-		"tslib": "2.7.0"
-=======
+		"tslib": "2.7.0",
 		"@types/node": "20.16.1",
 		"fast-glob": "3.3.2",
 		"globals": "15.4.0",
 		"tslib": "2.6.3"
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
->>>>>>> a4328dd3d725ca41310e4c41184073037b802bf4
 	},
 	"exports": {
 		".": {
@@ -56,7 +47,6 @@
 	"main": "./index.cjs",
 	"module": "./index.js",
 	"name": "@tauri-apps/api",
-=======
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
 		"codeeditorland",
@@ -75,7 +65,6 @@
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
 	},
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"scripts": {
 		"build": "rollup -c --configPlugin typescript",
 		"eslint:check": "eslint src/**.ts",
@@ -85,11 +74,8 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "tsc --noEmit"
 	},
-<<<<<<< HEAD
-	"types": "./index.d.ts"
-=======
+	"types": "./index.d.ts",
 	"type": "module",
 	"types": "./index.d.ts",
 	"version": "0.0.1"
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }

@@ -1,14 +1,4 @@
 {
-<<<<<<< HEAD
-	"devDependencies": {
-		"@playform/build": "0.1.7"
-	},
-	"name": "resources",
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"tauri": "node ../../packages/cli/tauri.js"
-	}
-=======
 	"author": {
 		"email": "Source/Open@Editor.Land",
 		"name": "🖋️ Source — 👐🏻 Open —",
@@ -42,5 +32,4 @@
 	},
 	"type": "module",
 	"version": "0.0.1"
->>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }
