@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
 	"bin": {
 		"tauri": "./tauri.js"
 	},
@@ -16,6 +17,40 @@
 		"type": "opencollective",
 		"url": "https://opencollective.com/tauri"
 	},
+=======
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bin": {
+		"tauri": "./tauri.js"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"description": "Command line interface for building Tauri apps",
+	"devDependencies": {
+		"@napi-rs/cli": "2.18.3",
+		"@playform/build": "0.1.7",
+		"@types/node": "20.16.1",
+		"cross-env": "7.0.3"
+	},
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"main": "main.js",
 	"name": "@tauri-apps/cli",
 	"napi": {
@@ -32,6 +67,17 @@
 			]
 		}
 	},
+<<<<<<< HEAD
+=======
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"scripts": {
 		"artifacts": "napi artifacts",
 		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
@@ -43,5 +89,11 @@
 		"tauri": "node ./tauri.js",
 		"version": "napi version"
 	},
+<<<<<<< HEAD
 	"types": "main.d.ts"
+=======
+	"type": "module",
+	"types": "main.d.ts",
+	"version": "0.0.1"
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }

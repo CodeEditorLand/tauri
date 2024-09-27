@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
 	"devDependencies": {
 		"@playform/build": "0.1.7"
 	},
@@ -7,4 +8,39 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"tauri": "node ../../packages/cli/tauri.js"
 	}
+=======
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.7"
+	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"name": "resources",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"tauri": "node ../../packages/cli/tauri.js"
+	},
+	"type": "module",
+	"version": "0.0.1"
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }

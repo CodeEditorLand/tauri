@@ -1,4 +1,15 @@
 {
+<<<<<<< HEAD
+=======
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
@@ -11,12 +22,38 @@
 	"files": [
 		"cli.win32-arm64-msvc.node"
 	],
+<<<<<<< HEAD
+=======
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 	"main": "cli.win32-arm64-msvc.node",
 	"name": "@tauri-apps/cli-win32-arm64-msvc",
 	"os": [
 		"win32"
 	],
+<<<<<<< HEAD
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	}
+=======
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"type": "module",
+	"version": "0.0.1"
+>>>>>>> 4794c17ef5f7d5fbc892a5dac5c2552da163836b
 }
