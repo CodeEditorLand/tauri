@@ -198,6 +198,7 @@ pub fn write_options(identifier: &str, mut options: CliOptions) -> crate::Result
 	let runtime = Runtime::new().unwrap();
 	let r: anyhow::Result<(ServerHandle, SocketAddr)> = runtime.block_on(async move {
 		let server = ServerBuilder::default().build("127.0.0.1:0").await?;
+
 		let addr = server.local_addr()?;
 
 		let mut module = RpcModule::new(());
@@ -353,6 +354,7 @@ fn ensure_gradlew(project_dir: &std::path::Path) -> Result<()> {
 	let gradlew_path = project_dir.join("gradlew");
 	if let Ok(metadata) = gradlew_path.metadata() {
 		let mut permissions = metadata.permissions();
+
 		let is_executable = permissions.mode() & 0o111 != 0;
 		if !is_executable {
 			permissions.set_mode(permissions.mode() | 0o111);

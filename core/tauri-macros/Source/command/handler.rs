@@ -16,6 +16,7 @@ struct CommandDef {
 impl Parse for CommandDef {
 	fn parse(input: ParseStream) -> syn::Result<Self> {
 		let attrs = input.call(Attribute::parse_outer)?;
+
 		let path = input.parse()?;
 
 		Ok(CommandDef { path, attrs })
@@ -61,7 +62,9 @@ impl Parse for Handler {
 impl From<Handler> for proc_macro::TokenStream {
 	fn from(Handler { command_defs, commands, wrappers }: Handler) -> Self {
 		let cmd = format_ident!("__tauri_cmd__");
+
 		let invoke = format_ident!("__tauri_invoke__");
+
 		let (paths, attrs): (Vec<Path>, Vec<Vec<Attribute>>) =
 			command_defs.into_iter().map(|def| (def.path, def.attrs)).unzip();
 		quote::quote!(move |#invoke| {

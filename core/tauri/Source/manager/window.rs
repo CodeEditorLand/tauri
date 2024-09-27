@@ -84,6 +84,7 @@ impl<R: Runtime> WindowManager<R> {
 		);
 
 		let window_ = window.clone();
+
 		let window_event_listeners = self.event_listeners.clone();
 		window.on_window_event(move |event| {
 			let _ = on_window_event(&window_, event);
@@ -99,6 +100,7 @@ impl<R: Runtime> WindowManager<R> {
 
 		// let plugins know that a new window has been added to the manager
 		let manager = window.manager.clone();
+
 		let window_ = window.clone();
 		// run on main thread so the plugin store doesn't dead lock with the event loop handler in App
 		let _ = window.run_on_main_thread(move || {
@@ -128,6 +130,7 @@ impl<R: Runtime> Window<R> {
 	/// Checks whether has js listener for [`EventTarget::Window`] or [`EventTarget::WebviewWindow`]
 	fn has_js_listener(&self, event: &str) -> bool {
 		let window_label = self.label();
+
 		let listeners = self.manager().listeners();
 		listeners.has_js_listener(event, |target| match target {
 			EventTarget::Window { label } | EventTarget::WebviewWindow { label } => {

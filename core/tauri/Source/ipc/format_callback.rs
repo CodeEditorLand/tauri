@@ -207,6 +207,7 @@ mod test {
 			"JSON.parse('{}')",
 			dangerous_json.get().replace('\\', "\\\\").replace('\'', "\\'")
 		);
+
 		let escape_single_quoted_json_test =
 			serialize_to_javascript::Serialized::new(&dangerous_json, &Default::default())
 				.into_string();
@@ -232,6 +233,7 @@ mod test {
 	#[quickcheck]
 	fn qc_format_res(result: Result<String, String>, c: CallbackFn, ec: CallbackFn) -> bool {
 		let resp = format_result(result.clone(), c, ec).expect("failed to format callback result");
+
 		let (function, value) = match result {
 			Ok(v) => (c, v),
 			Err(e) => (ec, e),
@@ -276,6 +278,7 @@ mod test {
 			"JSON.parse('{}')",
 			dangerous_json.get().replace('\\', "\\\\").replace('\'', "\\'")
 		);
+
 		let escape_single_quoted_json_test =
 			serialize_to_javascript::Serialized::new(&dangerous_json, &Default::default())
 				.into_string();
@@ -299,8 +302,10 @@ mod test {
 	#[quickcheck]
 	fn qc_format_raw_res(result: Result<JsonStr, JsonStr>, c: CallbackFn, ec: CallbackFn) -> bool {
 		let result = result.map(|v| v.0).map_err(|e| e.0);
+
 		let resp =
 			format_result_raw(result.clone(), c, ec).expect("failed to format callback result");
+
 		let (function, value) = match result {
 			Ok(v) => (c, v),
 			Err(e) => (ec, e),

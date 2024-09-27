@@ -135,6 +135,7 @@ impl TryFrom<Vec<u8>> for Cached {
 
 	fn try_from(content: Vec<u8>) -> Result<Self, Self::Error> {
 		let checksum = checksum(content.as_ref()).map_err(EmbeddedAssetsError::Hex)?;
+
 		let path = ensure_out_dir()?.join(&checksum);
 
 		write_if_changed(&path, &content)

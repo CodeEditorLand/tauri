@@ -95,6 +95,7 @@ fn get_response<R: Runtime>(
 	let mut response = {
 		let decoded_path =
 			percent_encoding::percent_decode(path.as_bytes()).decode_utf8_lossy().to_string();
+
 		let url = format!("{url}{decoded_path}");
 
 		let mut proxy_builder =

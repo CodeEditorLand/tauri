@@ -195,6 +195,7 @@ pub fn command(mut options: Options) -> Result<()> {
 		};
 
 		let _ = remove_dir_all(&template_target_path);
+
 		let mut handlebars = Handlebars::new();
 		handlebars.register_escape_fn(handlebars::no_escape);
 

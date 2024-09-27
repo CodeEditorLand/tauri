@@ -120,6 +120,7 @@ impl Display for SectionItem {
 	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
 		let desc =
 			self.description.as_ref().map(|s| s.replace('\n', "\n      ")).unwrap_or_default();
+
 		let (first, second) = desc.split_once(':').unwrap();
 		write!(f, "{} {}:{}", self.status, first.bold(), second)
 	}
@@ -214,6 +215,7 @@ impl Section<'_> {
 		}
 
 		let status_str = format!("[{status}]");
+
 		let status = status.color(status_str);
 
 		println!();

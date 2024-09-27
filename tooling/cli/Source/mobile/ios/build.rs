@@ -142,12 +142,14 @@ pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
 	)?;
 	let (interface, mut config) = {
 		let tauri_config_guard = tauri_config.lock().unwrap();
+
 		let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
 		let interface = AppInterface::new(tauri_config_, build_options.target.clone())?;
 		interface.build_options(&mut Vec::new(), &mut build_options.features, true);
 
 		let app = get_app(MobileTarget::Ios, tauri_config_, &interface);
+
 		let (config, _metadata) =
 			get_config(&app, tauri_config_, build_options.features.as_ref(), &Default::default());
 		(interface, config)
@@ -194,6 +196,7 @@ pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
 	// merge export options and write to temp file
 	let _export_options_tmp = if !export_options_plist.is_empty() {
 		let export_options_plist_path = config.project_dir().join("ExportOptions.plist");
+
 		let export_options = tempfile::NamedTempFile::new()?;
 
 		let merged_plist = merge_plist(vec![

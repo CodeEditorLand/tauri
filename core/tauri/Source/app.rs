@@ -1064,6 +1064,7 @@ impl<R: Runtime> App<R> {
 	/// ```
 	pub fn run<F: FnMut(&AppHandle<R>, RunEvent) + 'static>(mut self, mut callback: F) {
 		let app_handle = self.handle().clone();
+
 		let manager = self.manager.clone();
 		self.runtime.take().unwrap().run(move |event| match event {
 			RuntimeRunEvent::Ready => {
@@ -1110,6 +1111,7 @@ impl<R: Runtime> App<R> {
 	#[cfg(desktop)]
 	pub fn run_iteration<F: FnMut(&AppHandle<R>, RunEvent) + 'static>(&mut self, mut callback: F) {
 		let manager = self.manager.clone();
+
 		let app_handle = self.handle().clone();
 
 		if !self.ran_setup {

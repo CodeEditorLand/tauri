@@ -85,6 +85,7 @@ mod desktop_commands {
 		options: WebviewConfig,
 	) -> crate::Result<()> {
 		let window = app.manager().get_window(&window_label).ok_or(crate::Error::WindowNotFound)?;
+
 		let mut builder = crate::webview::WebviewBuilder::new(label, options.url);
 
 		builder.webview_attributes.user_agent = options.user_agent;

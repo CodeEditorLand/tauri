@@ -263,7 +263,9 @@ pub fn log_stdout() {
 	}
 	thread::spawn(move || unsafe {
 		let file = File::from_raw_fd(logpipe[0]);
+
 		let mut reader = BufReader::new(file);
+
 		let mut buffer = String::new();
 		loop {
 			buffer.clear();
@@ -957,7 +959,9 @@ pub(crate) mod sealed {
 macro_rules! run_main_thread {
 	($handle:ident, $ex:expr) => {{
 		use std::sync::mpsc::channel;
+
 		let (tx, rx) = channel();
+
 		let task = move || {
 			let f = $ex;
 			let _ = tx.send(f());
@@ -1029,6 +1033,7 @@ mod tests {
 	#[test]
 	fn features_are_documented() {
 		let manifest_dir = PathBuf::from(var("CARGO_MANIFEST_DIR").unwrap());
+
 		let lib_code =
 			read_to_string(manifest_dir.join("src/lib.rs")).expect("failed to read lib.rs");
 
@@ -1042,6 +1047,7 @@ mod tests {
 	#[test]
 	fn aliased_features_exist() {
 		let checked_features = CHECKED_FEATURES.split(',');
+
 		let manifest = get_manifest();
 		for checked_feature in checked_features {
 			if !manifest.features.iter().any(|(f, _)| f == checked_feature) {

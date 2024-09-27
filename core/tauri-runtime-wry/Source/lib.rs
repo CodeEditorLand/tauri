@@ -247,8 +247,11 @@ impl<T: UserEvent> Context<T> {
 		after_window_creation: Option<F>,
 	) -> Result<DetachedWindow<T, Wry<T>>> {
 		let label = pending.label.clone();
+
 		let context = self.clone();
+
 		let window_id = self.next_window_id();
+
 		let webview_id = pending.webview.as_ref().map(|_| context.next_webview_id());
 
 		send_user_message(
@@ -288,11 +291,13 @@ impl<T: UserEvent> Context<T> {
 		pending: PendingWebview<T, Wry<T>>,
 	) -> Result<DetachedWebview<T, Wry<T>>> {
 		let label = pending.label.clone();
+
 		let context = self.clone();
 
 		let webview_id = self.next_webview_id();
 
 		let window_id_wrapper = Arc::new(Mutex::new(window_id));
+
 		let window_id_wrapper_ = window_id_wrapper.clone();
 
 		send_user_message(
@@ -578,6 +583,7 @@ pub struct CursorIconWrapper(pub TaoCursorIcon);
 impl From<CursorIcon> for CursorIconWrapper {
 	fn from(icon: CursorIcon) -> Self {
 		use CursorIcon::*;
+
 		let i = match icon {
 			Default => TaoCursorIcon::Default,
 			Crosshair => TaoCursorIcon::Crosshair,
@@ -1245,6 +1251,7 @@ impl<T: UserEvent> WebviewDispatch<T> for WryWebviewDispatcher<T> {
 
 	fn on_webview_event<F: Fn(&WebviewEvent) + Send + 'static>(&self, f: F) -> WindowEventId {
 		let id = self.context.next_webview_event_id();
+
 		let _ = self.context.proxy.send_event(Message::Webview(
 			*self.window_id.lock().unwrap(),
 			self.webview_id,
@@ -1393,6 +1400,7 @@ impl<T: UserEvent> WebviewDispatch<T> for WryWebviewDispatcher<T> {
 
 	fn reparent(&self, window_id: WindowId) -> Result<()> {
 		let mut current_window_id = self.window_id.lock().unwrap();
+
 		let (tx, rx) = channel();
 		send_user_message(
 			&self.context,
@@ -1486,6 +1494,7 @@ impl<T: UserEvent> WindowDispatch<T> for WryWindowDispatcher<T> {
 
 	fn on_window_event<F: Fn(&WindowEvent) + Send + 'static>(&self, f: F) -> WindowEventId {
 		let id = self.context.next_window_event_id();
+
 		let _ = self.context.proxy.send_event(Message::Window(
 			self.window_id,
 			WindowMessage::AddEventListener(id, Box::new(f)),
@@ -2021,6 +2030,7 @@ impl<T: UserEvent> WryHandle<T> {
 		f: F,
 	) -> Result<Weak<Window>> {
 		let id = self.context.next_window_id();
+
 		let (tx, rx) = channel();
 		send_user_message(&self.context, Message::CreateRawWindow(id, Box::new(f), tx))?;
 		rx.recv().unwrap()
@@ -2186,9 +2196,11 @@ impl<T: UserEvent> Wry<T> {
 
 	fn init(event_loop: EventLoop<Message<T>>) -> Result<Self> {
 		let main_thread_id = current_thread().id();
+
 		let web_context = WebContextStore::default();
 
 		let windows = Arc::new(WindowsStore(RefCell::new(BTreeMap::default())));
+
 		let window_id_map = WindowIdStore::default();
 
 		let context = Context {
@@ -2233,6 +2245,7 @@ impl<T: UserEvent> Runtime<T> for Wry<T> {
 	))]
 	fn new_any_thread(args: RuntimeInitArgs) -> Result<Self> {
 		use tao::platform::unix::EventLoopBuilderExtUnix;
+
 		let mut event_loop_builder = EventLoopBuilder::<Message<T>>::with_user_event();
 		event_loop_builder.with_any_thread(true);
 		Self::init_with_builder(event_loop_builder, args)
@@ -2241,6 +2254,7 @@ impl<T: UserEvent> Runtime<T> for Wry<T> {
 	#[cfg(windows)]
 	fn new_any_thread(args: RuntimeInitArgs) -> Result<Self> {
 		use tao::platform::windows::EventLoopBuilderExtWindows;
+
 		let mut event_loop_builder = EventLoopBuilder::<Message<T>>::with_user_event();
 		event_loop_builder.with_any_thread(true);
 		Self::init_with_builder(event_loop_builder, args)
@@ -2260,7 +2274,9 @@ impl<T: UserEvent> Runtime<T> for Wry<T> {
 		after_window_creation: Option<F>,
 	) -> Result<DetachedWindow<T, Self>> {
 		let label = pending.label.clone();
+
 		let window_id = self.context.next_window_id();
+
 		let webview_id = pending.webview.as_ref().map(|_| self.context.next_webview_id());
 
 		let window = create_window(
@@ -2392,9 +2408,13 @@ impl<T: UserEvent> Runtime<T> for Wry<T> {
 	#[cfg(desktop)]
 	fn run_iteration<F: FnMut(RunEvent<T>) + 'static>(&mut self, mut callback: F) {
 		use tao::platform::run_return::EventLoopExtRunReturn;
+
 		let windows = self.context.main_thread.windows.clone();
+
 		let window_id_map = self.context.window_id_map.clone();
+
 		let web_context = &self.context.main_thread.web_context;
+
 		let plugins = self.context.plugins.clone();
 
 		#[cfg(feature = "tracing")]
@@ -2445,12 +2465,16 @@ impl<T: UserEvent> Runtime<T> for Wry<T> {
 
 	fn run<F: FnMut(RunEvent<T>) + 'static>(self, mut callback: F) {
 		let windows = self.context.main_thread.windows.clone();
+
 		let window_id_map = self.context.window_id_map.clone();
+
 		let web_context = self.context.main_thread.web_context;
+
 		let plugins = self.context.plugins.clone();
 
 		#[cfg(feature = "tracing")]
 		let active_tracing_spans = self.context.main_thread.active_tracing_spans.clone();
+
 		let proxy = self.event_loop.create_proxy();
 
 		self.event_loop.run(move |event, event_loop, control_flow| {
@@ -3439,11 +3463,13 @@ fn on_close_requested<'a, T: UserEvent>(
 	let windows_ref = windows.0.borrow();
 	if let Some(w) = windows_ref.get(&window_id) {
 		let label = w.label.clone();
+
 		let window_event_listeners = w.window_event_listeners.clone();
 
 		drop(windows_ref);
 
 		let listeners = window_event_listeners.lock().unwrap();
+
 		let handlers = listeners.values();
 		for handler in handlers {
 			handler(&WindowEvent::CloseRequested { signal_tx: tx.clone() });
@@ -3741,6 +3767,7 @@ fn create_webview<T: UserEvent>(
 
 	if webview_attributes.drag_drop_handler_enabled {
 		let proxy = context.proxy.clone();
+
 		let window_id_ = window_id.clone();
 		webview_builder = webview_builder.with_drag_drop_handler(move |event| {
 			let event = match event {
@@ -3776,10 +3803,13 @@ fn create_webview<T: UserEvent>(
 
 	let webview_bounds = if let Some(bounds) = webview_attributes.bounds {
 		let bounds: RectWrapper = bounds.into();
+
 		let bounds = bounds.0;
 
 		let scale_factor = window.scale_factor();
+
 		let position = bounds.position.to_logical::<f32>(scale_factor);
+
 		let size = bounds.size.to_logical::<f32>(scale_factor);
 
 		webview_builder = webview_builder.with_bounds(bounds);
@@ -3969,9 +3999,13 @@ fn create_webview<T: UserEvent>(
 	#[cfg(windows)]
 	if kind == WebviewKind::WindowContent {
 		let controller = webview.controller();
+
 		let proxy = context.proxy.clone();
+
 		let proxy_ = proxy.clone();
+
 		let window_id_ = window_id.clone();
+
 		let mut token = EventRegistrationToken::default();
 		unsafe {
 			controller.add_GotFocus(
@@ -4052,8 +4086,11 @@ fn inner_size(
 ) -> TaoPhysicalSize<u32> {
 	if !has_children && !webviews.is_empty() {
 		use wry::WebViewExtMacOS;
+
 		let webview = webviews.first().unwrap();
+
 		let view_frame = unsafe { cocoa::appkit::NSView::frame(webview.webview()) };
+
 		let logical: TaoLogicalSize<f64> = (view_frame.size.width, view_frame.size.height).into();
 		return logical.to_physical(window.scale_factor());
 	}
@@ -4079,8 +4116,10 @@ fn calculate_window_center_position(
 	{
 		use tao::platform::windows::MonitorHandleExtWindows;
 		use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, HMONITOR, MONITORINFO};
+
 		let mut monitor_info =
 			MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+
 		let status =
 			unsafe { GetMonitorInfoW(HMONITOR(target_monitor.hmonitor() as _), &mut monitor_info) };
 		if status.into() {
@@ -4108,8 +4147,10 @@ fn clear_window_surface(
 		(std::num::NonZeroU32::new(size.width), std::num::NonZeroU32::new(size.height))
 	{
 		surface.resize(width, height).unwrap();
+
 		let mut buffer = surface.buffer_mut().unwrap();
 		buffer.fill(0);
+
 		let _ = buffer.present();
 	}
 }

@@ -98,6 +98,7 @@ impl JavaScriptChannelId {
 	/// Gets a [`Channel`] for this channel ID on the given [`Webview`].
 	pub fn channel_on<R: Runtime, TSend>(&self, webview: Webview<R>) -> Channel<TSend> {
 		let callback_id = self.0;
+
 		let counter = AtomicUsize::new(0);
 
 		Channel::new_with_id(callback_id.0, move |body| {
@@ -189,8 +190,11 @@ impl<'de, R: Runtime, TSend: Clone> CommandArg<'de, R> for Channel<TSend> {
 	/// Grabs the [`Webview`] from the [`CommandItem`] and returns the associated [`Channel`].
 	fn from_command(command: CommandItem<'de, R>) -> Result<Self, InvokeError> {
 		let name = command.name;
+
 		let arg = command.key;
+
 		let webview = command.message.webview();
+
 		let value: String = Deserialize::deserialize(command)
 			.map_err(|e| crate::Error::InvalidArgs(name, arg, e))?;
 		JavaScriptChannelId::from_str(&value).map(|id| id.channel_on(webview)).map_err(|_| {

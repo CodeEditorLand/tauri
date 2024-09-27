@@ -66,12 +66,14 @@ fn build_tools_version() -> crate::Result<Vec<String>> {
 
 	if output_sdk10.status.success() {
 		let stdout = String::from_utf8_lossy(&output_sdk10.stdout);
+
 		let found: Vec<VsInstanceInfo> = serde_json::from_str(&stdout)?;
 		instances.extend(found);
 	}
 
 	if output_sdk11.status.success() {
 		let stdout = String::from_utf8_lossy(&output_sdk11.stdout);
+
 		let found: Vec<VsInstanceInfo> = serde_json::from_str(&stdout)?;
 		instances.extend(found);
 	}

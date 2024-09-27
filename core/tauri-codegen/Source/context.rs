@@ -273,6 +273,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 	#[cfg(target_os = "macos")]
 	let maybe_embed_plist_block = if target == Target::MacOS && dev && !running_tests {
 		let info_plist_path = config_parent.join("Info.plist");
+
 		let mut info_plist = if info_plist_path.exists() {
 			plist::Value::from_file(&info_plist_path).unwrap_or_else(|e| {
 				panic!("failed to read plist {}: {}", info_plist_path.display(), e)
@@ -293,6 +294,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 
 		let mut plist_contents = std::io::BufWriter::new(Vec::new());
 		info_plist.to_writer_xml(&mut plist_contents).expect("failed to serialize plist");
+
 		let plist_contents =
 			String::from_utf8_lossy(&plist_contents.into_inner().unwrap()).into_owned();
 

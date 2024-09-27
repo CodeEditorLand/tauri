@@ -30,9 +30,11 @@ impl<R: Runtime> CheckMenuItem<R> {
 		A: AsRef<str>,
 	{
 		let handle = manager.app_handle();
+
 		let app_handle = handle.clone();
 
 		let text = text.as_ref().to_owned();
+
 		let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
 
 		let item = run_main_thread!(handle, || {
@@ -62,10 +64,13 @@ impl<R: Runtime> CheckMenuItem<R> {
 		A: AsRef<str>,
 	{
 		let handle = manager.app_handle();
+
 		let app_handle = handle.clone();
 
 		let id = id.into();
+
 		let text = text.as_ref().to_owned();
+
 		let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
 
 		let item = run_main_thread!(handle, || {

@@ -39,6 +39,7 @@ pub fn gen(
 	if !skip_targets_install {
 		let installed_targets =
 			crate::interface::rust::installation::installed_targets().unwrap_or_default();
+
 		let missing_targets = Target::all()
 			.values()
 			.filter(|t| !installed_targets.contains(&t.triple().into()))
@@ -104,6 +105,7 @@ pub fn gen(
 	let source_dest = dest.join("app");
 	for source in metadata.app_sources() {
 		let source_src = config.app().root_dir().join(source);
+
 		let source_file = source_src
 			.file_name()
 			.ok_or_else(|| anyhow::anyhow!("asset source {} is invalid", source_src.display()))?;

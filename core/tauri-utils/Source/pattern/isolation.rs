@@ -58,6 +58,7 @@ impl AesGcmPair {
 	fn new() -> Result<Self, Error> {
 		let mut raw = [0u8; 32];
 		getrandom(&mut raw)?;
+
 		let key = aes_gcm::Key::<Aes256Gcm>::from_slice(&raw);
 		Ok(Self { raw, key: Aes256Gcm::new(key) })
 	}
@@ -99,6 +100,7 @@ impl Keys {
 	/// Decrypts a message using the generated keys.
 	pub fn decrypt(&self, raw: RawIsolationPayload<'_>) -> Result<Vec<u8>, Error> {
 		let RawIsolationPayload { nonce, payload, .. } = raw;
+
 		let nonce: [u8; 12] = nonce.as_ref().try_into()?;
 		self.aes_gcm
 			.key

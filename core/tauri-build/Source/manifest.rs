@@ -58,6 +58,7 @@ pub fn check(config: &Config, manifest: &mut Manifest) -> Result<()> {
 
 	for metadata in dependencies {
 		let mut name = metadata.name.clone();
+
 		let mut deps = find_dependency(manifest, &metadata.name, metadata.kind);
 		if deps.is_empty() {
 			if let Some(alias) = &metadata.alias {

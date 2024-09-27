@@ -239,7 +239,9 @@ impl Interface for Rust {
 		env.insert("TAURI_ENV_TARGET_TRIPLE", self.app_settings.target_triple.clone());
 
 		let target_triple = &self.app_settings.target_triple;
+
 		let target_components: Vec<&str> = target_triple.split('-').collect();
+
 		let (arch, host, _host_env) = match target_components.as_slice() {
 			// 3 components like aarch64-apple-darwin
 			[arch, _, host] => (*arch, *host, None),
@@ -357,6 +359,7 @@ fn shared_options(
 		features.get_or_insert(Vec::new()).push("tauri/rustls-tls".into());
 	} else {
 		args.push("--bins".into());
+
 		let all_features = app_settings
 			.manifest
 			.lock()
@@ -392,6 +395,7 @@ fn dev_options(
 
 	if !args.contains(&"--no-default-features".into()) {
 		let manifest_features = app_settings.manifest.lock().unwrap().features();
+
 		let enable_features: Vec<String> = manifest_features
 			.get("default")
 			.cloned()
@@ -446,6 +450,7 @@ fn get_watch_folders() -> crate::Result<Vec<PathBuf>> {
 						watch_folders.extend(expanded_paths);
 					}
 				}
+
 				Err(err) => {
 					// If this fails cargo itself should fail too. But we still try to keep going with the unexpanded path.
 					log::error!("Error watching {}: {}", p.display(), err.to_string());
@@ -494,13 +499,16 @@ impl Rust {
 		let child = run(self)?;
 
 		let process = Arc::new(Mutex::new(child));
+
 		let (tx, rx) = sync_channel(1);
+
 		let app_path = app_dir();
 
 		let watch_folders = get_watch_folders()?;
 
 		let common_ancestor = common_path::common_path_all(watch_folders.iter().map(Path::new))
 			.expect("watch_folders should not be empty");
+
 		let ignore_matcher = build_ignore_matcher(&common_ancestor);
 
 		let mut watcher = new_debouncer(Duration::from_secs(1), move |r| {
@@ -689,7 +697,9 @@ impl CargoSettings {
 	/// Try to load a set of CargoSettings from a "Cargo.toml" file in the specified directory.
 	fn load(dir: &Path) -> crate::Result<Self> {
 		let toml_path = dir.join("Cargo.toml");
+
 		let mut toml_str = String::new();
+
 		let mut toml_file = File::open(toml_path).with_context(|| "failed to open Cargo.toml")?;
 		toml_file.read_to_string(&mut toml_str).with_context(|| "failed to read Cargo.toml")?;
 		toml::from_str(&toml_str).with_context(|| "failed to parse Cargo.toml").map_err(Into::into)
@@ -790,7 +800,9 @@ impl AppSettings for RustAppSettings {
 			self.target_triple.starts_with("x86_64") || self.target_triple.starts_with("aarch64");
 
 		let updater_enabled = config.bundle.create_updater_artifacts != Updater::Bool(false);
+
 		let v1_compatible = matches!(config.bundle.create_updater_artifacts, Updater::String(_));
+
 		let updater_settings = if updater_enabled {
 			let updater: UpdaterConfig =
 				serde_json::from_value(
@@ -836,6 +848,7 @@ impl AppSettings for RustAppSettings {
 
 	fn app_binary_path(&self, options: &Options) -> crate::Result<PathBuf> {
 		let binaries = self.get_binaries(&self.target_triple)?;
+
 		let bin_name =
 			binaries.iter().find(|x| x.main()).expect("failed to find main binary").name();
 
@@ -933,6 +946,7 @@ impl RustAppSettings {
 	pub fn new(config: &Config, manifest: Manifest, target: Option<String>) -> crate::Result<Self> {
 		let cargo_settings =
 			CargoSettings::load(tauri_dir()).with_context(|| "failed to load cargo settings")?;
+
 		let cargo_package_settings = match &cargo_settings.package {
 			Some(package_info) => package_info.clone(),
 			None => return Err(anyhow::anyhow!("No package info in the config file".to_owned(),)),
@@ -1029,6 +1043,7 @@ impl RustAppSettings {
 					.to_string()
 			})
 		});
+
 		let target = Target::from_triple(&target_triple);
 
 		Ok(Self {
@@ -1498,6 +1513,7 @@ mod tests {
 	#[test]
 	fn parse_target_dir_from_opts() {
 		crate::helpers::app_paths::resolve();
+
 		let current_dir = std::env::current_dir().unwrap();
 
 		let options = Options {

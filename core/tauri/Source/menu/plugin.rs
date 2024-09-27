@@ -552,6 +552,7 @@ fn remove<R: Runtime>(
 macro_rules! make_item_resource {
 	($resources_table:ident, $item:ident) => {{
 		let id = $item.id().clone();
+
 		let (rid, kind) = match $item {
 			MenuItemKind::MenuItem(i) => ($resources_table.add(i), ItemKind::MenuItem),
 			MenuItemKind::Submenu(i) => ($resources_table.add(i), ItemKind::Submenu),
@@ -683,6 +684,7 @@ async fn set_as_app_menu<R: Runtime>(
 	let menu = resources_table.get::<Menu<R>>(rid)?;
 	if let Some(menu) = menu.set_as_app_menu()? {
 		let id = menu.id().clone();
+
 		let rid = resources_table.add(menu);
 		return Ok(Some((rid, id)));
 	}
@@ -700,6 +702,7 @@ async fn set_as_window_menu<R: Runtime>(
 
 	if let Some(window) = window {
 		let mut resources_table = webview.resources_table();
+
 		let menu = resources_table.get::<Menu<R>>(rid)?;
 		if let Some(menu) = menu.set_as_window_menu(&window)? {
 			let id = menu.id().clone();
@@ -773,6 +776,7 @@ fn set_as_windows_menu_for_nsapp<R: Runtime>(
 	#[cfg(target_os = "macos")]
 	{
 		let resources_table = webview.resources_table();
+
 		let submenu = resources_table.get::<Submenu<R>>(rid)?;
 		submenu.set_as_help_menu_for_nsapp()?;
 	}
@@ -790,6 +794,7 @@ fn set_as_help_menu_for_nsapp<R: Runtime>(
 	#[cfg(target_os = "macos")]
 	{
 		let resources_table = webview.resources_table();
+
 		let submenu = resources_table.get::<Submenu<R>>(rid)?;
 		submenu.set_as_help_menu_for_nsapp()?;
 	}

@@ -198,7 +198,9 @@ fn build_dev_app<F: FnOnce(Option<i32>, ExitReason) + Send + 'static>(
 	let stderr_lines_ = stderr_lines.clone();
 	std::thread::spawn(move || {
 		let mut buf = Vec::new();
+
 		let mut lines = stderr_lines_.lock().unwrap();
+
 		let mut io_stderr = std::io::stderr();
 		loop {
 			buf.clear();

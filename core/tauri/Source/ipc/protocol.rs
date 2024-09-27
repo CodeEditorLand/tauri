@@ -46,6 +46,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 		.entered();
 
 		let manager = manager.clone();
+
 		let label = label.clone();
 
 		let respond = move |mut response: http::Response<Cow<'static, [u8]>>| {
@@ -582,6 +583,7 @@ mod tests {
 	fn parse_invoke_request() {
 		let context =
 			generate_context!("test/fixture/src-tauri/tauri.conf.json", crate, test = true);
+
 		let manager: AppManager<Wry> = AppManager::with_handlers(
 			context,
 			PluginStore::default(),
@@ -597,10 +599,15 @@ mod tests {
 		);
 
 		let cmd = "write_something";
+
 		let url = "tauri://localhost";
+
 		let invoke_key = "1234ahdsjkl123";
+
 		let callback = 12378123;
+
 		let error = 6243;
+
 		let headers = HeaderMap::from_iter(vec![
 			(CONTENT_TYPE, HeaderValue::from_str(mime::APPLICATION_OCTET_STREAM.as_ref()).unwrap()),
 			(
@@ -622,7 +629,9 @@ mod tests {
 		*request.headers_mut().unwrap() = headers.clone();
 
 		let body = vec![123, 31, 45];
+
 		let request = request.body(body.clone()).unwrap();
+
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.cmd, cmd);
@@ -646,6 +655,7 @@ mod tests {
 		*request.headers_mut().unwrap() = headers.clone();
 
 		let request = request.body(serde_json::to_vec(&body).unwrap()).unwrap();
+
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.headers, headers);
@@ -669,7 +679,9 @@ mod tests {
 		getrandom::getrandom(&mut nonce).unwrap();
 
 		let body_raw = vec![1, 41, 65, 12, 78];
+
 		let body_bytes = crypto_keys.aes_gcm().encrypt(&nonce, &body_raw).unwrap();
+
 		let isolation_payload_raw = json!({
 		  "nonce": nonce,
 		  "payload": body_bytes,
@@ -680,10 +692,12 @@ mod tests {
 		  "key": 1,
 		  "anotherKey": "string"
 		});
+
 		let body_bytes = crypto_keys
 			.aes_gcm()
 			.encrypt(&nonce, &serde_json::to_vec(&body_json).unwrap())
 			.unwrap();
+
 		let isolation_payload_json = json!({
 		  "nonce": nonce,
 		  "payload": body_bytes,
@@ -705,9 +719,13 @@ mod tests {
 		);
 
 		let cmd = "write_something";
+
 		let url = "tauri://localhost";
+
 		let invoke_key = "1234ahdsjkl123";
+
 		let callback = 12378123;
+
 		let error = 6243;
 
 		let headers = HeaderMap::from_iter(vec![
@@ -729,8 +747,11 @@ mod tests {
 
 		let mut request = Request::builder().uri(format!("ipc://localhost/{cmd}"));
 		*request.headers_mut().unwrap() = headers.clone();
+
 		let body = serde_json::to_vec(&isolation_payload_raw).unwrap();
+
 		let request = request.body(body).unwrap();
+
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.cmd, cmd);
@@ -743,8 +764,11 @@ mod tests {
 
 		let mut request = Request::builder().uri(format!("ipc://localhost/{cmd}"));
 		*request.headers_mut().unwrap() = headers.clone();
+
 		let body = serde_json::to_vec(&isolation_payload_json).unwrap();
+
 		let request = request.body(body).unwrap();
+
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.headers, headers);

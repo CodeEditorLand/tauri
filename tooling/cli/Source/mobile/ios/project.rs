@@ -44,6 +44,7 @@ pub fn gen(
 	if !skip_targets_install {
 		let installed_targets =
 			crate::interface::rust::installation::installed_targets().unwrap_or_default();
+
 		let missing_targets = Target::all()
 			.values()
 			.filter(|t| !installed_targets.contains(&t.triple().into()))
@@ -102,6 +103,7 @@ pub fn gen(
 	let mut created_dirs = Vec::new();
 	template::render_with_generator(&handlebars, map.inner(), &TEMPLATE_DIR, &dest, &mut |path| {
 		let mut components: Vec<_> = path.components().collect();
+
 		let mut new_component = None;
 		for component in &mut components {
 			if let Component::Normal(c) = component {
@@ -136,6 +138,7 @@ pub fn gen(
 	if let Some(template_path) = tauri_config.bundle.ios.template.as_ref() {
 		let template = std::fs::read_to_string(template_path)
 			.context("failed to read custom Xcode project template")?;
+
 		let mut output_file = std::fs::File::create(dest.join("project.yml"))?;
 		handlebars
 			.render_template_to_write(&template, map.inner(), &mut output_file)

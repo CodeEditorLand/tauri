@@ -55,6 +55,7 @@ impl CachedIcon {
 			.unwrap_or_else(|e| panic!("failed to parse icon {}: {}", icon.display(), e));
 
 		let entry = &icon_dir.entries()[0];
+
 		let rgba = entry
 			.decode()
 			.unwrap_or_else(|e| panic!("failed to decode icon {}: {}", icon.display(), e))
@@ -71,7 +72,9 @@ impl CachedIcon {
 	/// Cache a PNG icon as RGBA data, see [`ImageFormat::Image`].
 	pub fn new_png(root: &TokenStream, icon: &Path) -> EmbeddedAssetsResult<Self> {
 		let buf = Self::open(icon);
+
 		let decoder = png::Decoder::new(Cursor::new(&buf));
+
 		let mut reader = decoder
 			.read_info()
 			.unwrap_or_else(|e| panic!("failed to read icon {}: {}", icon.display(), e));
@@ -101,7 +104,9 @@ impl CachedIcon {
 impl ToTokens for CachedIcon {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		let root = &self.root;
+
 		let cache = &self.cache;
+
 		let raw = quote!(::std::include_bytes!(#cache));
 		tokens.append_all(match self.format {
 			IconFormat::Raw => raw,

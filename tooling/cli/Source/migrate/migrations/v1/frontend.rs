@@ -456,6 +456,7 @@ export default App;
 "#;
 
 		let mut new_cargo_packages = Vec::new();
+
 		let mut new_npm_packages = Vec::new();
 
 		let migrated = migrate_imports(

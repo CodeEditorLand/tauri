@@ -138,6 +138,7 @@ impl Listeners {
 		handler: F,
 	) -> EventId {
 		let id = self.next_event_id();
+
 		let handler = Handler::new(target, handler);
 		self.listen_with_id(id, event, handler);
 		id
@@ -151,6 +152,7 @@ impl Listeners {
 		handler: F,
 	) -> EventId {
 		let self_ = self.clone();
+
 		let handler = Cell::new(Some(handler));
 
 		self.listen(event, target, move |event| {
@@ -223,6 +225,7 @@ impl Listeners {
 
 	pub(crate) fn unlisten_js(&self, event: &str, id: EventId) {
 		let mut js_listeners = self.inner.js_event_listeners.lock().unwrap();
+
 		let js_listeners = js_listeners.values_mut();
 		for js_listeners in js_listeners {
 			if let Some(handlers) = js_listeners.get_mut(event) {

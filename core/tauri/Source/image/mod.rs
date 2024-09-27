@@ -44,6 +44,7 @@ impl<'a> Image<'a> {
 		use image::GenericImageView;
 
 		let img = image::load_from_memory(bytes)?;
+
 		let pixels = img.pixels().flat_map(|(_, _, pixel)| pixel.0).collect::<Vec<_>>();
 		Ok(Self { rgba: Cow::Owned(pixels), width: img.width(), height: img.height() })
 	}

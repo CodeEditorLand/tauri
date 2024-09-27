@@ -30,9 +30,13 @@ impl Parse for ContextItems {
 			.unwrap_or_else(|_| Target::current());
 
 		let mut root = None;
+
 		let mut capabilities = None;
+
 		let mut assets = None;
+
 		let mut test = false;
+
 		let config_file = input.parse::<LitStr>().ok().map(|raw| {
 			let _ = input.parse::<Token![,]>();
 			let path = PathBuf::from(raw.value());

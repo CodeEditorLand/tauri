@@ -153,6 +153,7 @@ impl CapabilityBuilder {
 		denied: Vec<T>,
 	) -> Self {
 		let permission = permission.into();
+
 		let identifier = permission
 			.clone()
 			.try_into()
@@ -162,10 +163,12 @@ impl CapabilityBuilder {
 			.into_iter()
 			.map(|a| serde_json::to_value(a).expect("failed to serialize scope").into())
 			.collect();
+
 		let denied_scope = denied
 			.into_iter()
 			.map(|a| serde_json::to_value(a).expect("failed to serialize scope").into())
 			.collect();
+
 		let scope = Scopes { allow: Some(allowed_scope), deny: Some(denied_scope) };
 
 		self.0.permissions.push(PermissionEntry::ExtendedPermission { identifier, scope });
@@ -770,13 +773,16 @@ mod tests {
 	#[test]
 	fn window_glob_pattern_matches() {
 		let command = "my-command";
+
 		let window = "main-*";
+
 		let webview = "other-*";
 
 		let resolved_cmd = vec![ResolvedCommand {
 			windows: vec![Pattern::new(window).unwrap()],
 			..Default::default()
 		}];
+
 		let allowed_commands = [(command.to_string(), resolved_cmd.clone())].into_iter().collect();
 
 		let authority = RuntimeAuthority::new(
@@ -798,7 +804,9 @@ mod tests {
 	#[test]
 	fn webview_glob_pattern_matches() {
 		let command = "my-command";
+
 		let window = "other-*";
+
 		let webview = "main-*";
 
 		let resolved_cmd = vec![ResolvedCommand {
@@ -806,6 +814,7 @@ mod tests {
 			webviews: vec![Pattern::new(webview).unwrap()],
 			..Default::default()
 		}];
+
 		let allowed_commands = [(command.to_string(), resolved_cmd.clone())].into_iter().collect();
 
 		let authority = RuntimeAuthority::new(
@@ -827,8 +836,11 @@ mod tests {
 	#[test]
 	fn remote_domain_matches() {
 		let url = "https://tauri.app";
+
 		let command = "my-command";
+
 		let window = "main";
+
 		let webview = "main";
 
 		let resolved_cmd = vec![ResolvedCommand {
@@ -836,6 +848,7 @@ mod tests {
 			context: ExecutionContext::Remote { url: url.parse().unwrap() },
 			..Default::default()
 		}];
+
 		let allowed_commands = [(command.to_string(), resolved_cmd.clone())].into_iter().collect();
 
 		let authority = RuntimeAuthority::new(
@@ -857,8 +870,11 @@ mod tests {
 	#[test]
 	fn remote_domain_glob_pattern_matches() {
 		let url = "http://tauri.*";
+
 		let command = "my-command";
+
 		let window = "main";
+
 		let webview = "main";
 
 		let resolved_cmd = vec![ResolvedCommand {
@@ -866,6 +882,7 @@ mod tests {
 			context: ExecutionContext::Remote { url: url.parse().unwrap() },
 			..Default::default()
 		}];
+
 		let allowed_commands = [(command.to_string(), resolved_cmd.clone())].into_iter().collect();
 
 		let authority = RuntimeAuthority::new(
@@ -887,13 +904,16 @@ mod tests {
 	#[test]
 	fn remote_context_denied() {
 		let command = "my-command";
+
 		let window = "main";
+
 		let webview = "main";
 
 		let resolved_cmd = vec![ResolvedCommand {
 			windows: vec![Pattern::new(window).unwrap()],
 			..Default::default()
 		}];
+
 		let allowed_commands = [(command.to_string(), resolved_cmd)].into_iter().collect();
 
 		let authority = RuntimeAuthority::new(
@@ -914,15 +934,20 @@ mod tests {
 	#[test]
 	fn denied_command_takes_precendence() {
 		let command = "my-command";
+
 		let window = "main";
+
 		let webview = "main";
+
 		let windows = vec![Pattern::new(window).unwrap()];
+
 		let allowed_commands = [(
 			command.to_string(),
 			vec![ResolvedCommand { windows: windows.clone(), ..Default::default() }],
 		)]
 		.into_iter()
 		.collect();
+
 		let denied_commands = [(
 			command.to_string(),
 			vec![ResolvedCommand { windows: windows.clone(), ..Default::default() }],
@@ -944,10 +969,15 @@ mod tests {
 		use tauri_utils::acl::manifest::Manifest;
 
 		let plugin_name = "myplugin";
+
 		let command_allowed_on_window = "my-command-window";
+
 		let command_allowed_on_webview_window = "my-command-webview-window";
+
 		let window = "main-*";
+
 		let webview = "webview-*";
+
 		let remote_url = "http://localhost:8080";
 
 		let referenced_by = tauri_utils::acl::resolved::ResolvedCommandReference {
@@ -960,12 +990,14 @@ mod tests {
 			referenced_by: referenced_by.clone(),
 			..Default::default()
 		};
+
 		let resolved_webview_window_cmd = ResolvedCommand {
 			windows: vec![Pattern::new(window).unwrap()],
 			webviews: vec![Pattern::new(webview).unwrap()],
 			referenced_by: referenced_by.clone(),
 			..Default::default()
 		};
+
 		let resolved_webview_window_remote_cmd = ResolvedCommand {
 			windows: vec![Pattern::new(window).unwrap()],
 			webviews: vec![Pattern::new(webview).unwrap()],

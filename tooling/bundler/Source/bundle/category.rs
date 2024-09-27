@@ -76,6 +76,7 @@ impl FromStr for AppCategory {
 
 		// Find best match:
 		let mut best_confidence = 0.0;
+
 		let mut best_category: Option<AppCategory> = None;
 		for &(string, category) in CATEGORY_STRINGS.iter() {
 			if input == string {

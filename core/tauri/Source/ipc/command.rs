@@ -62,6 +62,7 @@ pub trait CommandArg<'de, R: Runtime>: Sized {
 impl<'de, D: Deserialize<'de>, R: Runtime> CommandArg<'de, R> for D {
 	fn from_command(command: CommandItem<'de, R>) -> Result<D, InvokeError> {
 		let name = command.name;
+
 		let arg = command.key;
 		#[cfg(feature = "tracing")]
 		let _span = tracing::trace_span!("ipc::request::deserialize_arg", arg = arg).entered();

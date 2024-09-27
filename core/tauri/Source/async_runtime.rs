@@ -286,6 +286,7 @@ where
 {
 	if let Ok(handle) = tokio::runtime::Handle::try_current() {
 		let (tx, rx) = std::sync::mpsc::sync_channel(1);
+
 		let handle_ = handle.clone();
 		handle.spawn_blocking(move || {
 			tx.send(handle_.block_on(task)).unwrap();
@@ -314,6 +315,7 @@ mod tests {
 	#[tokio::test]
 	async fn handle_spawn() {
 		let handle = handle();
+
 		let join = handle.spawn(async { 5 });
 		assert_eq!(join.await.unwrap(), 5);
 	}
@@ -327,6 +329,7 @@ mod tests {
 	#[tokio::test]
 	async fn handle_abort() {
 		let handle = handle();
+
 		let join = handle.spawn(async {
 			// Here we sleep 1 second to ensure this task to be uncompleted when abort() invoked.
 			tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;

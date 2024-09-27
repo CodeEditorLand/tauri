@@ -193,7 +193,9 @@ fn build_nsis_app_installer(
 
 	if let Some(license_file) = settings.license_file() {
 		let license_file = dunce::canonicalize(license_file)?;
+
 		let license_file_with_bom = output_path.join("license_file");
+
 		let content = std::fs::read(license_file)?;
 		write_utf8_with_bom(&license_file_with_bom, content)?;
 		data.insert("license", to_json(license_file_with_bom));
@@ -524,6 +526,7 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourcesMap> {
 		let resource = resource?;
 
 		let src = cwd.join(resource.path());
+
 		let resource_path = dunce::simplified(&src).to_path_buf();
 
 		// In some glob resource paths like `assets/**/*` a file might appear twice
@@ -555,7 +558,9 @@ fn generate_binaries_data(settings: &Settings) -> crate::Result<BinariesMap> {
 
 	for src in settings.external_binaries() {
 		let src = src?;
+
 		let binary_path = dunce::canonicalize(cwd.join(&src))?;
+
 		let dest_filename = src
 			.file_name()
 			.expect("failed to extract external binary filename")

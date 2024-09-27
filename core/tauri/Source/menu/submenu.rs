@@ -70,6 +70,7 @@ impl<R: Runtime> Submenu<R> {
 		enabled: bool,
 	) -> crate::Result<Self> {
 		let handle = manager.app_handle();
+
 		let app_handle = handle.clone();
 
 		let text = text.as_ref().to_owned();
@@ -90,9 +91,11 @@ impl<R: Runtime> Submenu<R> {
 		enabled: bool,
 	) -> crate::Result<Self> {
 		let handle = manager.app_handle();
+
 		let app_handle = handle.clone();
 
 		let id = id.into();
+
 		let text = text.as_ref().to_owned();
 
 		let submenu = run_main_thread!(handle, || {

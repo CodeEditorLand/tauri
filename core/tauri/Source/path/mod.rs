@@ -258,6 +258,7 @@ impl<R: Runtime> PathResolver<R> {
 	/// ```
 	pub fn parse<P: AsRef<Path>>(&self, path: P) -> Result<PathBuf> {
 		let mut p = PathBuf::new();
+
 		let mut components = path.as_ref().components();
 		match components.next() {
 			Some(Component::Normal(str)) => {

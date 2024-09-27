@@ -327,6 +327,7 @@ mod tests {
 		getrandom::getrandom(&mut random).unwrap();
 
 		let temp = std::env::temp_dir();
+
 		let temp = temp.join(format!("tauri_resource_paths_iter_test_{}", random[0]));
 
 		let _ = fs::remove_dir_all(&temp);
@@ -374,6 +375,7 @@ mod tests {
 		setup_test_dirs();
 
 		let dir = std::env::current_dir().unwrap().join("src-tauri");
+
 		let _ = std::env::set_current_dir(dir);
 
 		let resources = ResourcePaths::new(
@@ -420,6 +422,7 @@ mod tests {
 		setup_test_dirs();
 
 		let dir = std::env::current_dir().unwrap().join("src-tauri");
+
 		let _ = std::env::set_current_dir(dir);
 
 		let resources = ResourcePaths::new(
@@ -459,6 +462,7 @@ mod tests {
 		setup_test_dirs();
 
 		let dir = std::env::current_dir().unwrap().join("src-tauri");
+
 		let _ = std::env::set_current_dir(dir);
 
 		let resources = ResourcePaths::from_map(
@@ -515,6 +519,7 @@ mod tests {
 		setup_test_dirs();
 
 		let dir = std::env::current_dir().unwrap().join("src-tauri");
+
 		let _ = std::env::set_current_dir(dir);
 
 		let resources = ResourcePaths::from_map(
@@ -554,6 +559,7 @@ mod tests {
 		setup_test_dirs();
 
 		let dir = std::env::current_dir().unwrap().join("src-tauri");
+
 		let _ = std::env::set_current_dir(dir);
 
 		let resources = ResourcePaths::from_map(

@@ -50,6 +50,7 @@ impl<R: Runtime> TrayManager<R> {
 		TrayIconId: PartialEq<&'a I>,
 	{
 		let mut icons = self.icons.lock().unwrap();
+
 		let idx = icons.iter().position(|t| t.id() == &id);
 		if let Some(idx) = idx {
 			return Some(icons.swap_remove(idx));

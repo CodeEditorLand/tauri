@@ -226,9 +226,13 @@ impl<R: Runtime, C: DeserializeOwned> PluginApi<R, C> {
 		}
 
 		let plugin_class = format!("{}/{}", plugin_identifier.replace('.', "/"), class_name);
+
 		let plugin_name = self.name;
+
 		let plugin_config = self.raw_config.clone();
+
 		let runtime_handle = self.handle.runtime_handle.clone();
+
 		let (tx, rx) = channel();
 		self.handle.runtime_handle.run_on_android_context(move |env, activity, webview| {
 			let result = initialize_plugin::<R>(
@@ -376,8 +380,11 @@ pub(crate) fn run_command<
 		activity: &JObject<'_>,
 	) -> Result<(), JniError> {
 		let plugin = env.new_string(plugin)?;
+
 		let command = env.new_string(&command)?;
+
 		let data = env.new_string(&serde_json::to_string(payload).unwrap())?;
+
 		let plugin_manager = env
 			.call_method(activity, "getPluginManager", "()Lapp/tauri/plugin/PluginManager;", &[])?
 			.l()?;

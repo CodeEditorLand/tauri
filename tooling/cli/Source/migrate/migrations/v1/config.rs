@@ -340,6 +340,7 @@ fn allowlist_to_permissions(
 			.into_iter()
 			.map(|p| AclValue::String(p.to_string_lossy().into()))
 			.collect::<Vec<_>>();
+
 		let fs_denied = fs_denied
 			.into_iter()
 			.map(|p| AclValue::String(p.to_string_lossy().into()))
@@ -865,6 +866,7 @@ mod test {
 		let migrated_connect_src = migrated["app"]["security"]["csp"]["connect-src"]
 			.as_array()
 			.expect("connect-src isn't an array");
+
 		let original_connect_src =
 			original["tauri"]["security"]["csp"]["connect-src"].as_array().unwrap();
 		assert!(

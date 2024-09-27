@@ -66,6 +66,7 @@ fn bundle_update_macos(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
 		}) {
 		// add .tar.gz to our path
 		let osx_archived = format!("{}.tar.gz", source_path.display());
+
 		let osx_archived_path = PathBuf::from(&osx_archived);
 
 		// Create our gzip file (need to send parent)
@@ -98,6 +99,7 @@ fn bundle_update_linux(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
 		}) {
 		// add .tar.gz to our path
 		let appimage_archived = format!("{}.tar.gz", source_path.display());
+
 		let appimage_archived_path = PathBuf::from(&appimage_archived);
 
 		// Create our gzip file
@@ -184,6 +186,7 @@ fn bundle_update_windows(settings: &Settings, bundles: &[Bundle]) -> crate::Resu
 				p.push(c);
 				(p, b)
 			});
+
 		let archived_path = archived_path.with_extension(format!("{}.zip", bundle_name));
 
 		log::info!(action = "Bundling"; "{}", display_path(&archived_path));
@@ -252,6 +255,7 @@ fn create_tar_from_src<P: AsRef<Path>, W: Write>(src_dir: P, dest_file: W) -> cr
 	// if it's a file don't need to walkdir
 	if file_type.is_file() {
 		let mut src_file = fs::File::open(src_dir)?;
+
 		let file_name = src_dir.file_name().expect("Can't extract file name from path");
 
 		tar_builder.append_file(file_name, &mut src_file)?;

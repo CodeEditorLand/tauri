@@ -117,6 +117,7 @@ fn replace_csp_nonce(
 		#[cfg(target_pointer_width = "16")]
 		let mut raw = [0u8; 2];
 		getrandom::getrandom(&mut raw).expect("failed to get random bytes");
+
 		let nonce = usize::from_ne_bytes(raw);
 		nonces.push(nonce);
 		nonce.to_string()
@@ -125,7 +126,9 @@ fn replace_csp_nonce(
 	if !(nonces.is_empty() && hashes.is_empty()) {
 		let nonce_sources =
 			nonces.into_iter().map(|n| format!("'nonce-{n}'")).collect::<Vec<String>>();
+
 		let sources = csp.entry(directive.into()).or_default();
+
 		let self_source = "'self'".to_string();
 		if !sources.contains(&self_source) {
 			sources.push(self_source);
@@ -350,6 +353,7 @@ impl<R: Runtime> AppManager<R> {
 			path.pop();
 		}
 		path = percent_encoding::percent_decode(path.as_bytes()).decode_utf8_lossy().to_string();
+
 		let path = if path.is_empty() {
 			// if the url is `tauri://localhost`, we should load `index.html`
 			"index.html".to_string()
@@ -387,6 +391,7 @@ impl<R: Runtime> AppManager<R> {
 			.map(Cow::into_owned);
 
 		let mut csp_header = None;
+
 		let is_html = asset_path.as_ref().ends_with(".html");
 
 		match asset_response {
@@ -483,6 +488,7 @@ impl<R: Runtime> AppManager<R> {
 
 		#[cfg(feature = "tracing")]
 		let _span = tracing::debug_span!("emit::run").entered();
+
 		let emit_args = EmitArgs::new(event, payload)?;
 
 		let listeners = self.listeners();
@@ -506,6 +512,7 @@ impl<R: Runtime> AppManager<R> {
 
 		#[cfg(feature = "tracing")]
 		let _span = tracing::debug_span!("emit::run").entered();
+
 		let emit_args = EmitArgs::new(event, payload)?;
 
 		let listeners = self.listeners();
@@ -676,6 +683,7 @@ mod test {
 	fn check_get_url() {
 		let context =
 			generate_context!("test/fixture/src-tauri/tauri.conf.json", crate, test = true);
+
 		let manager: AppManager<Wry> = AppManager::with_handlers(
 			context,
 			PluginStore::default(),
@@ -788,6 +796,7 @@ mod test {
 		rx: &Receiver<(&str, String)>,
 	) {
 		let mut received = Vec::new();
+
 		let payload = "global-payload";
 		m.emit(TEST_EVENT_NAME, payload).unwrap();
 		while let Ok((source, p)) = rx.recv_timeout(Duration::from_secs(1)) {
@@ -862,6 +871,7 @@ mod test {
 		rx: &Receiver<(&'static str, String)>,
 	) {
 		let mut received = Vec::new();
+
 		let payload = "global-payload";
 
 		macro_rules! test_target {
@@ -883,6 +893,7 @@ mod test {
 		test_target!(webview_window.label(), WEBVIEW_WINDOW_LISTEN_ID);
 
 		let other_webview_listen_id = "OtherWebview::listen";
+
 		let other_webview = WebviewWindowBuilder::new(
 			window,
 			kind.replace(['(', ')', ' '], ""),

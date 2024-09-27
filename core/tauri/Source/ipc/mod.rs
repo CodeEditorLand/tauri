@@ -529,6 +529,7 @@ mod tests {
 		assert!(json.deserialize::<Vec<u16>>().is_err());
 
 		let values = vec![1, 2, 3, 4, 5, 6, 1];
+
 		let raw = InvokeResponseBody::Raw(values.clone());
 		assert_eq!(raw.deserialize::<Vec<u8>>().unwrap(), values);
 	}

@@ -47,6 +47,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 
 	for src in settings.resource_files() {
 		let src = src?;
+
 		let dest = app_bundle_path.join(tauri_utils::resources::resource_relpath(&src));
 		common::copy_file(&src, &dest)
 			.with_context(|| format!("Failed to copy resource file {:?}", src))?;
@@ -77,6 +78,7 @@ fn generate_icon_files(bundle_dir: &Path, settings: &Settings) -> crate::Result<
 			filenames.push(filename);
 			path
 		};
+
 		let mut sizes = BTreeSet::new();
 		// Prefer PNG files.
 		for icon_path in settings.icon_files() {

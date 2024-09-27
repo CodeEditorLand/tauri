@@ -25,8 +25,11 @@ pub use muda::MenuId;
 macro_rules! run_item_main_thread {
 	($self:ident, $ex:expr) => {{
 		use std::sync::mpsc::channel;
+
 		let (tx, rx) = channel();
+
 		let self_ = $self.clone();
+
 		let task = move || {
 			let f = $ex;
 			let _ = tx.send(f(self_));

@@ -132,6 +132,7 @@ fn inject_address(html_bytes: Vec<u8>, address: &SocketAddr) -> Vec<u8> {
 	with_html_head(&mut document, |head| {
 		let script =
 			RELOAD_SCRIPT.replace("{{reload_url}}", &format!("ws://{address}/__tauri_cli"));
+
 		let script_el = NodeRef::new_element(QualName::new(None, ns!(html), "script".into()), None);
 		script_el.append(NodeRef::new_text(script));
 		head.prepend(script_el);

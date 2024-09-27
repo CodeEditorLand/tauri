@@ -186,6 +186,7 @@ impl Pbxproj {
 
 	fn serialize(&self) -> String {
 		let mut proj = String::new();
+
 		let last_line_number = self.raw_lines.len() - 1;
 
 		for (number, line) in self.raw_lines.iter().enumerate() {
@@ -279,10 +280,12 @@ mod tests {
 	#[test]
 	fn parse() {
 		let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+
 		let fixtures_path = manifest_dir.join("tests").join("fixtures").join("pbxproj");
 
 		let mut settings = insta::Settings::clone_current();
 		settings.set_snapshot_path(fixtures_path.join("snapshots"));
+
 		let _guard = settings.bind_to_scope();
 
 		insta::assert_debug_snapshot!(
@@ -294,10 +297,12 @@ mod tests {
 	#[test]
 	fn modify() {
 		let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+
 		let fixtures_path = manifest_dir.join("tests").join("fixtures").join("pbxproj");
 
 		let mut settings = insta::Settings::clone_current();
 		settings.set_snapshot_path(fixtures_path.join("snapshots"));
+
 		let _guard = settings.bind_to_scope();
 
 		let mut pbxproj =

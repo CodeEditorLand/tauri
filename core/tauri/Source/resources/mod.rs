@@ -112,6 +112,7 @@ impl ResourceTable {
 	/// Returns a unique resource ID, which acts as a key for this resource.
 	pub fn add_arc_dyn(&mut self, resource: Arc<dyn Resource>) -> ResourceId {
 		let rid = Self::new_random_rid();
+
 		let removed_resource = self.index.insert(rid, resource);
 		assert!(removed_resource.is_none());
 		rid

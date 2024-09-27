@@ -73,6 +73,7 @@ impl<R: Runtime> Menu<R> {
 	/// Creates a new menu.
 	pub fn new<M: Manager<R>>(manager: &M) -> crate::Result<Self> {
 		let handle = manager.app_handle();
+
 		let app_handle = handle.clone();
 
 		let menu = run_main_thread!(handle, || {
@@ -86,9 +87,11 @@ impl<R: Runtime> Menu<R> {
 	/// Creates a new menu with the specified id.
 	pub fn with_id<M: Manager<R>, I: Into<MenuId>>(manager: &M, id: I) -> crate::Result<Self> {
 		let handle = manager.app_handle();
+
 		let app_handle = handle.clone();
 
 		let id = id.into();
+
 		let menu = run_main_thread!(handle, || {
 			let menu = muda::Menu::with_id(id.clone());
 			MenuInner { id, inner: Some(menu), app_handle }
@@ -122,7 +125,9 @@ impl<R: Runtime> Menu<R> {
 	/// Creates a menu filled with default menu items and submenus.
 	pub fn default(app_handle: &AppHandle<R>) -> crate::Result<Self> {
 		let pkg_info = app_handle.package_info();
+
 		let config = app_handle.config();
+
 		let about_metadata = AboutMetadata {
 			name: Some(pkg_info.name.clone()),
 			version: Some(pkg_info.version.to_string()),

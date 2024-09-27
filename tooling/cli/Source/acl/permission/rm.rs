@@ -12,6 +12,7 @@ use crate::{acl::FileFormat, helpers::app_paths::resolve_tauri_dir, Result};
 fn rm_permission_files(identifier: &str, dir: &Path) -> Result<()> {
 	for entry in std::fs::read_dir(dir)?.flatten() {
 		let file_type = entry.file_type()?;
+
 		let path = entry.path();
 		if file_type.is_dir() {
 			rm_permission_files(identifier, &path)?;

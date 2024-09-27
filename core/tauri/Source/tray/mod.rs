@@ -319,7 +319,9 @@ impl<R: Runtime> TrayIconBuilder<R> {
 	/// Builds and adds a new [`TrayIcon`] to the system tray.
 	pub fn build<M: Manager<R>>(self, manager: &M) -> crate::Result<TrayIcon<R>> {
 		let id = self.id().clone();
+
 		let inner = self.inner.build()?;
+
 		let icon = TrayIcon { id, inner, app_handle: manager.app_handle().clone() };
 
 		icon.register(&icon.app_handle, self.on_menu_event, self.on_tray_icon_event);

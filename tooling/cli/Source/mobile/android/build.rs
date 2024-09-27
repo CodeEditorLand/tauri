@@ -109,12 +109,14 @@ pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
 	)?;
 	let (interface, config, metadata) = {
 		let tauri_config_guard = tauri_config.lock().unwrap();
+
 		let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
 		let interface = AppInterface::new(tauri_config_, build_options.target.clone())?;
 		interface.build_options(&mut Vec::new(), &mut build_options.features, true);
 
 		let app = get_app(MobileTarget::Android, tauri_config_, &interface);
+
 		let (config, metadata) =
 			get_config(&app, tauri_config_, build_options.features.as_ref(), &Default::default());
 		(interface, config, metadata)

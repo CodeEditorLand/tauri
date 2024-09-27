@@ -196,7 +196,9 @@ impl Scope {
 	/// Listen to an event on this scope and immediately unlisten.
 	pub fn once<F: FnOnce(&Event) + Send + 'static>(&self, f: F) -> ScopeEventId {
 		let listerners = self.event_listeners.clone();
+
 		let handler = std::cell::Cell::new(Some(f));
+
 		let id = self.next_event_id();
 		self.listen_with_id(id, move |event| {
 			listerners.lock().unwrap().remove(&id);
@@ -213,6 +215,7 @@ impl Scope {
 
 	fn emit(&self, event: Event) {
 		let listeners = self.event_listeners.lock().unwrap();
+
 		let handlers = listeners.values();
 		for listener in handlers {
 			listener(&event);
@@ -281,6 +284,7 @@ impl Scope {
 	/// Determines if the given path is allowed on this scope.
 	pub fn is_allowed<P: AsRef<Path>>(&self, path: P) -> bool {
 		let path = path.as_ref();
+
 		let path = if path.is_symlink() {
 			match std::fs::read_link(path) {
 				Ok(p) => p,
@@ -289,6 +293,7 @@ impl Scope {
 		} else {
 			path.to_path_buf()
 		};
+
 		let path = if !path.exists() {
 			crate::Result::Ok(path)
 		} else {

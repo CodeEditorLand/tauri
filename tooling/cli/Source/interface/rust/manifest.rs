@@ -238,6 +238,7 @@ fn inject_features(
 	let mut persist = false;
 	for dependency in dependencies {
 		let name = dependency.name.clone();
+
 		let items = find_dependency(manifest, &dependency.name, dependency.kind);
 
 		for item in items {

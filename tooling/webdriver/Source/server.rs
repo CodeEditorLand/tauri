@@ -65,6 +65,7 @@ async fn handle(
 
 		// get the body from the future stream and parse it as json
 		let body = hyper::body::to_bytes(body).await?;
+
 		let json: Value = serde_json::from_slice(&body)?;
 
 		// manipulate the json to convert from tauri option to native driver options
@@ -137,7 +138,9 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
 		use signal_hook::consts::signal::*;
 
 		let signals = signal_hook_tokio::Signals::new([SIGTERM, SIGINT, SIGQUIT])?;
+
 		let signals_handle = signals.handle();
+
 		let signals_task = tokio::spawn(async move {
 			let mut signals = signals.fuse();
 			#[allow(clippy::never_loop)]
@@ -166,6 +169,7 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
 	// pass a copy of the client to the http request handler
 	let service = make_service_fn(move |_| {
 		let client = client.clone();
+
 		let args = args.clone();
 		async move {
 			Ok::<_, Infallible>(service_fn(move |request| {

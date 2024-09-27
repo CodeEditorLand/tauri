@@ -69,6 +69,7 @@ fn copy_binaries(
 	for src in binaries {
 		let src = src?;
 		println!("cargo:rerun-if-changed={}", src.display());
+
 		let file_name = src
 			.file_name()
 			.expect("failed to extract external binary filename")
@@ -101,6 +102,7 @@ fn copy_resources(resources: ResourcePaths<'_>, path: &Path) -> Result<()> {
 
 		// avoid copying the resource if target is the same as source
 		let src = resource.path().canonicalize()?;
+
 		let target = path.join(resource.target());
 		if src != target {
 			copy_file(src, target)?;
@@ -136,7 +138,9 @@ fn copy_dir(from: &Path, to: &Path) -> Result<()> {
 	for entry in walkdir::WalkDir::new(from) {
 		let entry = entry?;
 		debug_assert!(entry.path().starts_with(from));
+
 		let rel_path = entry.path().strip_prefix(from)?;
+
 		let dest_path = to.join(rel_path);
 		if entry.file_type().is_symlink() {
 			let target = std::fs::read_link(entry.path())?;

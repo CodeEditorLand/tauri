@@ -150,6 +150,7 @@ pub fn get_config(
 	let mut frameworks = Vec::new();
 	for framework in tauri_config.bundle.ios.frameworks.clone().unwrap_or_default() {
 		let framework_path = PathBuf::from(&framework);
+
 		let ext = framework_path.extension().unwrap_or_default();
 		if ext.is_empty() {
 			frameworks.push(framework);

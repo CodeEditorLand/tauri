@@ -167,6 +167,7 @@ impl TryFrom<String> for Identifier {
 			bytes.next().and_then(ValidByte::alpha_numeric).ok_or(Self::Error::InvalidFormat)?;
 
 		let mut idx = 0;
+
 		let mut separator = None;
 		for byte in bytes {
 			idx += 1; // we already consumed first item

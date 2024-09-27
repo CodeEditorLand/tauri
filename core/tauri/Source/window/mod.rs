@@ -319,6 +319,7 @@ tauri::Builder::default()
 		webview: WebviewBuilder<R>,
 	) -> crate::Result<(Window<R>, Webview<R>)> {
 		let pending_webview = webview.into_pending_webview(self.manager, &self.label)?;
+
 		let window = self.build_internal(Some(pending_webview))?;
 
 		let webview = window.webviews().first().unwrap().clone();
@@ -392,6 +393,7 @@ tauri::Builder::default()
 		}
 
 		let app_manager = self.manager.manager_owned();
+
 		let window_label = window.label().to_string();
 		// run on the main thread to fix a deadlock on webview.eval if the tracing feature is enabled
 		let _ = window.run_on_main_thread(move || {
@@ -979,8 +981,11 @@ impl<R: Runtime> Window<R> {
 		use std::sync::mpsc::channel;
 
 		let (tx, rx) = channel();
+
 		let position = position.into();
+
 		let size = size.into();
+
 		let window_ = self.clone();
 		self.run_on_main_thread(move || {
 			let res = webview_builder.build(window_, position, size);
@@ -1106,6 +1111,7 @@ tauri::Builder::default()
 		self.manager.menu.insert_menu_into_stash(&menu);
 
 		let window = self.clone();
+
 		let menu_ = menu.clone();
 		self.run_on_main_thread(move || {
 			#[cfg(windows)]
@@ -1665,6 +1671,7 @@ tauri::Builder::default()
 		effects: E,
 	) -> crate::Result<()> {
 		let effects = effects.into();
+
 		let window = self.clone();
 		self.run_on_main_thread(move || {
 			let _ = crate::vibrancy::set_window_effects(&window, effects);

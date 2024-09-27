@@ -129,6 +129,7 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
 				(Some(script), cwd.map(Into::into), wait)
 			}
 		};
+
 		let cwd = script_cwd.unwrap_or_else(|| app_dir().clone());
 		if let Some(before_dev) = script {
 			log::info!(action = "Running"; "BeforeDevCommand (`{}`)", before_dev);
@@ -322,6 +323,7 @@ pub fn on_app_exit(code: Option<i32>, reason: ExitReason, exit_on_panic: bool, n
 pub fn kill_before_dev_process() {
 	if let Some(child) = BEFORE_DEV.get() {
 		let child = child.lock().unwrap();
+
 		let kill_before_dev_flag = KILL_BEFORE_DEV_FLAG.get().unwrap();
 		if kill_before_dev_flag.load(Ordering::Relaxed) {
 			return;

@@ -167,7 +167,9 @@ fn get_internal(
 		|| config_path.extension() == Some(OsStr::new("json5"))
 	{
 		let schema: JsonValue = serde_json::from_str(include_str!("../../config.schema.json"))?;
+
 		let schema = jsonschema::JSONSchema::compile(&schema).unwrap();
+
 		let result = schema.validate(&config);
 		if let Err(errors) = result {
 			for error in errors {

@@ -96,10 +96,13 @@ impl Resolved {
 		target: Target,
 	) -> Result<Self, Error> {
 		let mut allowed_commands = BTreeMap::new();
+
 		let mut denied_commands = BTreeMap::new();
 
 		let mut current_scope_id = 0;
+
 		let mut command_scope = BTreeMap::new();
+
 		let mut global_scope: BTreeMap<String, Vec<Scopes>> = BTreeMap::new();
 
 		// resolve commands
@@ -238,6 +241,7 @@ fn with_resolved_permissions<F: FnMut(ResolvedPermission<'_>) -> Result<(), Erro
 ) -> Result<(), Error> {
 	for permission_entry in &capability.permissions {
 		let permission_id = permission_entry.identifier();
+
 		let permission_name = permission_id.get_base();
 
 		let key = permission_id.get_prefix().unwrap_or(APP_ACL_KEY);
@@ -250,6 +254,7 @@ fn with_resolved_permissions<F: FnMut(ResolvedPermission<'_>) -> Result<(), Erro
 			.collect::<Vec<_>>();
 
 		let mut resolved_scope = Scopes::default();
+
 		let mut commands = Commands::default();
 
 		if let PermissionEntry::ExtendedPermission { identifier: _, scope } = permission_entry {

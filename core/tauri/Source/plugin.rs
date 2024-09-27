@@ -770,6 +770,7 @@ impl<R: Runtime> PluginStore<R> {
 	pub fn register(&mut self, plugin: Box<dyn Plugin<R>>) -> bool {
 		let len = self.store.len();
 		self.store.retain(|p| p.name() != plugin.name());
+
 		let result = len != self.store.len();
 		self.store.push(plugin);
 		result

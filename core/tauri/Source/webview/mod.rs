@@ -579,6 +579,7 @@ tauri::Builder::default()
 		}
 
 		let label_ = pending.label.clone();
+
 		let manager_ = manager.manager_owned();
 		pending.on_page_load_handler.replace(Box::new(move |url, event| {
 			if let Some(w) = manager_.get_webview(&label_) {
@@ -1077,6 +1078,7 @@ fn main() {
 	/// Handles this window receiving an [`InvokeRequest`].
 	pub fn on_message(self, request: InvokeRequest, responder: Box<OwnedInvokeResponder<R>>) {
 		let manager = self.manager_owned();
+
 		let is_local = self.is_local_url(&request.url);
 
 		// ensure the passed key matches what our manager should have injected
@@ -1129,6 +1131,7 @@ fn main() {
 
 		let acl_origin =
 			if is_local { Origin::Local } else { Origin::Remote { url: request.url.clone() } };
+
 		let (resolved_acl, has_app_acl_manifest) = {
 			let runtime_authority = manager.runtime_authority.lock().unwrap();
 			let acl = runtime_authority.resolve_access(

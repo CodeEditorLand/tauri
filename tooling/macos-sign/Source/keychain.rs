@@ -53,16 +53,19 @@ impl Keychain {
 	) -> Result<Self> {
 		let home_dir =
 			dirs_next::home_dir().ok_or_else(|| anyhow::anyhow!("failed to resolve home dir"))?;
+
 		let keychain_path = home_dir.join("Library").join("Keychains").join(format!(
 			"{}.keychain-db",
 			Alphanumeric.sample_string(&mut rand::thread_rng(), 16)
 		));
+
 		let keychain_password = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
 
 		let keychain_list_output =
 			Command::new("security").args(["list-keychain", "-d", "user"]).output()?;
 
 		let tmp_dir = tempfile::tempdir()?;
+
 		let cert_path = tmp_dir.path().join("cert.p12");
 		super::decode_base64(certificate_encoded, &cert_path)?;
 

@@ -28,6 +28,7 @@ impl CommandExt for Command {
 		self.stdin(os_pipe::dup_stdin()?);
 		self.stdout(os_pipe::dup_stdout()?);
 		self.stderr(os_pipe::dup_stderr()?);
+
 		let program = self.get_program().to_string_lossy().into_owned();
 		log::debug!(action = "Running"; "Command `{} {}`", program, self.get_args().map(|arg| arg.to_string_lossy()).fold(String::new(), |acc, arg| format!("{acc} {arg}")));
 

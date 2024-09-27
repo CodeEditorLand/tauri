@@ -151,6 +151,7 @@ fn migrate_imports<'a>(
 
 	for (source_type, js_source, script_start) in sources {
 		let allocator = Allocator::default();
+
 		let ret = Parser::new(&allocator, js_source, source_type).parse();
 		if !ret.errors.is_empty() {
 			anyhow::bail!("failed to parse {} as valid Javascript/Typescript file", path.display())
@@ -159,6 +160,7 @@ fn migrate_imports<'a>(
 		let mut program = ret.program;
 
 		let mut stmts_to_add = Vec::new();
+
 		let mut imports_to_add = Vec::new();
 
 		for import in program.body.iter_mut() {
@@ -397,6 +399,7 @@ const appWindow = getCurrentWebviewWindow()
 "#;
 
 		let mut new_plugins = Vec::new();
+
 		let mut npm_packages_to_remove = Vec::new();
 
 		let migrated = migrate_imports(
@@ -458,6 +461,7 @@ const appWindow = getCurrentWebviewWindow()
 "#;
 
 		let mut new_plugins = Vec::new();
+
 		let mut npm_packages_to_remove = Vec::new();
 
 		let migrated = migrate_imports(
@@ -625,6 +629,7 @@ export default App;
 "#;
 
 		let mut new_plugins = Vec::new();
+
 		let mut npm_packages_to_remove = Vec::new();
 
 		let migrated = migrate_imports(

@@ -33,7 +33,9 @@ pub fn update_entitlements<F: FnOnce(&mut plist::Dictionary)>(f: F) -> Result<()
 pub fn update_android_manifest(block_identifier: &str, parent: &str, insert: String) -> Result<()> {
 	if let Some(project_path) = var_os("TAURI_ANDROID_PROJECT_PATH").map(PathBuf::from) {
 		let manifest_path = project_path.join("app/src/main/AndroidManifest.xml");
+
 		let manifest = read_to_string(&manifest_path)?;
+
 		let rewritten = insert_into_xml(&manifest, block_identifier, parent, &insert);
 		if rewritten != manifest {
 			write(manifest_path, rewritten)?;
@@ -105,7 +107,9 @@ fn copy_folder(source: &Path, target: &Path, ignore_paths: &[&str]) -> Result<()
 
 	for entry in walkdir::WalkDir::new(source) {
 		let entry = entry?;
+
 		let rel_path = entry.path().strip_prefix(source)?;
+
 		let rel_path_str = rel_path.to_string_lossy();
 		if ignore_paths.iter().any(|path| rel_path_str.starts_with(path)) {
 			continue;
@@ -136,6 +140,7 @@ fn update_plist_file<P: AsRef<Path>, F: FnOnce(&mut plist::Dictionary)>(
 	let path = path.as_ref();
 	if path.exists() {
 		let plist_str = read_to_string(path)?;
+
 		let mut plist = plist::Value::from_reader(Cursor::new(&plist_str))?;
 		if let Some(dict) = plist.as_dictionary_mut() {
 			f(dict);
@@ -198,10 +203,13 @@ mod tests {
         </intent-filter>
     </application>
 </manifest>"#;
+
 		let id = "tauritest";
+
 		let new = super::insert_into_xml(manifest, id, "application", "<something></something>");
 
 		let block_id_comment = super::xml_block_comment(id);
+
 		let expected = format!(
 			r#"<manifest>
     <application>

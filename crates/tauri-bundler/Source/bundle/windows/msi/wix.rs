@@ -114,6 +114,7 @@ impl ResourceDirectory {
 	/// Generates the wix XML string to bundle this directory resources recursively
 	fn get_wix_data(self) -> crate::Result<(String, Vec<String>)> {
 		let mut files = String::from("");
+
 		let mut file_ids = Vec::new();
 		for file in self.files {
 			file_ids.push(file.id.clone());
@@ -560,36 +561,45 @@ pub fn build_wix_app_installer(
 
 		// Create the update task XML
 		let mut skip_uac_task = Handlebars::new();
+
 		let xml = include_str!("../templates/update-task.xml");
 		skip_uac_task
 			.register_template_string("update.xml", xml)
 			.map_err(|e| e.to_string())
 			.expect("Failed to setup Update Task handlebars");
+
 		let temp_xml_path = output_path.join("update.xml");
+
 		let update_content = skip_uac_task.render("update.xml", &data)?;
 		fs::write(temp_xml_path, update_content)?;
 
 		// Create the Powershell script to install the task
 		let mut skip_uac_task_installer = Handlebars::new();
 		skip_uac_task_installer.register_escape_fn(handlebars::no_escape);
+
 		let xml = include_str!("../templates/install-task.ps1");
 		skip_uac_task_installer
 			.register_template_string("install-task.ps1", xml)
 			.map_err(|e| e.to_string())
 			.expect("Failed to setup Update Task Installer handlebars");
+
 		let temp_ps1_path = output_path.join("install-task.ps1");
+
 		let install_script_content = skip_uac_task_installer.render("install-task.ps1", &data)?;
 		fs::write(temp_ps1_path, install_script_content)?;
 
 		// Create the Powershell script to uninstall the task
 		let mut skip_uac_task_uninstaller = Handlebars::new();
 		skip_uac_task_uninstaller.register_escape_fn(handlebars::no_escape);
+
 		let xml = include_str!("../templates/uninstall-task.ps1");
 		skip_uac_task_uninstaller
 			.register_template_string("uninstall-task.ps1", xml)
 			.map_err(|e| e.to_string())
 			.expect("Failed to setup Update Task Uninstaller handlebars");
+
 		let temp_ps1_path = output_path.join("uninstall-task.ps1");
+
 		let install_script_content =
 			skip_uac_task_uninstaller.render("uninstall-task.ps1", &data)?;
 		fs::write(temp_ps1_path, install_script_content)?;
@@ -606,7 +616,9 @@ pub fn build_wix_app_installer(
 	let extension_regex = Regex::new("\"http://schemas.microsoft.com/wix/(\\w+)\"")?;
 	for fragment_path in fragment_paths {
 		let fragment_path = current_dir.join(fragment_path);
+
 		let fragment = fs::read_to_string(&fragment_path)?;
+
 		let mut extensions = Vec::new();
 		for cap in extension_regex.captures_iter(&fragment) {
 			extensions.push(wix_toolset_path.join(format!("Wix{}.dll", &cap[1])));
@@ -651,6 +663,7 @@ pub fn build_wix_app_installer(
 			.replace("__productName__", settings.product_name());
 
 		let mut unset_locale_strings = String::new();
+
 		let prefix_len = "<String ".len();
 		for locale_string in locale_strings.split('\n').filter(|s| !s.is_empty()) {
 			// strip `<String ` prefix and `>{value}</String` suffix.
@@ -666,6 +679,7 @@ pub fn build_wix_app_installer(
 
 		let locale_contents = locale_contents
 			.replace("</WixLocalization>", &format!("{}</WixLocalization>", unset_locale_strings));
+
 		let locale_path = output_path.join("locale.wxl");
 		{
 			let mut fileout = File::create(&locale_path).expect("Failed to create locale file");
@@ -685,7 +699,9 @@ pub fn build_wix_app_installer(
 			display_path(&locale_path),
 			"*.wixobj".into(),
 		];
+
 		let msi_output_path = output_path.join("output.msi");
+
 		let msi_path =
 			app_installer_output_path(settings, &language, settings.version_string(), updater)?;
 		fs::create_dir_all(msi_path.parent().unwrap())?;
@@ -719,12 +735,15 @@ fn generate_binaries_data(settings: &Settings) -> crate::Result<Vec<Binary>> {
 	let regex = Regex::new(r"[^\w\d\.]")?;
 	for src in settings.external_binaries() {
 		let src = src?;
+
 		let binary_path = cwd.join(&src);
+
 		let dest_filename = src
 			.file_name()
 			.expect("failed to extract external binary filename")
 			.to_string_lossy()
 			.replace(&format!("-{}", settings.target()), "");
+
 		let dest = tmp_dir.join(&dest_filename);
 		std::fs::copy(binary_path, &dest)?;
 
@@ -765,6 +784,7 @@ fn get_merge_modules(settings: &Settings) -> crate::Result<Vec<MergeModule>> {
 		settings.project_out_directory().join("*.msm").to_string_lossy().to_string().as_str(),
 	)? {
 		let path = msm?;
+
 		let filename = path
 			.file_name()
 			.expect("failed to extract merge module filename")
@@ -790,6 +810,7 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourceMap> {
 		let resource = resource?;
 
 		let src = cwd.join(resource.path());
+
 		let resource_path = dunce::simplified(&src).to_path_buf();
 		// In some glob resource paths like `assets/**/*` a file might appear twice
 		// because the `tauri_utils::resources::ResourcePaths` iterator also reads a directory
@@ -808,7 +829,9 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourceMap> {
 
 		// split the resource path directories
 		let target_path = resource.target();
+
 		let components_count = target_path.components().count();
+
 		let directories = target_path
       .components()
       .take(components_count - 1) // the last component is the file
@@ -868,7 +891,9 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourceMap> {
 	let out_dir = settings.project_out_directory();
 	for dll in glob::glob(out_dir.join("*.dll").to_string_lossy().to_string().as_str())? {
 		let path = dll?;
+
 		let resource_path = dunce::simplified(&path);
+
 		let relative_path = path.strip_prefix(out_dir).unwrap().to_string_lossy().into_owned();
 		if !added_resources.iter().any(|r| r.ends_with(&relative_path)) {
 			dlls.push(ResourceFile {

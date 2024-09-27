@@ -214,6 +214,7 @@ fn migrate_dependency_table<D: TableLike>(
 	if let Some(features_array) = manifest_features.as_array_mut() {
 		// remove features that shouldn't be in the manifest anymore
 		let mut i = features_array.len();
+
 		let mut add_features = Vec::new();
 		while i != 0 {
 			let index = i - 1;
@@ -242,8 +243,10 @@ mod tests {
 
 	fn migrate_deps<F: FnOnce(&[&str]) -> String>(get_toml: F) {
 		let keep_features = vec!["isolation", "protocol-asset"];
+
 		let mut features = super::features_to_remove();
 		features.extend(keep_features.clone());
+
 		let toml = get_toml(&features);
 
 		let mut manifest = toml.parse::<toml_edit::DocumentMut>().expect("invalid toml");

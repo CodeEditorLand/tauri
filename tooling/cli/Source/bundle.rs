@@ -271,8 +271,10 @@ fn print_signed_updater_archive(output_paths: &[PathBuf]) -> crate::Result<()> {
 	use std::fmt::Write;
 	if !output_paths.is_empty() {
 		let finished_bundles = output_paths.len();
+
 		let pluralised =
 			if finished_bundles == 1 { "updater signature" } else { "updater signatures" };
+
 		let mut printable_paths = String::new();
 		for path in output_paths {
 			writeln!(printable_paths, "        {}", tauri_utils::display_path(path))?;

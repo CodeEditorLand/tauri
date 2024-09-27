@@ -70,6 +70,7 @@ fn run_strace_benchmarks(new_data: &mut utils::BenchResult) -> Result<()> {
 		let clone = 1
 			+ strace_result.get("clone").map(|d| d.calls).unwrap_or(0)
 			+ strace_result.get("clone3").map(|d| d.calls).unwrap_or(0);
+
 		let total = strace_result.get("total").unwrap().calls;
 		thread_count.insert(name.to_string(), clone);
 		syscall_count.insert(name.to_string(), total);
@@ -86,6 +87,7 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 
 	for (name, example_exe) in get_all_benchmarks() {
 		let benchmark_file = utils::target_dir().join(format!("mprof{}_.dat", name));
+
 		let benchmark_file = benchmark_file.to_str().unwrap();
 
 		let proc = Command::new("mprof")
@@ -114,7 +116,9 @@ fn rlib_size(target_dir: &std::path::Path, prefix: &str) -> u64 {
 
 	for entry in std::fs::read_dir(target_dir.join("deps")).unwrap() {
 		let entry = entry.unwrap();
+
 		let os_str = entry.file_name();
+
 		let name = os_str.to_str().unwrap();
 		if name.starts_with(prefix) && name.ends_with(".rlib") {
 			let start = name.split('-').next().unwrap().to_string();

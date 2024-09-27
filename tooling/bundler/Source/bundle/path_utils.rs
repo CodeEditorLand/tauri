@@ -173,6 +173,7 @@ where
 	let dir_content = get_dir_info(from, &read_options)?;
 	for directory in dir_content.directories {
 		let tmp_to = Path::new(&directory).strip_prefix(from)?;
+
 		let dir = to.join(tmp_to);
 		if !dir.exists() {
 			if options.copy_files {
@@ -185,7 +186,9 @@ where
 	let mut result: u64 = 0;
 	for file in dir_content.files {
 		let to = to.to_path_buf();
+
 		let tp = Path::new(&file).strip_prefix(from)?;
+
 		let path = to.join(tp);
 
 		let file_options = FileOpts {
@@ -193,7 +196,9 @@ where
 			skip: options.skip,
 			buffer_size: options.buffer_size,
 		};
+
 		let mut result_copy: crate::Result<u64>;
+
 		let mut work = true;
 
 		while work {
@@ -206,6 +211,7 @@ where
 					result += val;
 					work = false;
 				}
+
 				Err(err) => {
 					let err_msg = err.to_string();
 					return Err(crate::Error::PathUtilError(err_msg));

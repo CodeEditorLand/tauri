@@ -14,6 +14,7 @@ pub struct ProvisioningProfile {
 impl ProvisioningProfile {
 	pub fn from_base64(base64: &OsStr) -> Result<Self> {
 		let home_dir = dirs_next::home_dir().unwrap();
+
 		let provisioning_profiles_folder =
 			home_dir.join("Library").join("MobileDevice").join("Provisioning Profiles");
 		std::fs::create_dir_all(&provisioning_profiles_folder).unwrap();

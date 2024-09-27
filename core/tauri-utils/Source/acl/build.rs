@@ -380,7 +380,9 @@ fn parse_permissions(paths: Vec<PathBuf>) -> Result<Vec<PermissionFile>, Error> 
 	let mut permissions = Vec::new();
 	for path in paths {
 		let permission_file = std::fs::read_to_string(&path).map_err(Error::ReadFile)?;
+
 		let ext = path.extension().unwrap().to_string_lossy().to_string();
+
 		let permission: PermissionFile = match ext.as_str() {
 			"toml" => toml::from_str(&permission_file)?,
 			"json" => serde_json::from_str(&permission_file)?,
@@ -412,7 +414,9 @@ pub fn autogenerate_command_permissions(
 
 	let schema_entry = if schema_ref {
 		let cwd = current_dir().unwrap();
+
 		let components_len = path.strip_prefix(&cwd).unwrap_or(path).components().count();
+
 		let schema_path = (1..components_len)
 			.map(|_| "..")
 			.collect::<PathBuf>()

@@ -139,7 +139,9 @@ mod windows {
 
 		let mut rect = RECT::default();
 		unsafe { GetClientRect(parent, &mut rect).unwrap() };
+
 		let width = rect.right - rect.left;
+
 		let height = rect.bottom - rect.top;
 
 		let Ok(drag_window) = (unsafe {
@@ -339,10 +341,13 @@ mod windows {
 
 	unsafe fn set_drag_hwnd_rgn(hwnd: HWND, width: i32, height: i32) {
 		let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
+
 		let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
+
 		let border_y = GetSystemMetrics(SM_CYFRAME) + padded_border;
 
 		let hrgn1 = CreateRectRgn(0, 0, width, height);
+
 		let hrgn2 = CreateRectRgn(border_x, border_y, width - border_x, height - border_y);
 		CombineRgn(hrgn1, hrgn1, hrgn2, RGN_DIFF);
 		SetWindowRgn(hwnd, hrgn1, true);

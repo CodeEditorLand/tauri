@@ -82,8 +82,11 @@ pub fn command(options: Options) -> Result<()> {
 
 	let (config, metadata, cli_options) = {
 		let tauri_config_guard = tauri_config.lock().unwrap();
+
 		let tauri_config_ = tauri_config_guard.as_ref().unwrap();
+
 		let cli_options = read_options(&tauri_config_.identifier);
+
 		let (config, metadata) = get_config(
 			&get_app(MobileTarget::Ios, tauri_config_, &AppInterface::new(tauri_config_, None)?),
 			tauri_config_,
@@ -166,8 +169,11 @@ pub fn command(options: Options) -> Result<()> {
 		)?;
 
 		let cflags = format!("CFLAGS_{}", env_triple);
+
 		let cxxflags = format!("CFLAGS_{}", env_triple);
+
 		let objc_include_path = format!("OBJC_INCLUDE_PATH_{}", env_triple);
+
 		let mut target_env = host_env.clone();
 		target_env.insert(cflags.as_ref(), isysroot.as_ref());
 		target_env.insert(cxxflags.as_ref(), isysroot.as_ref());
@@ -195,6 +201,7 @@ pub fn command(options: Options) -> Result<()> {
 			target: Some(rust_triple.into()),
 			..Default::default()
 		})?;
+
 		let out_dir = bin_path.parent().unwrap();
 
 		let lib_path = out_dir.join(format!("lib{}.a", config.app().lib_name()));
@@ -205,6 +212,7 @@ pub fn command(options: Options) -> Result<()> {
 		validate_lib(&lib_path)?;
 
 		let project_dir = config.project_dir();
+
 		let externals_lib_dir = project_dir.join(format!("Externals/{arch}/{}", profile.as_str()));
 		std::fs::create_dir_all(&externals_lib_dir)?;
 
@@ -238,6 +246,7 @@ fn validate_lib(path: &Path) -> Result<()> {
 		let Ok(mut entry) = entry else {
 			continue;
 		};
+
 		let mut obj_bytes = Vec::new();
 		entry.read_to_end(&mut obj_bytes)?;
 

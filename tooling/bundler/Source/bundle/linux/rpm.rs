@@ -83,6 +83,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 	// Add binaries
 	for bin in settings.binaries() {
 		let src = settings.binary_path(bin);
+
 		let dest = Path::new("/usr/bin").join(bin.name());
 		builder = builder.with_file(src, FileOptions::new(dest.to_string_lossy()))?;
 	}
@@ -90,6 +91,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 	// Add external binaries
 	for src in settings.external_binaries() {
 		let src = src?;
+
 		let dest = Path::new("/usr/bin").join(
 			src.file_name()
 				.expect("failed to extract external binary filename")

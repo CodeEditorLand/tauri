@@ -137,7 +137,9 @@ pub fn parse_strace_output(output: &str) -> HashMap<String, StraceOutput> {
 
 	for line in data_lines {
 		let syscall_fields = line.split_whitespace().collect::<Vec<_>>();
+
 		let len = syscall_fields.len();
+
 		let syscall_name = syscall_fields.last().unwrap();
 
 		if (5..=6).contains(&len) {

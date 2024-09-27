@@ -124,10 +124,13 @@ pub fn generate_data(
 fn generate_changelog_file(settings: &Settings, data_dir: &Path) -> crate::Result<()> {
 	if let Some(changelog_src_path) = &settings.deb().changelog {
 		let mut src_file = File::open(changelog_src_path)?;
+
 		let bin_name = settings.main_binary_name();
+
 		let dest_path = data_dir.join(format!("usr/share/doc/{}/changelog.gz", bin_name));
 
 		let changelog_file = common::create_file(&dest_path)?;
+
 		let mut gzip_encoder = GzEncoder::new(changelog_file, Compression::new(9));
 		io::copy(&mut src_file, &mut gzip_encoder)?;
 
@@ -255,17 +258,20 @@ fn generate_md5sums(control_dir: &Path, data_dir: &Path) -> crate::Result<()> {
 	let mut md5sums_file = common::create_file(&md5sums_path)?;
 	for entry in WalkDir::new(data_dir) {
 		let entry = entry?;
+
 		let path = entry.path();
 		if path.is_dir() {
 			continue;
 		}
 		let mut file = File::open(path)?;
+
 		let mut hash = md5::Context::new();
 		io::copy(&mut file, &mut hash)?;
 		for byte in hash.compute().iter() {
 			write!(md5sums_file, "{byte:02x}")?;
 		}
 		let rel_path = path.strip_prefix(data_dir)?;
+
 		let path_str = rel_path.to_str().ok_or_else(|| {
 			let msg = format!("Non-UTF-8 path: {rel_path:?}");
 			io::Error::new(io::ErrorKind::InvalidData, msg)
@@ -307,12 +313,15 @@ fn create_tar_from_dir<P: AsRef<Path>, W: Write>(src_dir: P, dest_file: W) -> cr
 	let mut tar_builder = tar::Builder::new(dest_file);
 	for entry in WalkDir::new(src_dir) {
 		let entry = entry?;
+
 		let src_path = entry.path();
 		if src_path == src_dir {
 			continue;
 		}
 		let dest_path = src_path.strip_prefix(src_dir)?;
+
 		let stat = fs::metadata(src_path)?;
+
 		let mut header = tar::Header::new_gnu();
 		header.set_metadata_in_mode(&stat, HeaderMode::Deterministic);
 		header.set_mtime(stat.mtime() as u64);

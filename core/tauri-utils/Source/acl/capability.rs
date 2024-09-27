@@ -245,8 +245,11 @@ impl CapabilityFile {
 	/// Load the given capability file.
 	pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, super::Error> {
 		let path = path.as_ref();
+
 		let capability_file = std::fs::read_to_string(path).map_err(super::Error::ReadFile)?;
+
 		let ext = path.extension().unwrap().to_string_lossy().to_string();
+
 		let file: Self = match ext.as_str() {
 			"toml" => toml::from_str(&capability_file)?,
 			"json" => serde_json::from_str(&capability_file)?,
@@ -363,6 +366,7 @@ mod tests {
 	#[test]
 	fn permission_entry_de() {
 		let identifier = Identifier::try_from("plugin:perm".to_string()).unwrap();
+
 		let identifier_json = serde_json::to_string(&identifier).unwrap();
 		assert_eq!(
 			serde_json::from_str::<PermissionEntry>(&identifier_json).unwrap(),
@@ -395,6 +399,7 @@ mod tests {
 			permissions: vec![],
 			platforms: None,
 		};
+
 		let capability_json = serde_json::to_string(&capability).unwrap();
 
 		assert_eq!(

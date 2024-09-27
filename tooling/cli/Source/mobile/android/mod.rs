@@ -257,6 +257,7 @@ fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
 		let emulator = emulator_prompt(env, target)?;
 		log::info!("Starting emulator {}", emulator.name());
 		emulator.start_detached(env)?;
+
 		let mut tries = 0;
 		loop {
 			sleep(Duration::from_secs(2));
@@ -312,6 +313,7 @@ fn inject_resources(config: &AndroidConfig, tauri_config: &TauriConfig) -> Resul
 fn configure_cargo(env: &mut Env, config: &AndroidConfig) -> Result<()> {
 	for target in Target::all().values() {
 		let config = target.generate_cargo_config(config, env)?;
+
 		let target_var_name = target.triple.replace('-', "_").to_uppercase();
 		if let Some(linker) = config.linker {
 			env.base

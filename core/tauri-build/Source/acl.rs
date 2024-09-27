@@ -443,6 +443,7 @@ pub fn app_manifest_permissions(
 		}
 
 		let permissions_root = current_dir()?.join("permissions");
+
 		let inlined_plugins_permissions: Vec<_> =
 			inlined_plugins.keys().map(|name| permissions_root.join(name)).collect();
 

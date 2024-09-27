@@ -199,6 +199,7 @@ fn icns(source: &Source, out_dir: &Path) -> Result<()> {
 
 	for (name, entry) in entries {
 		let size = entry.size;
+
 		let mut buf = Vec::new();
 
 		let image = source.resize_exact(size)?;

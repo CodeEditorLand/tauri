@@ -137,6 +137,7 @@ fn copy_binaries_to_bundle(
 	let dest_dir = bundle_directory.join("MacOS");
 	for bin in settings.binaries() {
 		let bin_path = settings.binary_path(bin);
+
 		let dest_path = dest_dir.join(bin.name());
 		common::copy_file(&bin_path, &dest_path)
 			.with_context(|| format!("Failed to copy binary from {:?}", bin_path))?;
@@ -277,6 +278,7 @@ fn create_info_plist(
 
 	if let Some(exception_domain) = settings.macos().exception_domain.clone() {
 		let mut security = plist::Dictionary::new();
+
 		let mut domain = plist::Dictionary::new();
 		domain.insert("NSExceptionAllowsInsecureHTTPLoads".into(), true.into());
 		domain.insert("NSIncludesSubdomains".into(), true.into());
@@ -415,6 +417,7 @@ fn add_executable_bundle_sign_path(
 fn add_nested_code_sign_path(src_path: &Path, dest_path: &Path, sign_paths: &mut Vec<SignTarget>) {
 	for folder_name in NESTED_CODE_FOLDER.iter() {
 		let src_folder_path = src_path.join(folder_name);
+
 		let dest_folder_path = dest_path.join(folder_name);
 
 		if src_folder_path.exists() {
