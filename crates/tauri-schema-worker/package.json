@@ -30,7 +30,7 @@
 	"devDependencies": {
 <<<<<<< HEAD
 		"@playform/build": "0.1.6",
-		"wrangler": "^3.75"
+		"wrangler": "3.75"
 =======
 		"@playform/build": "0.1.7",
 		"wrangler": "3.78"
