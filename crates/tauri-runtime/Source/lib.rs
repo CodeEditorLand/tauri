@@ -505,6 +505,12 @@ pub trait WebviewDispatch<T: UserEvent>: Debug + Clone + Send + Sync + Sized + '
   /// Bring the window to front and focus the webview.
   fn set_focus(&self) -> Result<()>;
 
+  /// Hide the webview
+  fn hide(&self) -> Result<()>;
+
+  /// Show the webview
+  fn show(&self) -> Result<()>;
+
   /// Executes javascript on the window this [`WindowDispatch`] represents.
   fn eval_script<S: Into<String>>(&self, script: S) -> Result<()>;
 
@@ -597,6 +603,10 @@ pub trait WindowDispatch<T: UserEvent>: Debug + Clone + Send + Sync + Sized + 's
 
   /// Gets the window's current visibility state.
   fn is_visible(&self) -> Result<bool>;
+
+  /// Whether the window is enabled or disable.
+  fn is_enabled(&self) -> Result<bool>;
+
   /// Gets the window's current title.
   fn title(&self) -> Result<String>;
 
@@ -669,6 +679,13 @@ pub trait WindowDispatch<T: UserEvent>: Debug + Clone + Send + Sync + Sized + 's
 
   /// Updates the window resizable flag.
   fn set_resizable(&self, resizable: bool) -> Result<()>;
+
+  /// Enable or disable the window.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Android / iOS**: Unsupported.
+  fn set_enabled(&self, enabled: bool) -> Result<()>;
 
   /// Updates the window's native maximize button state.
   ///
