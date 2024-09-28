@@ -1,53 +1,25 @@
 {
-	"name": "api",
-	"version": "0.0.1",
-	"private": false,
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"email": "Source/Open@Editor.Land",
-		"url": "HTTPS://Editor.Land"
-	},
-	"type": "module",
-	"scripts": {
-		"build": "vite build",
-		"dev": "vite",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"preview": "vite preview",
-		"tauri": "node ../../packages/cli/tauri.js"
-	},
-	"dependencies": {
-		"@tauri-apps/api": "../../packages/api/dist"
-	},
-	"devDependencies": {
-<<<<<<< HEAD
-		"@iconify-json/codicon": "1.1.49",
-		"@iconify-json/ph": "1.1.13",
-		"@playform/build": "0.1.6",
-		"@unocss/extractor-svelte": "0.61.0",
-		"unocss": "0.61.0"
-=======
-		"@iconify-json/codicon": "1.1.49",
-		"@iconify-json/ph": "1.1.13",
-		"@playform/build": "0.1.7",
-		"@unocss/extractor-svelte": "0.62.4",
-		"unocss": "0.62.4"
->>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
-	},
-	"publishConfig": {
-		"access": "public"
-	}
+  "name": "api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "node ../../packages/cli/tauri.js"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "../../packages/api/dist",
+    "@zerodevx/svelte-json-view": "1.0.9"
+  },
+  "devDependencies": {
+    "@iconify-json/codicon": "^1.1.49",
+    "@iconify-json/ph": "^1.1.13",
+    "@unocss/extractor-svelte": "^0.61.0",
+    "unocss": "^0.61.0",
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "svelte": "^4.2.19",
+    "vite": "^5.4.7"
+  }
 }

@@ -1,83 +1,64 @@
 {
-	"name": "@tauri-apps/cli",
-	"version": "0.0.1",
-	"private": false,
-	"description": "Command line interface for building Tauri apps",
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"funding": {
-		"type": "opencollective",
-		"url": "https://opencollective.com/tauri"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"email": "Source/Open@Editor.Land",
-		"url": "HTTPS://Editor.Land"
-	},
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
-	"type": "module",
-	"main": "main.js",
-	"types": "main.d.ts",
-	"bin": {
-		"tauri": "./tauri.js"
-	},
-	"scripts": {
-		"artifacts": "napi artifacts",
-<<<<<<< HEAD
-		"build": "cross-env TARGET=node napi build --platform",
-		"build:release": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
-=======
-		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
-		"postbuild": "node append-headers.js",
-		"build:debug": "cross-env TARGET=node napi build --platform",
-		"postbuild:debug": "node append-headers.js",
->>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
-		"prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"tauri": "node ./tauri.js",
-		"version": "napi version"
-	},
-	"devDependencies": {
-<<<<<<< HEAD
-		"@napi-rs/cli": "2.18.3",
-		"@playform/build": "0.1.6",
-		"@types/node": "20.16.1",
-=======
-		"@napi-rs/cli": "2.18.4",
-		"@playform/build": "0.1.7",
-		"@types/node": "22.7.3",
->>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
-		"cross-env": "7.0.3"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"napi": {
-		"name": "cli",
-		"triples": {
-			"additional": [
-				"aarch64-apple-darwin",
-				"aarch64-unknown-linux-gnu",
-				"aarch64-unknown-linux-musl",
-				"armv7-unknown-linux-gnueabihf",
-				"x86_64-unknown-linux-musl",
-				"i686-pc-windows-msvc",
-				"aarch64-pc-windows-msvc"
-			]
-		}
-	}
+  "name": "@tauri-apps/cli",
+  "version": "2.0.0-rc.17",
+  "description": "Command line interface for building Tauri apps",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/tauri"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tauri-apps/tauri.git"
+  },
+  "contributors": [
+    "Tauri Programme within The Commons Conservancy"
+  ],
+  "license": "Apache-2.0 OR MIT",
+  "bugs": {
+    "url": "https://github.com/tauri-apps/tauri/issues"
+  },
+  "homepage": "https://github.com/tauri-apps/tauri#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "main.js",
+  "types": "main.d.ts",
+  "napi": {
+    "name": "cli",
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin",
+        "aarch64-unknown-linux-gnu",
+        "aarch64-unknown-linux-musl",
+        "armv7-unknown-linux-gnueabihf",
+        "x86_64-unknown-linux-musl",
+        "i686-pc-windows-msvc",
+        "aarch64-pc-windows-msvc"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "2.18.3",
+    "@types/node": "20.16.1",
+    "cross-env": "7.0.3",
+    "vitest": "^2.1.1"
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "bin": {
+    "tauri": "./tauri.js"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+    "postbuild": "node append-headers.js",
+    "build:debug": "cross-env TARGET=node napi build --platform",
+    "postbuild:debug": "node append-headers.js",
+    "prepublishOnly": "napi prepublish -t npm --gh-release-id $RELEASE_ID",
+    "prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
+    "version": "napi version",
+    "test": "vitest run",
+    "tauri": "node ./tauri.js"
+  }
 }

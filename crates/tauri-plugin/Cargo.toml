@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin"
-version = "2.0.0-rc.12"
+version = "2.0.0-rc.13"
 description = "Build script and runtime Tauri plugin definitions"
 authors.workspace = true
 homepage.workspace = true
@@ -17,21 +17,21 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 build = [
-	"dep:anyhow",
-	"dep:serde",
-	"dep:serde_json",
-	"dep:glob",
-	"dep:toml",
-	"dep:plist",
-	"dep:walkdir",
+  "dep:anyhow",
+  "dep:serde",
+  "dep:serde_json",
+  "dep:glob",
+  "dep:toml",
+  "dep:plist",
+  "dep:walkdir",
 ]
 runtime = []
 
 [dependencies]
 anyhow = { version = "1", optional = true }
 serde = { version = "1", optional = true }
-tauri-utils = { version = "2.0.0-rc.12", default-features = false, features = [
-	"build",
+tauri-utils = { version = "2.0.0-rc.13", default-features = false, features = [
+  "build",
 ], path = "../tauri-utils" }
 serde_json = { version = "1", optional = true }
 glob = { version = "0.3", optional = true }

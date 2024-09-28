@@ -1,51 +1,32 @@
 {
-	"name": "@tauri-apps/cli-win32-x64-msvc",
-	"version": "0.0.1",
-	"private": false,
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"email": "Source/Open@Editor.Land",
-		"url": "HTTPS://Editor.Land"
-	},
-	"contributors": [
-		"Tauri Programme within The Commons Conservancy"
-	],
-	"type": "module",
-	"main": "cli.win32-x64-msvc.node",
-	"files": [
-		"cli.win32-x64-msvc.node"
-	],
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"devDependencies": {
-<<<<<<< HEAD
-		"@playform/build": "0.1.6"
-=======
-		"@playform/build": "0.1.7"
->>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
-	},
-	"os": [
-		"win32"
-	],
-	"cpu": [
-		"x64"
-	],
-	"publishConfig": {
-		"access": "public"
-	}
+  "name": "@tauri-apps/cli-win32-x64-msvc",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tauri-apps/tauri.git"
+  },
+  "homepage": "https://github.com/tauri-apps/tauri#readme",
+  "bugs": {
+    "url": "https://github.com/tauri-apps/tauri/issues"
+  },
+  "contributors": [
+    "Tauri Programme within The Commons Conservancy"
+  ],
+  "license": "Apache-2.0 OR MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "cli.win32-x64-msvc.node",
+  "files": [
+    "cli.win32-x64-msvc.node"
+  ],
+  "engines": {
+    "node": ">= 10"
+  }
 }

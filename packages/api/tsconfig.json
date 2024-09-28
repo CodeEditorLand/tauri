@@ -1,20 +1,12 @@
 {
-	"compilerOptions": {
-		"baseUrl": "./",
-		"module": "esnext",
-		"moduleResolution": "bundler",
-		"noEmit": true,
-		"noImplicitAny": true,
-		"noUnusedLocals": true,
-		"outDir": "Target",
-		"rootDir": "src",
-		"skipLibCheck": true,
-		"strict": true,
-		"target": "es2019"
-	},
-	"extends": "@playform/build/tsconfig",
-	"include": [
-		"src",
-		"src"
-	]
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitAny": true,
+    "noEmit": true
+  }
 }
