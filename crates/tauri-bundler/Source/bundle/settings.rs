@@ -351,6 +351,15 @@ impl Default for WixLanguage {
 /// Settings specific to the WiX implementation.
 #[derive(Clone, Debug, Default)]
 pub struct WixSettings {
+  /// A GUID upgrade code for MSI installer. This code **_must stay the same across all of your updates_**,
+  /// otherwise, Windows will treat your update as a different app and your users will have duplicate versions of your app.
+  ///
+  /// By default, tauri generates this code by generating a Uuid v5 using the string `<productName>.exe.app.x64` in the DNS namespace.
+  /// You can use Tauri's CLI to generate and print this code for you by running `tauri inspect wix-upgrade-code`.
+  ///
+  /// It is recommended that you set this value in your tauri config file to avoid accidental changes in your upgrade code
+  /// whenever you want to change your product name.
+  pub upgrade_code: Option<uuid::Uuid>,
   /// The app languages to build. See <https://docs.microsoft.com/en-us/windows/win32/msi/localizing-the-error-and-actiontext-tables>.
   pub language: WixLanguage,
   /// By default, the bundler uses an internal template.
@@ -674,6 +683,22 @@ impl BundleBinary {
   }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Arch {
+  /// For the x86_64 / x64 / AMD64 instruction sets (64 bits).
+  X86_64,
+  /// For the x86 / i686 / i686 / 8086 instruction sets (32 bits).
+  X86,
+  /// For the AArch64 / ARM64 instruction sets (64 bits).
+  AArch64,
+  /// For the AArch32 / ARM32 instruction sets with hard-float (32 bits).
+  Armhf,
+  /// For the AArch32 / ARM32 instruction sets with soft-float (32 bits).
+  Armel,
+  /// For universal macOS applications.
+  Universal,
+}
+
 /// The Settings exposed by the module.
 #[derive(Clone, Debug)]
 pub struct Settings {
@@ -836,17 +861,19 @@ impl Settings {
   }
 
   /// Returns the architecture for the binary being bundled (e.g. "arm", "x86" or "x86_64").
-  pub fn binary_arch(&self) -> &str {
+  pub fn binary_arch(&self) -> Arch {
     if self.target.starts_with("x86_64") {
-      "x86_64"
+      Arch::X86_64
     } else if self.target.starts_with('i') {
-      "x86"
+      Arch::X86
+    } else if self.target.starts_with("arm") && self.target.ends_with("hf") {
+      Arch::Armhf
     } else if self.target.starts_with("arm") {
-      "arm"
+      Arch::Armel
     } else if self.target.starts_with("aarch64") {
-      "aarch64"
+      Arch::AArch64
     } else if self.target.starts_with("universal") {
-      "universal"
+      Arch::Universal
     } else {
       panic!("Unexpected target triple {}", self.target)
     }

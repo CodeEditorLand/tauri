@@ -40,11 +40,19 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"dependencies": {
+<<<<<<< HEAD
 		"@tauri-apps/api": ">=2.0.0-beta.6"
 	},
 	"devDependencies": {
 		"@playform/build": "0.1.6",
 		"tslib": "^2.6.2"
+=======
+		"@tauri-apps/api": ">=2.0.0-rc.5"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.7",
+		"tslib": "2.7.0"
+>>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
 	},
 	"publishConfig": {
 		"access": "public"

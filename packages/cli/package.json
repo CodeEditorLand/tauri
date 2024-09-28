@@ -37,17 +37,30 @@
 	},
 	"scripts": {
 		"artifacts": "napi artifacts",
+<<<<<<< HEAD
 		"build": "cross-env TARGET=node napi build --platform",
 		"build:release": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+=======
+		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+		"postbuild": "node append-headers.js",
+		"build:debug": "cross-env TARGET=node napi build --platform",
+		"postbuild:debug": "node append-headers.js",
+>>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
 		"prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"tauri": "node ./tauri.js",
 		"version": "napi version"
 	},
 	"devDependencies": {
+<<<<<<< HEAD
 		"@napi-rs/cli": "2.18.3",
 		"@playform/build": "0.1.6",
 		"@types/node": "20.16.1",
+=======
+		"@napi-rs/cli": "2.18.4",
+		"@playform/build": "0.1.7",
+		"@types/node": "22.7.3",
+>>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
 		"cross-env": "7.0.3"
 	},
 	"publishConfig": {

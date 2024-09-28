@@ -311,6 +311,8 @@ pub trait RuntimeHandle<T: UserEvent>: Debug + Clone + Send + Sync + Sized + 'st
 
   fn cursor_position(&self) -> Result<PhysicalPosition<f64>>;
 
+  fn set_theme(&self, theme: Option<Theme>);
+
   /// Shows the application, but does not automatically focus it.
   #[cfg(target_os = "macos")]
   #[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
@@ -401,6 +403,8 @@ pub trait Runtime<T: UserEvent>: Debug + Sized + 'static {
   fn available_monitors(&self) -> Vec<Monitor>;
 
   fn cursor_position(&self) -> Result<PhysicalPosition<f64>>;
+
+  fn set_theme(&self, theme: Option<Theme>);
 
   /// Sets the activation policy for the application.
   #[cfg(target_os = "macos")]
@@ -512,6 +516,9 @@ pub trait WebviewDispatch<T: UserEvent>: Debug + Clone + Send + Sync + Sized + '
 
   /// Set the webview zoom level
   fn set_zoom(&self, scale_factor: f64) -> Result<()>;
+
+  /// Clear all browsing data for this webview.
+  fn clear_all_browsing_data(&self) -> Result<()>;
 }
 
 /// Window dispatcher. A thread-safe handle to the window APIs.
@@ -799,4 +806,12 @@ pub trait WindowDispatch<T: UserEvent>: Debug + Clone + Send + Sync + Sized + 's
   ///
   /// - **Linux / Windows / iOS / Android:** Unsupported.
   fn set_title_bar_style(&self, style: tauri_utils::TitleBarStyle) -> Result<()>;
+
+  /// Sets the theme for this window.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Linux / macOS**: Theme is app-wide and not specific to this window.
+  /// - **iOS / Android:** Unsupported.
+  fn set_theme(&self, theme: Option<Theme>) -> Result<()>;
 }

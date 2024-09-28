@@ -33,7 +33,11 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
 	"devDependencies": {
+<<<<<<< HEAD
 		"@playform/build": "0.1.6"
+=======
+		"@playform/build": "0.1.7"
+>>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
 	},
 	"os": [
 		"darwin"

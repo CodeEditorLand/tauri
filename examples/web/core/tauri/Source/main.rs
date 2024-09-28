@@ -8,18 +8,14 @@ use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder};
 
 #[tauri::command]
 async fn greet(window: tauri::Window, name: String) -> bool {
-  MessageDialogBuilder::new(
-    window.dialog().to_owned(),
-    "Tauri Example",
-    format!("Hello {name}"),
-  )
-  .parent(&window)
-  .blocking_show()
+	MessageDialogBuilder::new(window.dialog().to_owned(), "Tauri Example", format!("Hello {name}"))
+		.parent(&window)
+		.blocking_show()
 }
 
 fn main() {
-  tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![greet])
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+	tauri::Builder::default()
+		.invoke_handler(tauri::generate_handler![greet])
+		.run(tauri::generate_context!())
+		.expect("error while running tauri application");
 }

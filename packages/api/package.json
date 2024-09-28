@@ -56,11 +56,19 @@
 		"ts:check": "tsc --noEmit"
 	},
 	"devDependencies": {
+<<<<<<< HEAD
 		"@playform/build": "0.1.6",
 		"@types/node": "20.16.1",
 		"fast-glob": "3.3.2",
 		"globals": "^15.4.0",
 		"tslib": "^2.6.3"
+=======
+		"@playform/build": "0.1.7",
+		"@types/node": "20.16.1",
+		"fast-glob": "3.3.2",
+		"globals": "15.4.0",
+		"tslib": "2.6.3"
+>>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
 	},
 	"publishConfig": {
 		"access": "public"

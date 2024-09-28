@@ -5,133 +5,130 @@
 use std::sync::Arc;
 
 use super::run_item_main_thread;
-use crate::menu::CheckMenuItemInner;
-use crate::run_main_thread;
-use crate::{menu::MenuId, AppHandle, Manager, Runtime};
+use crate::{
+	menu::{CheckMenuItemInner, MenuId},
+	run_main_thread, AppHandle, Manager, Runtime,
+};
 
 use super::CheckMenuItem;
 
 impl<R: Runtime> CheckMenuItem<R> {
-  /// Create a new menu item.
-  ///
-  /// - `text` could optionally contain an `&` before a character to assign this character as the mnemonic
-  ///   for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
-  pub fn new<M, T, A>(
-    manager: &M,
-    text: T,
-    enabled: bool,
-    checked: bool,
-    accelerator: Option<A>,
-  ) -> crate::Result<Self>
-  where
-    M: Manager<R>,
-    T: AsRef<str>,
-    A: AsRef<str>,
-  {
-    let handle = manager.app_handle();
-    let app_handle = handle.clone();
+	/// Create a new menu item.
+	///
+	/// - `text` could optionally contain an `&` before a character to assign this character as the mnemonic
+	///   for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
+	pub fn new<M, T, A>(
+		manager: &M,
+		text: T,
+		enabled: bool,
+		checked: bool,
+		accelerator: Option<A>,
+	) -> crate::Result<Self>
+	where
+		M: Manager<R>,
+		T: AsRef<str>,
+		A: AsRef<str>,
+	{
+		let handle = manager.app_handle();
 
-    let text = text.as_ref().to_owned();
-    let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
+		let app_handle = handle.clone();
 
-    let item = run_main_thread!(handle, || {
-      let item = muda::CheckMenuItem::new(text, enabled, checked, accelerator);
-      CheckMenuItemInner {
-        id: item.id().clone(),
-        inner: Some(item),
-        app_handle,
-      }
-    })?;
+		let text = text.as_ref().to_owned();
 
-    Ok(Self(Arc::new(item)))
-  }
+		let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
 
-  /// Create a new menu item with the specified id.
-  ///
-  /// - `text` could optionally contain an `&` before a character to assign this character as the mnemonic
-  ///   for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
-  pub fn with_id<M, I, T, A>(
-    manager: &M,
-    id: I,
-    text: T,
-    enabled: bool,
-    checked: bool,
-    accelerator: Option<A>,
-  ) -> crate::Result<Self>
-  where
-    M: Manager<R>,
-    I: Into<MenuId>,
-    T: AsRef<str>,
-    A: AsRef<str>,
-  {
-    let handle = manager.app_handle();
-    let app_handle = handle.clone();
+		let item = run_main_thread!(handle, || {
+			let item = muda::CheckMenuItem::new(text, enabled, checked, accelerator);
+			CheckMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+		})?;
 
-    let id = id.into();
-    let text = text.as_ref().to_owned();
-    let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
+		Ok(Self(Arc::new(item)))
+	}
 
-    let item = run_main_thread!(handle, || {
-      let item = muda::CheckMenuItem::with_id(id.clone(), text, enabled, checked, accelerator);
-      CheckMenuItemInner {
-        id,
-        inner: Some(item),
-        app_handle,
-      }
-    })?;
+	/// Create a new menu item with the specified id.
+	///
+	/// - `text` could optionally contain an `&` before a character to assign this character as the mnemonic
+	///   for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
+	pub fn with_id<M, I, T, A>(
+		manager: &M,
+		id: I,
+		text: T,
+		enabled: bool,
+		checked: bool,
+		accelerator: Option<A>,
+	) -> crate::Result<Self>
+	where
+		M: Manager<R>,
+		I: Into<MenuId>,
+		T: AsRef<str>,
+		A: AsRef<str>,
+	{
+		let handle = manager.app_handle();
 
-    Ok(Self(Arc::new(item)))
-  }
+		let app_handle = handle.clone();
 
-  /// The application handle associated with this type.
-  pub fn app_handle(&self) -> &AppHandle<R> {
-    &self.0.app_handle
-  }
+		let id = id.into();
 
-  /// Returns a unique identifier associated with this menu item.
-  pub fn id(&self) -> &MenuId {
-    &self.0.id
-  }
+		let text = text.as_ref().to_owned();
 
-  /// Get the text for this menu item.
-  pub fn text(&self) -> crate::Result<String> {
-    run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().text())
-  }
+		let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
 
-  /// Set the text for this menu item. `text` could optionally contain
-  /// an `&` before a character to assign this character as the mnemonic
-  /// for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
-  pub fn set_text<S: AsRef<str>>(&self, text: S) -> crate::Result<()> {
-    let text = text.as_ref().to_string();
-    run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_text(text))
-  }
+		let item = run_main_thread!(handle, || {
+			let item =
+				muda::CheckMenuItem::with_id(id.clone(), text, enabled, checked, accelerator);
+			CheckMenuItemInner { id, inner: Some(item), app_handle }
+		})?;
 
-  /// Get whether this menu item is enabled or not.
-  pub fn is_enabled(&self) -> crate::Result<bool> {
-    run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().is_enabled())
-  }
+		Ok(Self(Arc::new(item)))
+	}
 
-  /// Enable or disable this menu item.
-  pub fn set_enabled(&self, enabled: bool) -> crate::Result<()> {
-    run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_enabled(enabled))
-  }
+	/// The application handle associated with this type.
+	pub fn app_handle(&self) -> &AppHandle<R> {
+		&self.0.app_handle
+	}
 
-  /// Set this menu item accelerator.
-  pub fn set_accelerator<S: AsRef<str>>(&self, accelerator: Option<S>) -> crate::Result<()> {
-    let accel = accelerator.and_then(|s| s.as_ref().parse().ok());
-    run_item_main_thread!(self, |self_: Self| (*self_.0)
-      .as_ref()
-      .set_accelerator(accel))?
-    .map_err(Into::into)
-  }
+	/// Returns a unique identifier associated with this menu item.
+	pub fn id(&self) -> &MenuId {
+		&self.0.id
+	}
 
-  /// Get whether this check menu item is checked or not.
-  pub fn is_checked(&self) -> crate::Result<bool> {
-    run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().is_checked())
-  }
+	/// Get the text for this menu item.
+	pub fn text(&self) -> crate::Result<String> {
+		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().text())
+	}
 
-  /// Check or Uncheck this check menu item.
-  pub fn set_checked(&self, checked: bool) -> crate::Result<()> {
-    run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_checked(checked))
-  }
+	/// Set the text for this menu item. `text` could optionally contain
+	/// an `&` before a character to assign this character as the mnemonic
+	/// for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
+	pub fn set_text<S: AsRef<str>>(&self, text: S) -> crate::Result<()> {
+		let text = text.as_ref().to_string();
+		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_text(text))
+	}
+
+	/// Get whether this menu item is enabled or not.
+	pub fn is_enabled(&self) -> crate::Result<bool> {
+		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().is_enabled())
+	}
+
+	/// Enable or disable this menu item.
+	pub fn set_enabled(&self, enabled: bool) -> crate::Result<()> {
+		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_enabled(enabled))
+	}
+
+	/// Set this menu item accelerator.
+	pub fn set_accelerator<S: AsRef<str>>(&self, accelerator: Option<S>) -> crate::Result<()> {
+		let accel = accelerator.and_then(|s| s.as_ref().parse().ok());
+		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_accelerator(accel))?
+			.map_err(Into::into)
+	}
+
+	/// Get whether this check menu item is checked or not.
+	pub fn is_checked(&self) -> crate::Result<bool> {
+		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().is_checked())
+	}
+
+	/// Check or Uncheck this check menu item.
+	pub fn set_checked(&self, checked: bool) -> crate::Result<()> {
+		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_checked(checked))
+	}
 }

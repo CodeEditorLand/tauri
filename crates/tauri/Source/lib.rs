@@ -699,6 +699,14 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
     self.manager().state().set(state)
   }
 
+  /// Removes the state managed by the application for T. Returns the state if it was actually removed.
+  fn unmanage<T>(&self) -> Option<T>
+  where
+    T: Send + Sync + 'static,
+  {
+    self.manager().state().unmanage()
+  }
+
   /// Retrieves the managed state for the type `T`.
   ///
   /// # Panics

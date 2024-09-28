@@ -30,12 +30,21 @@
 		"tauri": "tauri"
 	},
 	"dependencies": {
+<<<<<<< HEAD
 		"@tauri-apps/api": "^2.0.0-alpha.11",
 		"tauri-plugin-{{ plugin_name }}-api": "file:../../"
 	},
 	"devDependencies": {
 		"@playform/build": "0.1.6",
 		"@tauri-apps/cli": "^2.0.0-alpha.17"
+=======
+		"@tauri-apps/api": "2.0.0-alpha.11",
+		"tauri-plugin-{{ plugin_name }}-api": "file:../../"
+	},
+	"devDependencies": {
+		"@playform/build": "0.1.7",
+		"@tauri-apps/cli": "2.0.0-alpha.17"
+>>>>>>> 35c2030195c1e2094e52f54742f16e1abe2ff0aa
 	},
 	"publishConfig": {
 		"access": "public"

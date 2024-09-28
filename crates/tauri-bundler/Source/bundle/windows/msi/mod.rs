@@ -6,7 +6,7 @@
 use crate::bundle::{
   common::CommandExt,
   path_utils::{copy_file, FileOpts},
-  settings::Settings,
+  settings::{Arch, Settings},
   windows::{
     sign::try_sign,
     util::{
@@ -217,12 +217,12 @@ fn app_installer_output_path(
   updater: bool,
 ) -> crate::Result<PathBuf> {
   let arch = match settings.binary_arch() {
-    "x86" => "x86",
-    "x86_64" => "x64",
-    "aarch64" => "arm64",
+    Arch::X86_64 => "x64",
+    Arch::X86 => "x86",
+    Arch::AArch64 => "arm64",
     target => {
       return Err(crate::Error::ArchError(format!(
-        "Unsupported architecture: {}",
+        "Unsupported architecture: {:?}",
         target
       )))
     }
@@ -330,12 +330,12 @@ fn run_candle(
   extensions: Vec<PathBuf>,
 ) -> crate::Result<()> {
   let arch = match settings.binary_arch() {
-    "x86_64" => "x64",
-    "x86" => "x86",
-    "aarch64" => "arm64",
+    Arch::X86_64 => "x64",
+    Arch::X86 => "x86",
+    Arch::AArch64 => "arm64",
     target => {
       return Err(crate::Error::ArchError(format!(
-        "unsupported target: {}",
+        "unsupported architecture: {:?}",
         target
       )))
     }
@@ -421,12 +421,12 @@ pub fn build_wix_app_installer(
   updater: bool,
 ) -> crate::Result<Vec<PathBuf>> {
   let arch = match settings.binary_arch() {
-    "x86_64" => "x64",
-    "x86" => "x86",
-    "aarch64" => "arm64",
+    Arch::X86_64 => "x64",
+    Arch::X86 => "x86",
+    Arch::AArch64 => "arm64",
     target => {
       return Err(crate::Error::ArchError(format!(
-        "unsupported target: {}",
+        "unsupported architecture: {:?}",
         target
       )))
     }
@@ -548,13 +548,21 @@ pub fn build_wix_app_installer(
     .unwrap_or_else(|| bundle_id.split('.').nth(1).unwrap_or(bundle_id));
   data.insert("bundle_id", to_json(bundle_id));
   data.insert("manufacturer", to_json(manufacturer));
-  let upgrade_code = Uuid::new_v5(
-    &Uuid::NAMESPACE_DNS,
-    format!("{}.exe.app.x64", &settings.product_name()).as_bytes(),
-  )
-  .to_string();
 
-  data.insert("upgrade_code", to_json(upgrade_code.as_str()));
+  // NOTE: if this is ever changed, make sure to also update `tauri inspect wix-upgrade-code` subcommand
+  let upgrade_code = settings
+    .windows()
+    .wix
+    .as_ref()
+    .and_then(|w| w.upgrade_code)
+    .unwrap_or_else(|| {
+      Uuid::new_v5(
+        &Uuid::NAMESPACE_DNS,
+        format!("{}.exe.app.x64", &settings.product_name()).as_bytes(),
+      )
+    });
+  data.insert("upgrade_code", to_json(upgrade_code.to_string()));
+
   let product_code = Uuid::new_v5(
     &Uuid::NAMESPACE_DNS,
     settings.bundle_identifier().as_bytes(),

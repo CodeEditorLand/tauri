@@ -3,5 +3,5 @@
 // SPDX-License-Identifier: MIT
 
 pub fn run() {
-  println!("run!");
+	println!("run!");
 }

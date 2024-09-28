@@ -66,8 +66,8 @@ use tauri_utils::TitleBarStyle;
 use tauri_utils::{config::WindowConfig, Theme};
 use url::Url;
 use wry::{
-  DragDropEvent as WryDragDropEvent, ProxyConfig, ProxyEndpoint, WebContext, WebView,
-  WebViewBuilder,
+  DragDropEvent as WryDragDropEvent, ProxyConfig, ProxyEndpoint, WebContext as WryWebContext,
+  WebView, WebViewBuilder,
 };
 
 pub use tao;
@@ -101,7 +101,7 @@ use std::{
   cell::RefCell,
   collections::{
     hash_map::Entry::{Occupied, Vacant},
-    BTreeMap, HashMap,
+    BTreeMap, HashMap, HashSet,
   },
   fmt,
   ops::Deref,
@@ -130,6 +130,15 @@ mod undecorated_resizing;
 
 mod webview;
 pub use webview::Webview;
+
+#[derive(Debug)]
+pub struct WebContext {
+  pub inner: WryWebContext,
+  pub referenced_by_webviews: HashSet<String>,
+  // on Linux the custom protocols are associated with the context
+  // and you cannot register a URI scheme more than once
+  pub registered_custom_protocols: HashSet<String>,
+}
 
 pub type WebContextStore = Arc<Mutex<HashMap<Option<PathBuf>, WebContext>>>;
 // window
@@ -216,7 +225,6 @@ pub struct Context<T: UserEvent> {
   next_webview_id: Arc<AtomicU32>,
   next_window_event_id: Arc<AtomicU32>,
   next_webview_event_id: Arc<AtomicU32>,
-  next_webcontext_id: Arc<AtomicU32>,
 }
 
 impl<T: UserEvent> Context<T> {
@@ -245,10 +253,6 @@ impl<T: UserEvent> Context<T> {
 
   fn next_webview_event_id(&self) -> u32 {
     self.next_webview_event_id.fetch_add(1, Ordering::Relaxed)
-  }
-
-  fn next_webcontext_id(&self) -> u32 {
-    self.next_webcontext_id.fetch_add(1, Ordering::Relaxed)
   }
 }
 
@@ -759,7 +763,7 @@ impl WindowBuilder for WindowBuilderWrapper {
     if config.transparent {
       eprintln!(
         "The window is set to be transparent but the `macos-private-api` is not enabled.
-        This can be enabled via the `tauri.macOSPrivateApi` configuration property <https://tauri.app/docs/api/config#tauri.macOSPrivateApi>
+        This can be enabled via the `tauri.macOSPrivateApi` configuration property <https://v2.tauri.app/reference/config/#macosprivateapi>
       ");
     }
 
@@ -1200,6 +1204,7 @@ pub enum WindowMessage {
   SetIgnoreCursorEvents(bool),
   SetProgressBar(ProgressBarState),
   SetTitleBarStyle(tauri_utils::TitleBarStyle),
+  SetTheme(Option<Theme>),
   DragWindow,
   ResizeDragWindow(tauri_runtime::ResizeDirection),
   RequestRedraw,
@@ -1239,6 +1244,7 @@ pub enum WebviewMessage {
   Reparent(WindowId, Sender<Result<()>>),
   SetAutoResize(bool),
   SetZoom(f64),
+  ClearAllBrowsingData,
   // Getters
   Url(Sender<Result<String>>),
   Bounds(Sender<Result<tauri_runtime::Rect>>),
@@ -1513,6 +1519,17 @@ impl<T: UserEvent> WebviewDispatch<T> for WryWebviewDispatcher<T> {
         *self.window_id.lock().unwrap(),
         self.webview_id,
         WebviewMessage::SetZoom(scale_factor),
+      ),
+    )
+  }
+
+  fn clear_all_browsing_data(&self) -> Result<()> {
+    send_user_message(
+      &self.context,
+      Message::Webview(
+        *self.window_id.lock().unwrap(),
+        self.webview_id,
+        WebviewMessage::ClearAllBrowsingData,
       ),
     )
   }
@@ -2010,6 +2027,13 @@ impl<T: UserEvent> WindowDispatch<T> for WryWindowDispatcher<T> {
       Message::Window(self.window_id, WindowMessage::SetTitleBarStyle(style)),
     )
   }
+
+  fn set_theme(&self, theme: Option<Theme>) -> Result<()> {
+    send_user_message(
+      &self.context,
+      Message::Window(self.window_id, WindowMessage::SetTheme(theme)),
+    )
+  }
 }
 
 #[derive(Clone)]
@@ -2036,7 +2060,15 @@ impl Deref for WebviewWrapper {
 impl Drop for WebviewWrapper {
   fn drop(&mut self) {
     if Rc::get_mut(&mut self.inner).is_some() {
-      self.context_store.lock().unwrap().remove(&self.context_key);
+      let mut context_store = self.context_store.lock().unwrap();
+
+      if let Some(web_context) = context_store.get_mut(&self.context_key) {
+        web_context.referenced_by_webviews.remove(&self.label);
+
+        if web_context.referenced_by_webviews.is_empty() {
+          context_store.remove(&self.context_key);
+        }
+      }
     }
   }
 }
@@ -2262,6 +2294,18 @@ impl<T: UserEvent> RuntimeHandle<T> for WryHandle<T> {
       .map_err(|_| Error::FailedToGetCursorPosition)
   }
 
+  fn set_theme(&self, theme: Option<Theme>) {
+    self
+      .context
+      .main_thread
+      .window_target
+      .set_theme(match theme {
+        Some(Theme::Light) => Some(TaoTheme::Light),
+        Some(Theme::Dark) => Some(TaoTheme::Dark),
+        _ => None,
+      });
+  }
+
   #[cfg(target_os = "macos")]
   fn show(&self) -> tauri_runtime::Result<()> {
     send_user_message(
@@ -2345,7 +2389,6 @@ impl<T: UserEvent> Wry<T> {
       next_webview_id: Default::default(),
       next_window_event_id: Default::default(),
       next_webview_event_id: Default::default(),
-      next_webcontext_id: Default::default(),
     };
 
     Ok(Self {
@@ -2539,6 +2582,14 @@ impl<T: UserEvent> Runtime<T> for Wry<T> {
       .map(PhysicalPositionWrapper)
       .map(Into::into)
       .map_err(|_| Error::FailedToGetCursorPosition)
+  }
+
+  fn set_theme(&self, theme: Option<Theme>) {
+    self.event_loop.set_theme(match theme {
+      Some(Theme::Light) => Some(TaoTheme::Light),
+      Some(Theme::Dark) => Some(TaoTheme::Dark),
+      _ => None,
+    });
   }
 
   #[cfg(target_os = "macos")]
@@ -2973,6 +3024,13 @@ fn handle_user_message<T: UserEvent>(
               }
             };
           }
+          WindowMessage::SetTheme(theme) => {
+            window.set_theme(match theme {
+              Some(Theme::Light) => Some(TaoTheme::Light),
+              Some(Theme::Dark) => Some(TaoTheme::Dark),
+              _ => None,
+            });
+          }
         }
       }
     }
@@ -3155,6 +3213,11 @@ fn handle_user_message<T: UserEvent>(
           WebviewMessage::SetZoom(scale_factor) => {
             if let Err(e) = webview.zoom(scale_factor) {
               log::error!("failed to set webview zoom: {e}");
+            }
+          }
+          WebviewMessage::ClearAllBrowsingData => {
+            if let Err(e) = webview.clear_all_browsing_data() {
+              log::error!("failed to clear webview browsing data: {e}");
             }
           }
           // Getters
@@ -4072,6 +4135,12 @@ fn create_webview<T: UserEvent>(
     webview_builder = webview_builder.with_https_scheme(false);
   }
 
+  #[cfg(windows)]
+  {
+    webview_builder = webview_builder
+      .with_browser_extensions_enabled(webview_attributes.browser_extensions_enabled);
+  }
+
   webview_builder = webview_builder.with_ipc_handler(create_ipc_handler(
     kind,
     window_id.clone(),
@@ -4080,16 +4149,6 @@ fn create_webview<T: UserEvent>(
     label.clone(),
     ipc_handler,
   ));
-
-  for (scheme, protocol) in uri_scheme_protocols {
-    webview_builder =
-      webview_builder.with_asynchronous_custom_protocol(scheme, move |request, responder| {
-        protocol(
-          request,
-          Box::new(move |response| responder.respond(response)),
-        )
-      });
-  }
 
   for script in webview_attributes.initialization_scripts {
     webview_builder = webview_builder.with_initialization_script(&script);
@@ -4101,29 +4160,58 @@ fn create_webview<T: UserEvent>(
     .lock()
     .expect("poisoned WebContext store");
   let is_first_context = web_context.is_empty();
+  // the context must be stored on the HashMap because it must outlive the WebView on macOS
   let automation_enabled = std::env::var("TAURI_WEBVIEW_AUTOMATION").as_deref() == Ok("true");
-  let web_context_key = // force a unique WebContext when automation is false;
-    // the context must be stored on the HashMap because it must outlive the WebView on macOS
-    if automation_enabled {
-      webview_attributes.data_directory.clone()
-    } else {
-      // unique key
-      let key = context.next_webcontext_id().to_string().into();
-      Some(key)
-    };
+  let web_context_key = webview_attributes.data_directory;
   let entry = web_context.entry(web_context_key.clone());
   let web_context = match entry {
-    Occupied(occupied) => occupied.into_mut(),
+    Occupied(occupied) => {
+      let occupied = occupied.into_mut();
+      occupied.referenced_by_webviews.insert(label.clone());
+      occupied
+    }
     Vacant(vacant) => {
-      let mut web_context = WebContext::new(webview_attributes.data_directory);
+      let mut web_context = WryWebContext::new(web_context_key.clone());
       web_context.set_allows_automation(if automation_enabled {
         is_first_context
       } else {
         false
       });
-      vacant.insert(web_context)
+      vacant.insert(WebContext {
+        inner: web_context,
+        referenced_by_webviews: [label.clone()].into(),
+        registered_custom_protocols: HashSet::new(),
+      })
     }
   };
+
+  for (scheme, protocol) in uri_scheme_protocols {
+    // on Linux the custom protocols are associated with the web context
+    // and you cannot register a scheme more than once
+    if cfg!(any(
+      target_os = "linux",
+      target_os = "dragonfly",
+      target_os = "freebsd",
+      target_os = "netbsd",
+      target_os = "openbsd"
+    )) {
+      if web_context.registered_custom_protocols.contains(&scheme) {
+        continue;
+      }
+
+      web_context
+        .registered_custom_protocols
+        .insert(scheme.clone());
+    }
+
+    webview_builder =
+      webview_builder.with_asynchronous_custom_protocol(scheme, move |request, responder| {
+        protocol(
+          request,
+          Box::new(move |response| responder.respond(response)),
+        )
+      });
+  }
 
   if webview_attributes.clipboard {
     webview_builder.attrs.clipboard = true;
@@ -4152,7 +4240,7 @@ fn create_webview<T: UserEvent>(
   }
 
   let webview = webview_builder
-    .with_web_context(web_context)
+    .with_web_context(&mut web_context.inner)
     .build()
     .map_err(|e| Error::CreateWebview(Box::new(e)))?;
 
