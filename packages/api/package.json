@@ -1,1 +1,68 @@
-
+{
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"description": "Tauri API definitions",
+	"devDependencies": {
+		"@playform/build": "",
+		"@types/node": "20.16.1",
+		"fast-glob": "3.3.2",
+		"globals": "^15.4.0",
+		"tslib": "^2.6.3"
+	},
+	"exports": {
+		".": {
+			"import": "./index.js",
+			"require": "./index.cjs",
+			"types": "./index.d.ts"
+		},
+		"./*": {
+			"import": "./*.js",
+			"require": "./*.cjs",
+			"types": "./*.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "./index.cjs",
+	"module": "./index.js",
+	"name": "@tauri-apps/api",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"build": "rollup -c --configPlugin typescript",
+		"eslint:check": "eslint src/**.ts",
+		"eslint:fix": "eslint src/**.ts --fix",
+		"npm-pack": "pnpm build && cd ./dist && npm pack",
+		"npm-publish": "pnpm build && cd ./dist && pnpm publish --access public --loglevel silly --tag next --no-git-checks",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"ts:check": "tsc --noEmit"
+	},
+	"type": "module",
+	"types": "./index.d.ts",
+	"version": "0.0.1"
+}
