@@ -1,12 +1,4 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
 	"dependencies": {
 		"@tauri-apps/api": "../../packages/api/dist"
 	},
@@ -17,29 +9,12 @@
 		"@unocss/extractor-svelte": "^0.63.1",
 		"unocss": "^0.63.1"
 	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"license": "SEE LICENSE IN LICENSE",
 	"name": "api",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
 	"scripts": {
 		"build": "vite build",
 		"dev": "vite",
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"preview": "vite preview",
 		"tauri": "node ../../packages/cli/tauri.js"
-	},
-	"type": "module",
-	"version": "0.0.1"
+	}
 }
