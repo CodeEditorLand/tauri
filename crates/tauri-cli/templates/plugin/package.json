@@ -1,11 +1,11 @@
 {
 	"dependencies": {
-		"@tauri-apps/api": ">=2.0.0-rc.6"
+		"@tauri-apps/api": ">=2.0.0-beta.6"
 	},
 	"description": "",
 	"devDependencies": {
 		"@playform/build": "",
-		"tslib": "^2.7.0"
+		"tslib": "^2.6.2"
 	},
 	"exports": {
 		"import": "./dist-js/index.js",

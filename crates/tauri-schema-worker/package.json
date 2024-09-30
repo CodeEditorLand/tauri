@@ -1,7 +1,7 @@
 {
 	"devDependencies": {
 		"@playform/build": "",
-		"wrangler": "^3.78"
+		"wrangler": "^3.75"
 	},
 	"name": "tauri-schema-worker",
 	"scripts": {
