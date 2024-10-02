@@ -14,8 +14,8 @@
 		"@iconify-json/codicon": "1.2.2",
 		"@iconify-json/ph": "1.2.0",
 		"@playform/build": "",
-		"@unocss/extractor-svelte": "0.63.1",
-		"unocss": "0.63.1"
+		"@unocss/extractor-svelte": "0.63.2",
+		"unocss": "0.63.2"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [

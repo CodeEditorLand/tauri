@@ -15,7 +15,7 @@
 		"@playform/build": "",
 		"@types/node": "22.7.4",
 		"fast-glob": "3.3.2",
-		"globals": "15.9.0",
+		"globals": "15.10.0",
 		"tslib": "2.7.0"
 	},
 	"exports": {
