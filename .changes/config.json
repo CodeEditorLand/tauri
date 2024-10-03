@@ -107,7 +107,7 @@
           "pipe": true
         },
         {
-          "command": "pnpm publish --access public --loglevel silly --no-git-checks",
+          "command": "pnpm publish --access public --loglevel silly --tag next --no-git-checks",
           "dryRunCommand": "npm publish --dry-run --access public --no-git-checks",
           "pipe": true
         },
@@ -220,11 +220,13 @@
     "tauri-cli": {
       "path": "./crates/tauri-cli",
       "manager": "rust",
-      "dependencies": ["tauri-bundler", "tauri-utils", "tauri-macos-sign"]
+      "dependencies": ["tauri-bundler", "tauri-utils", "tauri-macos-sign"],
+      "postversion": "cargo check"
     },
     "tauri-driver": {
       "path": "./crates/tauri-driver",
-      "manager": "rust"
+      "manager": "rust",
+      "postversion": "cargo check"
     }
   }
 }
