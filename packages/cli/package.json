@@ -1,38 +1,35 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bin": {
-		"tauri": "./tauri.js"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	"name": "@tauri-apps/cli",
+	"description": "Command line interface for building Tauri apps",
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
 	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"description": "Command line interface for building Tauri apps",
+	"main": "main.js",
+	"types": "main.d.ts",
+	"bin": {
+		"tauri": "./tauri.js"
+	},
+	"scripts": {
+		"artifacts": "napi artifacts",
+		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+		"postbuild": "node append-headers.js",
+		"build:debug": "cross-env TARGET=node napi build --platform",
+		"postbuild:debug": "node append-headers.js",
+		"prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"tauri": "node ./tauri.js",
+		"version": "napi version"
+	},
 	"devDependencies": {
 		"@napi-rs/cli": "2.18.4",
 		"@playform/build": "",
 		"@types/node": "22.7.4",
 		"cross-env": "7.0.3"
 	},
-	"funding": {
-		"type": "opencollective",
-		"url": "https://opencollective.com/tauri"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"license": "SEE LICENSE IN LICENSE",
-	"main": "main.js",
-	"name": "@tauri-apps/cli",
 	"napi": {
 		"name": "cli",
 		"triples": {
@@ -46,27 +43,5 @@
 				"aarch64-pc-windows-msvc"
 			]
 		}
-	},
-	"private": false,
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"scripts": {
-		"artifacts": "napi artifacts",
-		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
-		"build:debug": "cross-env TARGET=node napi build --platform",
-		"postbuild": "node append-headers.js",
-		"postbuild:debug": "node append-headers.js",
-		"prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"tauri": "node ./tauri.js",
-		"version": "napi version"
-	},
-	"type": "module",
-	"types": "main.d.ts",
-	"version": "0.0.1"
+	}
 }

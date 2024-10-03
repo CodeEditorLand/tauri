@@ -13,9 +13,5 @@
 		"target": "es2019"
 	},
 	"extends": "@playform/build/tsconfig",
-	"include": [
-		"src",
-		"src",
-		"src"
-	]
+	"include": ["src"]
 }

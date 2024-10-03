@@ -1,47 +1,22 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
+	"name": "@tauri-apps/cli-darwin-arm64",
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"cpu": [
-		"arm64"
-	],
-	"devDependencies": {
-		"@playform/build": ""
-	},
+	"main": "cli.darwin-arm64.node",
 	"files": [
 		"cli.darwin-arm64.node"
 	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"license": "SEE LICENSE IN LICENSE",
-	"main": "cli.darwin-arm64.node",
-	"name": "@tauri-apps/cli-darwin-arm64",
-	"os": [
-		"darwin"
-	],
-	"private": false,
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"devDependencies": {
+		"@playform/build": ""
+	},
+	"os": [
+		"darwin"
+	],
+	"cpu": [
+		"arm64"
+	]
 }
