@@ -1,15 +1,13 @@
 {
-	"name": "file-associations",
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"tauri": "node ../../packages/cli/node/tauri.js"
-	},
-	"devDependencies": {
-		"@playform/build": ""
-	},
-	"pkg": {
-		"assets": [
-			"src/**/*"
-		]
-	}
+  "name": "file-associations",
+  "version": "1.0.0",
+  "pkg": {
+    "assets": [
+      "src/**/*"
+    ]
+  },
+  "scripts": {
+    "tauri": "node ../../packages/cli/node/tauri.js"
+  },
+  "devDependencies": {}
 }

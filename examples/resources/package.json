@@ -1,10 +1,7 @@
 {
-	"name": "resources",
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"tauri": "node ../../packages/cli/tauri.js"
-	},
-	"devDependencies": {
-		"@playform/build": ""
-	}
+  "name": "resources",
+  "version": "0.1.0",
+  "scripts": {
+    "tauri": "node ../../packages/cli/tauri.js"
+  }
 }
