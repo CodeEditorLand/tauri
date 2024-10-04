@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from "@tauri-apps/api/core";
 
-export const NAME = 'Tauri'
+export const NAME = "Tauri";
 
 /**
  * Greets someone.
@@ -12,5 +12,5 @@ export const NAME = 'Tauri'
  * @returns
  */
 export async function greet(name) {
-  return invoke('greet', { name })
+	return invoke("greet", { name });
 }

@@ -3,6 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 window.__TAURI_ISOLATION_HOOK__ = (payload, options) => {
-  console.log('hook', payload, options)
-  return payload
-}
+	console.log("hook", payload, options);
+	return payload;
+};

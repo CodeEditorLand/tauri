@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-import init, * as wasm from 'wasm'
+import init, * as wasm from "wasm";
 
 function initialize() {
-  return init('wasm/wasm_bg.wasm')
+	return init("wasm/wasm_bg.wasm");
 }
 
-export const NAME = 'WEB'
+export const NAME = "WEB";
 
 /**
  * Greets someone.
@@ -16,5 +16,5 @@ export const NAME = 'WEB'
  * @returns
  */
 export async function greet(name) {
-  return initialize().then(() => wasm.greet(name))
+	return initialize().then(() => wasm.greet(name));
 }
