@@ -1,22 +1,22 @@
 {
-	"name": "@tauri-apps/cli-darwin-arm64",
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"main": "cli.darwin-arm64.node",
-	"files": [
-		"cli.darwin-arm64.node"
+	"cpu": [
+		"arm64"
 	],
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
 	"devDependencies": {
 		"@playform/build": ""
 	},
+	"files": [
+		"cli.darwin-arm64.node"
+	],
+	"main": "cli.darwin-arm64.node",
+	"name": "@tauri-apps/cli-darwin-arm64",
 	"os": [
 		"darwin"
 	],
-	"cpu": [
-		"arm64"
-	]
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	}
 }

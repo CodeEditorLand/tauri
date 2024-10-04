@@ -1,35 +1,23 @@
 {
-	"name": "@tauri-apps/cli",
-	"description": "Command line interface for building Tauri apps",
-	"funding": {
-		"type": "opencollective",
-		"url": "https://opencollective.com/tauri"
+	"bin": {
+		"tauri": "./tauri.js"
 	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"main": "main.js",
-	"types": "main.d.ts",
-	"bin": {
-		"tauri": "./tauri.js"
-	},
-	"scripts": {
-		"artifacts": "napi artifacts",
-		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
-		"postbuild": "node append-headers.js",
-		"build:debug": "cross-env TARGET=node napi build --platform",
-		"postbuild:debug": "node append-headers.js",
-		"prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"tauri": "node ./tauri.js",
-		"version": "napi version"
-	},
+	"description": "Command line interface for building Tauri apps",
 	"devDependencies": {
 		"@napi-rs/cli": "2.18.4",
 		"@playform/build": "",
 		"@types/node": "22.7.4",
 		"cross-env": "7.0.3"
 	},
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
+	"main": "main.js",
+	"name": "@tauri-apps/cli",
 	"napi": {
 		"name": "cli",
 		"triples": {
@@ -43,5 +31,17 @@
 				"aarch64-pc-windows-msvc"
 			]
 		}
-	}
+	},
+	"scripts": {
+		"artifacts": "napi artifacts",
+		"build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+		"build:debug": "cross-env TARGET=node napi build --platform",
+		"postbuild": "node append-headers.js",
+		"postbuild:debug": "node append-headers.js",
+		"prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"tauri": "node ./tauri.js",
+		"version": "napi version"
+	},
+	"types": "main.d.ts"
 }

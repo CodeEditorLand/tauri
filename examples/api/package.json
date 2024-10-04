@@ -1,12 +1,4 @@
 {
-	"name": "api",
-	"scripts": {
-		"build": "vite build",
-		"dev": "vite",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"preview": "vite preview",
-		"tauri": "node ../../packages/cli/tauri.js"
-	},
 	"dependencies": {
 		"@tauri-apps/api": "../../packages/api/dist"
 	},
@@ -16,5 +8,13 @@
 		"@playform/build": "",
 		"@unocss/extractor-svelte": "0.63.2",
 		"unocss": "0.63.2"
+	},
+	"name": "api",
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"preview": "vite preview",
+		"tauri": "node ../../packages/cli/tauri.js"
 	}
 }

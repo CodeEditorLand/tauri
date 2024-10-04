@@ -1,14 +1,14 @@
 {
-	"name": "app",
-	"description": "",
-	"main": "index.js",
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
 	"dependencies": {
 		"@tauri-apps/cli": "2.0.0"
 	},
+	"description": "",
 	"devDependencies": {
 		"@playform/build": ""
+	},
+	"main": "index.js",
+	"name": "app",
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
 	}
 }

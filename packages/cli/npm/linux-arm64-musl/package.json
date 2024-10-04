@@ -1,25 +1,25 @@
 {
-	"name": "@tauri-apps/cli-linux-arm64-musl",
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
-	],
-	"main": "cli.linux-arm64-musl.node",
-	"files": [
-		"cli.linux-arm64-musl.node"
-	],
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"devDependencies": {
-		"@playform/build": ""
-	},
-	"os": [
-		"linux"
 	],
 	"cpu": [
 		"arm64"
 	],
+	"devDependencies": {
+		"@playform/build": ""
+	},
+	"files": [
+		"cli.linux-arm64-musl.node"
+	],
 	"libc": [
 		"musl"
-	]
+	],
+	"main": "cli.linux-arm64-musl.node",
+	"name": "@tauri-apps/cli-linux-arm64-musl",
+	"os": [
+		"linux"
+	],
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	}
 }
