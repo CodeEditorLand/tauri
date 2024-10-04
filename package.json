@@ -1,16 +1,48 @@
 {
+<<<<<<< HEAD
+=======
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+>>>>>>> 8cdac84459656693c4229b538263d639b0cfe0b6
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
 	"devDependencies": {
 		"@playform/build": ""
 	},
+<<<<<<< HEAD
+=======
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+>>>>>>> 8cdac84459656693c4229b538263d639b0cfe0b6
 	"name": "tauri-workspace",
 	"pnpm": {
 		"overrides": {
 			"rollup@>=4.0.0 <4.22.4": ">=4.22.4"
 		}
 	},
+<<<<<<< HEAD
+=======
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+>>>>>>> 8cdac84459656693c4229b538263d639b0cfe0b6
 	"scripts": {
 		"build": "pnpm run -r build",
 		"build:api": "pnpm run --filter \"@tauri-apps/api\" build",
@@ -20,5 +52,11 @@
 		"example:api:dev": "pnpm run --filter \"api\" tauri dev",
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "pnpm run -r ts:check"
+<<<<<<< HEAD
 	}
+=======
+	},
+	"type": "module",
+	"version": "0.0.1"
+>>>>>>> 8cdac84459656693c4229b538263d639b0cfe0b6
 }

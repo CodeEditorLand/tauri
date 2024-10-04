@@ -1,12 +1,48 @@
 {
+<<<<<<< HEAD
 	"devDependencies": {
 		"@playform/build": "",
 		"wrangler": "3.79"
 	},
+=======
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"devDependencies": {
+		"@playform/build": "",
+		"wrangler": "^3.75"
+	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+>>>>>>> 8cdac84459656693c4229b538263d639b0cfe0b6
 	"name": "tauri-schema-worker",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
+<<<<<<< HEAD
 	}
+=======
+	},
+	"type": "module",
+	"version": "0.0.1"
+>>>>>>> 8cdac84459656693c4229b538263d639b0cfe0b6
 }
