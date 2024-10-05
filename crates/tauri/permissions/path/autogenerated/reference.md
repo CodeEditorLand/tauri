@@ -2,14 +2,14 @@
 
 Default permissions for the plugin.
 
-- `allow-resolve-directory`
-- `allow-resolve`
-- `allow-normalize`
-- `allow-join`
-- `allow-dirname`
-- `allow-extname`
-- `allow-basename`
-- `allow-is-absolute`
+-   `allow-resolve-directory`
+-   `allow-resolve`
+-   `allow-normalize`
+-   `allow-join`
+-   `allow-dirname`
+-   `allow-extname`
+-   `allow-basename`
+-   `allow-is-absolute`
 
 ## Permission Table
 
@@ -18,7 +18,6 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
-
 
 <tr>
 <td>

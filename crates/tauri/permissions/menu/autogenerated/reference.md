@@ -2,28 +2,28 @@
 
 Default permissions for the plugin.
 
-- `allow-new`
-- `allow-append`
-- `allow-prepend`
-- `allow-insert`
-- `allow-remove`
-- `allow-remove-at`
-- `allow-items`
-- `allow-get`
-- `allow-popup`
-- `allow-create-default`
-- `allow-set-as-app-menu`
-- `allow-set-as-window-menu`
-- `allow-text`
-- `allow-set-text`
-- `allow-is-enabled`
-- `allow-set-enabled`
-- `allow-set-accelerator`
-- `allow-set-as-windows-menu-for-nsapp`
-- `allow-set-as-help-menu-for-nsapp`
-- `allow-is-checked`
-- `allow-set-checked`
-- `allow-set-icon`
+-   `allow-new`
+-   `allow-append`
+-   `allow-prepend`
+-   `allow-insert`
+-   `allow-remove`
+-   `allow-remove-at`
+-   `allow-items`
+-   `allow-get`
+-   `allow-popup`
+-   `allow-create-default`
+-   `allow-set-as-app-menu`
+-   `allow-set-as-window-menu`
+-   `allow-text`
+-   `allow-set-text`
+-   `allow-is-enabled`
+-   `allow-set-enabled`
+-   `allow-set-accelerator`
+-   `allow-set-as-windows-menu-for-nsapp`
+-   `allow-set-as-help-menu-for-nsapp`
+-   `allow-is-checked`
+-   `allow-set-checked`
+-   `allow-set-icon`
 
 ## Permission Table
 
@@ -32,7 +32,6 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
-
 
 <tr>
 <td>
@@ -458,7 +457,8 @@ Denies the set_as_window_menu command without any pre-configured scope.
 </td>
 <td>
 
-Enables the set_as_windows_menu_for_nsapp command without any pre-configured scope.
+Enables the set_as_windows_menu_for_nsapp command without any pre-configured
+scope.
 
 </td>
 </tr>
@@ -471,7 +471,8 @@ Enables the set_as_windows_menu_for_nsapp command without any pre-configured sco
 </td>
 <td>
 
-Denies the set_as_windows_menu_for_nsapp command without any pre-configured scope.
+Denies the set_as_windows_menu_for_nsapp command without any pre-configured
+scope.
 
 </td>
 </tr>

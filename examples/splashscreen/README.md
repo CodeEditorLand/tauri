@@ -1,6 +1,7 @@
 # Splashscreen example
 
-This example demonstrates how a splashscreen can be implemented when waiting on an initialization code on Rust or on the UI.
+This example demonstrates how a splashscreen can be implemented when waiting on
+an initialization code on Rust or on the UI.
 
 ## Running the example
 

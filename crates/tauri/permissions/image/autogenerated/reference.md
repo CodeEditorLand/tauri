@@ -2,11 +2,11 @@
 
 Default permissions for the plugin.
 
-- `allow-new`
-- `allow-from-bytes`
-- `allow-from-path`
-- `allow-rgba`
-- `allow-size`
+-   `allow-new`
+-   `allow-from-bytes`
+-   `allow-from-path`
+-   `allow-rgba`
+-   `allow-size`
 
 ## Permission Table
 
@@ -15,7 +15,6 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
-
 
 <tr>
 <td>

@@ -28,12 +28,12 @@ fn main() {
 			} else {
 				Some("cargo-tauri".into())
 			}
-		}
+		},
 		Some(stem) => Some(stem.to_string()),
 		None => {
 			eprintln!("cargo-tauri wrapper unable to read first argument");
 			exit(1);
-		}
+		},
 	};
 
 	tauri_cli::run(args, bin_name)

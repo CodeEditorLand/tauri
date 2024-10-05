@@ -2,9 +2,9 @@
 
 Default permissions for the plugin.
 
-- `allow-version`
-- `allow-name`
-- `allow-tauri-version`
+-   `allow-version`
+-   `allow-name`
+-   `allow-tauri-version`
 
 ## Permission Table
 
@@ -13,7 +13,6 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
-
 
 <tr>
 <td>

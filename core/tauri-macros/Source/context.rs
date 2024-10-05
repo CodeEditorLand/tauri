@@ -2,27 +2,39 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::path::PathBuf;
+
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use std::path::PathBuf;
 use syn::{
 	parse::{Parse, ParseBuffer},
 	punctuated::Punctuated,
-	Expr, ExprLit, Lit, LitBool, LitStr, Meta, PathArguments, PathSegment, Token,
+	Expr,
+	ExprLit,
+	Lit,
+	LitBool,
+	LitStr,
+	Meta,
+	PathArguments,
+	PathSegment,
+	Token,
 };
 use tauri_codegen::{context_codegen, get_config, ContextData};
-use tauri_utils::{config::parse::does_supported_file_name_exist, platform::Target};
+use tauri_utils::{
+	config::parse::does_supported_file_name_exist,
+	platform::Target,
+};
 
 pub(crate) struct ContextItems {
-	config_file: PathBuf,
-	root: syn::Path,
-	capabilities: Option<Vec<PathBuf>>,
-	assets: Option<Expr>,
-	test: bool,
+	config_file:PathBuf,
+	root:syn::Path,
+	capabilities:Option<Vec<PathBuf>>,
+	assets:Option<Expr>,
+	test:bool,
 }
 
 impl Parse for ContextItems {
-	fn parse(input: &ParseBuffer<'_>) -> syn::parse::Result<Self> {
+	fn parse(input:&ParseBuffer<'_>) -> syn::parse::Result<Self> {
 		let target = std::env::var("TARGET")
 			.or_else(|_| std::env::var("TAURI_ENV_TARGET_TRIPLE"))
 			.as_deref()
@@ -63,7 +75,7 @@ impl Parse for ContextItems {
 			match meta {
 				Meta::Path(p) => {
 					root.replace(p);
-				}
+				},
 				Meta::NameValue(v) => {
 					let ident = v.path.require_ident()?;
 					match ident.to_string().as_str() {
@@ -83,11 +95,13 @@ impl Parse for ContextItems {
 											} else {
 												Err(syn::Error::new(
 													input.span(),
-													"unexpected expression for capability",
+													"unexpected expression \
+													 for capability",
 												))
 											}
 										})
-										.collect::<Result<Vec<_>, syn::Error>>()?,
+										.collect::<Result<Vec<_>, syn::Error>>(
+										)?,
 								);
 							} else {
 								return Err(syn::Error::new(
@@ -95,10 +109,10 @@ impl Parse for ContextItems {
 									"unexpected value for capabilities",
 								));
 							}
-						}
+						},
 						"assets" => {
 							assets.replace(v.value);
-						}
+						},
 						"test" => {
 							if let Expr::Lit(ExprLit {
 								lit: Lit::Bool(LitBool { value, .. }),
@@ -112,38 +126,44 @@ impl Parse for ContextItems {
 									"unexpected value for test",
 								));
 							}
-						}
+						},
 						name => {
 							return Err(syn::Error::new(
 								input.span(),
 								format!("unknown attribute {name}"),
 							));
-						}
+						},
 					}
-				}
+				},
 				Meta::List(_) => {
-					return Err(syn::Error::new(input.span(), "unexpected list input"));
-				}
+					return Err(syn::Error::new(
+						input.span(),
+						"unexpected list input",
+					));
+				},
 			}
 
 			let _ = input.parse::<Token![,]>();
 		}
 
 		Ok(Self {
-			config_file: config_file
+			config_file:config_file
 				.unwrap_or_else(|| {
 					std::env::var("CARGO_MANIFEST_DIR")
 						.map(|m| PathBuf::from(m).join("tauri.conf.json"))
 						.map_err(|e| e.to_string())
 				})
 				.map_err(|e| input.error(e))?,
-			root: root.unwrap_or_else(|| {
+			root:root.unwrap_or_else(|| {
 				let mut segments = Punctuated::new();
 				segments.push(PathSegment {
-					ident: Ident::new("tauri", Span::call_site()),
-					arguments: PathArguments::None,
+					ident:Ident::new("tauri", Span::call_site()),
+					arguments:PathArguments::None,
 				});
-				syn::Path { leading_colon: Some(Token![::](Span::call_site())), segments }
+				syn::Path {
+					leading_colon:Some(Token![::](Span::call_site())),
+					segments,
+				}
 			}),
 			capabilities,
 			assets,
@@ -152,17 +172,19 @@ impl Parse for ContextItems {
 	}
 }
 
-pub(crate) fn generate_context(context: ContextItems) -> TokenStream {
+pub(crate) fn generate_context(context:ContextItems) -> TokenStream {
 	let context = get_config(&context.config_file)
 		.map_err(|e| e.to_string())
-		.map(|(config, config_parent)| ContextData {
-			dev: cfg!(not(feature = "custom-protocol")),
-			config,
-			config_parent,
-			root: context.root.to_token_stream(),
-			capabilities: context.capabilities,
-			assets: context.assets,
-			test: context.test,
+		.map(|(config, config_parent)| {
+			ContextData {
+				dev:cfg!(not(feature = "custom-protocol")),
+				config,
+				config_parent,
+				root:context.root.to_token_stream(),
+				capabilities:context.capabilities,
+				assets:context.assets,
+				test:context.test,
+			}
 		})
 		.and_then(|data| context_codegen(data).map_err(|e| e.to_string()));
 

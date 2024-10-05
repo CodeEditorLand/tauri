@@ -4,44 +4,73 @@
 
 //! [![](https://github.com/tauri-apps/tauri/raw/dev/.github/splash.png)](https://tauri.app)
 //!
-//! Tauri is a framework for building tiny, blazing fast binaries for all major desktop platforms.
-//! Developers can integrate any front-end framework that compiles to HTML, JS and CSS for building their user interface.
-//! The backend of the application is a rust-sourced binary with an API that the front-end can interact with.
+//! Tauri is a framework for building tiny, blazing fast binaries for all major
+//! desktop platforms. Developers can integrate any front-end framework that
+//! compiles to HTML, JS and CSS for building their user interface. The backend
+//! of the application is a rust-sourced binary with an API that the front-end
+//! can interact with.
 //!
 //! # Cargo features
 //!
 //! The following are a list of [Cargo features](https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section) that can be enabled or disabled:
 //!
-//! - **wry** *(enabled by default)*: Enables the [wry](https://github.com/tauri-apps/wry) runtime. Only disable it if you want a custom runtime.
-//! - **common-controls-v6** *(enabled by default)*: Enables [Common Controls v6](https://learn.microsoft.com/en-us/windows/win32/controls/common-control-versions) support on Windows, mainly for the predefined `about` menu item.
-//! - **unstable**: Enables unstable features. Be careful, it might introduce breaking changes in future minor releases.
-//! - **tracing**: Enables [`tracing`](https://docs.rs/tracing/latest/tracing) for window startup, plugins, `Window::eval`, events, IPC, updater and custom protocol request handlers.
+//! - **wry** *(enabled by default)*: Enables the [wry](https://github.com/tauri-apps/wry)
+//!   runtime. Only disable it if you want a custom runtime.
+//! - **common-controls-v6** *(enabled by default)*: Enables [Common Controls v6](https://learn.microsoft.com/en-us/windows/win32/controls/common-control-versions)
+//!   support on Windows, mainly for the predefined `about` menu item.
+//! - **unstable**: Enables unstable features. Be careful, it might introduce
+//!   breaking changes in future minor releases.
+//! - **tracing**: Enables [`tracing`](https://docs.rs/tracing/latest/tracing)
+//!   for window startup, plugins, `Window::eval`, events, IPC, updater and
+//!   custom protocol request handlers.
 //! - **test**: Enables the [`mod@test`] module exposing unit test helpers.
-//! - **objc-exception**: Wrap each msg_send! in a @try/@catch and panics if an exception is caught, preventing Objective-C from unwinding into Rust.
-//! - **linux-libxdo**: Enables linking to libxdo which enables Cut, Copy, Paste and SelectAll menu items to work on Linux.
-//! - **isolation**: Enables the isolation pattern. Enabled by default if the `app > security > pattern > use` config option is set to `isolation` on the `tauri.conf.json` file.
-//! - **custom-protocol**: Feature managed by the Tauri CLI. When enabled, Tauri assumes a production environment instead of a development one.
-//! - **devtools**: Enables the developer tools (Web inspector) and [`window::Window#method.open_devtools`]. Enabled by default on debug builds.
-//!   On macOS it uses private APIs, so you can't enable it if your app will be published to the App Store.
+//! - **objc-exception**: Wrap each msg_send! in a @try/@catch and panics if an
+//!   exception is caught, preventing Objective-C from unwinding into Rust.
+//! - **linux-libxdo**: Enables linking to libxdo which enables Cut, Copy, Paste
+//!   and SelectAll menu items to work on Linux.
+//! - **isolation**: Enables the isolation pattern. Enabled by default if the
+//!   `app > security > pattern > use` config option is set to `isolation` on
+//!   the `tauri.conf.json` file.
+//! - **custom-protocol**: Feature managed by the Tauri CLI. When enabled, Tauri
+//!   assumes a production environment instead of a development one.
+//! - **devtools**: Enables the developer tools (Web inspector) and
+//!   [`window::Window#method.open_devtools`]. Enabled by default on debug
+//!   builds. On macOS it uses private APIs, so you can't enable it if your app
+//!   will be published to the App Store.
 //! - **native-tls**: Provides TLS support to connect over HTTPS.
-//! - **native-tls-vendored**: Compile and statically link to a vendored copy of OpenSSL.
+//! - **native-tls-vendored**: Compile and statically link to a vendored copy of
+//!   OpenSSL.
 //! - **rustls-tls**: Provides TLS support to connect over HTTPS using rustls.
-//! - **process-relaunch-dangerous-allow-symlink-macos**: Allows the [`process::current_binary`] function to allow symlinks on macOS (this is dangerous, see the Security section in the documentation website).
-//! - **tray-icon**: Enables application tray icon APIs. Enabled by default if the `trayIcon` config is defined on the `tauri.conf.json` file.
-//! - **macos-private-api**: Enables features only available in **macOS**'s private APIs, currently the `transparent` window functionality and the `fullScreenEnabled` preference setting to `true`. Enabled by default if the `tauri > macosPrivateApi` config flag is set to `true` on the `tauri.conf.json` file.
+//! - **process-relaunch-dangerous-allow-symlink-macos**: Allows the
+//!   [`process::current_binary`] function to allow symlinks on macOS (this is
+//!   dangerous, see the Security section in the documentation website).
+//! - **tray-icon**: Enables application tray icon APIs. Enabled by default if
+//!   the `trayIcon` config is defined on the `tauri.conf.json` file.
+//! - **macos-private-api**: Enables features only available in **macOS**'s
+//!   private APIs, currently the `transparent` window functionality and the
+//!   `fullScreenEnabled` preference setting to `true`. Enabled by default if
+//!   the `tauri > macosPrivateApi` config flag is set to `true` on the
+//!   `tauri.conf.json` file.
 //! - **webview-data-url**: Enables usage of data URLs on the webview.
-//! - **compression** *(enabled by default): Enables asset compression. You should only disable this if you want faster compile times in release builds - it produces larger binaries.
+//! - **compression** *(enabled by default): Enables asset compression. You
+//!   should only disable this if you want faster compile times in release
+//!   builds - it produces larger binaries.
 //! - **config-json5**: Adds support to JSON5 format for `tauri.conf.json`.
-//! - **config-toml**: Adds support to TOML format for the configuration `Tauri.toml`.
+//! - **config-toml**: Adds support to TOML format for the configuration
+//!   `Tauri.toml`.
 //! - **image-ico**: Adds support to parse `.ico` image, see [`Image`].
 //! - **image-png**: Adds support to parse `.png` image, see [`Image`].
-//! - **macos-proxy**: Adds support for [`WebviewBuilder::proxy_url`] on macOS. Requires macOS 14+.
-//! - **specta**: Add support for [`specta::specta`](https://docs.rs/specta/%5E2.0.0-rc.9/specta/attr.specta.html) with Tauri arguments such as [`State`](crate::State), [`Window`](crate::Window) and [`AppHandle`](crate::AppHandle)
+//! - **macos-proxy**: Adds support for [`WebviewBuilder::proxy_url`] on macOS.
+//!   Requires macOS 14+.
+//! - **specta**: Add support for [`specta::specta`](https://docs.rs/specta/%5E2.0.0-rc.9/specta/attr.specta.html)
+//!   with Tauri arguments such as [`State`](crate::State),
+//!   [`Window`](crate::Window) and [`AppHandle`](crate::AppHandle)
 //!
 //! ## Cargo allowlist features
 //!
 //! The following are a list of [Cargo features](https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section) that enables commands for Tauri's API package.
-//! These features are automatically enabled by the Tauri CLI based on the `allowlist` configuration under `tauri.conf.json`.
+//! These features are automatically enabled by the Tauri CLI based on the
+//! `allowlist` configuration under `tauri.conf.json`.
 //!
 //! ### Protocol allowlist
 //!
@@ -77,7 +106,6 @@ pub use swift_rs;
 #[cfg(mobile)]
 pub use tauri_macros::mobile_entry_point;
 pub use tauri_macros::{command, generate_handler, include_image};
-
 use tauri_utils::assets::AssetsIter;
 pub use url::Url;
 
@@ -111,9 +139,8 @@ mod state;
 #[cfg(all(desktop, feature = "tray-icon"))]
 #[cfg_attr(docsrs, doc(cfg(all(desktop, feature = "tray-icon"))))]
 pub mod tray;
-pub use tauri_utils as utils;
-
 pub use http;
+pub use tauri_utils as utils;
 
 /// A Tauri [`Runtime`] wrapper around wry.
 #[cfg(feature = "wry")]
@@ -146,7 +173,9 @@ macro_rules! android_binding {
 			::tauri::tao
 		);
 
-		// be careful when renaming this, the `Java_app_tauri_plugin_PluginManager_handlePluginResponse` symbol is checked by the CLI
+		// be careful when renaming this, the
+		// `Java_app_tauri_plugin_PluginManager_handlePluginResponse` symbol is
+		// checked by the CLI
 		::tauri::tao::platform::android::prelude::android_fn!(
 			app_tauri,
 			plugin,
@@ -162,21 +191,25 @@ macro_rules! android_binding {
 			[i64, JString],
 		);
 
-		// this function is a glue between PluginManager.kt > handlePluginResponse and Rust
+		// this function is a glue between PluginManager.kt >
+		// handlePluginResponse and Rust
 		#[allow(non_snake_case)]
 		pub fn handlePluginResponse(
-			mut env: JNIEnv,
-			_: JClass,
-			id: i32,
-			success: JString,
-			error: JString,
+			mut env:JNIEnv,
+			_:JClass,
+			id:i32,
+			success:JString,
+			error:JString,
 		) {
-			::tauri::handle_android_plugin_response(&mut env, id, success, error);
+			::tauri::handle_android_plugin_response(
+				&mut env, id, success, error,
+			);
 		}
 
-		// this function is a glue between PluginManager.kt > sendChannelData and Rust
+		// this function is a glue between PluginManager.kt > sendChannelData
+		// and Rust
 		#[allow(non_snake_case)]
-		pub fn sendChannelData(mut env: JNIEnv, _: JClass, id: i64, data: JString) {
+		pub fn sendChannelData(mut env:JNIEnv, _:JClass, id:i64, data:JString) {
 			::tauri::send_channel_data(&mut env, id, data);
 		}
 	};
@@ -192,57 +225,71 @@ pub use tauri_runtime_wry::{tao, wry};
 /// A task to run on the main thread.
 pub type SyncTask = Box<dyn FnOnce() + Send>;
 
-use serde::Serialize;
 use std::{
 	borrow::Cow,
 	collections::HashMap,
 	fmt::{self, Debug},
 	sync::MutexGuard,
 };
-use utils::assets::{AssetKey, CspHash, EmbeddedAssets};
-
-#[cfg(feature = "wry")]
-#[cfg_attr(docsrs, doc(cfg(feature = "wry")))]
-pub use tauri_runtime_wry::webview_version;
 
 #[cfg(target_os = "macos")]
 #[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
 pub use runtime::ActivationPolicy;
+pub use scope::*;
+use serde::Serialize;
+#[cfg(feature = "wry")]
+#[cfg_attr(docsrs, doc(cfg(feature = "wry")))]
+pub use tauri_runtime_wry::webview_version;
+use utils::assets::{AssetKey, CspHash, EmbeddedAssets};
+#[cfg(feature = "unstable")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
+pub use {self::webview::WebviewBuilder, self::window::WindowBuilder};
 
 #[cfg(target_os = "macos")]
 pub use self::utils::TitleBarStyle;
-
 pub use self::{
 	app::{
-		App, AppHandle, AssetResolver, Builder, CloseRequestApi, RunEvent, UriSchemeResponder,
-		WebviewEvent, WindowEvent,
+		App,
+		AppHandle,
+		AssetResolver,
+		Builder,
+		CloseRequestApi,
+		RunEvent,
+		UriSchemeResponder,
+		WebviewEvent,
+		WindowEvent,
 	},
 	event::{Event, EventId, EventTarget},
 	manager::Asset,
 	runtime::{
 		dpi::{
-			LogicalPosition, LogicalSize, PhysicalPosition, PhysicalSize, Pixel, Position, Size,
+			LogicalPosition,
+			LogicalSize,
+			PhysicalPosition,
+			PhysicalSize,
+			Pixel,
+			Position,
+			Size,
 		},
 		webview::WebviewAttributes,
 		window::{CursorIcon, DragDropEvent, WindowSizeConstraints},
-		DeviceEventFilter, Rect, UserAttentionType,
+		DeviceEventFilter,
+		Rect,
+		UserAttentionType,
 	},
 	state::{State, StateManager},
 	utils::{
 		config::{Config, WebviewUrl},
-		Env, PackageInfo, Theme,
+		Env,
+		PackageInfo,
+		Theme,
 	},
 	webview::{Webview, WebviewWindow, WebviewWindowBuilder},
 	window::{Monitor, Window},
 };
-pub use scope::*;
-
-#[cfg(feature = "unstable")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
-pub use {self::webview::WebviewBuilder, self::window::WindowBuilder};
 
 /// The Tauri version.
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const VERSION:&str = env!("CARGO_PKG_VERSION");
 
 #[cfg(target_os = "ios")]
 #[doc(hidden)]
@@ -255,7 +302,7 @@ pub fn log_stdout() {
 		thread,
 	};
 
-	let mut logpipe: [RawFd; 2] = Default::default();
+	let mut logpipe:[RawFd; 2] = Default::default();
 	unsafe {
 		libc::pipe(logpipe.as_mut_ptr());
 		libc::dup2(logpipe[1], libc::STDOUT_FILENO);
@@ -286,48 +333,56 @@ pub fn log_stdout() {
 /// The user event type.
 #[derive(Debug, Clone)]
 pub enum EventLoopMessage {
-	/// An event from a menu item, could be on the window menu bar, application menu bar (on macOS) or tray icon menu.
+	/// An event from a menu item, could be on the window menu bar, application
+	/// menu bar (on macOS) or tray icon menu.
 	#[cfg(desktop)]
 	MenuEvent(menu::MenuEvent),
-	/// An event from a menu item, could be on the window menu bar, application menu bar (on macOS) or tray icon menu.
+	/// An event from a menu item, could be on the window menu bar, application
+	/// menu bar (on macOS) or tray icon menu.
 	#[cfg(all(desktop, feature = "tray-icon"))]
 	#[cfg_attr(docsrs, doc(cfg(all(desktop, feature = "tray-icon"))))]
 	TrayIconEvent(tray::TrayIconEvent),
 }
 
-/// The webview runtime interface. A wrapper around [`runtime::Runtime`] with the proper user event type associated.
+/// The webview runtime interface. A wrapper around [`runtime::Runtime`] with
+/// the proper user event type associated.
 pub trait Runtime: runtime::Runtime<EventLoopMessage> {}
-/// The webview runtime handle. A wrapper arond [`runtime::RuntimeHandle`] with the proper user event type associated.
+/// The webview runtime handle. A wrapper arond [`runtime::RuntimeHandle`] with
+/// the proper user event type associated.
 pub trait RuntimeHandle: runtime::RuntimeHandle<EventLoopMessage> {}
 
-impl<W: runtime::Runtime<EventLoopMessage>> Runtime for W {}
-impl<R: runtime::RuntimeHandle<EventLoopMessage>> RuntimeHandle for R {}
+impl<W:runtime::Runtime<EventLoopMessage>> Runtime for W {}
+impl<R:runtime::RuntimeHandle<EventLoopMessage>> RuntimeHandle for R {}
 
-/// Reads the config file at compile time and generates a [`Context`] based on its content.
+/// Reads the config file at compile time and generates a [`Context`] based
+/// on its content.
 ///
-/// The default config file path is a `tauri.conf.json` file inside the Cargo manifest directory of
-/// the crate being built.
+/// The default config file path is a `tauri.conf.json` file inside the
+/// Cargo manifest directory of the crate being built.
 ///
 /// # Custom Config Path
 ///
-/// You may pass a string literal to this macro to specify a custom path for the Tauri config file.
-/// If the path is relative, it will be search for relative to the Cargo manifest of the compiling
-/// crate.
+/// You may pass a string literal to this macro to specify a custom path
+/// for the Tauri config file. If the path is relative, it will be search
+/// for relative to the Cargo manifest of the compiling crate.
 ///
 /// # Note
 ///
-/// This macro should not be called if you are using [`tauri-build`] to generate the context from
-/// inside your build script as it will just cause excess computations that will be discarded. Use
-/// either the [`tauri-build`] method or this macro - not both.
+/// This macro should not be called if you are using [`tauri-build`] to
+/// generate the context from inside your build script as it will just
+/// cause excess computations that will be discarded. Use either the
+/// [`tauri-build`] method or this macro - not both.
 ///
 /// [`tauri-build`]: https://docs.rs/tauri-build
 pub use tauri_macros::generate_context;
 
-/// Include a [`Context`] that was generated by [`tauri-build`] inside your build script.
+/// Include a [`Context`] that was generated by [`tauri-build`] inside your
+/// build script.
 ///
-/// You should either use [`tauri-build`] and this macro to include the compile time generated code,
-/// or [`generate_context!`]. Do not use both at the same time, as they generate the same code and
-/// will cause excess computations that will be discarded.
+/// You should either use [`tauri-build`] and this macro to include the compile
+/// time generated code, or [`generate_context!`]. Do not use both at the same
+/// time, as they generate the same code and will cause excess computations that
+/// will be discarded.
 ///
 /// [`tauri-build`]: https://docs.rs/tauri-build
 #[macro_export]
@@ -340,37 +395,37 @@ macro_rules! tauri_build_context {
 pub use pattern::Pattern;
 
 /// Whether we are running in development mode or not.
-pub const fn is_dev() -> bool {
-	!cfg!(feature = "custom-protocol")
-}
+pub const fn is_dev() -> bool { !cfg!(feature = "custom-protocol") }
 
 /// Represents a container of file assets that are retrievable during runtime.
-pub trait Assets<R: Runtime>: Send + Sync + 'static {
+pub trait Assets<R:Runtime>: Send + Sync + 'static {
 	/// Initialize the asset provider.
-	fn setup(&self, app: &App<R>) {
-		let _ = app;
-	}
+	fn setup(&self, app:&App<R>) { let _ = app; }
 
 	/// Get the content of the passed [`AssetKey`].
-	fn get(&self, key: &AssetKey) -> Option<Cow<'_, [u8]>>;
+	fn get(&self, key:&AssetKey) -> Option<Cow<'_, [u8]>>;
 
 	/// Iterator for the assets.
 	fn iter(&self) -> Box<tauri_utils::assets::AssetsIter<'_>>;
 
 	/// Gets the hashes for the CSP tag of the HTML on the given path.
-	fn csp_hashes(&self, html_path: &AssetKey) -> Box<dyn Iterator<Item = CspHash<'_>> + '_>;
+	fn csp_hashes(
+		&self,
+		html_path:&AssetKey,
+	) -> Box<dyn Iterator<Item = CspHash<'_>> + '_>;
 }
 
-impl<R: Runtime> Assets<R> for EmbeddedAssets {
-	fn get(&self, key: &AssetKey) -> Option<Cow<'_, [u8]>> {
+impl<R:Runtime> Assets<R> for EmbeddedAssets {
+	fn get(&self, key:&AssetKey) -> Option<Cow<'_, [u8]>> {
 		EmbeddedAssets::get(self, key)
 	}
 
-	fn iter(&self) -> Box<AssetsIter<'_>> {
-		EmbeddedAssets::iter(self)
-	}
+	fn iter(&self) -> Box<AssetsIter<'_>> { EmbeddedAssets::iter(self) }
 
-	fn csp_hashes(&self, html_path: &AssetKey) -> Box<dyn Iterator<Item = CspHash<'_>> + '_> {
+	fn csp_hashes(
+		&self,
+		html_path:&AssetKey,
+	) -> Box<dyn Iterator<Item = CspHash<'_>> + '_> {
 		EmbeddedAssets::csp_hashes(self, html_path)
 	}
 }
@@ -378,34 +433,38 @@ impl<R: Runtime> Assets<R> for EmbeddedAssets {
 /// User supplied data required inside of a Tauri application.
 ///
 /// # Stability
-/// This is the output of the [`generate_context`] macro, and is not considered part of the stable API.
-/// Unless you know what you are doing and are prepared for this type to have breaking changes, do not create it yourself.
+/// This is the output of the [`generate_context`] macro, and is not considered
+/// part of the stable API. Unless you know what you are doing and are prepared
+/// for this type to have breaking changes, do not create it yourself.
 #[tauri_macros::default_runtime(Wry, wry)]
-pub struct Context<R: Runtime> {
-	pub(crate) config: Config,
+pub struct Context<R:Runtime> {
+	pub(crate) config:Config,
 	#[cfg(dev)]
-	pub(crate) config_parent: Option<std::path::PathBuf>,
+	pub(crate) config_parent:Option<std::path::PathBuf>,
 	/// Asset provider.
-	pub assets: Box<dyn Assets<R>>,
-	pub(crate) default_window_icon: Option<image::Image<'static>>,
-	pub(crate) app_icon: Option<Vec<u8>>,
+	pub assets:Box<dyn Assets<R>>,
+	pub(crate) default_window_icon:Option<image::Image<'static>>,
+	pub(crate) app_icon:Option<Vec<u8>>,
 	#[cfg(all(desktop, feature = "tray-icon"))]
-	pub(crate) tray_icon: Option<image::Image<'static>>,
-	pub(crate) package_info: PackageInfo,
-	pub(crate) pattern: Pattern,
-	pub(crate) runtime_authority: RuntimeAuthority,
-	pub(crate) plugin_global_api_scripts: Option<&'static [&'static str]>,
+	pub(crate) tray_icon:Option<image::Image<'static>>,
+	pub(crate) package_info:PackageInfo,
+	pub(crate) pattern:Pattern,
+	pub(crate) runtime_authority:RuntimeAuthority,
+	pub(crate) plugin_global_api_scripts:Option<&'static [&'static str]>,
 }
 
-impl<R: Runtime> fmt::Debug for Context<R> {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<R:Runtime> fmt::Debug for Context<R> {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		let mut d = f.debug_struct("Context");
 		d.field("config", &self.config)
 			.field("default_window_icon", &self.default_window_icon)
 			.field("app_icon", &self.app_icon)
 			.field("package_info", &self.package_info)
 			.field("pattern", &self.pattern)
-			.field("plugin_global_api_scripts", &self.plugin_global_api_scripts);
+			.field(
+				"plugin_global_api_scripts",
+				&self.plugin_global_api_scripts,
+			);
 
 		#[cfg(all(desktop, feature = "tray-icon"))]
 		d.field("tray_icon", &self.tray_icon);
@@ -414,28 +473,26 @@ impl<R: Runtime> fmt::Debug for Context<R> {
 	}
 }
 
-impl<R: Runtime> Context<R> {
+impl<R:Runtime> Context<R> {
 	/// The config the application was prepared with.
 	#[inline(always)]
-	pub fn config(&self) -> &Config {
-		&self.config
-	}
+	pub fn config(&self) -> &Config { &self.config }
 
 	/// A mutable reference to the config the application was prepared with.
 	#[inline(always)]
-	pub fn config_mut(&mut self) -> &mut Config {
-		&mut self.config
-	}
+	pub fn config_mut(&mut self) -> &mut Config { &mut self.config }
 
 	/// The assets to be served directly by Tauri.
 	#[inline(always)]
-	pub fn assets(&self) -> &dyn Assets<R> {
-		self.assets.as_ref()
-	}
+	pub fn assets(&self) -> &dyn Assets<R> { self.assets.as_ref() }
 
-	/// Replace the [`Assets`] implementation and returns the previous value so you can use it as a fallback if desired.
+	/// Replace the [`Assets`] implementation and returns the previous value so
+	/// you can use it as a fallback if desired.
 	#[inline(always)]
-	pub fn set_assets(&mut self, assets: Box<dyn Assets<R>>) -> Box<dyn Assets<R>> {
+	pub fn set_assets(
+		&mut self,
+		assets:Box<dyn Assets<R>>,
+	) -> Box<dyn Assets<R>> {
 		std::mem::replace(&mut self.assets, assets)
 	}
 
@@ -447,7 +504,10 @@ impl<R: Runtime> Context<R> {
 
 	/// Set the default window icon Tauri should use when creating windows.
 	#[inline(always)]
-	pub fn set_default_window_icon(&mut self, icon: Option<image::Image<'static>>) {
+	pub fn set_default_window_icon(
+		&mut self,
+		icon:Option<image::Image<'static>>,
+	) {
 		self.default_window_icon = icon;
 	}
 
@@ -463,15 +523,13 @@ impl<R: Runtime> Context<R> {
 	#[cfg(all(desktop, feature = "tray-icon"))]
 	#[cfg_attr(docsrs, doc(cfg(all(desktop, feature = "tray-icon"))))]
 	#[inline(always)]
-	pub fn set_tray_icon(&mut self, icon: Option<image::Image<'static>>) {
+	pub fn set_tray_icon(&mut self, icon:Option<image::Image<'static>>) {
 		self.tray_icon = icon;
 	}
 
 	/// Package information.
 	#[inline(always)]
-	pub fn package_info(&self) -> &PackageInfo {
-		&self.package_info
-	}
+	pub fn package_info(&self) -> &PackageInfo { &self.package_info }
 
 	/// A mutable reference to the package information.
 	#[inline(always)]
@@ -481,9 +539,7 @@ impl<R: Runtime> Context<R> {
 
 	/// The application pattern.
 	#[inline(always)]
-	pub fn pattern(&self) -> &Pattern {
-		&self.pattern
-	}
+	pub fn pattern(&self) -> &Pattern { &self.pattern }
 
 	/// A mutable reference to the resolved ACL.
 	///
@@ -500,24 +556,24 @@ impl<R: Runtime> Context<R> {
 	#[inline(always)]
 	#[allow(clippy::too_many_arguments)]
 	pub fn new(
-		config: Config,
-		assets: Box<dyn Assets<R>>,
-		default_window_icon: Option<image::Image<'static>>,
-		app_icon: Option<Vec<u8>>,
-		package_info: PackageInfo,
-		pattern: Pattern,
-		runtime_authority: RuntimeAuthority,
-		plugin_global_api_scripts: Option<&'static [&'static str]>,
+		config:Config,
+		assets:Box<dyn Assets<R>>,
+		default_window_icon:Option<image::Image<'static>>,
+		app_icon:Option<Vec<u8>>,
+		package_info:PackageInfo,
+		pattern:Pattern,
+		runtime_authority:RuntimeAuthority,
+		plugin_global_api_scripts:Option<&'static [&'static str]>,
 	) -> Self {
 		Self {
 			config,
 			#[cfg(dev)]
-			config_parent: None,
+			config_parent:None,
 			assets,
 			default_window_icon,
 			app_icon,
 			#[cfg(all(desktop, feature = "tray-icon"))]
-			tray_icon: None,
+			tray_icon:None,
 			package_info,
 			pattern,
 			runtime_authority,
@@ -527,37 +583,35 @@ impl<R: Runtime> Context<R> {
 
 	#[cfg(dev)]
 	#[doc(hidden)]
-	pub fn with_config_parent(&mut self, config_parent: impl AsRef<std::path::Path>) {
+	pub fn with_config_parent(
+		&mut self,
+		config_parent:impl AsRef<std::path::Path>,
+	) {
 		self.config_parent.replace(config_parent.as_ref().to_owned());
 	}
 }
 
 // TODO: expand these docs
 /// Manages a running application.
-pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
+pub trait Manager<R:Runtime>: sealed::ManagerBase<R> {
 	/// The application handle associated with this manager.
-	fn app_handle(&self) -> &AppHandle<R> {
-		self.managed_app_handle()
-	}
+	fn app_handle(&self) -> &AppHandle<R> { self.managed_app_handle() }
 
 	/// The [`Config`] the manager was created with.
-	fn config(&self) -> &Config {
-		self.manager().config()
-	}
+	fn config(&self) -> &Config { self.manager().config() }
 
 	/// The [`PackageInfo`] the manager was created with.
-	fn package_info(&self) -> &PackageInfo {
-		self.manager().package_info()
-	}
+	fn package_info(&self) -> &PackageInfo { self.manager().package_info() }
 
 	/// Fetch a single window from the manager.
 	#[cfg(feature = "unstable")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
-	fn get_window(&self, label: &str) -> Option<Window<R>> {
+	fn get_window(&self, label:&str) -> Option<Window<R>> {
 		self.manager().get_window(label)
 	}
 
-	/// Fetch the focused window. Returns `None` if there is not any focused window.
+	/// Fetch the focused window. Returns `None` if there is not any focused
+	/// window.
 	#[cfg(feature = "unstable")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
 	fn get_focused_window(&self) -> Option<Window<R>> {
@@ -567,14 +621,12 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 	/// Fetch all managed windows.
 	#[cfg(feature = "unstable")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
-	fn windows(&self) -> HashMap<String, Window<R>> {
-		self.manager().windows()
-	}
+	fn windows(&self) -> HashMap<String, Window<R>> { self.manager().windows() }
 
 	/// Fetch a single webview from the manager.
 	#[cfg(feature = "unstable")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
-	fn get_webview(&self, label: &str) -> Option<Webview<R>> {
+	fn get_webview(&self, label:&str) -> Option<Webview<R>> {
 		self.manager().get_webview(label)
 	}
 
@@ -586,7 +638,7 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 	}
 
 	/// Fetch a single webview window from the manager.
-	fn get_webview_window(&self, label: &str) -> Option<WebviewWindow<R>> {
+	fn get_webview_window(&self, label:&str) -> Option<WebviewWindow<R>> {
 		self.manager().get_webview(label).and_then(|webview| {
 			if webview.window().is_webview_window() {
 				Some(WebviewWindow { webview })
@@ -613,40 +665,44 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 
 	/// Add `state` to the state managed by the application.
 	///
-	/// If the state for the `T` type has previously been set, the state is unchanged and false is returned. Otherwise true is returned.
+	/// If the state for the `T` type has previously been set, the state is
+	/// unchanged and false is returned. Otherwise true is returned.
 	///
 	/// Managed state can be retrieved by any command handler via the
 	/// [`State`] guard. In particular, if a value of type `T`
 	/// is managed by Tauri, adding `State<T>` to the list of arguments in a
 	/// command handler instructs Tauri to retrieve the managed value.
-	/// Additionally, [`state`](Self#method.state) can be used to retrieve the value manually.
+	/// Additionally, [`state`](Self#method.state) can be used to retrieve the
+	/// value manually.
 	///
 	/// # Mutability
 	///
-	/// Since the managed state is global and must be [`Send`] + [`Sync`], mutations can only happen through interior mutability:
+	/// Since the managed state is global and must be [`Send`] + [`Sync`],
+	/// mutations can only happen through interior mutability:
 	///
 	/// ```rust,no_run
 	/// use std::{collections::HashMap, sync::Mutex};
+	///
 	/// use tauri::State;
 	/// // here we use Mutex to achieve interior mutability
 	/// struct Storage {
-	///   store: Mutex<HashMap<u64, String>>,
+	/// 	store:Mutex<HashMap<u64, String>>,
 	/// }
 	/// struct Connection;
 	/// struct DbConnection {
-	///   db: Mutex<Option<Connection>>,
+	/// 	db:Mutex<Option<Connection>>,
 	/// }
 	///
 	/// #[tauri::command]
-	/// fn connect(connection: State<DbConnection>) {
-	///   // initialize the connection, mutating the state with interior mutability
-	///   *connection.db.lock().unwrap() = Some(Connection {});
+	/// fn connect(connection:State<DbConnection>) {
+	/// 	// initialize the connection, mutating the state with interior mutability
+	/// 	*connection.db.lock().unwrap() = Some(Connection {});
 	/// }
 	///
 	/// #[tauri::command]
-	/// fn storage_insert(key: u64, value: String, storage: State<Storage>) {
-	///   // mutate the storage behind the Mutex
-	///   storage.store.lock().unwrap().insert(key, value);
+	/// fn storage_insert(key:u64, value:String, storage:State<Storage>) {
+	/// 	// mutate the storage behind the Mutex
+	/// 	storage.store.lock().unwrap().insert(key, value);
 	/// }
 	///
 	/// tauri::Builder::default()
@@ -667,13 +723,13 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 	/// struct MyString(String);
 	///
 	/// #[tauri::command]
-	/// fn int_command(state: State<MyInt>) -> String {
-	///     format!("The stateful int is: {}", state.0)
+	/// fn int_command(state:State<MyInt>) -> String {
+	/// 	format!("The stateful int is: {}", state.0)
 	/// }
 	///
 	/// #[tauri::command]
-	/// fn string_command<'r>(state: State<'r, MyString>) {
-	///     println!("state: {}", state.inner().0);
+	/// fn string_command<'r>(state:State<'r, MyString>) {
+	/// 	println!("state: {}", state.inner().0);
 	/// }
 	///
 	/// tauri::Builder::default()
@@ -695,10 +751,9 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 	///   .run(tauri::generate_context!("test/fixture/src-tauri/tauri.conf.json"))
 	///   .expect("error while running tauri application");
 	/// ```
-	fn manage<T>(&self, state: T) -> bool
+	fn manage<T>(&self, state:T) -> bool
 	where
-		T: Send + Sync + 'static,
-	{
+		T: Send + Sync + 'static, {
 		self.manager().state().set(state)
 	}
 
@@ -706,22 +761,25 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 	///
 	/// # Panics
 	///
-	/// Panics if the state for the type `T` has not been previously [managed](Self::manage).
-	/// Use [try_state](Self::try_state) for a non-panicking version.
+	/// Panics if the state for the type `T` has not been previously
+	/// [managed](Self::manage). Use [try_state](Self::try_state) for a
+	/// non-panicking version.
 	fn state<T>(&self) -> State<'_, T>
 	where
-		T: Send + Sync + 'static,
-	{
-		self.manager().state.try_get().expect("state() called before manage() for given type")
+		T: Send + Sync + 'static, {
+		self.manager()
+			.state
+			.try_get()
+			.expect("state() called before manage() for given type")
 	}
 
 	/// Attempts to retrieve the managed state for the type `T`.
 	///
-	/// Returns `Some` if the state has previously been [managed](Self::manage). Otherwise returns `None`.
+	/// Returns `Some` if the state has previously been [managed](Self::manage).
+	/// Otherwise returns `None`.
 	fn try_state<T>(&self) -> Option<State<'_, T>>
 	where
-		T: Send + Sync + 'static,
-	{
+		T: Send + Sync + 'static, {
 		self.manager().state.try_get()
 	}
 
@@ -729,9 +787,7 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 	fn resources_table(&self) -> MutexGuard<'_, ResourceTable>;
 
 	/// Gets the managed [`Env`].
-	fn env(&self) -> Env {
-		self.state::<Env>().inner().clone()
-	}
+	fn env(&self) -> Env { self.state::<Env>().inner().clone() }
 
 	/// Gets the scope for the asset protocol.
 	#[cfg(feature = "protocol-asset")]
@@ -750,49 +806,52 @@ pub trait Manager<R: Runtime>: sealed::ManagerBase<R> {
 	/// ```
 	/// use tauri::Manager;
 	///
-	/// tauri::Builder::default()
-	///   .setup(|app| {
-	///     #[cfg(feature = "beta")]
-	///     app.add_capability(include_str!("../capabilities/beta.json"));
-	///     Ok(())
-	///   });
+	/// tauri::Builder::default().setup(|app| {
+	/// 	#[cfg(feature = "beta")]
+	/// 	app.add_capability(include_str!("../capabilities/beta.json"));
+	/// 	Ok(())
+	/// });
 	/// ```
-	fn add_capability(&self, capability: impl RuntimeCapability) -> Result<()> {
-		self.manager().runtime_authority.lock().unwrap().add_capability(capability)
+	fn add_capability(&self, capability:impl RuntimeCapability) -> Result<()> {
+		self.manager()
+			.runtime_authority
+			.lock()
+			.unwrap()
+			.add_capability(capability)
 	}
 }
 
 /// Listen to events.
-pub trait Listener<R: Runtime>: sealed::ManagerBase<R> {
+pub trait Listener<R:Runtime>: sealed::ManagerBase<R> {
 	/// Listen to an emitted event on this manager.
 	///
 	/// # Examples
 	/// ```
-	/// use tauri::{Manager, Listener, Emitter};
+	/// use tauri::{Emitter, Listener, Manager};
 	///
 	/// #[tauri::command]
-	/// fn synchronize(window: tauri::Window) {
-	///   // emits the synchronized event to all windows
-	///   window.emit("synchronized", ());
+	/// fn synchronize(window:tauri::Window) {
+	/// 	// emits the synchronized event to all windows
+	/// 	window.emit("synchronized", ());
 	/// }
 	///
 	/// tauri::Builder::default()
-	///   .setup(|app| {
-	///     app.listen("synchronized", |event| {
-	///       println!("app is in sync");
-	///     });
-	///     Ok(())
-	///   })
-	///   .invoke_handler(tauri::generate_handler![synchronize]);
+	/// 	.setup(|app| {
+	/// 		app.listen("synchronized", |event| {
+	/// 			println!("app is in sync");
+	/// 		});
+	/// 		Ok(())
+	/// 	})
+	/// 	.invoke_handler(tauri::generate_handler![synchronize]);
 	/// ```
-	fn listen<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn listen<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
 		F: Fn(Event) + Send + 'static;
 
 	/// Listen to an event on this manager only once.
 	///
 	/// See [`Self::listen`] for more information.
-	fn once<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn once<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
 		F: FnOnce(Event) + Send + 'static;
 
@@ -800,69 +859,65 @@ pub trait Listener<R: Runtime>: sealed::ManagerBase<R> {
 	///
 	/// # Examples
 	/// ```
-	/// use tauri::{Manager, Listener};
+	/// use tauri::{Listener, Manager};
 	///
-	/// tauri::Builder::default()
-	///   .setup(|app| {
-	///     let handle = app.handle().clone();
-	///     let handler = app.listen_any("ready", move |event| {
-	///       println!("app is ready");
+	/// tauri::Builder::default().setup(|app| {
+	/// 	let handle = app.handle().clone();
+	/// 	let handler = app.listen_any("ready", move |event| {
+	/// 		println!("app is ready");
 	///
-	///       // we no longer need to listen to the event
-	///       // we also could have used `app.once_global` instead
-	///       handle.unlisten(event.id());
-	///     });
+	/// 		// we no longer need to listen to the event
+	/// 		// we also could have used `app.once_global` instead
+	/// 		handle.unlisten(event.id());
+	/// 	});
 	///
-	///     // stop listening to the event when you do not need it anymore
-	///     app.unlisten(handler);
+	/// 	// stop listening to the event when you do not need it anymore
+	/// 	app.unlisten(handler);
 	///
-	///
-	///     Ok(())
-	///   });
+	/// 	Ok(())
+	/// });
 	/// ```
-	fn unlisten(&self, id: EventId);
+	fn unlisten(&self, id:EventId);
 
 	/// Listen to an emitted event to any [target](EventTarget).
 	///
 	/// # Examples
 	/// ```
-	/// use tauri::{Manager, Emitter, Listener};
+	/// use tauri::{Emitter, Listener, Manager};
 	///
 	/// #[tauri::command]
-	/// fn synchronize(window: tauri::Window) {
-	///   // emits the synchronized event to all windows
-	///   window.emit("synchronized", ());
+	/// fn synchronize(window:tauri::Window) {
+	/// 	// emits the synchronized event to all windows
+	/// 	window.emit("synchronized", ());
 	/// }
 	///
 	/// tauri::Builder::default()
-	///   .setup(|app| {
-	///     app.listen_any("synchronized", |event| {
-	///       println!("app is in sync");
-	///     });
-	///     Ok(())
-	///   })
-	///   .invoke_handler(tauri::generate_handler![synchronize]);
+	/// 	.setup(|app| {
+	/// 		app.listen_any("synchronized", |event| {
+	/// 			println!("app is in sync");
+	/// 		});
+	/// 		Ok(())
+	/// 	})
+	/// 	.invoke_handler(tauri::generate_handler![synchronize]);
 	/// ```
-	fn listen_any<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn listen_any<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
-		F: Fn(Event) + Send + 'static,
-	{
+		F: Fn(Event) + Send + 'static, {
 		self.manager().listen(event.into(), EventTarget::Any, handler)
 	}
 
 	/// Listens once to an emitted event to any [target](EventTarget) .
 	///
 	/// See [`Self::listen_any`] for more information.
-	fn once_any<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn once_any<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
-		F: FnOnce(Event) + Send + 'static,
-	{
+		F: FnOnce(Event) + Send + 'static, {
 		self.manager().once(event.into(), EventTarget::Any, handler)
 	}
 }
 
 /// Emit events.
-pub trait Emitter<R: Runtime>: sealed::ManagerBase<R> {
+pub trait Emitter<R:Runtime>: sealed::ManagerBase<R> {
 	/// Emits an event to all [targets](EventTarget).
 	///
 	/// # Examples
@@ -870,12 +925,12 @@ pub trait Emitter<R: Runtime>: sealed::ManagerBase<R> {
 	/// use tauri::Emitter;
 	///
 	/// #[tauri::command]
-	/// fn synchronize(app: tauri::AppHandle) {
-	///   // emits the synchronized event to all webviews
-	///   app.emit("synchronized", ());
+	/// fn synchronize(app:tauri::AppHandle) {
+	/// 	// emits the synchronized event to all webviews
+	/// 	app.emit("synchronized", ());
 	/// }
 	/// ```
-	fn emit<S: Serialize + Clone>(&self, event: &str, payload: S) -> Result<()>;
+	fn emit<S:Serialize + Clone>(&self, event:&str, payload:S) -> Result<()>;
 
 	/// Emits an event to all [targets](EventTarget) matching the given target.
 	///
@@ -899,7 +954,7 @@ pub trait Emitter<R: Runtime>: sealed::ManagerBase<R> {
 	///   }
 	/// }
 	/// ```
-	fn emit_to<I, S>(&self, target: I, event: &str, payload: S) -> Result<()>
+	fn emit_to<I, S>(&self, target:I, event:&str, payload:S) -> Result<()>
 	where
 		I: Into<EventTarget>,
 		S: Serialize + Clone;
@@ -911,18 +966,20 @@ pub trait Emitter<R: Runtime>: sealed::ManagerBase<R> {
 	/// use tauri::{Emitter, EventTarget};
 	///
 	/// #[tauri::command]
-	/// fn download(app: tauri::AppHandle) {
-	///   for i in 1..100 {
-	///     std::thread::sleep(std::time::Duration::from_millis(150));
-	///     // emit a download progress event to the updater window
-	///     app.emit_filter("download-progress", i, |t| match t {
-	///       EventTarget::WebviewWindow { label } => label == "main",
-	///       _ => false,
-	///     });
-	///   }
+	/// fn download(app:tauri::AppHandle) {
+	/// 	for i in 1..100 {
+	/// 		std::thread::sleep(std::time::Duration::from_millis(150));
+	/// 		// emit a download progress event to the updater window
+	/// 		app.emit_filter("download-progress", i, |t| {
+	/// 			match t {
+	/// 				EventTarget::WebviewWindow { label } => label == "main",
+	/// 				_ => false,
+	/// 			}
+	/// 		});
+	/// 	}
 	/// }
 	/// ```
-	fn emit_filter<S, F>(&self, event: &str, payload: S, filter: F) -> Result<()>
+	fn emit_filter<S, F>(&self, event:&str, payload:S, filter:F) -> Result<()>
 	where
 		S: Serialize + Clone,
 		F: Fn(&EventTarget) -> bool;
@@ -930,12 +987,13 @@ pub trait Emitter<R: Runtime>: sealed::ManagerBase<R> {
 
 /// Prevent implementation details from leaking out of the [`Manager`] trait.
 pub(crate) mod sealed {
-	use super::Runtime;
-	use crate::{app::AppHandle, manager::AppManager};
 	use std::sync::Arc;
 
+	use super::Runtime;
+	use crate::{app::AppHandle, manager::AppManager};
+
 	/// A running [`Runtime`] or a dispatcher to it.
-	pub enum RuntimeOrDispatch<'r, R: Runtime> {
+	pub enum RuntimeOrDispatch<'r, R:Runtime> {
 		/// Reference to the running [`Runtime`].
 		Runtime(&'r R),
 
@@ -947,7 +1005,7 @@ pub(crate) mod sealed {
 	}
 
 	/// Managed handle to the application runtime.
-	pub trait ManagerBase<R: Runtime> {
+	pub trait ManagerBase<R:Runtime> {
 		fn manager(&self) -> &AppManager<R>;
 		fn manager_owned(&self) -> Arc<AppManager<R>>;
 		fn runtime(&self) -> RuntimeOrDispatch<'_, R>;
@@ -966,9 +1024,9 @@ macro_rules! run_main_thread {
 			let f = $ex;
 			let _ = tx.send(f());
 		};
-		$handle
-			.run_on_main_thread(task)
-			.and_then(|_| rx.recv().map_err(|_| crate::Error::FailedToReceiveMessage))
+		$handle.run_on_main_thread(task).and_then(|_| {
+			rx.recv().map_err(|_| crate::Error::FailedToReceiveMessage)
+		})
 	}};
 }
 
@@ -980,51 +1038,44 @@ pub(crate) use run_main_thread;
 pub mod test;
 
 #[cfg(feature = "specta")]
-const _: () = {
+const _:() = {
 	use specta::{datatype::DataType, function::FunctionArg, TypeMap};
 
-	impl<'r, T: Send + Sync + 'static> FunctionArg for crate::State<'r, T> {
-		fn to_datatype(_: &mut TypeMap) -> Option<DataType> {
-			None
-		}
+	impl<'r, T:Send + Sync + 'static> FunctionArg for crate::State<'r, T> {
+		fn to_datatype(_:&mut TypeMap) -> Option<DataType> { None }
 	}
 
-	impl<R: crate::Runtime> FunctionArg for crate::AppHandle<R> {
-		fn to_datatype(_: &mut TypeMap) -> Option<DataType> {
-			None
-		}
+	impl<R:crate::Runtime> FunctionArg for crate::AppHandle<R> {
+		fn to_datatype(_:&mut TypeMap) -> Option<DataType> { None }
 	}
 
-	impl<R: crate::Runtime> FunctionArg for crate::Window<R> {
-		fn to_datatype(_: &mut TypeMap) -> Option<DataType> {
-			None
-		}
+	impl<R:crate::Runtime> FunctionArg for crate::Window<R> {
+		fn to_datatype(_:&mut TypeMap) -> Option<DataType> { None }
 	}
 
-	impl<R: crate::Runtime> FunctionArg for crate::Webview<R> {
-		fn to_datatype(_: &mut TypeMap) -> Option<DataType> {
-			None
-		}
+	impl<R:crate::Runtime> FunctionArg for crate::Webview<R> {
+		fn to_datatype(_:&mut TypeMap) -> Option<DataType> { None }
 	}
 
-	impl<R: crate::Runtime> FunctionArg for crate::WebviewWindow<R> {
-		fn to_datatype(_: &mut TypeMap) -> Option<DataType> {
-			None
-		}
+	impl<R:crate::Runtime> FunctionArg for crate::WebviewWindow<R> {
+		fn to_datatype(_:&mut TypeMap) -> Option<DataType> { None }
 	}
 };
 
 #[cfg(test)]
 mod tests {
-	use cargo_toml::Manifest;
 	use std::{env::var, fs::read_to_string, path::PathBuf, sync::OnceLock};
 
-	static MANIFEST: OnceLock<Manifest> = OnceLock::new();
-	const CHECKED_FEATURES: &str = include_str!(concat!(env!("OUT_DIR"), "/checked_features"));
+	use cargo_toml::Manifest;
+
+	static MANIFEST:OnceLock<Manifest> = OnceLock::new();
+	const CHECKED_FEATURES:&str =
+		include_str!(concat!(env!("OUT_DIR"), "/checked_features"));
 
 	fn get_manifest() -> &'static Manifest {
 		MANIFEST.get_or_init(|| {
-			let manifest_dir = PathBuf::from(var("CARGO_MANIFEST_DIR").unwrap());
+			let manifest_dir =
+				PathBuf::from(var("CARGO_MANIFEST_DIR").unwrap());
 			Manifest::from_path(manifest_dir.join("Cargo.toml"))
 				.expect("failed to parse Cargo manifest")
 		})
@@ -1034,11 +1085,14 @@ mod tests {
 	fn features_are_documented() {
 		let manifest_dir = PathBuf::from(var("CARGO_MANIFEST_DIR").unwrap());
 
-		let lib_code =
-			read_to_string(manifest_dir.join("src/lib.rs")).expect("failed to read lib.rs");
+		let lib_code = read_to_string(manifest_dir.join("src/lib.rs"))
+			.expect("failed to read lib.rs");
 
 		for f in get_manifest().features.keys() {
-			if !(f.starts_with("__") || f == "default" || lib_code.contains(&format!("*{f}**"))) {
+			if !(f.starts_with("__")
+				|| f == "default"
+				|| lib_code.contains(&format!("*{f}**")))
+			{
 				panic!("Feature {f} is not documented");
 			}
 		}
@@ -1052,8 +1106,9 @@ mod tests {
 		for checked_feature in checked_features {
 			if !manifest.features.iter().any(|(f, _)| f == checked_feature) {
 				panic!(
-          "Feature {checked_feature} was checked in the alias build step but it does not exist in crates/tauri/Cargo.toml"
-        );
+					"Feature {checked_feature} was checked in the alias build \
+					 step but it does not exist in crates/tauri/Cargo.toml"
+				);
 			}
 		}
 	}
@@ -1063,11 +1118,11 @@ mod tests {
 mod test_utils {
 	use proptest::prelude::*;
 
-	pub fn assert_send<T: Send>() {}
-	pub fn assert_sync<T: Sync>() {}
+	pub fn assert_send<T:Send>() {}
+	pub fn assert_sync<T:Sync>() {}
 
 	#[allow(dead_code)]
-	pub fn assert_not_allowlist_error<T>(res: anyhow::Result<T>) {
+	pub fn assert_not_allowlist_error<T>(res:anyhow::Result<T>) {
 		if let Err(e) = res {
 			assert!(!e.to_string().contains("not on the allowlist"));
 		}
@@ -1098,13 +1153,14 @@ mod z85 {
 	/// # Panics
 	///
 	/// Will panic if the input bytes are not a multiple of 4.
-	pub fn encode(bytes: &[u8]) -> String {
+	pub fn encode(bytes:&[u8]) -> String {
 		assert_eq!(bytes.len() % 4, 0);
 
 		let mut buf = String::with_capacity(bytes.len() * 5 / 4);
 		for chunk in bytes.chunks_exact(4) {
 			let mut chars = [0u8; 5];
-			let mut chunk = u32::from_be_bytes(chunk.try_into().unwrap()) as usize;
+			let mut chunk =
+				u32::from_be_bytes(chunk.try_into().unwrap()) as usize;
 			for byte in chars.iter_mut().rev() {
 				*byte = TABLE[chunk % 85];
 				chunk /= 85;
@@ -1121,7 +1177,9 @@ mod z85 {
 		#[test]
 		fn encode() {
 			assert_eq!(
-				super::encode(&[0x86, 0x4F, 0xD2, 0x6F, 0xB5, 0x59, 0xF7, 0x5B]),
+				super::encode(&[
+					0x86, 0x4F, 0xD2, 0x6F, 0xB5, 0x59, 0xF7, 0x5B
+				]),
 				"HelloWorld"
 			);
 		}

@@ -5,19 +5,11 @@
 //! The singleton async runtime used by Tauri and exposed to users.
 //!
 //! Tauri uses [`tokio`] Runtime to initialize code, such as
-//! [`Plugin::initialize`](../plugin/trait.Plugin.html#method.initialize) and [`crate::Builder::setup`] hooks.
-//! This module also re-export some common items most developers need from [`tokio`]. If there's
-//! one you need isn't here, you could use types in [`tokio`] directly.
-//! For custom command handlers, it's recommended to use a plain `async fn` command.
-
-pub use tokio::{
-	runtime::{Handle as TokioHandle, Runtime as TokioRuntime},
-	sync::{
-		mpsc::{channel, Receiver, Sender},
-		Mutex, RwLock,
-	},
-	task::JoinHandle as TokioJoinHandle,
-};
+//! [`Plugin::initialize`](../plugin/trait.Plugin.html#method.initialize) and
+//! [`crate::Builder::setup`] hooks. This module also re-export some common
+//! items most developers need from [`tokio`]. If there's one you need isn't
+//! here, you could use types in [`tokio`] directly. For custom command
+//! handlers, it's recommended to use a plain `async fn` command.
 
 use std::{
 	future::Future,
@@ -26,11 +18,21 @@ use std::{
 	task::{Context, Poll},
 };
 
-static RUNTIME: OnceLock<GlobalRuntime> = OnceLock::new();
+pub use tokio::{
+	runtime::{Handle as TokioHandle, Runtime as TokioRuntime},
+	sync::{
+		mpsc::{channel, Receiver, Sender},
+		Mutex,
+		RwLock,
+	},
+	task::JoinHandle as TokioJoinHandle,
+};
+
+static RUNTIME:OnceLock<GlobalRuntime> = OnceLock::new();
 
 struct GlobalRuntime {
-	runtime: Option<Runtime>,
-	handle: RuntimeHandle,
+	runtime:Option<Runtime>,
+	handle:RuntimeHandle,
 }
 
 impl GlobalRuntime {
@@ -42,11 +44,10 @@ impl GlobalRuntime {
 		}
 	}
 
-	fn spawn<F>(&self, task: F) -> JoinHandle<F::Output>
+	fn spawn<F>(&self, task:F) -> JoinHandle<F::Output>
 	where
 		F: Future + Send + 'static,
-		F::Output: Send + 'static,
-	{
+		F::Output: Send + 'static, {
 		if let Some(r) = &self.runtime {
 			r.spawn(task)
 		} else {
@@ -54,11 +55,10 @@ impl GlobalRuntime {
 		}
 	}
 
-	pub fn spawn_blocking<F, R>(&self, func: F) -> JoinHandle<R>
+	pub fn spawn_blocking<F, R>(&self, func:F) -> JoinHandle<R>
 	where
 		F: FnOnce() -> R + Send + 'static,
-		R: Send + 'static,
-	{
+		R: Send + 'static, {
 		if let Some(r) = &self.runtime {
 			r.spawn_blocking(func)
 		} else {
@@ -66,7 +66,7 @@ impl GlobalRuntime {
 		}
 	}
 
-	fn block_on<F: Future>(&self, task: F) -> F::Output {
+	fn block_on<F:Future>(&self, task:F) -> F::Output {
 		if let Some(r) = &self.runtime {
 			r.block_on(task)
 		} else {
@@ -96,32 +96,31 @@ impl Runtime {
 	}
 
 	/// Spawns a future onto the runtime.
-	pub fn spawn<F>(&self, task: F) -> JoinHandle<F::Output>
+	pub fn spawn<F>(&self, task:F) -> JoinHandle<F::Output>
 	where
 		F: Future + Send + 'static,
-		F::Output: Send + 'static,
-	{
+		F::Output: Send + 'static, {
 		match self {
 			Self::Tokio(r) => {
 				let _guard = r.enter();
 				JoinHandle::Tokio(tokio::spawn(task))
-			}
+			},
 		}
 	}
 
-	/// Runs the provided function on an executor dedicated to blocking operations.
-	pub fn spawn_blocking<F, R>(&self, func: F) -> JoinHandle<R>
+	/// Runs the provided function on an executor dedicated to blocking
+	/// operations.
+	pub fn spawn_blocking<F, R>(&self, func:F) -> JoinHandle<R>
 	where
 		F: FnOnce() -> R + Send + 'static,
-		R: Send + 'static,
-	{
+		R: Send + 'static, {
 		match self {
 			Self::Tokio(r) => JoinHandle::Tokio(r.spawn_blocking(func)),
 		}
 	}
 
 	/// Runs a future to completion on runtime.
-	pub fn block_on<F: Future>(&self, task: F) -> F::Output {
+	pub fn block_on<F:Future>(&self, task:F) -> F::Output {
 		match self {
 			Self::Tokio(r) => r.block_on(task),
 		}
@@ -156,7 +155,8 @@ impl<T> JoinHandle<T> {
 
 impl<T> Future for JoinHandle<T> {
 	type Output = crate::Result<T>;
-	fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+
+	fn poll(self: Pin<&mut Self>, cx:&mut Context<'_>) -> Poll<Self::Output> {
 		match self.get_mut() {
 			Self::Tokio(t) => Pin::new(t).poll(cx).map_err(Into::into),
 		}
@@ -177,33 +177,32 @@ impl RuntimeHandle {
 		h
 	}
 
-	/// Runs the provided function on an executor dedicated to blocking operations.
-	pub fn spawn_blocking<F, R>(&self, func: F) -> JoinHandle<R>
+	/// Runs the provided function on an executor dedicated to blocking
+	/// operations.
+	pub fn spawn_blocking<F, R>(&self, func:F) -> JoinHandle<R>
 	where
 		F: FnOnce() -> R + Send + 'static,
-		R: Send + 'static,
-	{
+		R: Send + 'static, {
 		match self {
 			Self::Tokio(h) => JoinHandle::Tokio(h.spawn_blocking(func)),
 		}
 	}
 
 	/// Spawns a future onto the runtime.
-	pub fn spawn<F>(&self, task: F) -> JoinHandle<F::Output>
+	pub fn spawn<F>(&self, task:F) -> JoinHandle<F::Output>
 	where
 		F: Future + Send + 'static,
-		F::Output: Send + 'static,
-	{
+		F::Output: Send + 'static, {
 		match self {
 			Self::Tokio(h) => {
 				let _guard = h.enter();
 				JoinHandle::Tokio(tokio::spawn(task))
-			}
+			},
 		}
 	}
 
 	/// Runs a future to completion on runtime.
-	pub fn block_on<F: Future>(&self, task: F) -> F::Output {
+	pub fn block_on<F:Future>(&self, task:F) -> F::Output {
 		match self {
 			Self::Tokio(h) => h.block_on(task),
 		}
@@ -213,7 +212,7 @@ impl RuntimeHandle {
 fn default_runtime() -> GlobalRuntime {
 	let runtime = Runtime::Tokio(TokioRuntime::new().unwrap());
 	let handle = runtime.handle();
-	GlobalRuntime { runtime: Some(runtime), handle }
+	GlobalRuntime { runtime:Some(runtime), handle }
 }
 
 /// Sets the runtime to use to execute asynchronous tasks.
@@ -225,13 +224,13 @@ fn default_runtime() -> GlobalRuntime {
 /// ```rust
 /// #[tokio::main]
 /// async fn main() {
-///   // perform some async task before initializing the app
-///   do_something().await;
-///   // share the current runtime with Tauri
-///   tauri::async_runtime::set(tokio::runtime::Handle::current());
+/// 	// perform some async task before initializing the app
+/// 	do_something().await;
+/// 	// share the current runtime with Tauri
+/// 	tauri::async_runtime::set(tokio::runtime::Handle::current());
 ///
-///   // bootstrap the tauri app...
-///   // tauri::Builder::default().run().unwrap();
+/// 	// bootstrap the tauri app...
+/// 	// tauri::Builder::default().run().unwrap();
 /// }
 ///
 /// async fn do_something() {}
@@ -240,9 +239,12 @@ fn default_runtime() -> GlobalRuntime {
 /// # Panics
 ///
 /// Panics if the runtime is already set.
-pub fn set(handle: TokioHandle) {
+pub fn set(handle:TokioHandle) {
 	RUNTIME
-		.set(GlobalRuntime { runtime: None, handle: RuntimeHandle::Tokio(handle) })
+		.set(GlobalRuntime {
+			runtime:None,
+			handle:RuntimeHandle::Tokio(handle),
+		})
 		.unwrap_or_else(|_| panic!("runtime already initialized"))
 }
 
@@ -253,37 +255,34 @@ pub fn handle() -> RuntimeHandle {
 }
 
 /// Runs a future to completion on runtime.
-pub fn block_on<F: Future>(task: F) -> F::Output {
+pub fn block_on<F:Future>(task:F) -> F::Output {
 	let runtime = RUNTIME.get_or_init(default_runtime);
 	runtime.block_on(task)
 }
 
 /// Spawns a future onto the runtime.
-pub fn spawn<F>(task: F) -> JoinHandle<F::Output>
+pub fn spawn<F>(task:F) -> JoinHandle<F::Output>
 where
 	F: Future + Send + 'static,
-	F::Output: Send + 'static,
-{
+	F::Output: Send + 'static, {
 	let runtime = RUNTIME.get_or_init(default_runtime);
 	runtime.spawn(task)
 }
 
 /// Runs the provided function on an executor dedicated to blocking operations.
-pub fn spawn_blocking<F, R>(func: F) -> JoinHandle<R>
+pub fn spawn_blocking<F, R>(func:F) -> JoinHandle<R>
 where
 	F: FnOnce() -> R + Send + 'static,
-	R: Send + 'static,
-{
+	R: Send + 'static, {
 	let runtime = RUNTIME.get_or_init(default_runtime);
 	runtime.spawn_blocking(func)
 }
 
 #[allow(dead_code)]
-pub(crate) fn safe_block_on<F>(task: F) -> F::Output
+pub(crate) fn safe_block_on<F>(task:F) -> F::Output
 where
 	F: Future + Send + 'static,
-	F::Output: Send + 'static,
-{
+	F::Output: Send + 'static, {
 	if let Ok(handle) = tokio::runtime::Handle::try_current() {
 		let (tx, rx) = std::sync::mpsc::sync_channel(1);
 
@@ -331,7 +330,8 @@ mod tests {
 		let handle = handle();
 
 		let join = handle.spawn(async {
-			// Here we sleep 1 second to ensure this task to be uncompleted when abort() invoked.
+			// Here we sleep 1 second to ensure this task to be uncompleted when
+			// abort() invoked.
 			tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 			5
 		});

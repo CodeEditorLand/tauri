@@ -8,9 +8,10 @@ use std::{
 	process::Command,
 };
 
-use crate::{assert_command, CommandExt};
 use anyhow::Result;
 use rand::distributions::{Alphanumeric, DistString};
+
+use crate::{assert_command, CommandExt};
 
 mod identity;
 
@@ -23,46 +24,55 @@ pub enum SigningIdentity {
 
 pub struct Keychain {
 	// none means the default keychain must be used
-	path: Option<PathBuf>,
-	signing_identity: SigningIdentity,
+	path:Option<PathBuf>,
+	signing_identity:SigningIdentity,
 }
 
 impl Drop for Keychain {
 	fn drop(&mut self) {
 		if let Some(path) = &self.path {
-			let _ = Command::new("security").arg("delete-keychain").arg(path).piped();
+			let _ = Command::new("security")
+				.arg("delete-keychain")
+				.arg(path)
+				.piped();
 		}
 	}
 }
 
 impl Keychain {
 	/// Use a certificate in the default keychain.
-	pub fn with_signing_identity(identity: impl Into<String>) -> Self {
-		Self { path: None, signing_identity: SigningIdentity::Identifier(identity.into()) }
+	pub fn with_signing_identity(identity:impl Into<String>) -> Self {
+		Self {
+			path:None,
+			signing_identity:SigningIdentity::Identifier(identity.into()),
+		}
 	}
 
 	/// Import certificate from base64 string.
 	/// certificate_encoded is the p12 certificate base64 encoded.
-	/// By example you can use; openssl base64 -in MyCertificate.p12 -out MyCertificate-base64.txt
-	/// Then use the value of the base64 as `certificate_encoded`.
-	/// You need to set certificate_password to the password you set when you exported your certificate.
-	/// <https://help.apple.com/xcode/mac/current/#/dev154b28f09> see: `Export a signing certificate`
+	/// By example you can use; openssl base64 -in MyCertificate.p12 -out
+	/// MyCertificate-base64.txt Then use the value of the base64 as
+	/// `certificate_encoded`. You need to set certificate_password to the
+	/// password you set when you exported your certificate. <https://help.apple.com/xcode/mac/current/#/dev154b28f09> see: `Export a signing certificate`
 	pub fn with_certificate(
-		certificate_encoded: &OsString,
-		certificate_password: &OsString,
+		certificate_encoded:&OsString,
+		certificate_password:&OsString,
 	) -> Result<Self> {
-		let home_dir =
-			dirs_next::home_dir().ok_or_else(|| anyhow::anyhow!("failed to resolve home dir"))?;
+		let home_dir = dirs_next::home_dir()
+			.ok_or_else(|| anyhow::anyhow!("failed to resolve home dir"))?;
 
-		let keychain_path = home_dir.join("Library").join("Keychains").join(format!(
-			"{}.keychain-db",
-			Alphanumeric.sample_string(&mut rand::thread_rng(), 16)
-		));
+		let keychain_path =
+			home_dir.join("Library").join("Keychains").join(format!(
+				"{}.keychain-db",
+				Alphanumeric.sample_string(&mut rand::thread_rng(), 16)
+			));
 
-		let keychain_password = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
+		let keychain_password =
+			Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
 
-		let keychain_list_output =
-			Command::new("security").args(["list-keychain", "-d", "user"]).output()?;
+		let keychain_list_output = Command::new("security")
+			.args(["list-keychain", "-d", "user"])
+			.output()?;
 
 		let tmp_dir = tempfile::tempdir()?;
 
@@ -128,11 +138,15 @@ impl Keychain {
 			"failed to set keychain settings",
 		)?;
 
-		let current_keychains = String::from_utf8_lossy(&keychain_list_output.stdout)
-			.split('\n')
-			.map(|line| line.trim_matches(|c: char| c.is_whitespace() || c == '"').to_string())
-			.filter(|l| !l.is_empty())
-			.collect::<Vec<String>>();
+		let current_keychains =
+			String::from_utf8_lossy(&keychain_list_output.stdout)
+				.split('\n')
+				.map(|line| {
+					line.trim_matches(|c:char| c.is_whitespace() || c == '"')
+						.to_string()
+				})
+				.filter(|l| !l.is_empty())
+				.collect::<Vec<String>>();
 
 		assert_command(
 			Command::new("security")
@@ -145,11 +159,13 @@ impl Keychain {
 
 		let signing_identity = identity::list(&keychain_path)
 			.map(|l| l.first().cloned())?
-			.ok_or_else(|| anyhow::anyhow!("failed to resolve signing identity"))?;
+			.ok_or_else(|| {
+				anyhow::anyhow!("failed to resolve signing identity")
+			})?;
 
 		Ok(Self {
-			path: Some(keychain_path),
-			signing_identity: SigningIdentity::Team(signing_identity),
+			path:Some(keychain_path),
+			signing_identity:SigningIdentity::Team(signing_identity),
 		})
 	}
 
@@ -169,9 +185,9 @@ impl Keychain {
 
 	pub fn sign(
 		&self,
-		path: &Path,
-		entitlements_path: Option<&Path>,
-		hardened_runtime: bool,
+		path:&Path,
+		entitlements_path:Option<&Path>,
+		hardened_runtime:bool,
 	) -> Result<()> {
 		let identity = match &self.signing_identity {
 			SigningIdentity::Team(t) => t.certificate_name(),

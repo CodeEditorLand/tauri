@@ -42,38 +42,45 @@ pub enum ApiKey {
 }
 
 pub enum AppleNotarizationCredentials {
-	AppleId { apple_id: OsString, password: OsString, team_id: OsString },
-	ApiKey { issuer: OsString, key_id: OsString, key: ApiKey },
+	AppleId { apple_id:OsString, password:OsString, team_id:OsString },
+	ApiKey { issuer:OsString, key_id:OsString, key:ApiKey },
 }
 
 #[derive(Deserialize)]
 struct NotarytoolSubmitOutput {
-	id: String,
-	status: String,
-	message: String,
+	id:String,
+	status:String,
+	message:String,
 }
 
 pub fn notarize(
-	keychain: &Keychain,
-	app_bundle_path: &Path,
-	auth: &AppleNotarizationCredentials,
+	keychain:&Keychain,
+	app_bundle_path:&Path,
+	auth:&AppleNotarizationCredentials,
 ) -> Result<()> {
-	let bundle_stem = app_bundle_path.file_stem().expect("failed to get bundle filename");
+	let bundle_stem =
+		app_bundle_path.file_stem().expect("failed to get bundle filename");
 
 	let tmp_dir = tempfile::tempdir()?;
-	let zip_path = tmp_dir.path().join(format!("{}.zip", bundle_stem.to_string_lossy()));
+	let zip_path =
+		tmp_dir.path().join(format!("{}.zip", bundle_stem.to_string_lossy()));
 	let zip_args = vec![
 		"-c",
 		"-k",
 		"--keepParent",
 		"--sequesterRsrc",
-		app_bundle_path.to_str().expect("failed to convert bundle_path to string"),
+		app_bundle_path
+			.to_str()
+			.expect("failed to convert bundle_path to string"),
 		zip_path.to_str().expect("failed to convert zip_path to string"),
 	];
 
 	// use ditto to create a PKZip almost identical to Finder
 	// this remove almost 99% of false alarm in notarization
-	assert_command(Command::new("ditto").args(zip_args).piped(), "failed to zip app with ditto")?;
+	assert_command(
+		Command::new("ditto").args(zip_args).piped(),
+		"failed to zip app with ditto",
+	)?;
 
 	// sign the zip file
 	keychain.sign(&zip_path, None, false)?;
@@ -101,7 +108,9 @@ pub fn notarize(
 	}
 
 	let output_str = String::from_utf8_lossy(&output.stdout);
-	if let Ok(submit_output) = serde_json::from_str::<NotarytoolSubmitOutput>(&output_str) {
+	if let Ok(submit_output) =
+		serde_json::from_str::<NotarytoolSubmitOutput>(&output_str)
+	{
 		let log_message = format!(
 			"Finished with status {} for id {} ({})",
 			submit_output.status, submit_output.id, submit_output.message
@@ -116,16 +125,21 @@ pub fn notarize(
 			.notarytool_args(auth, tmp_dir.path())?
 			.output()
 		{
-			Err(anyhow::anyhow!("{log_message}\nLog:\n{}", String::from_utf8_lossy(&output.stdout)))
+			Err(anyhow::anyhow!(
+				"{log_message}\nLog:\n{}",
+				String::from_utf8_lossy(&output.stdout)
+			))
 		} else {
 			Err(anyhow::anyhow!("{log_message}"))
 		}
 	} else {
-		Err(anyhow::anyhow!("failed to parse notarytool output as JSON: `{output_str}`"))
+		Err(anyhow::anyhow!(
+			"failed to parse notarytool output as JSON: `{output_str}`"
+		))
 	}
 }
 
-fn staple_app(mut app_bundle_path: PathBuf) -> Result<()> {
+fn staple_app(mut app_bundle_path:PathBuf) -> Result<()> {
 	let app_bundle_path_clone = app_bundle_path.clone();
 	let filename = app_bundle_path_clone
 		.file_name()
@@ -147,32 +161,38 @@ fn staple_app(mut app_bundle_path: PathBuf) -> Result<()> {
 pub trait NotarytoolCmdExt {
 	fn notarytool_args(
 		&mut self,
-		auth: &AppleNotarizationCredentials,
-		temp_dir: &Path,
+		auth:&AppleNotarizationCredentials,
+		temp_dir:&Path,
 	) -> Result<&mut Self>;
 }
 
 impl NotarytoolCmdExt for Command {
 	fn notarytool_args(
 		&mut self,
-		auth: &AppleNotarizationCredentials,
-		temp_dir: &Path,
+		auth:&AppleNotarizationCredentials,
+		temp_dir:&Path,
 	) -> Result<&mut Self> {
 		match auth {
-			AppleNotarizationCredentials::AppleId { apple_id, password, team_id } => Ok(self
-				.arg("--apple-id")
-				.arg(apple_id)
-				.arg("--password")
-				.arg(password)
-				.arg("--team-id")
-				.arg(team_id)),
+			AppleNotarizationCredentials::AppleId {
+				apple_id,
+				password,
+				team_id,
+			} => {
+				Ok(self
+					.arg("--apple-id")
+					.arg(apple_id)
+					.arg("--password")
+					.arg(password)
+					.arg("--team-id")
+					.arg(team_id))
+			},
 			AppleNotarizationCredentials::ApiKey { key, key_id, issuer } => {
 				let key_path = match key {
 					ApiKey::Raw(k) => {
 						let key_path = temp_dir.join("AuthKey.p8");
 						std::fs::write(&key_path, k)?;
 						key_path
-					}
+					},
 					ApiKey::Path(p) => p.to_owned(),
 				};
 
@@ -183,16 +203,17 @@ impl NotarytoolCmdExt for Command {
 					.arg(key_path)
 					.arg("--issuer")
 					.arg(issuer))
-			}
+			},
 		}
 	}
 }
 
-fn decode_base64(base64: &OsStr, out_path: &Path) -> Result<()> {
+fn decode_base64(base64:&OsStr, out_path:&Path) -> Result<()> {
 	let tmp_dir = tempfile::tempdir()?;
 
 	let src_path = tmp_dir.path().join("src");
-	let base64 = base64.to_str().expect("failed to convert base64 to string").as_bytes();
+	let base64 =
+		base64.to_str().expect("failed to convert base64 to string").as_bytes();
 
 	// as base64 contain whitespace decoding may be broken
 	// https://github.com/marshallpierce/rust-base64/issues/105
@@ -214,11 +235,12 @@ fn decode_base64(base64: &OsStr, out_path: &Path) -> Result<()> {
 }
 
 fn assert_command(
-	response: Result<std::process::ExitStatus, std::io::Error>,
-	error_message: &str,
+	response:Result<std::process::ExitStatus, std::io::Error>,
+	error_message:&str,
 ) -> std::io::Result<()> {
-	let status =
-		response.map_err(|e| std::io::Error::new(e.kind(), format!("{error_message}: {e}")))?;
+	let status = response.map_err(|e| {
+		std::io::Error::new(e.kind(), format!("{error_message}: {e}"))
+	})?;
 	if !status.success() {
 		Err(std::io::Error::new(std::io::ErrorKind::Other, error_message))
 	} else {

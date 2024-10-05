@@ -11,15 +11,15 @@
 	target_os = "openbsd"
 ))]
 
-const CLIENT: isize = 0b0000;
-const LEFT: isize = 0b0001;
-const RIGHT: isize = 0b0010;
-const TOP: isize = 0b0100;
-const BOTTOM: isize = 0b1000;
-const TOPLEFT: isize = TOP | LEFT;
-const TOPRIGHT: isize = TOP | RIGHT;
-const BOTTOMLEFT: isize = BOTTOM | LEFT;
-const BOTTOMRIGHT: isize = BOTTOM | RIGHT;
+const CLIENT:isize = 0b0000;
+const LEFT:isize = 0b0001;
+const RIGHT:isize = 0b0010;
+const TOP:isize = 0b0100;
+const BOTTOM:isize = 0b1000;
+const TOPLEFT:isize = TOP | LEFT;
+const TOPRIGHT:isize = TOP | RIGHT;
+const BOTTOMLEFT:isize = BOTTOM | LEFT;
+const BOTTOMRIGHT:isize = BOTTOM | RIGHT;
 
 #[cfg(not(windows))]
 pub use self::gtk::*;
@@ -47,14 +47,14 @@ enum HitTestResult {
 
 #[allow(clippy::too_many_arguments)]
 fn hit_test(
-	left: WindowPositions,
-	top: WindowPositions,
-	right: WindowPositions,
-	bottom: WindowPositions,
-	cx: WindowPositions,
-	cy: WindowPositions,
-	border_x: WindowPositions,
-	border_y: WindowPositions,
+	left:WindowPositions,
+	top:WindowPositions,
+	right:WindowPositions,
+	bottom:WindowPositions,
+	cx:WindowPositions,
+	cy:WindowPositions,
+	border_x:WindowPositions,
+	border_y:WindowPositions,
 ) -> HitTestResult {
 	#[rustfmt::skip]
   let result = (LEFT * (cx < left + border_x) as isize)
@@ -78,8 +78,6 @@ fn hit_test(
 
 #[cfg(windows)]
 mod windows {
-	use super::{hit_test, HitTestResult};
-
 	use windows::{
 		core::*,
 		Win32::{
@@ -92,6 +90,8 @@ mod windows {
 			},
 		},
 	};
+
+	use super::{hit_test, HitTestResult};
 
 	impl HitTestResult {
 		fn to_win32(self) -> i32 {
@@ -109,30 +109,38 @@ mod windows {
 		}
 	}
 
-	const CLASS_NAME: PCWSTR = w!("TAURI_DRAG_RESIZE_BORDERS");
-	const WINDOW_NAME: PCWSTR = w!("TAURI_DRAG_RESIZE_WINDOW");
+	const CLASS_NAME:PCWSTR = w!("TAURI_DRAG_RESIZE_BORDERS");
+	const WINDOW_NAME:PCWSTR = w!("TAURI_DRAG_RESIZE_WINDOW");
 
-	pub fn attach_resize_handler(hwnd: isize) {
+	pub fn attach_resize_handler(hwnd:isize) {
 		let parent = HWND(hwnd as _);
 
 		// return early if we already attached
-		if unsafe { FindWindowExW(parent, HWND::default(), CLASS_NAME, WINDOW_NAME) }.is_ok() {
+		if unsafe {
+			FindWindowExW(parent, HWND::default(), CLASS_NAME, WINDOW_NAME)
+		}
+		.is_ok()
+		{
 			return;
 		}
 
 		let class = WNDCLASSEXW {
-			cbSize: std::mem::size_of::<WNDCLASSEXW>() as u32,
-			style: WNDCLASS_STYLES::default(),
-			lpfnWndProc: Some(drag_resize_window_proc),
-			cbClsExtra: 0,
-			cbWndExtra: 0,
-			hInstance: unsafe { HINSTANCE(GetModuleHandleW(PCWSTR::null()).unwrap_or_default().0) },
-			hIcon: HICON::default(),
-			hCursor: HCURSOR::default(),
-			hbrBackground: HBRUSH::default(),
-			lpszMenuName: PCWSTR::null(),
-			lpszClassName: CLASS_NAME,
-			hIconSm: HICON::default(),
+			cbSize:std::mem::size_of::<WNDCLASSEXW>() as u32,
+			style:WNDCLASS_STYLES::default(),
+			lpfnWndProc:Some(drag_resize_window_proc),
+			cbClsExtra:0,
+			cbWndExtra:0,
+			hInstance:unsafe {
+				HINSTANCE(
+					GetModuleHandleW(PCWSTR::null()).unwrap_or_default().0,
+				)
+			},
+			hIcon:HICON::default(),
+			hCursor:HCURSOR::default(),
+			hbrBackground:HBRUSH::default(),
+			lpszMenuName:PCWSTR::null(),
+			lpszClassName:CLASS_NAME,
+			hIconSm:HICON::default(),
 		};
 
 		unsafe { RegisterClassExW(&class) };
@@ -173,7 +181,10 @@ mod windows {
 				0,
 				0,
 				0,
-				SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE,
+				SWP_ASYNCWINDOWPOS
+					| SWP_NOACTIVATE
+					| SWP_NOMOVE | SWP_NOOWNERZORDER
+					| SWP_NOSIZE,
 			);
 
 			let _ = SetWindowSubclass(
@@ -186,12 +197,12 @@ mod windows {
 	}
 
 	unsafe extern "system" fn subclass_parent(
-		parent: HWND,
-		msg: u32,
-		wparam: WPARAM,
-		lparam: LPARAM,
-		_: usize,
-		child: usize,
+		parent:HWND,
+		msg:u32,
+		wparam:WPARAM,
+		lparam:LPARAM,
+		_:usize,
+		child:usize,
 	) -> LRESULT {
 		if msg == WM_SIZE {
 			let child = HWND(child as _);
@@ -204,7 +215,9 @@ mod windows {
 					0,
 					0,
 					0,
-					SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE,
+					SWP_ASYNCWINDOWPOS
+						| SWP_NOACTIVATE | SWP_NOOWNERZORDER
+						| SWP_NOMOVE,
 				);
 			} else {
 				let mut rect = RECT::default();
@@ -219,7 +232,9 @@ mod windows {
 						0,
 						width,
 						height,
-						SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE,
+						SWP_ASYNCWINDOWPOS
+							| SWP_NOACTIVATE | SWP_NOOWNERZORDER
+							| SWP_NOMOVE,
 					);
 
 					set_drag_hwnd_rgn(child, width, height);
@@ -231,10 +246,10 @@ mod windows {
 	}
 
 	unsafe extern "system" fn drag_resize_window_proc(
-		child: HWND,
-		msg: u32,
-		wparam: WPARAM,
-		lparam: LPARAM,
+		child:HWND,
+		msg:u32,
+		wparam:WPARAM,
+		lparam:LPARAM,
 	) -> LRESULT {
 		match msg {
 			WM_NCHITTEST => {
@@ -254,7 +269,8 @@ mod windows {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
 
-				let (cx, cy) = (GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
+				let (cx, cy) =
+					(GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
 
 				let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
 				let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
@@ -272,7 +288,7 @@ mod windows {
 				);
 
 				return LRESULT(res.to_win32() as _);
-			}
+			},
 
 			WM_NCLBUTTONDOWN => {
 				let Ok(parent) = GetParent(child) else {
@@ -291,7 +307,8 @@ mod windows {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
 
-				let (cx, cy) = (GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
+				let (cx, cy) =
+					(GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
 
 				let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
 				let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
@@ -309,7 +326,7 @@ mod windows {
 				);
 
 				if res != HitTestResult::NoWhere {
-					let points = POINTS { x: cx as i16, y: cy as i16 };
+					let points = POINTS { x:cx as i16, y:cy as i16 };
 
 					let _ = PostMessageW(
 						parent,
@@ -320,26 +337,27 @@ mod windows {
 				}
 
 				return LRESULT(0);
-			}
+			},
 
-			_ => {}
+			_ => {},
 		}
 
 		DefWindowProcW(child, msg, wparam, lparam)
 	}
 
-	pub fn detach_resize_handler(hwnd: isize) {
+	pub fn detach_resize_handler(hwnd:isize) {
 		let hwnd = HWND(hwnd as _);
 
-		let Ok(child) = (unsafe { FindWindowExW(hwnd, HWND::default(), CLASS_NAME, WINDOW_NAME) })
-		else {
+		let Ok(child) = (unsafe {
+			FindWindowExW(hwnd, HWND::default(), CLASS_NAME, WINDOW_NAME)
+		}) else {
 			return;
 		};
 
 		let _ = unsafe { DestroyWindow(child) };
 	}
 
-	unsafe fn set_drag_hwnd_rgn(hwnd: HWND, width: i32, height: i32) {
+	unsafe fn set_drag_hwnd_rgn(hwnd:HWND, width:i32, height:i32) {
 		let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
 
 		let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
@@ -348,14 +366,19 @@ mod windows {
 
 		let hrgn1 = CreateRectRgn(0, 0, width, height);
 
-		let hrgn2 = CreateRectRgn(border_x, border_y, width - border_x, height - border_y);
+		let hrgn2 = CreateRectRgn(
+			border_x,
+			border_y,
+			width - border_x,
+			height - border_y,
+		);
 		CombineRgn(hrgn1, hrgn1, hrgn2, RGN_DIFF);
 		SetWindowRgn(hwnd, hrgn1, true);
 	}
 
-	fn is_maximized(window: HWND) -> windows::core::Result<bool> {
+	fn is_maximized(window:HWND) -> windows::core::Result<bool> {
 		let mut placement = WINDOWPLACEMENT {
-			length: std::mem::size_of::<WINDOWPLACEMENT>() as u32,
+			length:std::mem::size_of::<WINDOWPLACEMENT>() as u32,
 			..WINDOWPLACEMENT::default()
 		};
 		unsafe { GetWindowPlacement(window, &mut placement)? };
@@ -365,14 +388,14 @@ mod windows {
 	/// Implementation of the `GET_X_LPARAM` macro.
 	#[allow(non_snake_case)]
 	#[inline]
-	fn GET_X_LPARAM(lparam: LPARAM) -> i16 {
+	fn GET_X_LPARAM(lparam:LPARAM) -> i16 {
 		((lparam.0 as usize) & 0xFFFF) as u16 as i16
 	}
 
 	/// Implementation of the `GET_Y_LPARAM` macro.
 	#[allow(non_snake_case)]
 	#[inline]
-	fn GET_Y_LPARAM(lparam: LPARAM) -> i16 {
+	fn GET_Y_LPARAM(lparam:LPARAM) -> i16 {
 		(((lparam.0 as usize) & 0xFFFF_0000) >> 16) as u16 as i16
 	}
 }
@@ -381,14 +404,14 @@ mod windows {
 mod gtk {
 	use super::{hit_test, HitTestResult};
 
-	const BORDERLESS_RESIZE_INSET: i32 = 5;
+	const BORDERLESS_RESIZE_INSET:i32 = 5;
 
 	impl HitTestResult {
 		fn to_gtk_edge(self) -> gtk::gdk::WindowEdge {
 			match self {
 				HitTestResult::Client | HitTestResult::NoWhere => {
 					gtk::gdk::WindowEdge::__Unknown(0)
-				}
+				},
 				HitTestResult::Left => gtk::gdk::WindowEdge::West,
 				HitTestResult::Right => gtk::gdk::WindowEdge::East,
 				HitTestResult::Top => gtk::gdk::WindowEdge::North,
@@ -401,7 +424,7 @@ mod gtk {
 		}
 	}
 
-	pub fn attach_resize_handler(webview: &wry::WebView) {
+	pub fn attach_resize_handler(webview:&wry::WebView) {
 		use gtk::{
 			gdk::{prelude::*, WindowEdge},
 			glib::Propagation,
@@ -418,20 +441,28 @@ mod gtk {
 		);
 
 		webview.connect_button_press_event(
-			move |webview: &webkit2gtk::WebView, event: &gtk::gdk::EventButton| {
+			move |webview:&webkit2gtk::WebView,
+			      event:&gtk::gdk::EventButton| {
 				if event.button() == 1 {
 					// This one should be GtkBox
-					if let Some(window) = webview.parent().and_then(|w| w.parent()) {
+					if let Some(window) =
+						webview.parent().and_then(|w| w.parent())
+					{
 						// Safe to unwrap unless this is not from tao
-						let window: gtk::Window = window.downcast().unwrap();
-						if !window.is_decorated() && window.is_resizable() && !window.is_maximized()
+						let window:gtk::Window = window.downcast().unwrap();
+						if !window.is_decorated()
+							&& window.is_resizable()
+							&& !window.is_maximized()
 						{
 							if let Some(window) = window.window() {
 								let (root_x, root_y) = event.root();
 								let (window_x, window_y) = window.position();
-								let (client_x, client_y) =
-									(root_x - window_x as f64, root_y - window_y as f64);
-								let border = window.scale_factor() * BORDERLESS_RESIZE_INSET;
+								let (client_x, client_y) = (
+									root_x - window_x as f64,
+									root_y - window_y as f64,
+								);
+								let border = window.scale_factor()
+									* BORDERLESS_RESIZE_INSET;
 								let edge = hit_test(
 									0.0,
 									0.0,
@@ -444,16 +475,20 @@ mod gtk {
 								)
 								.to_gtk_edge();
 
-								// we ignore the `__Unknown` variant so the webview receives the click correctly if it is not on the edges.
+								// we ignore the `__Unknown` variant so the
+								// webview receives the click correctly if it is
+								// not on the edges.
 								match edge {
 									WindowEdge::__Unknown(_) => (),
-									_ => window.begin_resize_drag(
-										edge,
-										1,
-										root_x as i32,
-										root_y as i32,
-										event.time(),
-									),
+									_ => {
+										window.begin_resize_drag(
+											edge,
+											1,
+											root_x as i32,
+											root_y as i32,
+											event.time(),
+										)
+									},
 								}
 							}
 						}
@@ -465,19 +500,28 @@ mod gtk {
 		);
 
 		webview.connect_touch_event(
-			move |webview: &webkit2gtk::WebView, event: &gtk::gdk::Event| {
+			move |webview:&webkit2gtk::WebView, event:&gtk::gdk::Event| {
 				// This one should be GtkBox
-				if let Some(window) = webview.parent().and_then(|w| w.parent()) {
+				if let Some(window) = webview.parent().and_then(|w| w.parent())
+				{
 					// Safe to unwrap unless this is not from tao
-					let window: gtk::Window = window.downcast().unwrap();
-					if !window.is_decorated() && window.is_resizable() && !window.is_maximized() {
+					let window:gtk::Window = window.downcast().unwrap();
+					if !window.is_decorated()
+						&& window.is_resizable()
+						&& !window.is_maximized()
+					{
 						if let Some(window) = window.window() {
-							if let Some((root_x, root_y)) = event.root_coords() {
+							if let Some((root_x, root_y)) = event.root_coords()
+							{
 								if let Some(device) = event.device() {
-									let (window_x, window_y) = window.position();
-									let (client_x, client_y) =
-										(root_x - window_x as f64, root_y - window_y as f64);
-									let border = window.scale_factor() * BORDERLESS_RESIZE_INSET;
+									let (window_x, window_y) =
+										window.position();
+									let (client_x, client_y) = (
+										root_x - window_x as f64,
+										root_y - window_y as f64,
+									);
+									let border = window.scale_factor()
+										* BORDERLESS_RESIZE_INSET;
 									let edge = hit_test(
 										0.0,
 										0.0,
@@ -490,17 +534,21 @@ mod gtk {
 									)
 									.to_gtk_edge();
 
-									// we ignore the `__Unknown` variant so the window receives the click correctly if it is not on the edges.
+									// we ignore the `__Unknown` variant so the
+									// window receives the click correctly if it
+									// is not on the edges.
 									match edge {
 										WindowEdge::__Unknown(_) => (),
-										_ => window.begin_resize_drag_for_device(
-											edge,
-											&device,
-											0,
-											root_x as i32,
-											root_y as i32,
-											event.time(),
-										),
+										_ => {
+											window.begin_resize_drag_for_device(
+												edge,
+												&device,
+												0,
+												root_x as i32,
+												root_y as i32,
+												event.time(),
+											)
+										},
 									}
 								}
 							}

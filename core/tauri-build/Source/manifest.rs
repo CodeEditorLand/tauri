@@ -8,8 +8,8 @@ use tauri_utils::config::{AppConfig, Config, PatternKind};
 
 #[derive(Debug, Default, PartialEq, Eq)]
 struct Diff {
-	remove: Vec<String>,
-	add: Vec<String>,
+	remove:Vec<String>,
+	add:Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -20,33 +20,36 @@ enum DependencyKind {
 
 #[derive(Debug)]
 struct AllowlistedDependency {
-	name: String,
-	alias: Option<String>,
-	kind: DependencyKind,
-	all_cli_managed_features: Option<Vec<&'static str>>,
-	expected_features: Vec<String>,
+	name:String,
+	alias:Option<String>,
+	kind:DependencyKind,
+	all_cli_managed_features:Option<Vec<&'static str>>,
+	expected_features:Vec<String>,
 }
 
-pub fn check(config: &Config, manifest: &mut Manifest) -> Result<()> {
+pub fn check(config:&Config, manifest:&mut Manifest) -> Result<()> {
 	let dependencies = vec![
 		AllowlistedDependency {
-			name: "tauri-build".into(),
-			alias: None,
-			kind: DependencyKind::Build,
-			all_cli_managed_features: Some(vec!["isolation"]),
-			expected_features: match config.app.security.pattern {
+			name:"tauri-build".into(),
+			alias:None,
+			kind:DependencyKind::Build,
+			all_cli_managed_features:Some(vec!["isolation"]),
+			expected_features:match config.app.security.pattern {
 				PatternKind::Isolation { .. } => vec!["isolation".to_string()],
 				_ => vec![],
 			},
 		},
 		AllowlistedDependency {
-			name: "tauri".into(),
-			alias: None,
-			kind: DependencyKind::Normal,
-			all_cli_managed_features: Some(
-				AppConfig::all_features().into_iter().filter(|f| f != &"tray-icon").collect(),
+			name:"tauri".into(),
+			alias:None,
+			kind:DependencyKind::Normal,
+			all_cli_managed_features:Some(
+				AppConfig::all_features()
+					.into_iter()
+					.filter(|f| f != &"tray-icon")
+					.collect(),
 			),
-			expected_features: config
+			expected_features:config
 				.app
 				.features()
 				.into_iter()
@@ -69,10 +72,15 @@ pub fn check(config: &Config, manifest: &mut Manifest) -> Result<()> {
 
 		for dep in deps {
 			if let Err(error) = check_features(dep, &metadata) {
-				return Err(anyhow!("
-      The `{}` dependency features on the `Cargo.toml` file does not match the allowlist defined under `tauri.conf.json`.
+				return Err(anyhow!(
+					"
+      The `{}` dependency features on the `Cargo.toml` file does not match the \
+					 allowlist defined under `tauri.conf.json`.
       Please run `tauri dev` or `tauri build` or {}.
-    ", name, error));
+    ",
+					name,
+					error
+				));
 			}
 		}
 	}
@@ -80,7 +88,11 @@ pub fn check(config: &Config, manifest: &mut Manifest) -> Result<()> {
 	Ok(())
 }
 
-fn find_dependency(manifest: &mut Manifest, name: &str, kind: DependencyKind) -> Vec<Dependency> {
+fn find_dependency(
+	manifest:&mut Manifest,
+	name:&str,
+	kind:DependencyKind,
+) -> Vec<Dependency> {
 	let dep = match kind {
 		DependencyKind::Build => manifest.build_dependencies.remove(name),
 		DependencyKind::Normal => manifest.dependencies.remove(name),
@@ -102,7 +114,7 @@ fn find_dependency(manifest: &mut Manifest, name: &str, kind: DependencyKind) ->
 	}
 }
 
-fn features_diff(current: &[String], expected: &[String]) -> Diff {
+fn features_diff(current:&[String], expected:&[String]) -> Diff {
 	let mut remove = Vec::new();
 	let mut add = Vec::new();
 	for feature in current {
@@ -120,14 +132,19 @@ fn features_diff(current: &[String], expected: &[String]) -> Diff {
 	Diff { remove, add }
 }
 
-fn check_features(dependency: Dependency, metadata: &AllowlistedDependency) -> Result<(), String> {
+fn check_features(
+	dependency:Dependency,
+	metadata:&AllowlistedDependency,
+) -> Result<(), String> {
 	let features = match dependency {
 		Dependency::Simple(_) => Vec::new(),
 		Dependency::Detailed(dep) => dep.features,
 		Dependency::Inherited(dep) => dep.features,
 	};
 
-	let diff = if let Some(all_cli_managed_features) = &metadata.all_cli_managed_features {
+	let diff = if let Some(all_cli_managed_features) =
+		&metadata.all_cli_managed_features
+	{
 		features_diff(
 			&features
 				.into_iter()
@@ -137,7 +154,10 @@ fn check_features(dependency: Dependency, metadata: &AllowlistedDependency) -> R
 		)
 	} else {
 		features_diff(
-			&features.into_iter().filter(|f| f.starts_with("allow-")).collect::<Vec<String>>(),
+			&features
+				.into_iter()
+				.filter(|f| f.starts_with("allow-"))
+				.collect::<Vec<String>>(),
 			&metadata.expected_features,
 		)
 	};
@@ -146,7 +166,11 @@ fn check_features(dependency: Dependency, metadata: &AllowlistedDependency) -> R
 	if !diff.remove.is_empty() {
 		error_message.push_str("remove the `");
 		error_message.push_str(&diff.remove.join(", "));
-		error_message.push_str(if diff.remove.len() == 1 { "` feature" } else { "` features" });
+		error_message.push_str(if diff.remove.len() == 1 {
+			"` feature"
+		} else {
+			"` features"
+		});
 		if !diff.add.is_empty() {
 			error_message.push_str(" and ");
 		}
@@ -154,14 +178,14 @@ fn check_features(dependency: Dependency, metadata: &AllowlistedDependency) -> R
 	if !diff.add.is_empty() {
 		error_message.push_str("add the `");
 		error_message.push_str(&diff.add.join(", "));
-		error_message.push_str(if diff.add.len() == 1 { "` feature" } else { "` features" });
+		error_message.push_str(if diff.add.len() == 1 {
+			"` feature"
+		} else {
+			"` features"
+		});
 	}
 
-	if error_message.is_empty() {
-		Ok(())
-	} else {
-		Err(error_message)
-	}
+	if error_message.is_empty() { Ok(()) } else { Err(error_message) }
 }
 
 #[cfg(test)]
@@ -172,20 +196,27 @@ mod tests {
 	fn array_diff() {
 		for (current, expected, result) in [
 			(vec![], vec![], Default::default()),
-			(vec!["a".into()], vec![], Diff { remove: vec!["a".into()], add: vec![] }),
+			(
+				vec!["a".into()],
+				vec![],
+				Diff { remove:vec!["a".into()], add:vec![] },
+			),
 			(vec!["a".into()], vec!["a".into()], Default::default()),
 			(
 				vec!["a".into(), "b".into()],
 				vec!["a".into()],
-				Diff { remove: vec!["b".into()], add: vec![] },
+				Diff { remove:vec!["b".into()], add:vec![] },
 			),
 			(
 				vec!["a".into(), "b".into()],
 				vec!["a".into(), "c".into()],
-				Diff { remove: vec!["b".into()], add: vec!["c".into()] },
+				Diff { remove:vec!["b".into()], add:vec!["c".into()] },
 			),
 		] {
-			assert_eq!(crate::manifest::features_diff(&current, &expected), result);
+			assert_eq!(
+				crate::manifest::features_diff(&current, &expected),
+				result
+			);
 		}
 	}
 }

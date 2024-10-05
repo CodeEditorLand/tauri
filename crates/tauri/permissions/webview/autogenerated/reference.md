@@ -2,10 +2,10 @@
 
 Default permissions for the plugin.
 
-- `allow-get-all-webviews`
-- `allow-webview-position`
-- `allow-webview-size`
-- `allow-internal-toggle-devtools`
+-   `allow-get-all-webviews`
+-   `allow-webview-position`
+-   `allow-webview-size`
+-   `allow-internal-toggle-devtools`
 
 ## Permission Table
 
@@ -14,7 +14,6 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
-
 
 <tr>
 <td>

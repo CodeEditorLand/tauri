@@ -9,7 +9,7 @@ use serde::Serialize;
 use serialize_to_javascript::{default_template, Template};
 
 /// The domain of the isolation iframe source.
-pub const ISOLATION_IFRAME_SRC_DOMAIN: &str = "localhost";
+pub const ISOLATION_IFRAME_SRC_DOMAIN:&str = "localhost";
 
 /// An application pattern.
 #[derive(Debug)]
@@ -20,18 +20,19 @@ pub enum Pattern {
 	#[cfg(feature = "isolation")]
 	Isolation {
 		/// The HTML served on `isolation://index.html`.
-		assets: Arc<tauri_utils::assets::EmbeddedAssets>,
+		assets:Arc<tauri_utils::assets::EmbeddedAssets>,
 
 		/// The schema used for the isolation frames.
-		schema: String,
+		schema:String,
 
-		/// A random string used to ensure that the message went through the isolation frame.
+		/// A random string used to ensure that the message went through the
+		/// isolation frame.
 		///
 		/// This should be regenerated at runtime.
-		key: String,
+		key:String,
 
 		/// Cryptographically secure keys
-		crypto_keys: Box<tauri_utils::pattern::isolation::Keys>,
+		crypto_keys:Box<tauri_utils::pattern::isolation::Keys>,
 	},
 }
 
@@ -45,16 +46,18 @@ pub(crate) enum PatternObject {
 	#[cfg(feature = "isolation")]
 	Isolation {
 		/// Which `IsolationSide` this `PatternObject` is getting injected into
-		side: IsolationSide,
+		side:IsolationSide,
 	},
 }
 
 impl From<&Pattern> for PatternObject {
-	fn from(pattern: &Pattern) -> Self {
+	fn from(pattern:&Pattern) -> Self {
 		match pattern {
 			Pattern::Brownfield => Self::Brownfield,
 			#[cfg(feature = "isolation")]
-			Pattern::Isolation { .. } => Self::Isolation { side: IsolationSide::default() },
+			Pattern::Isolation { .. } => {
+				Self::Isolation { side:IsolationSide::default() }
+			},
 		}
 	}
 }
@@ -71,19 +74,17 @@ pub(crate) enum IsolationSide {
 }
 
 impl Default for IsolationSide {
-	fn default() -> Self {
-		Self::Original
-	}
+	fn default() -> Self { Self::Original }
 }
 
 #[derive(Template)]
 #[default_template("../scripts/pattern.js")]
 pub(crate) struct PatternJavascript {
-	pub(crate) pattern: PatternObject,
+	pub(crate) pattern:PatternObject,
 }
 
 #[allow(dead_code)]
-pub(crate) fn format_real_schema(schema: &str) -> String {
+pub(crate) fn format_real_schema(schema:&str) -> String {
 	if cfg!(windows) || cfg!(target_os = "android") {
 		format!("http://{schema}.{ISOLATION_IFRAME_SRC_DOMAIN}")
 	} else {

@@ -13,13 +13,14 @@
 	html_favicon_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png"
 )]
 
-use anyhow::Result;
 use std::{
 	collections::{HashMap, HashSet},
 	env,
 	path::Path,
 	process::{Command, Stdio},
 };
+
+use anyhow::Result;
 
 mod utils;
 
@@ -28,20 +29,29 @@ fn get_all_benchmarks() -> Vec<(String, String)> {
 	vec![
 		(
 			"tauri_hello_world".into(),
-			format!("../target/{}/release/bench_helloworld", utils::get_target()),
+			format!(
+				"../target/{}/release/bench_helloworld",
+				utils::get_target()
+			),
 		),
 		(
 			"tauri_cpu_intensive".into(),
-			format!("../target/{}/release/bench_cpu_intensive", utils::get_target()),
+			format!(
+				"../target/{}/release/bench_cpu_intensive",
+				utils::get_target()
+			),
 		),
 		(
 			"tauri_3mb_transfer".into(),
-			format!("../target/{}/release/bench_files_transfer", utils::get_target()),
+			format!(
+				"../target/{}/release/bench_files_transfer",
+				utils::get_target()
+			),
 		),
 	]
 }
 
-fn run_strace_benchmarks(new_data: &mut utils::BenchResult) -> Result<()> {
+fn run_strace_benchmarks(new_data:&mut utils::BenchResult) -> Result<()> {
 	use std::io::Read;
 
 	let mut thread_count = HashMap::<String, u64>::new();
@@ -66,7 +76,8 @@ fn run_strace_benchmarks(new_data: &mut utils::BenchResult) -> Result<()> {
 		file.as_file_mut().read_to_string(&mut output)?;
 
 		let strace_result = utils::parse_strace_output(&output);
-		// Note, we always have 1 thread. Use cloneX calls as counter for additional threads created.
+		// Note, we always have 1 thread. Use cloneX calls as counter for
+		// additional threads created.
 		let clone = 1
 			+ strace_result.get("clone").map(|d| d.calls).unwrap_or(0)
 			+ strace_result.get("clone3").map(|d| d.calls).unwrap_or(0);
@@ -86,7 +97,8 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 	let mut results = HashMap::<String, u64>::new();
 
 	for (name, example_exe) in get_all_benchmarks() {
-		let benchmark_file = utils::target_dir().join(format!("mprof{}_.dat", name));
+		let benchmark_file =
+			utils::target_dir().join(format!("mprof{}_.dat", name));
 
 		let benchmark_file = benchmark_file.to_str().unwrap();
 
@@ -104,13 +116,16 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 
 		let proc_result = proc.wait_with_output()?;
 		println!("{:?}", proc_result);
-		results.insert(name.to_string(), utils::parse_max_mem(benchmark_file).unwrap());
+		results.insert(
+			name.to_string(),
+			utils::parse_max_mem(benchmark_file).unwrap(),
+		);
 	}
 
 	Ok(results)
 }
 
-fn rlib_size(target_dir: &std::path::Path, prefix: &str) -> u64 {
+fn rlib_size(target_dir:&std::path::Path, prefix:&str) -> u64 {
 	let mut size = 0;
 	let mut seen = std::collections::HashSet::new();
 
@@ -135,7 +150,7 @@ fn rlib_size(target_dir: &std::path::Path, prefix: &str) -> u64 {
 	size
 }
 
-fn get_binary_sizes(target_dir: &Path) -> Result<HashMap<String, u64>> {
+fn get_binary_sizes(target_dir:&Path) -> Result<HashMap<String, u64>> {
 	let mut sizes = HashMap::<String, u64>::new();
 
 	let wry_size = rlib_size(target_dir, "libwry");
@@ -152,7 +167,7 @@ fn get_binary_sizes(target_dir: &Path) -> Result<HashMap<String, u64>> {
 }
 
 /// (target OS, target triple)
-const TARGETS: &[(&str, &[&str])] = &[
+const TARGETS:&[(&str, &[&str])] = &[
 	(
 		"Windows",
 		&[
@@ -162,7 +177,14 @@ const TARGETS: &[(&str, &[&str])] = &[
 			"x86_64-pc-windows-msvc",
 		],
 	),
-	("Linux", &["x86_64-unknown-linux-gnu", "i686-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]),
+	(
+		"Linux",
+		&[
+			"x86_64-unknown-linux-gnu",
+			"i686-unknown-linux-gnu",
+			"aarch64-unknown-linux-gnu",
+		],
+	),
 	("macOS", &["x86_64-apple-darwin", "aarch64-apple-darwin"]),
 ];
 
@@ -178,8 +200,10 @@ fn cargo_deps() -> HashMap<String, usize> {
 			cmd.args(["--target", target]);
 			cmd.current_dir(utils::tauri_root_path());
 
-			let full_deps = cmd.output().expect("failed to run cargo tree").stdout;
-			let full_deps = String::from_utf8(full_deps).expect("cargo tree output not utf-8");
+			let full_deps =
+				cmd.output().expect("failed to run cargo tree").stdout;
+			let full_deps = String::from_utf8(full_deps)
+				.expect("cargo tree output not utf-8");
 			let count = full_deps.lines().collect::<HashSet<_>>().len() - 1; // output includes wry itself
 
 			// set the count to the highest count seen for this OS
@@ -191,30 +215,49 @@ fn cargo_deps() -> HashMap<String, usize> {
 	results
 }
 
-const RESULT_KEYS: &[&str] = &["mean", "stddev", "user", "system", "min", "max"];
+const RESULT_KEYS:&[&str] = &["mean", "stddev", "user", "system", "min", "max"];
 
-fn run_exec_time(target_dir: &Path) -> Result<HashMap<String, HashMap<String, f64>>> {
+fn run_exec_time(
+	target_dir:&Path,
+) -> Result<HashMap<String, HashMap<String, f64>>> {
 	let benchmark_file = target_dir.join("hyperfine_results.json");
 	let benchmark_file = benchmark_file.to_str().unwrap();
 
-	let mut command =
-		["hyperfine", "--export-json", benchmark_file, "--show-output", "--warmup", "3"]
-			.iter()
-			.map(|s| s.to_string())
-			.collect::<Vec<_>>();
+	let mut command = [
+		"hyperfine",
+		"--export-json",
+		benchmark_file,
+		"--show-output",
+		"--warmup",
+		"3",
+	]
+	.iter()
+	.map(|s| s.to_string())
+	.collect::<Vec<_>>();
 
 	for (_, example_exe) in get_all_benchmarks() {
-		command.push(utils::bench_root_path().join(example_exe).to_str().unwrap().to_string());
+		command.push(
+			utils::bench_root_path()
+				.join(example_exe)
+				.to_str()
+				.unwrap()
+				.to_string(),
+		);
 	}
 
 	utils::run(&command.iter().map(|s| s.as_ref()).collect::<Vec<_>>());
 
 	let mut results = HashMap::<String, HashMap<String, f64>>::new();
 	let hyperfine_results = utils::read_json(benchmark_file)?;
-	for ((name, _), data) in get_all_benchmarks()
-		.iter()
-		.zip(hyperfine_results.as_object().unwrap().get("results").unwrap().as_array().unwrap())
-	{
+	for ((name, _), data) in get_all_benchmarks().iter().zip(
+		hyperfine_results
+			.as_object()
+			.unwrap()
+			.get("results")
+			.unwrap()
+			.as_array()
+			.unwrap(),
+	) {
 		let data = data.as_object().unwrap().clone();
 		results.insert(
 			name.to_string(),
@@ -245,15 +288,20 @@ fn main() -> Result<()> {
 
 	env::set_current_dir(utils::bench_root_path())?;
 
-	let format =
-		time::format_description::parse("[year]-[month]-[day]T[hour]:[minute]:[second]Z").unwrap();
+	let format = time::format_description::parse(
+		"[year]-[month]-[day]T[hour]:[minute]:[second]Z",
+	)
+	.unwrap();
 	let now = time::OffsetDateTime::now_utc();
 	let mut new_data = utils::BenchResult {
-		created_at: now.format(&format).unwrap(),
-		sha1: utils::run_collect(&["git", "rev-parse", "HEAD"]).0.trim().to_string(),
-		exec_time: run_exec_time(&target_dir)?,
-		binary_size: get_binary_sizes(&target_dir)?,
-		cargo_deps: cargo_deps(),
+		created_at:now.format(&format).unwrap(),
+		sha1:utils::run_collect(&["git", "rev-parse", "HEAD"])
+			.0
+			.trim()
+			.to_string(),
+		exec_time:run_exec_time(&target_dir)?,
+		binary_size:get_binary_sizes(&target_dir)?,
+		cargo_deps:cargo_deps(),
 		..Default::default()
 	};
 

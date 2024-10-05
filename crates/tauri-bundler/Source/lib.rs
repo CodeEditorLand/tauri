@@ -5,8 +5,8 @@
 
 //! [![](https://github.com/tauri-apps/tauri/raw/dev/.github/splash.png)](https://tauri.app)
 //!
-//! The Tauri bundler is a tool that generates installers or app bundles for executables.
-//! It supports auto updating through [tauri](https://docs.rs/tauri).
+//! The Tauri bundler is a tool that generates installers or app bundles for
+//! executables. It supports auto updating through [tauri](https://docs.rs/tauri).
 //!
 //! # Platform support
 //! - macOS
@@ -17,8 +17,8 @@
 //!   - MSI using WiX
 
 #![doc(
-  html_logo_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png",
-  html_favicon_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png"
+	html_logo_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png",
+	html_favicon_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png"
 )]
 #![warn(missing_docs, rust_2018_idioms)]
 

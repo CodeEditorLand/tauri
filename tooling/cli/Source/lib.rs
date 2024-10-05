@@ -4,7 +4,9 @@
 
 //! [![](https://github.com/tauri-apps/tauri/raw/dev/.github/splash.png)](https://tauri.app)
 //!
-//! This Rust executable provides the full interface to all of the required activities for which the CLI is required. It will run on macOS, Windows, and Linux.
+//! This Rust executable provides the full interface to all of the required
+//! activities for which the CLI is required. It will run on macOS, Windows, and
+//! Linux.
 
 #![doc(
 	html_logo_url = "https://github.com/tauri-apps/tauri/raw/dev/.github/icon.png",
@@ -31,13 +33,6 @@ mod mobile;
 mod plugin;
 mod signer;
 
-use clap::{ArgAction, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
-use env_logger::{
-	fmt::style::{AnsiColor, Style},
-	Builder,
-};
-use log::Level;
-use serde::{Deserialize, Serialize};
 use std::{
 	ffi::OsString,
 	fmt::Display,
@@ -49,6 +44,21 @@ use std::{
 	sync::{Arc, Mutex},
 };
 
+use clap::{
+	ArgAction,
+	CommandFactory,
+	FromArgMatches,
+	Parser,
+	Subcommand,
+	ValueEnum,
+};
+use env_logger::{
+	fmt::style::{AnsiColor, Style},
+	Builder,
+};
+use log::Level;
+use serde::{Deserialize, Serialize};
+
 /// Tauri configuration argument option.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigValue(pub(crate) serde_json::Value);
@@ -56,15 +66,19 @@ pub struct ConfigValue(pub(crate) serde_json::Value);
 impl FromStr for ConfigValue {
 	type Err = anyhow::Error;
 
-	fn from_str(config: &str) -> std::result::Result<Self, Self::Err> {
+	fn from_str(config:&str) -> std::result::Result<Self, Self::Err> {
 		if config.starts_with('{') {
-			Ok(Self(serde_json::from_str(config).context("invalid configuration JSON")?))
+			Ok(Self(
+				serde_json::from_str(config)
+					.context("invalid configuration JSON")?,
+			))
 		} else {
 			let path = PathBuf::from(config);
 			if path.exists() {
 				Ok(Self(serde_json::from_str(
-					&read_to_string(&path)
-						.with_context(|| format!("invalid configuration at file {config}"))?,
+					&read_to_string(&path).with_context(|| {
+						format!("invalid configuration at file {config}")
+					})?,
 				)?))
 			} else {
 				anyhow::bail!("provided configuration path does not exist")
@@ -82,7 +96,7 @@ pub enum RunMode {
 }
 
 impl Display for RunMode {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(
 			f,
 			"{}",
@@ -98,18 +112,18 @@ impl Display for RunMode {
 
 #[derive(Deserialize)]
 pub struct VersionMetadata {
-	tauri: String,
+	tauri:String,
 	#[serde(rename = "tauri-build")]
-	tauri_build: String,
+	tauri_build:String,
 	#[serde(rename = "tauri-plugin")]
-	tauri_plugin: String,
+	tauri_plugin:String,
 }
 
 #[derive(Deserialize)]
 pub struct PackageJson {
-	name: Option<String>,
-	version: Option<String>,
-	product_name: Option<String>,
+	name:Option<String>,
+	version:Option<String>,
+	product_name:Option<String>,
 }
 
 #[derive(Parser)]
@@ -126,9 +140,9 @@ pub struct PackageJson {
 pub(crate) struct Cli {
 	/// Enables verbose logging
 	#[clap(short, long, global = true, action = ArgAction::Count)]
-	verbose: u8,
+	verbose:u8,
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Subcommand)]
@@ -152,28 +166,28 @@ enum Commands {
 	Capability(acl::capability::Cli),
 }
 
-fn format_error<I: CommandFactory>(err: clap::Error) -> clap::Error {
+fn format_error<I:CommandFactory>(err:clap::Error) -> clap::Error {
 	let mut app = I::command();
 	err.format(&mut app)
 }
 
 /// Run the Tauri CLI with the passed arguments, exiting if an error occurs.
 ///
-/// The passed arguments should have the binary argument(s) stripped out before being passed.
+/// The passed arguments should have the binary argument(s) stripped out before
+/// being passed.
 ///
 /// e.g.
 /// 1. `tauri-cli 1 2 3` -> `1 2 3`
 /// 2. `cargo tauri 1 2 3` -> `1 2 3`
 /// 3. `node tauri.js 1 2 3` -> `1 2 3`
 ///
-/// The passed `bin_name` parameter should be how you want the help messages to display the command.
-/// This defaults to `cargo-tauri`, but should be set to how the program was called, such as
-/// `cargo tauri`.
-pub fn run<I, A>(args: I, bin_name: Option<String>)
+/// The passed `bin_name` parameter should be how you want the help messages to
+/// display the command. This defaults to `cargo-tauri`, but should be set to
+/// how the program was called, such as `cargo tauri`.
+pub fn run<I, A>(args:I, bin_name:Option<String>)
 where
 	I: IntoIterator<Item = A>,
-	A: Into<OsString> + Clone,
-{
+	A: Into<OsString> + Clone, {
 	if let Err(e) = try_run(args, bin_name) {
 		let mut message = e.to_string();
 		if e.chain().count() > 1 {
@@ -194,12 +208,12 @@ where
 
 /// Run the Tauri CLI with the passed arguments.
 ///
-/// It is similar to [`run`], but instead of exiting on an error, it returns a result.
-pub fn try_run<I, A>(args: I, bin_name: Option<String>) -> Result<()>
+/// It is similar to [`run`], but instead of exiting on an error, it returns a
+/// result.
+pub fn try_run<I, A>(args:I, bin_name:Option<String>) -> Result<()>
 where
 	I: IntoIterator<Item = A>,
-	A: Into<OsString> + Clone,
-{
+	A: Into<OsString> + Clone, {
 	let cli = match bin_name {
 		Some(bin_name) => Cli::command().bin_name(bin_name),
 		None => Cli::command(),
@@ -223,17 +237,24 @@ where
 				let action = action.to_cow_str().unwrap();
 				is_command_output = action == "stdout" || action == "stderr";
 				if !is_command_output {
-					let style = Style::new().fg_color(Some(AnsiColor::Green.into())).bold();
+					let style = Style::new()
+						.fg_color(Some(AnsiColor::Green.into()))
+						.bold();
 
 					write!(f, "    {style}{}{style:#} ", action)?;
 				}
 			} else {
 				let style = f.default_level_style(record.level()).bold();
-				write!(f, "    {style}{}{style:#} ", prettyprint_level(record.level()))?;
+				write!(
+					f,
+					"    {style}{}{style:#} ",
+					prettyprint_level(record.level())
+				)?;
 			}
 
 			if !is_command_output && log::log_enabled!(Level::Debug) {
-				let style = Style::new().fg_color(Some(AnsiColor::Black.into()));
+				let style =
+					Style::new().fg_color(Some(AnsiColor::Black.into()));
 
 				write!(f, "[{style}{}{style:#}] ", record.target())?;
 			}
@@ -269,7 +290,7 @@ where
 }
 
 /// This maps the occurrence of `--verbose` flags to the correct log level
-fn verbosity_level(num: u8) -> Level {
+fn verbosity_level(num:u8) -> Level {
 	match num {
 		0 => Level::Info,
 		1 => Level::Debug,
@@ -277,8 +298,9 @@ fn verbosity_level(num: u8) -> Level {
 	}
 }
 
-/// The default string representation for `Level` is all uppercaps which doesn't mix well with the other printed actions.
-fn prettyprint_level(lvl: Level) -> &'static str {
+/// The default string representation for `Level` is all uppercaps which doesn't
+/// mix well with the other printed actions.
+fn prettyprint_level(lvl:Level) -> &'static str {
 	match lvl {
 		Level::Error => "Error",
 		Level::Warn => "Warn",
@@ -331,7 +353,7 @@ impl CommandExt for Command {
 					Ok(_) => {
 						log::debug!(action = "stdout"; "{}", line.trim_end());
 						lines.extend(line.as_bytes().to_vec());
-					}
+					},
 					Err(_) => (),
 				}
 			}
@@ -352,7 +374,7 @@ impl CommandExt for Command {
 					Ok(_) => {
 						log::debug!(action = "stderr"; "{}", line.trim_end());
 						lines.extend(line.as_bytes().to_vec());
-					}
+					},
 					Err(_) => (),
 				}
 			}
@@ -362,8 +384,8 @@ impl CommandExt for Command {
 
 		let output = Output {
 			status,
-			stdout: std::mem::take(&mut *stdout_lines.lock().unwrap()),
-			stderr: std::mem::take(&mut *stderr_lines.lock().unwrap()),
+			stdout:std::mem::take(&mut *stdout_lines.lock().unwrap()),
+			stderr:std::mem::take(&mut *stderr_lines.lock().unwrap()),
 		};
 
 		if output.status.success() {

@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use anyhow::Result;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::{
 	collections::HashMap,
 	fs,
@@ -13,26 +10,30 @@ use std::{
 	process::{Command, Output, Stdio},
 };
 
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct BenchResult {
-	pub created_at: String,
-	pub sha1: String,
-	pub exec_time: HashMap<String, HashMap<String, f64>>,
-	pub binary_size: HashMap<String, u64>,
-	pub max_memory: HashMap<String, u64>,
-	pub thread_count: HashMap<String, u64>,
-	pub syscall_count: HashMap<String, u64>,
-	pub cargo_deps: HashMap<String, usize>,
+	pub created_at:String,
+	pub sha1:String,
+	pub exec_time:HashMap<String, HashMap<String, f64>>,
+	pub binary_size:HashMap<String, u64>,
+	pub max_memory:HashMap<String, u64>,
+	pub thread_count:HashMap<String, u64>,
+	pub syscall_count:HashMap<String, u64>,
+	pub cargo_deps:HashMap<String, usize>,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize)]
 pub struct StraceOutput {
-	pub percent_time: f64,
-	pub seconds: f64,
-	pub usecs_per_call: Option<u64>,
-	pub calls: u64,
-	pub errors: u64,
+	pub percent_time:f64,
+	pub seconds:f64,
+	pub usecs_per_call:Option<u64>,
+	pub calls:u64,
+	pub errors:u64,
 }
 
 pub fn get_target() -> &'static str {
@@ -43,7 +44,11 @@ pub fn get_target() -> &'static str {
 		"x86_64-apple-darwin"
 	};
 	#[cfg(target_os = "ios")]
-	return if cfg!(target_arch = "aarch64") { "aarch64-apple-ios" } else { "x86_64-apple-ios" };
+	return if cfg!(target_arch = "aarch64") {
+		"aarch64-apple-ios"
+	} else {
+		"x86_64-apple-ios"
+	};
 	#[cfg(target_os = "linux")]
 	return "x86_64-unknown-linux-gnu";
 	#[cfg(target_os = "windows")]
@@ -51,7 +56,11 @@ pub fn get_target() -> &'static str {
 }
 
 pub fn target_dir() -> PathBuf {
-	bench_root_path().join("..").join("target").join(get_target()).join("release")
+	bench_root_path()
+		.join("..")
+		.join("target")
+		.join(get_target())
+		.join("release")
 }
 
 pub fn bench_root_path() -> PathBuf {
@@ -72,7 +81,7 @@ pub fn tauri_root_path() -> PathBuf {
 }
 
 #[allow(dead_code)]
-pub fn run_collect(cmd: &[&str]) -> (String, String) {
+pub fn run_collect(cmd:&[&str]) -> (String, String) {
 	let mut process_builder = Command::new(cmd[0]);
 	process_builder
 		.args(&cmd[1..])
@@ -93,17 +102,18 @@ pub fn run_collect(cmd: &[&str]) -> (String, String) {
 }
 
 #[allow(dead_code)]
-pub fn parse_max_mem(file_path: &str) -> Option<u64> {
+pub fn parse_max_mem(file_path:&str) -> Option<u64> {
 	let file = fs::File::open(file_path).unwrap();
 	let output = BufReader::new(file);
-	let mut highest: u64 = 0;
+	let mut highest:u64 = 0;
 	// MEM 203.437500 1621617192.4123
 	for line in output.lines().map_while(Result::ok) {
 		// split line by space
 		let split = line.split(' ').collect::<Vec<_>>();
 		if split.len() == 3 {
 			// mprof generate result in MB
-			let current_bytes = str::parse::<f64>(split[1]).unwrap() as u64 * 1024 * 1024;
+			let current_bytes =
+				str::parse::<f64>(split[1]).unwrap() as u64 * 1024 * 1024;
 			if current_bytes > highest {
 				highest = current_bytes;
 			}
@@ -120,11 +130,12 @@ pub fn parse_max_mem(file_path: &str) -> Option<u64> {
 }
 
 #[allow(dead_code)]
-pub fn parse_strace_output(output: &str) -> HashMap<String, StraceOutput> {
+pub fn parse_strace_output(output:&str) -> HashMap<String, StraceOutput> {
 	let mut summary = HashMap::new();
 
-	let mut lines =
-		output.lines().filter(|line| !line.is_empty() && !line.contains("detached ..."));
+	let mut lines = output
+		.lines()
+		.filter(|line| !line.is_empty() && !line.contains("detached ..."));
 	let count = lines.clone().count();
 
 	if count < 4 {
@@ -146,11 +157,13 @@ pub fn parse_strace_output(output: &str) -> HashMap<String, StraceOutput> {
 			summary.insert(
 				syscall_name.to_string(),
 				StraceOutput {
-					percent_time: str::parse::<f64>(syscall_fields[0]).unwrap(),
-					seconds: str::parse::<f64>(syscall_fields[1]).unwrap(),
-					usecs_per_call: Some(str::parse::<u64>(syscall_fields[2]).unwrap()),
-					calls: str::parse::<u64>(syscall_fields[3]).unwrap(),
-					errors: if syscall_fields.len() < 6 {
+					percent_time:str::parse::<f64>(syscall_fields[0]).unwrap(),
+					seconds:str::parse::<f64>(syscall_fields[1]).unwrap(),
+					usecs_per_call:Some(
+						str::parse::<u64>(syscall_fields[2]).unwrap(),
+					),
+					calls:str::parse::<u64>(syscall_fields[3]).unwrap(),
+					errors:if syscall_fields.len() < 6 {
 						0
 					} else {
 						str::parse::<u64>(syscall_fields[4]).unwrap()
@@ -166,19 +179,25 @@ pub fn parse_strace_output(output: &str) -> HashMap<String, StraceOutput> {
 		"total".to_string(),
 		match total_fields.len() {
 			// Old format, has no usecs/call
-			5 => StraceOutput {
-				percent_time: str::parse::<f64>(total_fields[0]).unwrap(),
-				seconds: str::parse::<f64>(total_fields[1]).unwrap(),
-				usecs_per_call: None,
-				calls: str::parse::<u64>(total_fields[2]).unwrap(),
-				errors: str::parse::<u64>(total_fields[3]).unwrap(),
+			5 => {
+				StraceOutput {
+					percent_time:str::parse::<f64>(total_fields[0]).unwrap(),
+					seconds:str::parse::<f64>(total_fields[1]).unwrap(),
+					usecs_per_call:None,
+					calls:str::parse::<u64>(total_fields[2]).unwrap(),
+					errors:str::parse::<u64>(total_fields[3]).unwrap(),
+				}
 			},
-			6 => StraceOutput {
-				percent_time: str::parse::<f64>(total_fields[0]).unwrap(),
-				seconds: str::parse::<f64>(total_fields[1]).unwrap(),
-				usecs_per_call: Some(str::parse::<u64>(total_fields[2]).unwrap()),
-				calls: str::parse::<u64>(total_fields[3]).unwrap(),
-				errors: str::parse::<u64>(total_fields[4]).unwrap(),
+			6 => {
+				StraceOutput {
+					percent_time:str::parse::<f64>(total_fields[0]).unwrap(),
+					seconds:str::parse::<f64>(total_fields[1]).unwrap(),
+					usecs_per_call:Some(
+						str::parse::<u64>(total_fields[2]).unwrap(),
+					),
+					calls:str::parse::<u64>(total_fields[3]).unwrap(),
+					errors:str::parse::<u64>(total_fields[4]).unwrap(),
+				}
 			},
 			_ => panic!("Unexpected total field count: {}", total_fields.len()),
 		},
@@ -188,7 +207,7 @@ pub fn parse_strace_output(output: &str) -> HashMap<String, StraceOutput> {
 }
 
 #[allow(dead_code)]
-pub fn run(cmd: &[&str]) {
+pub fn run(cmd:&[&str]) {
 	let mut process_builder = Command::new(cmd[0]);
 	process_builder.args(&cmd[1..]).stdin(Stdio::piped());
 	let mut prog = process_builder.spawn().expect("failed to spawn script");
@@ -199,20 +218,20 @@ pub fn run(cmd: &[&str]) {
 }
 
 #[allow(dead_code)]
-pub fn read_json(filename: &str) -> Result<Value> {
+pub fn read_json(filename:&str) -> Result<Value> {
 	let f = fs::File::open(filename)?;
 	Ok(serde_json::from_reader(f)?)
 }
 
 #[allow(dead_code)]
-pub fn write_json(filename: &str, value: &Value) -> Result<()> {
+pub fn write_json(filename:&str, value:&Value) -> Result<()> {
 	let f = fs::File::create(filename)?;
 	serde_json::to_writer(f, value)?;
 	Ok(())
 }
 
 #[allow(dead_code)]
-pub fn download_file(url: &str, filename: PathBuf) {
+pub fn download_file(url:&str, filename:PathBuf) {
 	if !url.starts_with("http:") && !url.starts_with("https:") {
 		fs::copy(url, filename).unwrap();
 		return;

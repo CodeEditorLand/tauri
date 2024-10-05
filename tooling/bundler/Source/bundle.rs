@@ -15,34 +15,52 @@ mod settings;
 mod updater_bundle;
 mod windows;
 
+use std::{fmt::Write, path::PathBuf};
+
+#[cfg(target_os = "macos")]
+use anyhow::Context;
+pub use settings::{
+	NsisSettings,
+	WindowsSettings,
+	WixLanguage,
+	WixLanguageConfig,
+	WixSettings,
+};
 use tauri_utils::display_path;
 
 pub use self::{
 	category::AppCategory,
 	settings::{
-		AppImageSettings, BundleBinary, BundleSettings, CustomSignCommandSettings, DebianSettings,
-		DmgSettings, MacOsSettings, PackageSettings, PackageType, Position, RpmSettings, Settings,
-		SettingsBuilder, Size, UpdaterSettings,
+		AppImageSettings,
+		BundleBinary,
+		BundleSettings,
+		CustomSignCommandSettings,
+		DebianSettings,
+		DmgSettings,
+		MacOsSettings,
+		PackageSettings,
+		PackageType,
+		Position,
+		RpmSettings,
+		Settings,
+		SettingsBuilder,
+		Size,
+		UpdaterSettings,
 	},
 };
-#[cfg(target_os = "macos")]
-use anyhow::Context;
-pub use settings::{NsisSettings, WindowsSettings, WixLanguage, WixLanguageConfig, WixSettings};
-
-use std::{fmt::Write, path::PathBuf};
 
 /// Generated bundle metadata.
 #[derive(Debug)]
 pub struct Bundle {
 	/// The package type.
-	pub package_type: PackageType,
+	pub package_type:PackageType,
 	/// All paths for this package.
-	pub bundle_paths: Vec<PathBuf>,
+	pub bundle_paths:Vec<PathBuf>,
 }
 
 /// Bundles the project.
 /// Returns the list of paths where the bundles can be found.
-pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
+pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 	let mut package_types = settings.package_types()?;
 	if package_types.is_empty() {
 		return Ok(Vec::new());
@@ -58,10 +76,15 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 		.replace("darwin", "macos");
 
 	if target_os != std::env::consts::OS {
-		log::warn!("Cross-platform compilation is experimental and does not support all features. Please use a matching host system for full compatibility.");
+		log::warn!(
+			"Cross-platform compilation is experimental and does not support \
+			 all features. Please use a matching host system for full \
+			 compatibility."
+		);
 	}
 
-	// Sign windows binaries before the bundling step in case neither wix and nsis bundles are enabled
+	// Sign windows binaries before the bundling step in case neither wix and
+	// nsis bundles are enabled
 	if target_os == "windows" {
 		if settings.can_sign() {
 			for bin in settings.binaries() {
@@ -80,7 +103,10 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 
 				#[cfg(windows)]
 				if windows::sign::verify(&path)? {
-					log::info!("sidecar at \"{}\" already signed. Skipping...", path.display());
+					log::info!(
+						"sidecar at \"{}\" already signed. Skipping...",
+						path.display()
+					);
 					continue;
 				}
 
@@ -88,7 +114,12 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 			}
 		} else {
 			#[cfg(not(target_os = "windows"))]
-			log::warn!("Signing, by default, is only supported on Windows hosts, but you can specify a custom signing command in `bundler > windows > sign_command`, for now, skipping signing the installer...");
+			log::warn!(
+				"Signing, by default, is only supported on Windows hosts, but \
+				 you can specify a custom signing command in `bundler > \
+				 windows > sign_command`, for now, skipping signing the \
+				 installer..."
+			);
 		}
 	}
 
@@ -104,22 +135,25 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 			PackageType::MacOsBundle => macos::app::bundle_project(settings)?,
 			#[cfg(target_os = "macos")]
 			PackageType::IosBundle => macos::ios::bundle_project(settings)?,
-			// dmg is dependent of MacOsBundle, we send our bundles to prevent rebuilding
+			// dmg is dependent of MacOsBundle, we send our bundles to prevent
+			// rebuilding
 			#[cfg(target_os = "macos")]
 			PackageType::Dmg => {
 				let bundled = macos::dmg::bundle_project(settings, &bundles)?;
 				if !bundled.app.is_empty() {
 					bundles.push(Bundle {
-						package_type: PackageType::MacOsBundle,
-						bundle_paths: bundled.app,
+						package_type:PackageType::MacOsBundle,
+						bundle_paths:bundled.app,
 					});
 				}
 				bundled.dmg
-			}
+			},
 
 			#[cfg(target_os = "windows")]
 			PackageType::WindowsMsi => windows::msi::bundle_project(settings, false)?,
-			PackageType::Nsis => windows::nsis::bundle_project(settings, false)?,
+			PackageType::Nsis => {
+				windows::nsis::bundle_project(settings, false)?
+			},
 
 			#[cfg(target_os = "linux")]
 			PackageType::Deb => linux::debian::bundle_project(settings)?,
@@ -130,10 +164,13 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 			_ => {
 				log::warn!("ignoring {}", package_type.short_name());
 				continue;
-			}
+			},
 		};
 
-		bundles.push(Bundle { package_type: package_type.to_owned(), bundle_paths });
+		bundles.push(Bundle {
+			package_type:package_type.to_owned(),
+			bundle_paths,
+		});
 	}
 
 	if let Some(updater) = settings.updater() {
@@ -150,21 +187,35 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 				matches!(package_type, PackageType::MacOsBundle)
 			}
 		}) {
-			let updater_paths = updater_bundle::bundle_project(settings, &bundles)?;
-			bundles
-				.push(Bundle { package_type: PackageType::Updater, bundle_paths: updater_paths });
+			let updater_paths =
+				updater_bundle::bundle_project(settings, &bundles)?;
+			bundles.push(Bundle {
+				package_type:PackageType::Updater,
+				bundle_paths:updater_paths,
+			});
 		} else if updater.v1_compatible
 			|| !package_types.iter().any(|package_type| {
 				// Self contained updater, no need to zip
 				matches!(
 					package_type,
-					PackageType::AppImage | PackageType::Nsis | PackageType::WindowsMsi
+					PackageType::AppImage
+						| PackageType::Nsis
+						| PackageType::WindowsMsi
 				)
 			}) {
-			log::warn!("The bundler was configured to create updater artifacts but no updater-enabled targets were built. Please enable one of these targets: app, appimage, msi, nsis");
+			log::warn!(
+				"The bundler was configured to create updater artifacts but \
+				 no updater-enabled targets were built. Please enable one of \
+				 these targets: app, appimage, msi, nsis"
+			);
 		}
 		if updater.v1_compatible {
-			log::warn!("Legacy v1 compatible updater is deprecated and will be removed in v3, change bundle > createUpdaterArtifacts to true when your users are updated to the version with v2 updater plugin");
+			log::warn!(
+				"Legacy v1 compatible updater is deprecated and will be \
+				 removed in v3, change bundle > createUpdaterArtifacts to \
+				 true when your users are updated to the version with v2 \
+				 updater plugin"
+			);
 		}
 	}
 
@@ -185,7 +236,10 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 						false => std::fs::remove_file(app_bundle_path),
 					}
 					.with_context(|| {
-						format!("Failed to clean the app bundle at {}", app_bundle_path.display())
+						format!(
+							"Failed to clean the app bundle at {}",
+							app_bundle_path.display()
+						)
 					})?
 				}
 			}
@@ -196,16 +250,21 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 		return Err(anyhow::anyhow!("No bundles were built").into());
 	}
 
-	let bundles_wo_updater =
-		bundles.iter().filter(|b| b.package_type != PackageType::Updater).collect::<Vec<_>>();
+	let bundles_wo_updater = bundles
+		.iter()
+		.filter(|b| b.package_type != PackageType::Updater)
+		.collect::<Vec<_>>();
 	let finished_bundles = bundles_wo_updater.len();
 	let pluralised = if finished_bundles == 1 { "bundle" } else { "bundles" };
 
 	let mut printable_paths = String::new();
 	for bundle in &bundles {
 		for path in &bundle.bundle_paths {
-			let note =
-				if bundle.package_type == crate::PackageType::Updater { " (updater)" } else { "" };
+			let note = if bundle.package_type == crate::PackageType::Updater {
+				" (updater)"
+			} else {
+				""
+			};
 			let path_display = display_path(path);
 			writeln!(printable_paths, "        {path_display}{note}").unwrap();
 		}
@@ -217,14 +276,11 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
 }
 
 /// Check to see if there are icons in the settings struct
-pub fn check_icons(settings: &Settings) -> crate::Result<bool> {
+pub fn check_icons(settings:&Settings) -> crate::Result<bool> {
 	// make a peekable iterator of the icon_files
 	let mut iter = settings.icon_files().peekable();
 
-	// if iter's first value is a None then there are no Icon files in the settings struct
-	if iter.peek().is_none() {
-		Ok(false)
-	} else {
-		Ok(true)
-	}
+	// if iter's first value is a None then there are no Icon files in the
+	// settings struct
+	if iter.peek().is_none() { Ok(false) } else { Ok(true) }
 }

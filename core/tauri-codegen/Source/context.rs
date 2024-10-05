@@ -10,12 +10,6 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{
-	embedded_assets::{
-		ensure_out_dir, AssetOptions, CspHashes, EmbeddedAssets, EmbeddedAssetsResult,
-	},
-	image::CachedIcon,
-};
 use base64::Engine;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -30,31 +24,50 @@ use tauri_utils::{
 	assets::AssetKey,
 	config::{CapabilityEntry, Config, FrontendDist, PatternKind},
 	html::{
-		inject_nonce_token, parse as parse_html, serialize_node as serialize_html_node, NodeRef,
+		inject_nonce_token,
+		parse as parse_html,
+		serialize_node as serialize_html_node,
+		NodeRef,
 	},
 	platform::Target,
 	plugin::GLOBAL_API_SCRIPT_FILE_LIST_PATH,
 	tokens::{map_lit, str_lit},
 };
 
-const ACL_MANIFESTS_FILE_NAME: &str = "acl-manifests.json";
-const CAPABILITIES_FILE_NAME: &str = "capabilities.json";
+use crate::{
+	embedded_assets::{
+		ensure_out_dir,
+		AssetOptions,
+		CspHashes,
+		EmbeddedAssets,
+		EmbeddedAssetsResult,
+	},
+	image::CachedIcon,
+};
 
-/// Necessary data needed by [`context_codegen`] to generate code for a Tauri application context.
+const ACL_MANIFESTS_FILE_NAME:&str = "acl-manifests.json";
+const CAPABILITIES_FILE_NAME:&str = "capabilities.json";
+
+/// Necessary data needed by [`context_codegen`] to generate code for a Tauri
+/// application context.
 pub struct ContextData {
-	pub dev: bool,
-	pub config: Config,
-	pub config_parent: PathBuf,
-	pub root: TokenStream,
+	pub dev:bool,
+	pub config:Config,
+	pub config_parent:PathBuf,
+	pub root:TokenStream,
 	/// Additional capabilities to include.
-	pub capabilities: Option<Vec<PathBuf>>,
+	pub capabilities:Option<Vec<PathBuf>>,
 	/// The custom assets implementation
-	pub assets: Option<Expr>,
+	pub assets:Option<Expr>,
 	/// Skip runtime-only types generation for tests (e.g. embed-plist usage).
-	pub test: bool,
+	pub test:bool,
 }
 
-fn inject_script_hashes(document: &NodeRef, key: &AssetKey, csp_hashes: &mut CspHashes) {
+fn inject_script_hashes(
+	document:&NodeRef,
+	key:&AssetKey,
+	csp_hashes:&mut CspHashes,
+) {
 	if let Ok(inline_script_elements) = document.select("script:not(empty)") {
 		let mut scripts = Vec::new();
 		for inline_script_el in inline_script_elements {
@@ -67,13 +80,22 @@ fn inject_script_hashes(document: &NodeRef, key: &AssetKey, csp_hashes: &mut Csp
 				base64::engine::general_purpose::STANDARD.encode(hash)
 			));
 		}
-		csp_hashes.inline_scripts.entry(key.clone().into()).or_default().append(&mut scripts);
+		csp_hashes
+			.inline_scripts
+			.entry(key.clone().into())
+			.or_default()
+			.append(&mut scripts);
 	}
 }
 
 fn map_core_assets(
-	options: &AssetOptions,
-) -> impl Fn(&AssetKey, &Path, &mut Vec<u8>, &mut CspHashes) -> EmbeddedAssetsResult<()> {
+	options:&AssetOptions,
+) -> impl Fn(
+	&AssetKey,
+	&Path,
+	&mut Vec<u8>,
+	&mut CspHashes,
+) -> EmbeddedAssetsResult<()> {
 	let csp = options.csp;
 	let dangerous_disable_asset_csp_modification =
 		options.dangerous_disable_asset_csp_modification.clone();
@@ -81,11 +103,17 @@ fn map_core_assets(
 		if path.extension() == Some(OsStr::new("html")) {
 			#[allow(clippy::collapsible_if)]
 			if csp {
-				let document = parse_html(String::from_utf8_lossy(input).into_owned());
+				let document =
+					parse_html(String::from_utf8_lossy(input).into_owned());
 
-				inject_nonce_token(&document, &dangerous_disable_asset_csp_modification);
+				inject_nonce_token(
+					&document,
+					&dangerous_disable_asset_csp_modification,
+				);
 
-				if dangerous_disable_asset_csp_modification.can_modify("script-src") {
+				if dangerous_disable_asset_csp_modification
+					.can_modify("script-src")
+				{
 					inject_script_hashes(&document, key, csp_hashes);
 				}
 
@@ -98,19 +126,28 @@ fn map_core_assets(
 
 #[cfg(feature = "isolation")]
 fn map_isolation(
-	_options: &AssetOptions,
-	dir: PathBuf,
-) -> impl Fn(&AssetKey, &Path, &mut Vec<u8>, &mut CspHashes) -> EmbeddedAssetsResult<()> {
-	// create the csp for the isolation iframe styling now, to make the runtime less complex
+	_options:&AssetOptions,
+	dir:PathBuf,
+) -> impl Fn(
+	&AssetKey,
+	&Path,
+	&mut Vec<u8>,
+	&mut CspHashes,
+) -> EmbeddedAssetsResult<()> {
+	// create the csp for the isolation iframe styling now, to make the runtime
+	// less complex
 	let mut hasher = Sha256::new();
 	hasher.update(tauri_utils::pattern::isolation::IFRAME_STYLE);
 	let hash = hasher.finalize();
-	let iframe_style_csp_hash =
-		format!("'sha256-{}'", base64::engine::general_purpose::STANDARD.encode(hash));
+	let iframe_style_csp_hash = format!(
+		"'sha256-{}'",
+		base64::engine::general_purpose::STANDARD.encode(hash)
+	);
 
 	move |key, path, input, csp_hashes| {
 		if path.extension() == Some(OsStr::new("html")) {
-			let isolation_html = parse_html(String::from_utf8_lossy(input).into_owned());
+			let isolation_html =
+				parse_html(String::from_utf8_lossy(input).into_owned());
 
 			// this is appended, so no need to reverse order it
 			tauri_utils::html::inject_codegen_isolation_script(&isolation_html);
@@ -135,7 +172,7 @@ fn map_isolation(
 }
 
 /// Build a `tauri::Context` for including in application code.
-pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
+pub fn context_codegen(data:ContextData) -> EmbeddedAssetsResult<TokenStream> {
 	let ContextData {
 		dev,
 		config,
@@ -157,10 +194,18 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 	let mut options = AssetOptions::new(config.app.security.pattern.clone())
 		.freeze_prototype(config.app.security.freeze_prototype)
 		.dangerous_disable_asset_csp_modification(
-			config.app.security.dangerous_disable_asset_csp_modification.clone(),
+			config
+				.app
+				.security
+				.dangerous_disable_asset_csp_modification
+				.clone(),
 		);
 	let csp = if dev {
-		config.app.security.dev_csp.as_ref().or(config.app.security.csp.as_ref())
+		config.app.security.dev_csp.as_ref().or(config
+			.app
+			.security
+			.csp
+			.as_ref())
 	} else {
 		config.app.security.csp.as_ref()
 	};
@@ -175,23 +220,35 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 		quote!(#assets)
 	} else {
 		let assets = match &config.build.frontend_dist {
-			Some(url) => match url {
-				FrontendDist::Url(_url) => Default::default(),
-				FrontendDist::Directory(path) => {
-					let assets_path = config_parent.join(path);
-					if !assets_path.exists() {
-						panic!(
-              "The `frontendDist` configuration is set to `{path:?}` but this path doesn't exist"
-            )
-					}
-					EmbeddedAssets::new(assets_path, &options, map_core_assets(&options))?
+			Some(url) => {
+				match url {
+					FrontendDist::Url(_url) => Default::default(),
+					FrontendDist::Directory(path) => {
+						let assets_path = config_parent.join(path);
+						if !assets_path.exists() {
+							panic!(
+								"The `frontendDist` configuration is set to \
+								 `{path:?}` but this path doesn't exist"
+							)
+						}
+						EmbeddedAssets::new(
+							assets_path,
+							&options,
+							map_core_assets(&options),
+						)?
+					},
+					FrontendDist::Files(files) => {
+						EmbeddedAssets::new(
+							files
+								.iter()
+								.map(|p| config_parent.join(p))
+								.collect::<Vec<_>>(),
+							&options,
+							map_core_assets(&options),
+						)?
+					},
+					_ => unimplemented!(),
 				}
-				FrontendDist::Files(files) => EmbeddedAssets::new(
-					files.iter().map(|p| config_parent.join(p)).collect::<Vec<_>>(),
-					&options,
-					map_core_assets(&options),
-				)?,
-				_ => unimplemented!(),
 			},
 			None => Default::default(),
 		};
@@ -203,32 +260,52 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 	let default_window_icon = {
 		if target == Target::Windows {
 			// handle default window icons for Windows targets
-			let icon_path =
-				find_icon(&config, &config_parent, |i| i.ends_with(".ico"), "icons/icon.ico");
+			let icon_path = find_icon(
+				&config,
+				&config_parent,
+				|i| i.ends_with(".ico"),
+				"icons/icon.ico",
+			);
 			if icon_path.exists() {
 				let icon = CachedIcon::new(&root, &icon_path)?;
 				quote!(::std::option::Option::Some(#icon))
 			} else {
-				let icon_path =
-					find_icon(&config, &config_parent, |i| i.ends_with(".png"), "icons/icon.png");
+				let icon_path = find_icon(
+					&config,
+					&config_parent,
+					|i| i.ends_with(".png"),
+					"icons/icon.png",
+				);
 				let icon = CachedIcon::new(&root, &icon_path)?;
 				quote!(::std::option::Option::Some(#icon))
 			}
 		} else {
 			// handle default window icons for Unix targets
-			let icon_path =
-				find_icon(&config, &config_parent, |i| i.ends_with(".png"), "icons/icon.png");
+			let icon_path = find_icon(
+				&config,
+				&config_parent,
+				|i| i.ends_with(".png"),
+				"icons/icon.png",
+			);
 			let icon = CachedIcon::new(&root, &icon_path)?;
 			quote!(::std::option::Option::Some(#icon))
 		}
 	};
 
 	let app_icon = if target == Target::MacOS && dev {
-		let mut icon_path =
-			find_icon(&config, &config_parent, |i| i.ends_with(".icns"), "icons/icon.png");
+		let mut icon_path = find_icon(
+			&config,
+			&config_parent,
+			|i| i.ends_with(".icns"),
+			"icons/icon.png",
+		);
 		if !icon_path.exists() {
-			icon_path =
-				find_icon(&config, &config_parent, |i| i.ends_with(".png"), "icons/icon.png");
+			icon_path = find_icon(
+				&config,
+				&config_parent,
+				|i| i.ends_with(".png"),
+				"icons/icon.png",
+			);
 		}
 
 		let icon = CachedIcon::new_raw(&root, &icon_path)?;
@@ -271,12 +348,18 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 	};
 
 	#[cfg(target_os = "macos")]
-	let maybe_embed_plist_block = if target == Target::MacOS && dev && !running_tests {
+	let maybe_embed_plist_block = if target == Target::MacOS
+		&& dev && !running_tests
+	{
 		let info_plist_path = config_parent.join("Info.plist");
 
 		let mut info_plist = if info_plist_path.exists() {
 			plist::Value::from_file(&info_plist_path).unwrap_or_else(|e| {
-				panic!("failed to read plist {}: {}", info_plist_path.display(), e)
+				panic!(
+					"failed to read plist {}: {}",
+					info_plist_path.display(),
+					e
+				)
 			})
 		} else {
 			plist::Value::Dictionary(Default::default())
@@ -284,19 +367,26 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 
 		if let Some(plist) = info_plist.as_dictionary_mut() {
 			if let Some(product_name) = &config.product_name {
-				plist.insert("CFBundleName".into(), product_name.clone().into());
+				plist
+					.insert("CFBundleName".into(), product_name.clone().into());
 			}
 			if let Some(version) = &config.version {
-				plist.insert("CFBundleShortVersionString".into(), version.clone().into());
+				plist.insert(
+					"CFBundleShortVersionString".into(),
+					version.clone().into(),
+				);
 				plist.insert("CFBundleVersion".into(), version.clone().into());
 			}
 		}
 
 		let mut plist_contents = std::io::BufWriter::new(Vec::new());
-		info_plist.to_writer_xml(&mut plist_contents).expect("failed to serialize plist");
+		info_plist
+			.to_writer_xml(&mut plist_contents)
+			.expect("failed to serialize plist");
 
 		let plist_contents =
-			String::from_utf8_lossy(&plist_contents.into_inner().unwrap()).into_owned();
+			String::from_utf8_lossy(&plist_contents.into_inner().unwrap())
+				.into_owned();
 
 		let plist = crate::Cached::try_from(plist_contents)?;
 		quote!({
@@ -313,29 +403,43 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 		#[cfg(not(feature = "isolation"))]
 		PatternKind::Isolation { dir: _ } => {
 			quote!(#root::Pattern::Brownfield)
-		}
+		},
 		#[cfg(feature = "isolation")]
 		PatternKind::Isolation { dir } => {
 			let dir = config_parent.join(dir);
 			if !dir.exists() {
-				panic!("The isolation application path is set to `{dir:?}` but it does not exist")
+				panic!(
+					"The isolation application path is set to `{dir:?}` but \
+					 it does not exist"
+				)
 			}
 
 			let mut sets_isolation_hook = false;
 
 			let key = uuid::Uuid::new_v4().to_string();
 			let map_isolation = map_isolation(&options, dir.clone());
-			let assets = EmbeddedAssets::new(dir, &options, |key, path, input, csp_hashes| {
-				// we check if `__TAURI_ISOLATION_HOOK__` exists in the isolation code
-				// before modifying the files since we inject our own `__TAURI_ISOLATION_HOOK__` reference in HTML files
-				if String::from_utf8_lossy(input).contains("__TAURI_ISOLATION_HOOK__") {
-					sets_isolation_hook = true;
-				}
-				map_isolation(key, path, input, csp_hashes)
-			})?;
+			let assets = EmbeddedAssets::new(
+				dir,
+				&options,
+				|key, path, input, csp_hashes| {
+					// we check if `__TAURI_ISOLATION_HOOK__` exists in the
+					// isolation code before modifying the files since we
+					// inject our own `__TAURI_ISOLATION_HOOK__` reference in
+					// HTML files
+					if String::from_utf8_lossy(input)
+						.contains("__TAURI_ISOLATION_HOOK__")
+					{
+						sets_isolation_hook = true;
+					}
+					map_isolation(key, path, input, csp_hashes)
+				},
+			)?;
 
 			if !sets_isolation_hook {
-				panic!("The isolation application does not contain a file setting the `window.__TAURI_ISOLATION_HOOK__` value.");
+				panic!(
+					"The isolation application does not contain a file \
+					 setting the `window.__TAURI_ISOLATION_HOOK__` value."
+				);
 			}
 
 			let schema = options.isolation_schema;
@@ -346,24 +450,27 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 			  key: #key.into(),
 			  crypto_keys: std::boxed::Box::new(::tauri::utils::pattern::isolation::Keys::new().expect("unable to generate cryptographically secure keys for Tauri \"Isolation\" Pattern")),
 			})
-		}
+		},
 	};
 
 	let acl_file_path = out_dir.join(ACL_MANIFESTS_FILE_NAME);
-	let acl: BTreeMap<String, Manifest> = if acl_file_path.exists() {
-		let acl_file =
-			std::fs::read_to_string(acl_file_path).expect("failed to read plugin manifest map");
-		serde_json::from_str(&acl_file).expect("failed to parse plugin manifest map")
+	let acl:BTreeMap<String, Manifest> = if acl_file_path.exists() {
+		let acl_file = std::fs::read_to_string(acl_file_path)
+			.expect("failed to read plugin manifest map");
+		serde_json::from_str(&acl_file)
+			.expect("failed to parse plugin manifest map")
 	} else {
 		Default::default()
 	};
 
 	let capabilities_file_path = out_dir.join(CAPABILITIES_FILE_NAME);
-	let mut capabilities_from_files: BTreeMap<String, Capability> =
+	let mut capabilities_from_files:BTreeMap<String, Capability> =
 		if capabilities_file_path.exists() {
-			let capabilities_file = std::fs::read_to_string(capabilities_file_path)
-				.expect("failed to read capabilities");
-			serde_json::from_str(&capabilities_file).expect("failed to parse capabilities")
+			let capabilities_file =
+				std::fs::read_to_string(capabilities_file_path)
+					.expect("failed to read capabilities");
+			serde_json::from_str(&capabilities_file)
+				.expect("failed to parse capabilities")
 		} else {
 			Default::default()
 		};
@@ -375,67 +482,92 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 		for capability_entry in &config.app.security.capabilities {
 			match capability_entry {
 				CapabilityEntry::Inlined(capability) => {
-					capabilities.insert(capability.identifier.clone(), capability.clone());
-				}
+					capabilities.insert(
+						capability.identifier.clone(),
+						capability.clone(),
+					);
+				},
 				CapabilityEntry::Reference(id) => {
 					let capability = capabilities_from_files
 						.remove(id)
-						.unwrap_or_else(|| panic!("capability with identifier {id} not found"));
+						.unwrap_or_else(|| {
+							panic!("capability with identifier {id} not found")
+						});
 					capabilities.insert(id.clone(), capability);
-				}
+				},
 			}
 		}
 		capabilities
 	};
 
-	let acl_tokens = map_lit(quote! { ::std::collections::BTreeMap }, &acl, str_lit, identity);
+	let acl_tokens = map_lit(
+		quote! { ::std::collections::BTreeMap },
+		&acl,
+		str_lit,
+		identity,
+	);
 
 	if let Some(paths) = additional_capabilities {
 		for path in paths {
-			let capability = CapabilityFile::load(&path)
-				.unwrap_or_else(|e| panic!("failed to read capability {}: {e}", path.display()));
+			let capability = CapabilityFile::load(&path).unwrap_or_else(|e| {
+				panic!("failed to read capability {}: {e}", path.display())
+			});
 			match capability {
 				CapabilityFile::Capability(c) => {
 					capabilities.insert(c.identifier.clone(), c);
-				}
+				},
 				CapabilityFile::List(capabilities_list)
-				| CapabilityFile::NamedList { capabilities: capabilities_list } => {
-					capabilities
-						.extend(capabilities_list.into_iter().map(|c| (c.identifier.clone(), c)));
-				}
+				| CapabilityFile::NamedList {
+					capabilities: capabilities_list,
+				} => {
+					capabilities.extend(
+						capabilities_list
+							.into_iter()
+							.map(|c| (c.identifier.clone(), c)),
+					);
+				},
 			}
 		}
 	}
 
-	let resolved = Resolved::resolve(&acl, capabilities, target).expect("failed to resolve ACL");
-	let runtime_authority = quote!(#root::ipc::RuntimeAuthority::new(#acl_tokens, #resolved));
+	let resolved = Resolved::resolve(&acl, capabilities, target)
+		.expect("failed to resolve ACL");
+	let runtime_authority =
+		quote!(#root::ipc::RuntimeAuthority::new(#acl_tokens, #resolved));
 
-	let plugin_global_api_script_file_list_path = out_dir.join(GLOBAL_API_SCRIPT_FILE_LIST_PATH);
-	let plugin_global_api_script =
-		if config.app.with_global_tauri && plugin_global_api_script_file_list_path.exists() {
-			let file_list_str = std::fs::read_to_string(plugin_global_api_script_file_list_path)
+	let plugin_global_api_script_file_list_path =
+		out_dir.join(GLOBAL_API_SCRIPT_FILE_LIST_PATH);
+	let plugin_global_api_script = if config.app.with_global_tauri
+		&& plugin_global_api_script_file_list_path.exists()
+	{
+		let file_list_str =
+			std::fs::read_to_string(plugin_global_api_script_file_list_path)
 				.expect("failed to read plugin global API script paths");
-			let file_list = serde_json::from_str::<Vec<PathBuf>>(&file_list_str)
-				.expect("failed to parse plugin global API script paths");
+		let file_list = serde_json::from_str::<Vec<PathBuf>>(&file_list_str)
+			.expect("failed to parse plugin global API script paths");
 
-			let mut plugins = Vec::new();
-			for path in file_list {
-				plugins.push(std::fs::read_to_string(&path).unwrap_or_else(|e| {
-					panic!("failed to read plugin global API script {}: {e}", path.display())
-				}));
-			}
+		let mut plugins = Vec::new();
+		for path in file_list {
+			plugins.push(std::fs::read_to_string(&path).unwrap_or_else(|e| {
+				panic!(
+					"failed to read plugin global API script {}: {e}",
+					path.display()
+				)
+			}));
+		}
 
-			Some(plugins)
-		} else {
-			None
-		};
-
-	let plugin_global_api_script = if let Some(scripts) = plugin_global_api_script {
-		let scripts = scripts.into_iter().map(|s| quote!(#s));
-		quote!(::std::option::Option::Some(&[#(#scripts),*]))
+		Some(plugins)
 	} else {
-		quote!(::std::option::Option::None)
+		None
 	};
+
+	let plugin_global_api_script =
+		if let Some(scripts) = plugin_global_api_script {
+			let scripts = scripts.into_iter().map(|s| quote!(#s));
+			quote!(::std::option::Option::Some(&[#(#scripts),*]))
+		} else {
+			quote!(::std::option::Option::None)
+		};
 
 	let maybe_config_parent_setter = if dev {
 		let config_parent = config_parent.to_string_lossy();
@@ -485,11 +617,17 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 }
 
 fn find_icon(
-	config: &Config,
-	config_parent: &Path,
-	predicate: impl Fn(&&String) -> bool,
-	default: &str,
+	config:&Config,
+	config_parent:&Path,
+	predicate:impl Fn(&&String) -> bool,
+	default:&str,
 ) -> PathBuf {
-	let icon_path = config.bundle.icon.iter().find(predicate).map(AsRef::as_ref).unwrap_or(default);
+	let icon_path = config
+		.bundle
+		.icon
+		.iter()
+		.find(predicate)
+		.map(AsRef::as_ref)
+		.unwrap_or(default);
 	config_parent.join(icon_path)
 }

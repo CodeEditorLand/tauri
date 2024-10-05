@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use swift_rs::{swift, SRString, SwiftArg};
-
 use std::{
 	ffi::c_void,
 	os::raw::{c_char, c_int, c_ulonglong},
 };
+
+use swift_rs::{swift, SRString, SwiftArg};
 
 type PluginMessageCallbackFn = unsafe extern fn(c_int, c_int, *const c_char);
 pub struct PluginMessageCallback(pub PluginMessageCallbackFn);
@@ -15,9 +15,7 @@ pub struct PluginMessageCallback(pub PluginMessageCallbackFn);
 impl<'a> SwiftArg<'a> for PluginMessageCallback {
 	type ArgType = PluginMessageCallbackFn;
 
-	unsafe fn as_arg(&'a self) -> Self::ArgType {
-		self.0
-	}
+	unsafe fn as_arg(&'a self) -> Self::ArgType { self.0 }
 }
 
 type ChannelSendDataCallbackFn = unsafe extern fn(c_ulonglong, *const c_char);
@@ -26,9 +24,7 @@ pub struct ChannelSendDataCallback(pub ChannelSendDataCallbackFn);
 impl<'a> SwiftArg<'a> for ChannelSendDataCallback {
 	type ArgType = ChannelSendDataCallbackFn;
 
-	unsafe fn as_arg(&'a self) -> Self::ArgType {
-		self.0
-	}
+	unsafe fn as_arg(&'a self) -> Self::ArgType { self.0 }
 }
 
 swift!(pub fn run_plugin_command(

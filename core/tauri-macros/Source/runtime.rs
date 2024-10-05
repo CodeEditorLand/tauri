@@ -6,7 +6,15 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
 	parse::{Parse, ParseStream},
-	parse_quote, DeriveInput, Error, GenericParam, Ident, ItemTrait, ItemType, Token, Type,
+	parse_quote,
+	DeriveInput,
+	Error,
+	GenericParam,
+	Ident,
+	ItemTrait,
+	ItemType,
+	Token,
+	Type,
 	TypeParam,
 };
 
@@ -18,7 +26,7 @@ pub(crate) enum Input {
 }
 
 impl Parse for Input {
-	fn parse(input: ParseStream) -> syn::Result<Self> {
+	fn parse(input:ParseStream) -> syn::Result<Self> {
 		input
 			.parse::<DeriveInput>()
 			.map(Self::Derive)
@@ -26,9 +34,10 @@ impl Parse for Input {
 			.or_else(|_| input.parse().map(Self::Type))
 			.map_err(|_| {
 				Error::new(
-          input.span(),
-          "default_runtime only supports `struct`, `enum`, `type`, or `trait` definitions",
-        )
+					input.span(),
+					"default_runtime only supports `struct`, `enum`, `type`, \
+					 or `trait` definitions",
+				)
 			})
 	}
 }
@@ -44,7 +53,7 @@ impl Input {
 }
 
 impl ToTokens for Input {
-	fn to_tokens(&self, tokens: &mut TokenStream) {
+	fn to_tokens(&self, tokens:&mut TokenStream) {
 		match self {
 			Input::Derive(d) => d.to_tokens(tokens),
 			Input::Trait(t) => t.to_tokens(tokens),
@@ -55,34 +64,44 @@ impl ToTokens for Input {
 
 /// The default runtime type to enable when the provided feature is enabled.
 pub(crate) struct Attributes {
-	default_type: Type,
-	feature: Ident,
+	default_type:Type,
+	feature:Ident,
 }
 
 impl Parse for Attributes {
-	fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+	fn parse(input:ParseStream<'_>) -> syn::Result<Self> {
 		let default_type = input.parse()?;
 		input.parse::<Token![,]>()?;
-		Ok(Attributes { default_type, feature: input.parse()? })
+		Ok(Attributes { default_type, feature:input.parse()? })
 	}
 }
 
-pub(crate) fn default_runtime(attributes: Attributes, input: Input) -> TokenStream {
+pub(crate) fn default_runtime(
+	attributes:Attributes,
+	input:Input,
+) -> TokenStream {
 	// create a new copy to manipulate for the wry feature flag
 	let mut wry = input.clone();
-	let wry_runtime = wry
-		.last_param_mut()
-		.expect("default_runtime requires the item to have at least 1 generic parameter");
+	let wry_runtime = wry.last_param_mut().expect(
+		"default_runtime requires the item to have at least 1 generic \
+		 parameter",
+	);
 
-	// set the default value of the last generic parameter to the provided runtime type
+	// set the default value of the last generic parameter to the provided
+	// runtime type
 	match wry_runtime {
-		GenericParam::Type(param @ TypeParam { eq_token: None, default: None, .. }) => {
+		GenericParam::Type(
+			param @ TypeParam { eq_token: None, default: None, .. },
+		) => {
 			param.eq_token = Some(parse_quote!(=));
 			param.default = Some(attributes.default_type);
-		}
+		},
 		_ => {
-			panic!("DefaultRuntime requires the last parameter to not have a default value")
-		}
+			panic!(
+				"DefaultRuntime requires the last parameter to not have a \
+				 default value"
+			)
+		},
 	};
 
 	let feature = attributes.feature.to_string();

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::process::Command;
+
 use clap::Parser;
 use colored::Colorize;
 use regex::Regex;
@@ -16,33 +18,31 @@ use crate::{
 	Result,
 };
 
-use std::process::Command;
-
 #[derive(Debug, Parser)]
 #[clap(about = "Add a tauri plugin to the project")]
 pub struct Options {
 	/// The plugin to add.
-	pub plugin: String,
+	pub plugin:String,
 	/// Git tag to use.
 	#[clap(short, long)]
-	pub tag: Option<String>,
+	pub tag:Option<String>,
 	/// Git rev to use.
 	#[clap(short, long)]
-	pub rev: Option<String>,
+	pub rev:Option<String>,
 	/// Git branch to use.
 	#[clap(short, long)]
-	pub branch: Option<String>,
+	pub branch:Option<String>,
 	/// Don't format code with rustfmt
 	#[clap(long)]
-	pub no_fmt: bool,
+	pub no_fmt:bool,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 	run(options)
 }
 
-pub fn run(options: Options) -> Result<()> {
+pub fn run(options:Options) -> Result<()> {
 	let (plugin, version) = options
 		.plugin
 		.split_once('@')
@@ -63,21 +63,24 @@ pub fn run(options: Options) -> Result<()> {
 		.desktop_only
 		.then_some(r#"cfg(not(any(target_os = "android", target_os = "ios")))"#)
 		.or_else(|| {
-			metadata.mobile_only.then_some(r#"cfg(any(target_os = "android", target_os = "ios"))"#)
+			metadata.mobile_only.then_some(
+				r#"cfg(any(target_os = "android", target_os = "ios"))"#,
+			)
 		});
 
 	let cargo_version_req = version.or(metadata.version_req.as_deref());
-	let npm_version_req =
-		version.map(ToString::to_string).or(metadata.version_req.as_ref().map(|v| format!("^{v}")));
+	let npm_version_req = version
+		.map(ToString::to_string)
+		.or(metadata.version_req.as_ref().map(|v| format!("^{v}")));
 
 	cargo::install_one(cargo::CargoInstallOptions {
-		name: &crate_name,
-		version: cargo_version_req,
-		branch: options.branch.as_deref(),
-		rev: options.rev.as_deref(),
-		tag: options.tag.as_deref(),
-		cwd: Some(tauri_dir),
-		target: target_str,
+		name:&crate_name,
+		version:cargo_version_req,
+		branch:options.branch.as_deref(),
+		rev:options.rev.as_deref(),
+		tag:options.tag.as_deref(),
+		cwd:Some(tauri_dir),
+		target:target_str,
 	})?;
 
 	if !metadata.rust_only {
@@ -85,28 +88,38 @@ pub fn run(options: Options) -> Result<()> {
 			.map(PackageManager::from_project)
 			.and_then(|managers| managers.into_iter().next())
 		{
-			let npm_spec = match (npm_version_req, options.tag, options.rev, options.branch) {
-				(Some(version), _, _, _) => {
+			let npm_spec = match (
+				npm_version_req,
+				options.tag,
+				options.rev,
+				options.branch,
+			) {
+				(Some(version), ..) => {
 					format!("{npm_name}@{version}")
-				}
+				},
 				(None, Some(tag), None, None) => {
 					format!("tauri-apps/tauri-plugin-{plugin}#{tag}")
-				}
+				},
 				(None, None, Some(rev), None) => {
 					format!("tauri-apps/tauri-plugin-{plugin}#{rev}")
-				}
+				},
 				(None, None, None, Some(branch)) => {
 					format!("tauri-apps/tauri-plugin-{plugin}#{branch}")
-				}
+				},
 				(None, None, None, None) => npm_name,
-				_ => anyhow::bail!("Only one of --tag, --rev and --branch can be specified"),
+				_ => {
+					anyhow::bail!(
+						"Only one of --tag, --rev and --branch can be \
+						 specified"
+					)
+				},
 			};
 			manager.install(&[npm_spec], tauri_dir)?;
 		}
 
 		let _ = acl::permission::add::command(acl::permission::add::Options {
-			identifier: format!("{plugin}:default"),
-			capability: None,
+			identifier:format!("{plugin}:default"),
+			capability:None,
 		});
 	}
 
@@ -120,14 +133,18 @@ pub fn run(options: Options) -> Result<()> {
 	} else {
 		"init()"
 	};
-	let plugin_init = format!(".plugin(tauri_plugin_{plugin_snake_case}::{plugin_init_fn})");
+	let plugin_init =
+		format!(".plugin(tauri_plugin_{plugin_snake_case}::{plugin_init_fn})");
 
 	let re = Regex::new(r"(tauri\s*::\s*Builder\s*::\s*default\(\))(\s*)")?;
 	for file in [tauri_dir.join("src/main.rs"), tauri_dir.join("src/lib.rs")] {
 		let contents = std::fs::read_to_string(&file)?;
 
 		if contents.contains(&plugin_init) {
-			log::info!("Plugin initialization code already found on {}", file.display());
+			log::info!(
+				"Plugin initialization code already found on {}",
+				file.display()
+			);
 			return Ok(());
 		}
 
@@ -140,7 +157,10 @@ pub fn run(options: Options) -> Result<()> {
 			if !options.no_fmt {
 				// reformat code with rustfmt
 				log::info!("Running `cargo fmt`...");
-				let _ = Command::new("cargo").arg("fmt").current_dir(tauri_dir).status();
+				let _ = Command::new("cargo")
+					.arg("fmt")
+					.current_dir(tauri_dir)
+					.status();
 			}
 
 			return Ok(());
@@ -148,7 +168,9 @@ pub fn run(options: Options) -> Result<()> {
 	}
 
 	let builder_code = if metadata.builder {
-		format!(r#"+    .plugin(tauri_plugin_{plugin_snake_case}::Builder::new().build())"#,)
+		format!(
+			r#"+    .plugin(tauri_plugin_{plugin_snake_case}::Builder::new().build())"#,
+		)
 	} else {
 		format!(r#"+    .plugin(tauri_plugin_{plugin_snake_case}::init())"#)
 	};
@@ -166,12 +188,13 @@ pub fn run(options: Options) -> Result<()> {
 	);
 
 	log::warn!(
-    "Couldn't find `{}` in `{}` or `{}`, you must enable the plugin in your Rust code manually:\n\n{}",
-    "tauri::Builder".cyan(),
-    "main.rs".cyan(),
-    "lib.rs".cyan(),
-    rust_code
-  );
+		"Couldn't find `{}` in `{}` or `{}`, you must enable the plugin in \
+		 your Rust code manually:\n\n{}",
+		"tauri::Builder".cyan(),
+		"main.rs".cyan(),
+		"lib.rs".cyan(),
+		rust_code
+	);
 
 	Ok(())
 }

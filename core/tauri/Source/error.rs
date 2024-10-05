@@ -9,9 +9,7 @@ use std::fmt;
 pub struct SetupError(Box<dyn std::error::Error>);
 
 impl From<Box<dyn std::error::Error>> for SetupError {
-	fn from(error: Box<dyn std::error::Error>) -> Self {
-		Self(error)
-	}
+	fn from(error:Box<dyn std::error::Error>) -> Self { Self(error) }
 }
 
 // safety: the setup error is only used on the main thread
@@ -20,9 +18,7 @@ unsafe impl Send for SetupError {}
 unsafe impl Sync for SetupError {}
 
 impl fmt::Display for SetupError {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		self.0.fmt(f)
-	}
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result { self.0.fmt(f) }
 }
 
 impl std::error::Error for SetupError {}
@@ -64,8 +60,8 @@ pub enum Error {
 	/// Error initializing plugin.
 	#[error("failed to initialize plugin `{0}`: {1}")]
 	PluginInitialization(String, String),
-	/// A part of the URL is malformed or invalid. This may occur when parsing and combining
-	/// user-provided URLs and paths.
+	/// A part of the URL is malformed or invalid. This may occur when parsing
+	/// and combining user-provided URLs and paths.
 	#[error("invalid url: {0}")]
 	InvalidUrl(url::ParseError),
 	/// Task join error.
@@ -163,9 +159,7 @@ pub enum Error {
 }
 
 impl From<getrandom::Error> for Error {
-	fn from(value: getrandom::Error) -> Self {
-		Self::Csprng(value)
-	}
+	fn from(value:getrandom::Error) -> Self { Self::Csprng(value) }
 }
 
 /// `Result<T, ::tauri::Error>`

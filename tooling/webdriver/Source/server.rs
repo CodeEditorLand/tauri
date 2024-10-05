@@ -2,32 +2,39 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::cli::Args;
+use std::{convert::Infallible, path::PathBuf, process::Child};
+
 use anyhow::Error;
 use futures_util::TryFutureExt;
 use hyper::{
 	header::CONTENT_LENGTH,
 	http::uri::Authority,
 	service::{make_service_fn, service_fn},
-	Body, Client, Method, Request, Response, Server,
+	Body,
+	Client,
+	Method,
+	Request,
+	Response,
+	Server,
 };
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
-use std::{convert::Infallible, path::PathBuf, process::Child};
+
+use crate::cli::Args;
 
 type HttpClient = Client<hyper::client::HttpConnector>;
 
-const TAURI_OPTIONS: &str = "tauri:options";
+const TAURI_OPTIONS:&str = "tauri:options";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TauriOptions {
-	application: PathBuf,
+	application:PathBuf,
 	#[serde(default)]
-	args: Vec<String>,
+	args:Vec<String>,
 	#[cfg(target_os = "windows")]
 	#[serde(default)]
-	webview_options: Option<Value>,
+	webview_options:Option<Value>,
 }
 
 impl TauriOptions {
@@ -55,9 +62,9 @@ impl TauriOptions {
 }
 
 async fn handle(
-	client: HttpClient,
-	mut req: Request<Body>,
-	args: Args,
+	client:HttpClient,
+	mut req:Request<Body>,
+	args:Args,
 ) -> Result<Response<Body>, Error> {
 	// manipulate a new session to convert options to the native driver format
 	if let (&Method::POST, "/session") = (req.method(), req.uri().path()) {
@@ -66,9 +73,10 @@ async fn handle(
 		// get the body from the future stream and parse it as json
 		let body = hyper::body::to_bytes(body).await?;
 
-		let json: Value = serde_json::from_slice(&body)?;
+		let json:Value = serde_json::from_slice(&body)?;
 
-		// manipulate the json to convert from tauri option to native driver options
+		// manipulate the json to convert from tauri option to native driver
+		// options
 		let json = map_capabilities(json);
 
 		// serialize json and update the content-length header to be accurate
@@ -82,17 +90,22 @@ async fn handle(
 }
 
 /// Transform the request to a request for the native webdriver server.
-fn forward_to_native_driver(mut req: Request<Body>, args: Args) -> Result<Request<Body>, Error> {
-	let host: Authority = {
+fn forward_to_native_driver(
+	mut req:Request<Body>,
+	args:Args,
+) -> Result<Request<Body>, Error> {
+	let host:Authority = {
 		let headers = req.headers_mut();
 		headers.remove("host").expect("hyper request has host")
 	}
 	.to_str()?
 	.parse()?;
 
-	let path = req.uri().path_and_query().expect("hyper request has uri").clone();
+	let path =
+		req.uri().path_and_query().expect("hyper request has uri").clone();
 
-	let uri = format!("http://{}:{}{}", host.host(), args.native_port, path.as_str());
+	let uri =
+		format!("http://{}:{}{}", host.host(), args.native_port, path.as_str());
 
 	let (mut parts, body) = req.into_parts();
 	parts.uri = uri.parse()?;
@@ -100,13 +113,16 @@ fn forward_to_native_driver(mut req: Request<Body>, args: Args) -> Result<Reques
 }
 
 /// only happy path for now, no errors
-fn map_capabilities(mut json: Value) -> Value {
+fn map_capabilities(mut json:Value) -> Value {
 	let mut native = None;
 	if let Some(capabilities) = json.get_mut("capabilities") {
 		if let Some(always_match) = capabilities.get_mut("alwaysMatch") {
 			if let Some(always_match) = always_match.as_object_mut() {
-				if let Some(tauri_options) = always_match.remove(TAURI_OPTIONS) {
-					if let Ok(options) = serde_json::from_value::<TauriOptions>(tauri_options) {
+				if let Some(tauri_options) = always_match.remove(TAURI_OPTIONS)
+				{
+					if let Ok(options) =
+						serde_json::from_value::<TauriOptions>(tauri_options)
+					{
 						native = Some(options.into_native_object());
 					}
 				}
@@ -131,13 +147,14 @@ fn map_capabilities(mut json: Value) -> Value {
 }
 
 #[tokio::main(flavor = "current_thread")]
-pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
+pub async fn run(args:Args, mut _driver:Child) -> Result<(), Error> {
 	#[cfg(unix)]
 	let (signals_handle, signals_task) = {
 		use futures_util::StreamExt;
 		use signal_hook::consts::signal::*;
 
-		let signals = signal_hook_tokio::Signals::new([SIGTERM, SIGINT, SIGQUIT])?;
+		let signals =
+			signal_hook_tokio::Signals::new([SIGTERM, SIGINT, SIGQUIT])?;
 
 		let signals_handle = signals.handle();
 
@@ -147,9 +164,11 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
 			while let Some(signal) = signals.next().await {
 				match signal {
 					SIGTERM | SIGINT | SIGQUIT => {
-						_driver.kill().expect("unable to kill native webdriver server");
+						_driver
+							.kill()
+							.expect("unable to kill native webdriver server");
 						std::process::exit(0);
-					}
+					},
 					_ => unreachable!(),
 				}
 			}

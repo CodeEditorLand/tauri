@@ -6,7 +6,7 @@
 
 /// Link a Swift library.
 #[cfg(target_os = "macos")]
-pub fn link_apple_library(name: &str, source: impl AsRef<std::path::Path>) {
+pub fn link_apple_library(name:&str, source:impl AsRef<std::path::Path>) {
 	if source.as_ref().join("Package.swift").exists() {
 		link_swift_library(name, source);
 	} else {
@@ -16,16 +16,20 @@ pub fn link_apple_library(name: &str, source: impl AsRef<std::path::Path>) {
 
 /// Link a Swift library.
 #[cfg(target_os = "macos")]
-fn link_swift_library(name: &str, source: impl AsRef<std::path::Path>) {
+fn link_swift_library(name:&str, source:impl AsRef<std::path::Path>) {
 	let source = source.as_ref();
 
 	let sdk_root = std::env::var_os("SDKROOT");
 	std::env::remove_var("SDKROOT");
 
 	swift_rs::SwiftLinker::new(
-		&std::env::var("MACOSX_DEPLOYMENT_TARGET").unwrap_or_else(|_| "10.13".into()),
+		&std::env::var("MACOSX_DEPLOYMENT_TARGET")
+			.unwrap_or_else(|_| "10.13".into()),
 	)
-	.with_ios(&std::env::var("IPHONEOS_DEPLOYMENT_TARGET").unwrap_or_else(|_| "13.0".into()))
+	.with_ios(
+		&std::env::var("IPHONEOS_DEPLOYMENT_TARGET")
+			.unwrap_or_else(|_| "13.0".into()),
+	)
 	.with_package(name, source)
 	.link();
 
@@ -36,15 +40,16 @@ fn link_swift_library(name: &str, source: impl AsRef<std::path::Path>) {
 
 /// Link a Xcode library.
 #[cfg(target_os = "macos")]
-fn link_xcode_library(name: &str, source: impl AsRef<std::path::Path>) {
+fn link_xcode_library(name:&str, source:impl AsRef<std::path::Path>) {
 	use std::{path::PathBuf, process::Command};
 
 	let source = source.as_ref();
-	let configuration = if std::env::var("DEBUG").map(|v| v == "true").unwrap_or_default() {
-		"Debug"
-	} else {
-		"Release"
-	};
+	let configuration =
+		if std::env::var("DEBUG").map(|v| v == "true").unwrap_or_default() {
+			"Debug"
+		} else {
+			"Release"
+		};
 
 	let (sdk, arch) = match std::env::var("TARGET").unwrap().as_str() {
 		"aarch64-apple-ios" => ("iphoneos", "arm64"),
@@ -77,8 +82,10 @@ fn link_xcode_library(name: &str, source: impl AsRef<std::path::Path>) {
 
 	assert!(status.success());
 
-	let lib_out_dir =
-		derived_data_path.join("Build").join("Products").join(format!("{configuration}-{sdk}"));
+	let lib_out_dir = derived_data_path
+		.join("Build")
+		.join("Products")
+		.join(format!("{configuration}-{sdk}"));
 
 	println!("cargo:rerun-if-changed={}", source.display());
 	println!("cargo:rustc-link-search=native={}", lib_out_dir.display());
