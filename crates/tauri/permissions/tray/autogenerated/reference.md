@@ -2,17 +2,17 @@
 
 Default permissions for the plugin.
 
--   `allow-new`
--   `allow-get-by-id`
--   `allow-remove-by-id`
--   `allow-set-icon`
--   `allow-set-menu`
--   `allow-set-tooltip`
--   `allow-set-title`
--   `allow-set-visible`
--   `allow-set-temp-dir-path`
--   `allow-set-icon-as-template`
--   `allow-set-show-menu-on-left-click`
+- `allow-new`
+- `allow-get-by-id`
+- `allow-remove-by-id`
+- `allow-set-icon`
+- `allow-set-menu`
+- `allow-set-tooltip`
+- `allow-set-title`
+- `allow-set-visible`
+- `allow-set-temp-dir-path`
+- `allow-set-icon-as-template`
+- `allow-set-show-menu-on-left-click`
 
 ## Permission Table
 
@@ -21,6 +21,7 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
+
 
 <tr>
 <td>
@@ -186,8 +187,7 @@ Denies the set_menu command without any pre-configured scope.
 </td>
 <td>
 
-Enables the set_show_menu_on_left_click command without any pre-configured
-scope.
+Enables the set_show_menu_on_left_click command without any pre-configured scope.
 
 </td>
 </tr>

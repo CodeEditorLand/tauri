@@ -2,6 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-if ("__TAURI__" in window) {
-	window.__TAURI__.sample = {};
+if ('__TAURI__' in window) {
+  window.__TAURI__.sample = {}
 }

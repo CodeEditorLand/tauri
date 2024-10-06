@@ -2,7 +2,7 @@
 
 Default permissions for the plugin.
 
--   `allow-close`
+- `allow-close`
 
 ## Permission Table
 
@@ -11,6 +11,7 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
+
 
 <tr>
 <td>

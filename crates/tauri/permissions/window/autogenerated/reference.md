@@ -2,31 +2,31 @@
 
 Default permissions for the plugin.
 
--   `allow-get-all-windows`
--   `allow-scale-factor`
--   `allow-inner-position`
--   `allow-outer-position`
--   `allow-inner-size`
--   `allow-outer-size`
--   `allow-is-fullscreen`
--   `allow-is-minimized`
--   `allow-is-maximized`
--   `allow-is-focused`
--   `allow-is-decorated`
--   `allow-is-resizable`
--   `allow-is-maximizable`
--   `allow-is-minimizable`
--   `allow-is-closable`
--   `allow-is-visible`
--   `allow-is-enabled`
--   `allow-title`
--   `allow-current-monitor`
--   `allow-primary-monitor`
--   `allow-monitor-from-point`
--   `allow-available-monitors`
--   `allow-cursor-position`
--   `allow-theme`
--   `allow-internal-toggle-maximize`
+- `allow-get-all-windows`
+- `allow-scale-factor`
+- `allow-inner-position`
+- `allow-outer-position`
+- `allow-inner-size`
+- `allow-outer-size`
+- `allow-is-fullscreen`
+- `allow-is-minimized`
+- `allow-is-maximized`
+- `allow-is-focused`
+- `allow-is-decorated`
+- `allow-is-resizable`
+- `allow-is-maximizable`
+- `allow-is-minimizable`
+- `allow-is-closable`
+- `allow-is-visible`
+- `allow-is-enabled`
+- `allow-title`
+- `allow-current-monitor`
+- `allow-primary-monitor`
+- `allow-monitor-from-point`
+- `allow-available-monitors`
+- `allow-cursor-position`
+- `allow-theme`
+- `allow-internal-toggle-maximize`
 
 ## Permission Table
 
@@ -35,6 +35,7 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
+
 
 <tr>
 <td>
@@ -1604,8 +1605,7 @@ Denies the set_title_bar_style command without any pre-configured scope.
 </td>
 <td>
 
-Enables the set_visible_on_all_workspaces command without any pre-configured
-scope.
+Enables the set_visible_on_all_workspaces command without any pre-configured scope.
 
 </td>
 </tr>
@@ -1618,8 +1618,7 @@ scope.
 </td>
 <td>
 
-Denies the set_visible_on_all_workspaces command without any pre-configured
-scope.
+Denies the set_visible_on_all_workspaces command without any pre-configured scope.
 
 </td>
 </tr>

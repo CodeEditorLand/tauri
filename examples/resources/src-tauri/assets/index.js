@@ -2,4 +2,4 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-console.log("hello world");
+console.log('hello world')

@@ -2,20 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-(function () {
-	function __tauriDeepFreeze(object) {
-		const props = Object.getOwnPropertyNames(object);
+;(function () {
+  function __tauriDeepFreeze(object) {
+    const props = Object.getOwnPropertyNames(object)
 
-		for (const prop of props) {
-			if (typeof object[prop] === "object") {
-				__tauriDeepFreeze(object[prop]);
-			}
-		}
+    for (const prop of props) {
+      if (typeof object[prop] === 'object') {
+        __tauriDeepFreeze(object[prop])
+      }
+    }
 
-		return Object.freeze(object);
-	}
+    return Object.freeze(object)
+  }
 
-	Object.defineProperty(window.__TAURI_INTERNALS__, "__TAURI_PATTERN__", {
-		value: __tauriDeepFreeze(__TEMPLATE_pattern__),
-	});
-})();
+  Object.defineProperty(window.__TAURI_INTERNALS__, '__TAURI_PATTERN__', {
+    value: __tauriDeepFreeze(__TEMPLATE_pattern__)
+  })
+})()

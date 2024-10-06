@@ -2,10 +2,10 @@
 
 Default permissions for the plugin.
 
--   `allow-listen`
--   `allow-unlisten`
--   `allow-emit`
--   `allow-emit-to`
+- `allow-listen`
+- `allow-unlisten`
+- `allow-emit`
+- `allow-emit-to`
 
 ## Permission Table
 
@@ -14,6 +14,7 @@ Default permissions for the plugin.
 <th>Identifier</th>
 <th>Description</th>
 </tr>
+
 
 <tr>
 <td>
