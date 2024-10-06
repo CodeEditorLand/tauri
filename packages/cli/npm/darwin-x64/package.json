@@ -1,32 +1,47 @@
 {
-  "name": "@tauri-apps/cli-darwin-x64",
-  "version": "0.0.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tauri-apps/tauri.git"
-  },
-  "homepage": "https://github.com/tauri-apps/tauri#readme",
-  "bugs": {
-    "url": "https://github.com/tauri-apps/tauri/issues"
-  },
-  "contributors": [
-    "Tauri Programme within The Commons Conservancy"
-  ],
-  "license": "Apache-2.0 OR MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "os": [
-    "darwin"
-  ],
-  "cpu": [
-    "x64"
-  ],
-  "main": "cli.darwin-x64.node",
-  "files": [
-    "cli.darwin-x64.node"
-  ],
-  "engines": {
-    "node": ">= 10"
-  }
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"contributors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"cpu": [
+		"x64"
+	],
+	"devDependencies": {
+		"@playform/build": ""
+	},
+	"files": [
+		"cli.darwin-x64.node"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "cli.darwin-x64.node",
+	"name": "@tauri-apps/cli-darwin-x64",
+	"os": [
+		"darwin"
+	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"type": "module",
+	"version": "0.0.1"
 }
