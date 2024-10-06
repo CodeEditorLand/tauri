@@ -14,8 +14,7 @@ use std::{
 pub use phf;
 
 /// Assets iterator.
-pub type AssetsIter<'a> =
-	dyn Iterator<Item = (Cow<'a, str>, Cow<'a, [u8]>)> + 'a;
+pub type AssetsIter<'a> = dyn Iterator<Item = (Cow<'a, str>, Cow<'a, [u8]>)> + 'a;
 
 /// Represent an asset file path in a normalized way.
 ///
@@ -41,11 +40,7 @@ impl<P:AsRef<Path>> From<P> for AssetKey {
 		let path = path.as_ref().to_owned();
 
 		// add in root to mimic how it is used from a server url
-		let path = if path.has_root() {
-			path
-		} else {
-			Path::new(&Component::RootDir).join(path)
-		};
+		let path = if path.has_root() { path } else { Path::new(&Component::RootDir).join(path) };
 
 		let buf = if cfg!(windows) {
 			let mut buf = String::new();
@@ -153,28 +148,15 @@ impl EmbeddedAssets {
 
 	/// Iterate on the assets.
 	pub fn iter(&self) -> Box<AssetsIter<'_>> {
-		Box::new(
-			self.assets
-				.into_iter()
-				.map(|(k, b)| (Cow::Borrowed(*k), Cow::Borrowed(*b))),
-		)
+		Box::new(self.assets.into_iter().map(|(k, b)| (Cow::Borrowed(*k), Cow::Borrowed(*b))))
 	}
 
 	/// CSP hashes for the given asset.
-	pub fn csp_hashes(
-		&self,
-		html_path:&AssetKey,
-	) -> Box<dyn Iterator<Item = CspHash<'_>> + '_> {
+	pub fn csp_hashes(&self, html_path:&AssetKey) -> Box<dyn Iterator<Item = CspHash<'_>> + '_> {
 		Box::new(
 			self.global_hashes
 				.iter()
-				.chain(
-					self.html_hashes
-						.get(html_path.as_ref())
-						.copied()
-						.into_iter()
-						.flatten(),
-				)
+				.chain(self.html_hashes.get(html_path.as_ref()).copied().into_iter().flatten())
 				.copied(),
 		)
 	}

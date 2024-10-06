@@ -26,14 +26,13 @@ use std::{
 use anyhow::Context;
 use tauri_utils::config::HookCommand;
 
+use self::app_paths::app_dir;
 use crate::{
 	interface::{AppInterface, Interface},
 	CommandExt,
 };
 
-use self::app_paths::app_dir;
-
-pub fn command_env(debug: bool) -> HashMap<&'static str, String> {
+pub fn command_env(debug:bool) -> HashMap<&'static str, String> {
 	let mut map = HashMap::new();
 
 	map.insert("TAURI_ENV_PLATFORM_VERSION", os_info::get().version().to_string());
@@ -45,7 +44,7 @@ pub fn command_env(debug: bool) -> HashMap<&'static str, String> {
 	map
 }
 
-pub fn resolve_tauri_path<P: AsRef<Path>>(path: P, crate_name: &str) -> PathBuf {
+pub fn resolve_tauri_path<P:AsRef<Path>>(path:P, crate_name:&str) -> PathBuf {
 	let path = path.as_ref();
 	if path.is_absolute() {
 		path.join(crate_name)
@@ -54,7 +53,7 @@ pub fn resolve_tauri_path<P: AsRef<Path>>(path: P, crate_name: &str) -> PathBuf 
 	}
 }
 
-pub fn cross_command(bin: &str) -> Command {
+pub fn cross_command(bin:&str) -> Command {
 	#[cfg(target_os = "windows")]
 	let cmd = {
 		let mut cmd = Command::new("cmd");
@@ -67,10 +66,10 @@ pub fn cross_command(bin: &str) -> Command {
 }
 
 pub fn run_hook(
-	name: &str,
-	hook: HookCommand,
-	interface: &AppInterface,
-	debug: bool,
+	name:&str,
+	hook:HookCommand,
+	interface:&AppInterface,
+	debug:bool,
 ) -> crate::Result<()> {
 	let (script, script_cwd) = match hook {
 		HookCommand::Script(s) if s.is_empty() => (None, None),

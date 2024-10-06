@@ -17,16 +17,13 @@ use url::Url;
 
 use crate::{window::is_label_valid, Rect, Runtime, UserEvent};
 
-type UriSchemeProtocol = dyn Fn(
-		http::Request<Vec<u8>>,
-		Box<dyn FnOnce(http::Response<Cow<'static, [u8]>>) + Send>,
-	) + Send
+type UriSchemeProtocol = dyn Fn(http::Request<Vec<u8>>, Box<dyn FnOnce(http::Response<Cow<'static, [u8]>>) + Send>)
+	+ Send
 	+ Sync
 	+ 'static;
 
-type WebResourceRequestHandler = dyn Fn(http::Request<Vec<u8>>, &mut http::Response<Cow<'static, [u8]>>)
-	+ Send
-	+ Sync;
+type WebResourceRequestHandler =
+	dyn Fn(http::Request<Vec<u8>>, &mut http::Response<Cow<'static, [u8]>>) + Send + Sync;
 
 type NavigationHandler = dyn Fn(&Url) -> bool + Send;
 
@@ -94,12 +91,8 @@ pub struct PendingWebview<T:UserEvent, R:Runtime<T>> {
 
 	#[cfg(target_os = "android")]
 	#[allow(clippy::type_complexity)]
-	pub on_webview_created: Option<
-		Box<
-			dyn Fn(CreationContext<'_, '_>) -> Result<(), jni::errors::Error>
-				+ Send,
-		>,
-	>,
+	pub on_webview_created:
+		Option<Box<dyn Fn(CreationContext<'_, '_>) -> Result<(), jni::errors::Error> + Send>>,
 
 	pub web_resource_request_handler:Option<Box<WebResourceRequestHandler>>,
 
@@ -137,10 +130,8 @@ impl<T:UserEvent, R:Runtime<T>> PendingWebview<T, R> {
 
 	pub fn register_uri_scheme_protocol<
 		N:Into<String>,
-		H:Fn(
-				http::Request<Vec<u8>>,
-				Box<dyn FnOnce(http::Response<Cow<'static, [u8]>>) + Send>,
-			) + Send
+		H:Fn(http::Request<Vec<u8>>, Box<dyn FnOnce(http::Response<Cow<'static, [u8]>>) + Send>)
+			+ Send
 			+ Sync
 			+ 'static,
 	>(
@@ -154,9 +145,7 @@ impl<T:UserEvent, R:Runtime<T>> PendingWebview<T, R> {
 
 	#[cfg(target_os = "android")]
 	pub fn on_webview_created<
-		F:Fn(CreationContext<'_, '_>) -> Result<(), jni::errors::Error>
-			+ Send
-			+ 'static,
+		F:Fn(CreationContext<'_, '_>) -> Result<(), jni::errors::Error> + Send + 'static,
 	>(
 		mut self,
 		f:F,
@@ -375,5 +364,4 @@ impl WebviewAttributes {
 }
 
 /// IPC handler.
-pub type WebviewIpcHandler<T, R> =
-	Box<dyn Fn(DetachedWebview<T, R>, Request<String>) + Send>;
+pub type WebviewIpcHandler<T, R> = Box<dyn Fn(DetachedWebview<T, R>, Request<String>) + Send>;

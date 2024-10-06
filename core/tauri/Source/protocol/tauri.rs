@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 use std::{borrow::Cow, sync::Arc};
+#[cfg(all(dev, mobile))]
+use std::{collections::HashMap, sync::Mutex};
 
 use http::{header::CONTENT_TYPE, Request, Response as HttpResponse, StatusCode};
 
@@ -13,20 +15,17 @@ use crate::{
 };
 
 #[cfg(all(dev, mobile))]
-use std::{collections::HashMap, sync::Mutex};
-
-#[cfg(all(dev, mobile))]
 #[derive(Clone)]
 struct CachedResponse {
-	status: http::StatusCode,
-	headers: http::HeaderMap,
-	body: bytes::Bytes,
+	status:http::StatusCode,
+	headers:http::HeaderMap,
+	body:bytes::Bytes,
 }
 
-pub fn get<R: Runtime>(
-	#[allow(unused_variables)] manager: Arc<AppManager<R>>,
-	window_origin: &str,
-	web_resource_request_handler: Option<Box<WebResourceRequestHandler>>,
+pub fn get<R:Runtime>(
+	#[allow(unused_variables)] manager:Arc<AppManager<R>>,
+	window_origin:&str,
+	web_resource_request_handler:Option<Box<WebResourceRequestHandler>>,
 ) -> UriSchemeProtocolHandler {
 	#[cfg(all(dev, mobile))]
 	let url = {
@@ -52,24 +51,26 @@ pub fn get<R: Runtime>(
 			(&url, &response_cache),
 		) {
 			Ok(response) => responder.respond(response),
-			Err(e) => responder.respond(
-				HttpResponse::builder()
-					.status(StatusCode::INTERNAL_SERVER_ERROR)
-					.header(CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
-					.header("Access-Control-Allow-Origin", &window_origin)
-					.body(e.to_string().as_bytes().to_vec())
-					.unwrap(),
-			),
+			Err(e) => {
+				responder.respond(
+					HttpResponse::builder()
+						.status(StatusCode::INTERNAL_SERVER_ERROR)
+						.header(CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
+						.header("Access-Control-Allow-Origin", &window_origin)
+						.body(e.to_string().as_bytes().to_vec())
+						.unwrap(),
+				)
+			},
 		}
 	})
 }
 
-fn get_response<R: Runtime>(
-	request: Request<Vec<u8>>,
-	#[allow(unused_variables)] manager: &AppManager<R>,
-	window_origin: &str,
-	web_resource_request_handler: Option<&WebResourceRequestHandler>,
-	#[cfg(all(dev, mobile))] (url, response_cache): (
+fn get_response<R:Runtime>(
+	request:Request<Vec<u8>>,
+	#[allow(unused_variables)] manager:&AppManager<R>,
+	window_origin:&str,
+	web_resource_request_handler:Option<&WebResourceRequestHandler>,
+	#[cfg(all(dev, mobile))] (url, response_cache):(
 		&str,
 		&Arc<Mutex<HashMap<String, CachedResponse>>>,
 	),
@@ -93,13 +94,16 @@ fn get_response<R: Runtime>(
 
 	#[cfg(all(dev, mobile))]
 	let mut response = {
-		let decoded_path =
-			percent_encoding::percent_decode(path.as_bytes()).decode_utf8_lossy().to_string();
+		let decoded_path = percent_encoding::percent_decode(path.as_bytes())
+			.decode_utf8_lossy()
+			.to_string();
 
 		let url = format!("{url}{decoded_path}");
 
-		let mut proxy_builder =
-			reqwest::ClientBuilder::new().build().unwrap().request(request.method().clone(), &url);
+		let mut proxy_builder = reqwest::ClientBuilder::new()
+			.build()
+			.unwrap()
+			.request(request.method().clone(), &url);
 		for (name, value) in request.headers() {
 			proxy_builder = proxy_builder.header(name, value);
 		}
@@ -124,11 +128,11 @@ fn get_response<R: Runtime>(
 					builder = builder.header(name, value);
 				}
 				builder.status(response.status).body(response.body.to_vec().into())?
-			}
+			},
 			Err(e) => {
 				log::error!("Failed to request {}: {}", url.as_str(), e);
 				return Err(Box::new(e));
-			}
+			},
 		}
 	};
 

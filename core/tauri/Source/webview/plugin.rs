@@ -18,7 +18,11 @@ mod desktop_commands {
 
 	use super::*;
 	use crate::{
-		command, sealed::ManagerBase, utils::config::WindowEffectsConfig, AppHandle, Webview,
+		command,
+		sealed::ManagerBase,
+		utils::config::WindowEffectsConfig,
+		AppHandle,
+		Webview,
 		WebviewWindowBuilder,
 	};
 
@@ -26,46 +30,48 @@ mod desktop_commands {
 	#[serde(rename_all = "camelCase")]
 	pub struct WebviewConfig {
 		#[serde(default)]
-		url: WebviewUrl,
-		user_agent: Option<String>,
-		drag_drop_enabled: Option<bool>,
-		x: f64,
-		y: f64,
-		width: f64,
-		height: f64,
+		url:WebviewUrl,
+		user_agent:Option<String>,
+		drag_drop_enabled:Option<bool>,
+		x:f64,
+		y:f64,
+		width:f64,
+		height:f64,
 		#[serde(default)]
-		transparent: bool,
+		transparent:bool,
 		#[serde(default)]
-		accept_first_mouse: bool,
-		window_effects: Option<WindowEffectsConfig>,
+		accept_first_mouse:bool,
+		window_effects:Option<WindowEffectsConfig>,
 		#[serde(default)]
-		incognito: bool,
+		incognito:bool,
 		#[serde(default)]
-		zoom_hotkeys_enabled: bool,
+		zoom_hotkeys_enabled:bool,
 	}
 
 	#[derive(Serialize)]
 	pub struct WebviewRef {
-		window_label: String,
-		label: String,
+		window_label:String,
+		label:String,
 	}
 
 	#[command(root = "crate")]
-	pub async fn get_all_webviews<R: Runtime>(app: AppHandle<R>) -> Vec<WebviewRef> {
+	pub async fn get_all_webviews<R:Runtime>(app:AppHandle<R>) -> Vec<WebviewRef> {
 		app.manager()
 			.webviews()
 			.values()
-			.map(|webview| WebviewRef {
-				window_label: webview.window().label().into(),
-				label: webview.label().into(),
+			.map(|webview| {
+				WebviewRef {
+					window_label:webview.window().label().into(),
+					label:webview.label().into(),
+				}
 			})
 			.collect()
 	}
 
 	#[command(root = "crate")]
-	pub async fn create_webview_window<R: Runtime>(
-		app: AppHandle<R>,
-		options: WindowConfig,
+	pub async fn create_webview_window<R:Runtime>(
+		app:AppHandle<R>,
+		options:WindowConfig,
 	) -> crate::Result<()> {
 		WebviewWindowBuilder::from_config(&app, &options)?.build()?;
 		Ok(())
@@ -78,11 +84,11 @@ mod desktop_commands {
 
 	#[cfg(feature = "unstable")]
 	#[command(root = "crate")]
-	pub async fn create_webview<R: Runtime>(
-		app: AppHandle<R>,
-		label: String,
-		window_label: String,
-		options: WebviewConfig,
+	pub async fn create_webview<R:Runtime>(
+		app:AppHandle<R>,
+		label:String,
+		window_label:String,
+		options:WebviewConfig,
 	) -> crate::Result<()> {
 		let window = app.manager().get_window(&window_label).ok_or(crate::Error::WindowNotFound)?;
 
@@ -106,27 +112,27 @@ mod desktop_commands {
 		Ok(())
 	}
 
-	fn get_webview<R: Runtime>(
-		webview: Webview<R>,
-		label: Option<String>,
+	fn get_webview<R:Runtime>(
+		webview:Webview<R>,
+		label:Option<String>,
 	) -> crate::Result<Webview<R>> {
 		match label {
 			Some(l) if !l.is_empty() => {
 				webview.manager().get_webview(&l).ok_or(crate::Error::WebviewNotFound)
-			}
+			},
 			_ => Ok(webview),
 		}
 	}
 
 	macro_rules! getter {
-		($cmd: ident, $ret: ty) => {
+		($cmd:ident, $ret:ty) => {
 			getter!($cmd, $cmd, $ret)
 		};
-		($fn: ident, $cmd: ident, $ret: ty) => {
+		($fn:ident, $cmd:ident, $ret:ty) => {
 			#[command(root = "crate")]
-			pub async fn $fn<R: Runtime>(
-				webview: Webview<R>,
-				label: Option<String>,
+			pub async fn $fn<R:Runtime>(
+				webview:Webview<R>,
+				label:Option<String>,
 			) -> crate::Result<$ret> {
 				get_webview(webview, label)?.$cmd().map_err(Into::into)
 			}
@@ -134,24 +140,24 @@ mod desktop_commands {
 	}
 
 	macro_rules! setter {
-		($cmd: ident) => {
+		($cmd:ident) => {
 			setter!($cmd, $cmd);
 		};
-		($fn: ident, $cmd: ident) => {
+		($fn:ident, $cmd:ident) => {
 			#[command(root = "crate")]
-			pub async fn $fn<R: Runtime>(
-				webview: Webview<R>,
-				label: Option<String>,
+			pub async fn $fn<R:Runtime>(
+				webview:Webview<R>,
+				label:Option<String>,
 			) -> crate::Result<()> {
 				get_webview(webview, label)?.$cmd().map_err(Into::into)
 			}
 		};
-		($fn: ident, $cmd: ident, $input: ty) => {
+		($fn:ident, $cmd:ident, $input:ty) => {
 			#[command(root = "crate")]
-			pub async fn $fn<R: Runtime>(
-				webview: Webview<R>,
-				label: Option<String>,
-				value: $input,
+			pub async fn $fn<R:Runtime>(
+				webview:Webview<R>,
+				label:Option<String>,
+				value:$input,
 			) -> crate::Result<()> {
 				get_webview(webview, label)?.$cmd(value).map_err(Into::into)
 			}
@@ -161,7 +167,7 @@ mod desktop_commands {
 	// TODO
 	getter!(webview_position, position, tauri_runtime::dpi::PhysicalPosition<i32>);
 	getter!(webview_size, size, tauri_runtime::dpi::PhysicalSize<u32>);
-	//getter!(is_focused, bool);
+	// getter!(is_focused, bool);
 
 	setter!(print);
 	setter!(webview_close, close);
@@ -171,10 +177,10 @@ mod desktop_commands {
 	setter!(set_webview_zoom, set_zoom, f64);
 
 	#[command(root = "crate")]
-	pub async fn reparent<R: Runtime>(
-		webview: crate::Webview<R>,
-		label: Option<String>,
-		window: String,
+	pub async fn reparent<R:Runtime>(
+		webview:crate::Webview<R>,
+		label:Option<String>,
+		window:String,
 	) -> crate::Result<()> {
 		let webview = get_webview(webview, label)?;
 		if let Some(window) = webview.manager.get_window(&window) {
@@ -185,9 +191,9 @@ mod desktop_commands {
 
 	#[cfg(any(debug_assertions, feature = "devtools"))]
 	#[command(root = "crate")]
-	pub async fn internal_toggle_devtools<R: Runtime>(
-		webview: crate::Webview<R>,
-		label: Option<String>,
+	pub async fn internal_toggle_devtools<R:Runtime>(
+		webview:crate::Webview<R>,
+		label:Option<String>,
 	) -> crate::Result<()> {
 		let webview = get_webview(webview, label)?;
 		if webview.is_devtools_open() {
@@ -200,7 +206,7 @@ mod desktop_commands {
 }
 
 /// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
+pub fn init<R:Runtime>() -> TauriPlugin<R> {
 	#[allow(unused_mut)]
 	let mut init_script = String::new();
 	// window.print works on Linux/Windows; need to use the API on macOS
@@ -216,11 +222,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 		#[derive(Template)]
 		#[default_template("./scripts/toggle-devtools.js")]
 		struct Devtools<'a> {
-			os_name: &'a str,
+			os_name:&'a str,
 		}
 
 		init_script.push_str(
-			&Devtools { os_name: std::env::consts::OS }
+			&Devtools { os_name:std::env::consts::OS }
 				.render_default(&Default::default())
 				.unwrap()
 				.into_string(),
@@ -236,7 +242,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 		.invoke_handler(|invoke| {
 			#[cfg(desktop)]
 			{
-				let handler: Box<dyn Fn(crate::ipc::Invoke<R>) -> bool> =
+				let handler:Box<dyn Fn(crate::ipc::Invoke<R>) -> bool> =
 					Box::new(crate::generate_handler![
 						desktop_commands::create_webview,
 						desktop_commands::create_webview_window,

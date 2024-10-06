@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::Result;
-
 use std::{fs::read_dir, path::PathBuf, process::Command};
+
+use crate::Result;
 
 pub fn installed_targets() -> Result<Vec<String>> {
 	let output = Command::new("rustc").args(["--print", "sysroot"]).output()?;

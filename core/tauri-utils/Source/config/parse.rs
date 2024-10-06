@@ -2,25 +2,28 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{config::Config, platform::Target};
-use json_patch::merge;
-use serde::de::DeserializeOwned;
-use serde_json::Value;
 use std::{
 	ffi::OsStr,
 	path::{Path, PathBuf},
 };
+
+use json_patch::merge;
+use serde::de::DeserializeOwned;
+use serde_json::Value;
 use thiserror::Error;
 
-/// All extensions that are possibly supported, but perhaps not enabled.
-pub const EXTENSIONS_SUPPORTED: &[&str] = &["json", "json5", "toml"];
+use crate::{config::Config, platform::Target};
 
-/// All configuration formats that are possibly supported, but perhaps not enabled.
-pub const SUPPORTED_FORMATS: &[ConfigFormat] =
+/// All extensions that are possibly supported, but perhaps not enabled.
+pub const EXTENSIONS_SUPPORTED:&[&str] = &["json", "json5", "toml"];
+
+/// All configuration formats that are possibly supported, but perhaps not
+/// enabled.
+pub const SUPPORTED_FORMATS:&[ConfigFormat] =
 	&[ConfigFormat::Json, ConfigFormat::Json5, ConfigFormat::Toml];
 
 /// All configuration formats that are currently enabled.
-pub const ENABLED_FORMATS: &[ConfigFormat] = &[
+pub const ENABLED_FORMATS:&[ConfigFormat] = &[
 	ConfigFormat::Json,
 	#[cfg(feature = "config-json5")]
 	ConfigFormat::Json5,
@@ -49,28 +52,34 @@ impl ConfigFormat {
 		}
 	}
 
-	fn into_platform_file_name(self, target: Target) -> &'static str {
+	fn into_platform_file_name(self, target:Target) -> &'static str {
 		match self {
-			Self::Json => match target {
-				Target::MacOS => "tauri.macos.conf.json",
-				Target::Windows => "tauri.windows.conf.json",
-				Target::Linux => "tauri.linux.conf.json",
-				Target::Android => "tauri.android.conf.json",
-				Target::Ios => "tauri.ios.conf.json",
+			Self::Json => {
+				match target {
+					Target::MacOS => "tauri.macos.conf.json",
+					Target::Windows => "tauri.windows.conf.json",
+					Target::Linux => "tauri.linux.conf.json",
+					Target::Android => "tauri.android.conf.json",
+					Target::Ios => "tauri.ios.conf.json",
+				}
 			},
-			Self::Json5 => match target {
-				Target::MacOS => "tauri.macos.conf.json5",
-				Target::Windows => "tauri.windows.conf.json5",
-				Target::Linux => "tauri.linux.conf.json5",
-				Target::Android => "tauri.android.conf.json5",
-				Target::Ios => "tauri.ios.conf.json5",
+			Self::Json5 => {
+				match target {
+					Target::MacOS => "tauri.macos.conf.json5",
+					Target::Windows => "tauri.windows.conf.json5",
+					Target::Linux => "tauri.linux.conf.json5",
+					Target::Android => "tauri.android.conf.json5",
+					Target::Ios => "tauri.ios.conf.json5",
+				}
 			},
-			Self::Toml => match target {
-				Target::MacOS => "Tauri.macos.toml",
-				Target::Windows => "Tauri.windows.toml",
-				Target::Linux => "Tauri.linux.toml",
-				Target::Android => "Tauri.android.toml",
-				Target::Ios => "Tauri.ios.toml",
+			Self::Toml => {
+				match target {
+					Target::MacOS => "Tauri.macos.toml",
+					Target::Windows => "Tauri.windows.toml",
+					Target::Linux => "Tauri.linux.toml",
+					Target::Android => "Tauri.android.toml",
+					Target::Ios => "Tauri.ios.toml",
+				}
 			},
 		}
 	}
@@ -84,10 +93,10 @@ pub enum ConfigError {
 	#[error("unable to parse JSON Tauri config file at {path} because {error}")]
 	FormatJson {
 		/// The path that failed to parse into JSON.
-		path: PathBuf,
+		path:PathBuf,
 
 		/// The parsing [`serde_json::Error`].
-		error: serde_json::Error,
+		error:serde_json::Error,
 	},
 
 	/// Failed to parse from JSON5.
@@ -95,10 +104,10 @@ pub enum ConfigError {
 	#[error("unable to parse JSON5 Tauri config file at {path} because {error}")]
 	FormatJson5 {
 		/// The path that failed to parse into JSON5.
-		path: PathBuf,
+		path:PathBuf,
 
 		/// The parsing [`json5::Error`].
-		error: ::json5::Error,
+		error:::json5::Error,
 	},
 
 	/// Failed to parse from TOML.
@@ -106,39 +115,40 @@ pub enum ConfigError {
 	#[error("unable to parse toml Tauri config file at {path} because {error}")]
 	FormatToml {
 		/// The path that failed to parse into TOML.
-		path: PathBuf,
+		path:PathBuf,
 
 		/// The parsing [`toml::Error`].
-		error: Box<::toml::de::Error>,
+		error:Box<::toml::de::Error>,
 	},
 
 	/// Unknown config file name encountered.
 	#[error("unsupported format encountered {0}")]
 	UnsupportedFormat(String),
 
-	/// Known file extension encountered, but corresponding parser is not enabled (cargo features).
+	/// Known file extension encountered, but corresponding parser is not
+	/// enabled (cargo features).
 	#[error("supported (but disabled) format encountered {extension} - try enabling `{feature}` ")]
 	DisabledFormat {
 		/// The extension encountered.
-		extension: String,
+		extension:String,
 
 		/// The cargo feature to enable it.
-		feature: String,
+		feature:String,
 	},
 
 	/// A generic IO error with context of what caused it.
 	#[error("unable to read Tauri config file at {path} because {error}")]
 	Io {
 		/// The path the IO error occurred on.
-		path: PathBuf,
+		path:PathBuf,
 
 		/// The [`std::io::Error`].
-		error: std::io::Error,
+		error:std::io::Error,
 	},
 }
 
 /// Determines if the given folder has a configuration file.
-pub fn folder_has_configuration_file(target: Target, folder: &Path) -> bool {
+pub fn folder_has_configuration_file(target:Target, folder:&Path) -> bool {
 	folder.join(ConfigFormat::Json.into_file_name()).exists()
       || folder.join(ConfigFormat::Json5.into_file_name()).exists()
       || folder.join(ConfigFormat::Toml.into_file_name()).exists()
@@ -149,7 +159,7 @@ pub fn folder_has_configuration_file(target: Target, folder: &Path) -> bool {
 }
 
 /// Determines if the given file path represents a Tauri configuration file.
-pub fn is_configuration_file(target: Target, path: &Path) -> bool {
+pub fn is_configuration_file(target:Target, path:&Path) -> bool {
 	path.file_name()
 		.map(|file_name| {
 			file_name == OsStr::new(ConfigFormat::Json.into_file_name())
@@ -165,34 +175,36 @@ pub fn is_configuration_file(target: Target, path: &Path) -> bool {
 
 /// Reads the configuration from the given root directory.
 ///
-/// It first looks for a `tauri.conf.json[5]` or `Tauri.toml` file on the given directory. The file must exist.
-/// Then it looks for a platform-specific configuration file:
+/// It first looks for a `tauri.conf.json[5]` or `Tauri.toml` file on the given
+/// directory. The file must exist. Then it looks for a platform-specific
+/// configuration file:
 /// - `tauri.macos.conf.json[5]` or `Tauri.macos.toml` on macOS
 /// - `tauri.linux.conf.json[5]` or `Tauri.linux.toml` on Linux
 /// - `tauri.windows.conf.json[5]` or `Tauri.windows.toml` on Windows
 /// - `tauri.android.conf.json[5]` or `Tauri.android.toml` on Android
-/// - `tauri.ios.conf.json[5]` or `Tauri.ios.toml` on iOS
-///   Merging the configurations using [JSON Merge Patch (RFC 7396)].
+/// - `tauri.ios.conf.json[5]` or `Tauri.ios.toml` on iOS Merging the
+///   configurations using [JSON Merge Patch (RFC 7396)].
 ///
 /// [JSON Merge Patch (RFC 7396)]: https://datatracker.ietf.org/doc/html/rfc7396.
-pub fn read_from(target: Target, root_dir: PathBuf) -> Result<Value, ConfigError> {
-	let mut config: Value = parse_value(target, root_dir.join("tauri.conf.json"))?.0;
+pub fn read_from(target:Target, root_dir:PathBuf) -> Result<Value, ConfigError> {
+	let mut config:Value = parse_value(target, root_dir.join("tauri.conf.json"))?.0;
 	if let Some((platform_config, _)) = read_platform(target, root_dir)? {
 		merge(&mut config, &platform_config);
 	}
 	Ok(config)
 }
 
-/// Reads the platform-specific configuration file from the given root directory if it exists.
+/// Reads the platform-specific configuration file from the given root directory
+/// if it exists.
 ///
 /// Check [`read_from`] for more information.
 pub fn read_platform(
-	target: Target,
-	root_dir: PathBuf,
+	target:Target,
+	root_dir:PathBuf,
 ) -> Result<Option<(Value, PathBuf)>, ConfigError> {
 	let platform_config_path = root_dir.join(ConfigFormat::Json.into_platform_file_name(target));
 	if does_supported_file_name_exist(target, &platform_config_path) {
-		let (platform_config, path): (Value, PathBuf) = parse_value(target, platform_config_path)?;
+		let (platform_config, path):(Value, PathBuf) = parse_value(target, platform_config_path)?;
 		Ok(Some((platform_config, path)))
 	} else {
 		Ok(None)
@@ -201,9 +213,9 @@ pub fn read_platform(
 
 /// Check if a supported config file exists at path.
 ///
-/// The passed path is expected to be the path to the "default" configuration format, in this case
-/// JSON with `.json`.
-pub fn does_supported_file_name_exist(target: Target, path: impl Into<PathBuf>) -> bool {
+/// The passed path is expected to be the path to the "default" configuration
+/// format, in this case JSON with `.json`.
+pub fn does_supported_file_name_exist(target:Target, path:impl Into<PathBuf>) -> bool {
 	let path = path.into();
 	let source_file_name = path.file_name().unwrap().to_str().unwrap();
 	let lookup_platform_config = ENABLED_FORMATS
@@ -222,36 +234,31 @@ pub fn does_supported_file_name_exist(target: Target, path: impl Into<PathBuf>) 
 /// Parse the config from path, including alternative formats.
 ///
 /// Hierarchy:
-/// 1. Check if `tauri.conf.json` exists
-///     a. Parse it with `serde_json`
-///     b. Parse it with `json5` if `serde_json` fails
-///     c. Return original `serde_json` error if all above steps failed
-/// 2. Check if `tauri.conf.json5` exists
-///     a. Parse it with `json5`
-///     b. Return error if all above steps failed
-/// 3. Check if `Tauri.json` exists
-///     a. Parse it with `toml`
-///     b. Return error if all above steps failed
+/// 1. Check if `tauri.conf.json` exists a. Parse it with `serde_json` b. Parse
+///    it with `json5` if `serde_json` fails c. Return original `serde_json`
+///    error if all above steps failed
+/// 2. Check if `tauri.conf.json5` exists a. Parse it with `json5` b. Return
+///    error if all above steps failed
+/// 3. Check if `Tauri.json` exists a. Parse it with `toml` b. Return error if
+///    all above steps failed
 /// 4. Return error if all above steps failed
-pub fn parse(target: Target, path: impl Into<PathBuf>) -> Result<(Config, PathBuf), ConfigError> {
+pub fn parse(target:Target, path:impl Into<PathBuf>) -> Result<(Config, PathBuf), ConfigError> {
 	do_parse(target, path.into())
 }
 
 /// See [`parse`] for specifics, returns a JSON [`Value`] instead of [`Config`].
 pub fn parse_value(
-	target: Target,
-	path: impl Into<PathBuf>,
+	target:Target,
+	path:impl Into<PathBuf>,
 ) -> Result<(Value, PathBuf), ConfigError> {
 	do_parse(target, path.into())
 }
 
-fn do_parse<D: DeserializeOwned>(
-	target: Target,
-	path: PathBuf,
-) -> Result<(D, PathBuf), ConfigError> {
+fn do_parse<D:DeserializeOwned>(target:Target, path:PathBuf) -> Result<(D, PathBuf), ConfigError> {
 	let file_name = path.file_name().map(OsStr::to_string_lossy).unwrap_or_default();
-	let lookup_platform_config =
-		ENABLED_FORMATS.iter().any(|format| file_name == format.into_platform_file_name(target));
+	let lookup_platform_config = ENABLED_FORMATS
+		.iter()
+		.any(|format| file_name == format.into_platform_file_name(target));
 
 	let json5 = path.with_file_name(if lookup_platform_config {
 		ConfigFormat::Json5.into_platform_file_name(target)
@@ -273,10 +280,10 @@ fn do_parse<D: DeserializeOwned>(
 		#[allow(clippy::let_and_return)]
 		let json = do_parse_json(&raw, &path);
 
-		// we also want to support **valid** json5 in the .json extension if the feature is enabled.
-		// if the json5 is not valid the serde_json error for regular json will be returned.
-		// this could be a bit confusing, so we may want to encourage users using json5 to use the
-		// .json5 extension instead of .json
+		// we also want to support **valid** json5 in the .json extension if the feature
+		// is enabled. if the json5 is not valid the serde_json error for regular json
+		// will be returned. this could be a bit confusing, so we may want to
+		// encourage users using json5 to use the .json5 extension instead of .json
 		#[cfg(feature = "config-json5")]
 		let json = {
 			match do_parse_json5(&raw, &path) {
@@ -297,8 +304,8 @@ fn do_parse<D: DeserializeOwned>(
 
 		#[cfg(not(feature = "config-json5"))]
 		Err(ConfigError::DisabledFormat {
-			extension: ".json5".into(),
-			feature: "config-json5".into(),
+			extension:".json5".into(),
+			feature:"config-json5".into(),
 		})
 	} else if toml.exists() {
 		#[cfg(feature = "config-toml")]
@@ -308,65 +315,61 @@ fn do_parse<D: DeserializeOwned>(
 		}
 
 		#[cfg(not(feature = "config-toml"))]
-		Err(ConfigError::DisabledFormat {
-			extension: ".toml".into(),
-			feature: "config-toml".into(),
-		})
+		Err(ConfigError::DisabledFormat { extension:".toml".into(), feature:"config-toml".into() })
 	} else if !EXTENSIONS_SUPPORTED.contains(&path_ext.as_ref()) {
 		Err(ConfigError::UnsupportedFormat(path_ext.to_string()))
 	} else {
-		Err(ConfigError::Io { path, error: std::io::ErrorKind::NotFound.into() })
+		Err(ConfigError::Io { path, error:std::io::ErrorKind::NotFound.into() })
 	}
 }
 
 /// "Low-level" helper to parse JSON into a [`Config`].
 ///
 /// `raw` should be the contents of the file that is represented by `path`.
-pub fn parse_json(raw: &str, path: &Path) -> Result<Config, ConfigError> {
-	do_parse_json(raw, path)
-}
+pub fn parse_json(raw:&str, path:&Path) -> Result<Config, ConfigError> { do_parse_json(raw, path) }
 
 /// "Low-level" helper to parse JSON into a JSON [`Value`].
 ///
 /// `raw` should be the contents of the file that is represented by `path`.
-pub fn parse_json_value(raw: &str, path: &Path) -> Result<Value, ConfigError> {
+pub fn parse_json_value(raw:&str, path:&Path) -> Result<Value, ConfigError> {
 	do_parse_json(raw, path)
 }
 
-fn do_parse_json<D: DeserializeOwned>(raw: &str, path: &Path) -> Result<D, ConfigError> {
-	serde_json::from_str(raw).map_err(|error| ConfigError::FormatJson { path: path.into(), error })
+fn do_parse_json<D:DeserializeOwned>(raw:&str, path:&Path) -> Result<D, ConfigError> {
+	serde_json::from_str(raw).map_err(|error| ConfigError::FormatJson { path:path.into(), error })
 }
 
 /// "Low-level" helper to parse JSON5 into a [`Config`].
 ///
-/// `raw` should be the contents of the file that is represented by `path`. This function requires
-/// the `config-json5` feature to be enabled.
+/// `raw` should be the contents of the file that is represented by `path`. This
+/// function requires the `config-json5` feature to be enabled.
 #[cfg(feature = "config-json5")]
-pub fn parse_json5(raw: &str, path: &Path) -> Result<Config, ConfigError> {
+pub fn parse_json5(raw:&str, path:&Path) -> Result<Config, ConfigError> {
 	do_parse_json5(raw, path)
 }
 
 /// "Low-level" helper to parse JSON5 into a JSON [`Value`].
 ///
-/// `raw` should be the contents of the file that is represented by `path`. This function requires
-/// the `config-json5` feature to be enabled.
+/// `raw` should be the contents of the file that is represented by `path`. This
+/// function requires the `config-json5` feature to be enabled.
 #[cfg(feature = "config-json5")]
-pub fn parse_json5_value(raw: &str, path: &Path) -> Result<Value, ConfigError> {
+pub fn parse_json5_value(raw:&str, path:&Path) -> Result<Value, ConfigError> {
 	do_parse_json5(raw, path)
 }
 
 #[cfg(feature = "config-json5")]
-fn do_parse_json5<D: DeserializeOwned>(raw: &str, path: &Path) -> Result<D, ConfigError> {
-	::json5::from_str(raw).map_err(|error| ConfigError::FormatJson5 { path: path.into(), error })
+fn do_parse_json5<D:DeserializeOwned>(raw:&str, path:&Path) -> Result<D, ConfigError> {
+	::json5::from_str(raw).map_err(|error| ConfigError::FormatJson5 { path:path.into(), error })
 }
 
 #[cfg(feature = "config-toml")]
-fn do_parse_toml<D: DeserializeOwned>(raw: &str, path: &Path) -> Result<D, ConfigError> {
+fn do_parse_toml<D:DeserializeOwned>(raw:&str, path:&Path) -> Result<D, ConfigError> {
 	::toml::from_str(raw)
-		.map_err(|error| ConfigError::FormatToml { path: path.into(), error: Box::new(error) })
+		.map_err(|error| ConfigError::FormatToml { path:path.into(), error:Box::new(error) })
 }
 
-/// Helper function to wrap IO errors from [`std::fs::read_to_string`] into a [`ConfigError`].
-fn read_to_string(path: &Path) -> Result<String, ConfigError> {
-	std::fs::read_to_string(path).map_err(|error| ConfigError::Io { path: path.into(), error })
+/// Helper function to wrap IO errors from [`std::fs::read_to_string`] into a
+/// [`ConfigError`].
+fn read_to_string(path:&Path) -> Result<String, ConfigError> {
+	std::fs::read_to_string(path).map_err(|error| ConfigError::Io { path:path.into(), error })
 }

@@ -13,11 +13,6 @@
 // See https://developer.apple.com/go/?id=bundle-structure for a full
 // explanation.
 
-use crate::{bundle::common, Settings};
-
-use anyhow::Context;
-use image::{codecs::png::PngDecoder, GenericImageView, ImageDecoder};
-
 use std::{
 	collections::BTreeSet,
 	ffi::OsStr,
@@ -26,9 +21,14 @@ use std::{
 	path::{Path, PathBuf},
 };
 
+use anyhow::Context;
+use image::{codecs::png::PngDecoder, GenericImageView, ImageDecoder};
+
+use crate::{bundle::common, Settings};
+
 /// Bundles the project.
 /// Returns a vector of PathBuf that shows where the .app was created.
-pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
+pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 	log::warn!("iOS bundle support is still experimental.");
 
 	let app_product_name = format!("{}.app", settings.product_name());
@@ -68,10 +68,10 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 }
 
 /// Generate the icon files and store them under the `bundle_dir`.
-fn generate_icon_files(bundle_dir: &Path, settings: &Settings) -> crate::Result<Vec<String>> {
+fn generate_icon_files(bundle_dir:&Path, settings:&Settings) -> crate::Result<Vec<String>> {
 	let mut filenames = Vec::new();
 	{
-		let mut get_dest_path = |width: u32, height: u32, is_retina: bool| {
+		let mut get_dest_path = |width:u32, height:u32, is_retina:bool| {
 			let filename =
 				format!("icon_{}x{}{}.png", width, height, if is_retina { "@2x" } else { "" });
 			let path = bundle_dir.join(&filename);
@@ -131,9 +131,9 @@ fn generate_icon_files(bundle_dir: &Path, settings: &Settings) -> crate::Result<
 
 /// Generates the Info.plist file
 fn generate_info_plist(
-	bundle_dir: &Path,
-	settings: &Settings,
-	icon_filenames: &[String],
+	bundle_dir:&Path,
+	settings:&Settings,
+	icon_filenames:&[String],
 ) -> crate::Result<()> {
 	let file = &mut common::create_file(&bundle_dir.join("Info.plist"))?;
 	writeln!(
@@ -155,7 +155,11 @@ fn generate_info_plist(
 		"  <key>CFBundleDisplayName</key>\n  <string>{}</string>",
 		settings.product_name()
 	)?;
-	writeln!(file, "  <key>CFBundleName</key>\n  <string>{}</string>", settings.product_name())?;
+	writeln!(
+		file,
+		"  <key>CFBundleName</key>\n  <string>{}</string>",
+		settings.product_name()
+	)?;
 	writeln!(
 		file,
 		"  <key>CFBundleExecutable</key>\n  <string>{}</string>",

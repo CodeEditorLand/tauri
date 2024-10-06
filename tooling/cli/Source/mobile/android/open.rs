@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use cargo_mobile2::os;
+
 use super::{ensure_init, env, get_app, get_config, inject_assets, MobileTarget};
 use crate::{
 	helpers::config::get as get_tauri_config,
 	interface::{AppInterface, Interface},
 	Result,
 };
-
-use cargo_mobile2::os;
 
 pub fn command() -> Result<()> {
 	let tauri_config = get_tauri_config(tauri_utils::platform::Target::Android, None)?;

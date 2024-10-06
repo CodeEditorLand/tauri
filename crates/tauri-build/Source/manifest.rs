@@ -44,10 +44,7 @@ pub fn check(config:&Config, manifest:&mut Manifest) -> Result<()> {
 			alias:None,
 			kind:DependencyKind::Normal,
 			all_cli_managed_features:Some(
-				AppConfig::all_features()
-					.into_iter()
-					.filter(|f| f != &"tray-icon")
-					.collect(),
+				AppConfig::all_features().into_iter().filter(|f| f != &"tray-icon").collect(),
 			),
 			expected_features:config
 				.app
@@ -73,8 +70,8 @@ pub fn check(config:&Config, manifest:&mut Manifest) -> Result<()> {
 			if let Err(error) = check_features(dep, &metadata) {
 				return Err(anyhow!(
 					"
-      The `{}` dependency features on the `Cargo.toml` file does not match the \
-					 allowlist defined under `tauri.conf.json`.
+      The `{}` dependency features on the `Cargo.toml` file does not match the allowlist defined \
+					 under `tauri.conf.json`.
       Please run `tauri dev` or `tauri build` or {}.
     ",
 					name,
@@ -87,11 +84,7 @@ pub fn check(config:&Config, manifest:&mut Manifest) -> Result<()> {
 	Ok(())
 }
 
-fn find_dependency(
-	manifest:&mut Manifest,
-	name:&str,
-	kind:DependencyKind,
-) -> Vec<Dependency> {
+fn find_dependency(manifest:&mut Manifest, name:&str, kind:DependencyKind) -> Vec<Dependency> {
 	let dep = match kind {
 		DependencyKind::Build => manifest.build_dependencies.remove(name),
 		DependencyKind::Normal => manifest.dependencies.remove(name),
@@ -131,19 +124,14 @@ fn features_diff(current:&[String], expected:&[String]) -> Diff {
 	Diff { remove, add }
 }
 
-fn check_features(
-	dependency:Dependency,
-	metadata:&AllowlistedDependency,
-) -> Result<(), String> {
+fn check_features(dependency:Dependency, metadata:&AllowlistedDependency) -> Result<(), String> {
 	let features = match dependency {
 		Dependency::Simple(_) => Vec::new(),
 		Dependency::Detailed(dep) => dep.features,
 		Dependency::Inherited(dep) => dep.features,
 	};
 
-	let diff = if let Some(all_cli_managed_features) =
-		&metadata.all_cli_managed_features
-	{
+	let diff = if let Some(all_cli_managed_features) = &metadata.all_cli_managed_features {
 		features_diff(
 			&features
 				.into_iter()
@@ -165,11 +153,7 @@ fn check_features(
 	if !diff.remove.is_empty() {
 		error_message.push_str("remove the `");
 		error_message.push_str(&diff.remove.join(", "));
-		error_message.push_str(if diff.remove.len() == 1 {
-			"` feature"
-		} else {
-			"` features"
-		});
+		error_message.push_str(if diff.remove.len() == 1 { "` feature" } else { "` features" });
 		if !diff.add.is_empty() {
 			error_message.push_str(" and ");
 		}
@@ -177,11 +161,7 @@ fn check_features(
 	if !diff.add.is_empty() {
 		error_message.push_str("add the `");
 		error_message.push_str(&diff.add.join(", "));
-		error_message.push_str(if diff.add.len() == 1 {
-			"` feature"
-		} else {
-			"` features"
-		});
+		error_message.push_str(if diff.add.len() == 1 { "` feature" } else { "` features" });
 	}
 
 	if error_message.is_empty() { Ok(()) } else { Err(error_message) }
@@ -195,11 +175,7 @@ mod tests {
 	fn array_diff() {
 		for (current, expected, result) in [
 			(vec![], vec![], Default::default()),
-			(
-				vec!["a".into()],
-				vec![],
-				Diff { remove:vec!["a".into()], add:vec![] },
-			),
+			(vec!["a".into()], vec![], Diff { remove:vec!["a".into()], add:vec![] }),
 			(vec!["a".into()], vec!["a".into()], Default::default()),
 			(
 				vec!["a".into(), "b".into()],
@@ -212,10 +188,7 @@ mod tests {
 				Diff { remove:vec!["b".into()], add:vec!["c".into()] },
 			),
 		] {
-			assert_eq!(
-				crate::manifest::features_diff(&current, &expected),
-				result
-			);
+			assert_eq!(crate::manifest::features_diff(&current, &expected), result);
 		}
 	}
 }

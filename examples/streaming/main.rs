@@ -10,21 +10,16 @@ use std::{
 	process::{Command, Stdio},
 };
 
-use http::{
-	header::*,
-	response::Builder as ResponseBuilder,
-	status::StatusCode,
-};
+use http::{header::*, response::Builder as ResponseBuilder, status::StatusCode};
 use http_range::HttpRange;
 
 fn get_stream_response(
 	request:http::Request<Vec<u8>>,
 ) -> Result<http::Response<Vec<u8>>, Box<dyn std::error::Error>> {
 	// skip leading `/`
-	let path =
-		percent_encoding::percent_decode(request.uri().path()[1..].as_bytes())
-			.decode_utf8_lossy()
-			.to_string();
+	let path = percent_encoding::percent_decode(request.uri().path()[1..].as_bytes())
+		.decode_utf8_lossy()
+		.to_string();
 
 	// return error 404 if it's not our video
 	if path != "streaming_example_test_video.mp4" {
@@ -44,9 +39,7 @@ fn get_stream_response(
 	let mut resp = ResponseBuilder::new().header(CONTENT_TYPE, "video/mp4");
 
 	// if the webview sent a range header, we need to send a 206 in return
-	let http_response = if let Some(range_header) =
-		request.headers().get("range")
-	{
+	let http_response = if let Some(range_header) = request.headers().get("range") {
 		let not_satisfiable = || {
 			ResponseBuilder::new()
 				.status(StatusCode::RANGE_NOT_SATISFIABLE)
@@ -55,16 +48,15 @@ fn get_stream_response(
 		};
 
 		// parse range header
-		let ranges =
-			if let Ok(ranges) = HttpRange::parse(range_header.to_str()?, len) {
-				ranges
+		let ranges = if let Ok(ranges) = HttpRange::parse(range_header.to_str()?, len) {
+			ranges
         .iter()
         // map the output back to spec range <start-end>, example: 0-499
         .map(|r| (r.start, r.start + r.length - 1))
         .collect::<Vec<_>>()
-			} else {
-				return Ok(not_satisfiable()?);
-			};
+		} else {
+			return Ok(not_satisfiable()?);
+		};
 
 		/// The Maximum bytes we send in one range
 		const MAX_LEN:u64 = 1000 * 1024;
@@ -93,8 +85,7 @@ fn get_stream_response(
 			// read the needed bytes
 			file.take(bytes_to_read).read_to_end(&mut buf)?;
 
-			resp = resp
-				.header(CONTENT_RANGE, format!("bytes {start}-{end}/{len}"));
+			resp = resp.header(CONTENT_RANGE, format!("bytes {start}-{end}/{len}"));
 			resp = resp.header(CONTENT_LENGTH, end + 1 - start);
 			resp = resp.status(StatusCode::PARTIAL_CONTENT);
 			resp.body(buf)
@@ -111,8 +102,7 @@ fn get_stream_response(
 						None
 					} else {
 						// adjust end byte for MAX_LEN
-						end = start
-							+ (end - start).min(len - start).min(MAX_LEN - 1);
+						end = start + (end - start).min(len - start).min(MAX_LEN - 1);
 						Some((start, end))
 					}
 				})
@@ -122,22 +112,16 @@ fn get_stream_response(
 			let boundary_sep = format!("\r\n--{boundary}\r\n");
 			let boundary_closer = format!("\r\n--{boundary}\r\n");
 
-			resp = resp.header(
-				CONTENT_TYPE,
-				format!("multipart/byteranges; boundary={boundary}"),
-			);
+			resp = resp.header(CONTENT_TYPE, format!("multipart/byteranges; boundary={boundary}"));
 
 			for (end, start) in ranges {
 				// a new range is being written, write the range boundary
 				buf.write_all(boundary_sep.as_bytes())?;
 
 				// write the needed headers `Content-Type` and `Content-Range`
+				buf.write_all(format!("{CONTENT_TYPE}: video/mp4\r\n").as_bytes())?;
 				buf.write_all(
-					format!("{CONTENT_TYPE}: video/mp4\r\n").as_bytes(),
-				)?;
-				buf.write_all(
-					format!("{CONTENT_RANGE}: bytes {start}-{end}/{len}\r\n")
-						.as_bytes(),
+					format!("{CONTENT_RANGE}: bytes {start}-{end}/{len}\r\n").as_bytes(),
 				)?;
 
 				// write the separator to indicate the start of the range body
@@ -179,7 +163,7 @@ fn download_video() {
 	let video_file = PathBuf::from("streaming_example_test_video.mp4");
 	if !video_file.exists() {
 		let video_url =
-      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+			"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
 		// Downloading with curl this saves us from adding
 		// a Rust HTTP client dependency.
@@ -203,25 +187,20 @@ fn main() {
 	download_video();
 
 	tauri::Builder::default()
-		.register_asynchronous_uri_scheme_protocol(
-			"stream",
-			move |_ctx, request, responder| {
-				match get_stream_response(request) {
-					Ok(http_response) => responder.respond(http_response),
-					Err(e) => {
-						responder.respond(
-							ResponseBuilder::new()
-								.status(StatusCode::INTERNAL_SERVER_ERROR)
-								.header(CONTENT_TYPE, "text/plain")
-								.body(e.to_string().as_bytes().to_vec())
-								.unwrap(),
-						)
-					},
-				}
-			},
-		)
-		.run(tauri::generate_context!(
-			"../../examples/streaming/tauri.conf.json"
-		))
+		.register_asynchronous_uri_scheme_protocol("stream", move |_ctx, request, responder| {
+			match get_stream_response(request) {
+				Ok(http_response) => responder.respond(http_response),
+				Err(e) => {
+					responder.respond(
+						ResponseBuilder::new()
+							.status(StatusCode::INTERNAL_SERVER_ERROR)
+							.header(CONTENT_TYPE, "text/plain")
+							.body(e.to_string().as_bytes().to_vec())
+							.unwrap(),
+					)
+				},
+			}
+		})
+		.run(tauri::generate_context!("../../examples/streaming/tauri.conf.json"))
 		.expect("error while running tauri application");
 }

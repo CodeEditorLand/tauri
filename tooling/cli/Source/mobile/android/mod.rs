@@ -2,6 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{
+	env::set_var,
+	fs::{create_dir, create_dir_all, write},
+	process::exit,
+	thread::sleep,
+	time::Duration,
+};
+
 use cargo_mobile2::{
 	android::{
 		adb,
@@ -18,19 +26,19 @@ use cargo_mobile2::{
 	util::prompt,
 };
 use clap::{Parser, Subcommand};
-use std::{
-	env::set_var,
-	fs::{create_dir, create_dir_all, write},
-	process::exit,
-	thread::sleep,
-	time::Duration,
-};
 use sublime_fuzzy::best_match;
 use tauri_utils::resources::ResourcePaths;
 
 use super::{
-	ensure_init, get_app, init::command as init_command, log_finished, read_options, CliOptions,
-	OptionsHandle, Target as MobileTarget, MIN_DEVICE_MATCH_SCORE,
+	ensure_init,
+	get_app,
+	init::command as init_command,
+	log_finished,
+	read_options,
+	CliOptions,
+	OptionsHandle,
+	Target as MobileTarget,
+	MIN_DEVICE_MATCH_SCORE,
 };
 use crate::{
 	helpers::config::{BundleResources, Config as TauriConfig},
@@ -52,7 +60,7 @@ pub(crate) mod project;
 )]
 pub struct Cli {
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Debug, Parser)]
@@ -60,10 +68,10 @@ pub struct Cli {
 pub struct InitOptions {
 	/// Skip prompting for values
 	#[clap(long, env = "CI")]
-	ci: bool,
+	ci:bool,
 	/// Skips installing rust toolchains via rustup
 	#[clap(long)]
-	skip_targets_install: bool,
+	skip_targets_install:bool,
 }
 
 #[derive(Subcommand)]
@@ -75,13 +83,13 @@ enum Commands {
 	AndroidStudioScript(android_studio_script::Options),
 }
 
-pub fn command(cli: Cli, verbosity: u8) -> Result<()> {
+pub fn command(cli:Cli, verbosity:u8) -> Result<()> {
 	let noise_level = NoiseLevel::from_occurrences(verbosity as u64);
 	match cli.command {
 		Commands::Init(options) => {
 			crate::helpers::app_paths::resolve();
 			init_command(MobileTarget::Android, options.ci, false, options.skip_targets_install)?
-		}
+		},
 		Commands::Dev(options) => dev::command(options, noise_level)?,
 		Commands::Build(options) => build::command(options, noise_level)?,
 		Commands::AndroidStudioScript(options) => android_studio_script::command(options)?,
@@ -91,10 +99,10 @@ pub fn command(cli: Cli, verbosity: u8) -> Result<()> {
 }
 
 pub fn get_config(
-	app: &App,
-	config: &TauriConfig,
-	features: Option<&Vec<String>>,
-	cli_options: &CliOptions,
+	app:&App,
+	config:&TauriConfig,
+	features:Option<&Vec<String>>,
+	cli_options:&CliOptions,
 ) -> (AndroidConfig, AndroidMetadata) {
 	let mut android_options = cli_options.clone();
 	if let Some(features) = features {
@@ -102,8 +110,8 @@ pub fn get_config(
 	}
 
 	let raw = RawAndroidConfig {
-		features: android_options.features.clone(),
-		logcat_filter_specs: vec![
+		features:android_options.features.clone(),
+		logcat_filter_specs:vec![
 			"RustStdoutStderr".into(),
 			format!(
 				"*:{}",
@@ -115,15 +123,15 @@ pub fn get_config(
 				.logcat()
 			),
 		],
-		min_sdk_version: Some(config.bundle.android.min_sdk_version),
+		min_sdk_version:Some(config.bundle.android.min_sdk_version),
 		..Default::default()
 	};
 	let config = AndroidConfig::from_raw(app.clone(), Some(raw)).unwrap();
 
 	let metadata = AndroidMetadata {
-		supported: true,
-		cargo_args: Some(android_options.args),
-		features: android_options.features,
+		supported:true,
+		cargo_args:Some(android_options.args),
+		features:android_options.features,
 		..Default::default()
 	};
 
@@ -140,9 +148,12 @@ pub fn get_config(
 			let _ = create_dir(src_main_dir.join("generated"));
 		} else {
 			log::error!(
-      "Project directory {} does not exist. Did you update the package name in `Cargo.toml` or the bundle identifier in `tauri.conf.json > identifier`? Save your changes, delete the `gen/android` folder and run `tauri android init` to recreate the Android project.",
-      src_main_dir.display()
-    );
+				"Project directory {} does not exist. Did you update the package name in \
+				 `Cargo.toml` or the bundle identifier in `tauri.conf.json > identifier`? Save \
+				 your changes, delete the `gen/android` folder and run `tauri android init` to \
+				 recreate the Android project.",
+				src_main_dir.display()
+			);
 			exit(1);
 		}
 	}
@@ -164,7 +175,7 @@ fn delete_codegen_vars() {
 	}
 }
 
-fn adb_device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
+fn adb_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 	let device_list = adb::device_list(env)
 		.map_err(|cause| anyhow::anyhow!("Failed to detect connected Android devices: {cause}"))?;
 	if !device_list.is_empty() {
@@ -209,7 +220,7 @@ fn adb_device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a
 	}
 }
 
-fn emulator_prompt(env: &'_ Env, target: Option<&str>) -> Result<emulator::Emulator> {
+fn emulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<emulator::Emulator> {
 	let emulator_list = emulator::avd_list(env).unwrap_or_default();
 	if !emulator_list.is_empty() {
 		let emulator = if let Some(t) = target {
@@ -250,7 +261,7 @@ fn emulator_prompt(env: &'_ Env, target: Option<&str>) -> Result<emulator::Emula
 	}
 }
 
-fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
+fn device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 	if let Ok(device) = adb_device_prompt(env, target) {
 		Ok(device)
 	} else {
@@ -265,7 +276,10 @@ fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
 				return Ok(device);
 			}
 			if tries >= 3 {
-				log::info!("Waiting for emulator to start... (maybe the emulator is unauthorized or offline, run `adb devices` to check)");
+				log::info!(
+					"Waiting for emulator to start... (maybe the emulator is unauthorized or \
+					 offline, run `adb devices` to check)"
+				);
 			} else {
 				log::info!("Waiting for emulator to start...");
 			}
@@ -274,11 +288,11 @@ fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
 	}
 }
 
-fn detect_target_ok<'a>(env: &Env) -> Option<&'a Target<'a>> {
+fn detect_target_ok<'a>(env:&Env) -> Option<&'a Target<'a>> {
 	device_prompt(env, None).map(|device| device.target()).ok()
 }
 
-fn open_and_wait(config: &AndroidConfig, env: &Env) -> ! {
+fn open_and_wait(config:&AndroidConfig, env:&Env) -> ! {
 	log::info!("Opening Android Studio");
 	if let Err(e) = os::open_file_with("Android Studio", config.project_dir(), &env.base) {
 		log::error!("{}", e);
@@ -288,7 +302,7 @@ fn open_and_wait(config: &AndroidConfig, env: &Env) -> ! {
 	}
 }
 
-fn inject_resources(config: &AndroidConfig, tauri_config: &TauriConfig) -> Result<()> {
+fn inject_resources(config:&AndroidConfig, tauri_config:&TauriConfig) -> Result<()> {
 	let asset_dir = config.project_dir().join("app/src/main").join(DEFAULT_ASSET_DIR);
 	create_dir_all(&asset_dir)?;
 
@@ -310,7 +324,7 @@ fn inject_resources(config: &AndroidConfig, tauri_config: &TauriConfig) -> Resul
 	Ok(())
 }
 
-fn configure_cargo(env: &mut Env, config: &AndroidConfig) -> Result<()> {
+fn configure_cargo(env:&mut Env, config:&AndroidConfig) -> Result<()> {
 	for target in Target::all().values() {
 		let config = target.generate_cargo_config(config, env)?;
 

@@ -20,39 +20,46 @@ mod desktop_commands {
 		sealed::ManagerBase,
 		utils::config::{WindowConfig, WindowEffectsConfig},
 		window::{ProgressBarState, WindowBuilder},
-		AppHandle, CursorIcon, Manager, Monitor, PhysicalPosition, PhysicalSize, Position, Size,
-		Theme, UserAttentionType, Webview, Window,
+		AppHandle,
+		CursorIcon,
+		Manager,
+		Monitor,
+		PhysicalPosition,
+		PhysicalSize,
+		Position,
+		Size,
+		Theme,
+		UserAttentionType,
+		Webview,
+		Window,
 	};
 
 	#[command(root = "crate")]
-	pub async fn get_all_windows<R: Runtime>(app: AppHandle<R>) -> Vec<String> {
+	pub async fn get_all_windows<R:Runtime>(app:AppHandle<R>) -> Vec<String> {
 		app.manager().windows().keys().cloned().collect()
 	}
 
 	#[command(root = "crate")]
-	pub async fn create<R: Runtime>(app: AppHandle<R>, options: WindowConfig) -> crate::Result<()> {
+	pub async fn create<R:Runtime>(app:AppHandle<R>, options:WindowConfig) -> crate::Result<()> {
 		WindowBuilder::from_config(&app, &options)?.build()?;
 		Ok(())
 	}
 
-	fn get_window<R: Runtime>(
-		window: Window<R>,
-		label: Option<String>,
-	) -> crate::Result<Window<R>> {
+	fn get_window<R:Runtime>(window:Window<R>, label:Option<String>) -> crate::Result<Window<R>> {
 		match label {
 			Some(l) if !l.is_empty() => {
 				window.manager().get_window(&l).ok_or(crate::Error::WindowNotFound)
-			}
+			},
 			_ => Ok(window),
 		}
 	}
 
 	macro_rules! getter {
-		($cmd: ident, $ret: ty) => {
+		($cmd:ident, $ret:ty) => {
 			#[command(root = "crate")]
-			pub async fn $cmd<R: Runtime>(
-				window: Window<R>,
-				label: Option<String>,
+			pub async fn $cmd<R:Runtime>(
+				window:Window<R>,
+				label:Option<String>,
 			) -> crate::Result<$ret> {
 				get_window(window, label)?.$cmd().map_err(Into::into)
 			}
@@ -60,22 +67,22 @@ mod desktop_commands {
 	}
 
 	macro_rules! setter {
-		($cmd: ident) => {
+		($cmd:ident) => {
 			#[command(root = "crate")]
-			pub async fn $cmd<R: Runtime>(
-				window: Window<R>,
-				label: Option<String>,
+			pub async fn $cmd<R:Runtime>(
+				window:Window<R>,
+				label:Option<String>,
 			) -> crate::Result<()> {
 				get_window(window, label)?.$cmd().map_err(Into::into)
 			}
 		};
 
-		($cmd: ident, $input: ty) => {
+		($cmd:ident, $input:ty) => {
 			#[command(root = "crate")]
-			pub async fn $cmd<R: Runtime>(
-				window: Window<R>,
-				label: Option<String>,
-				value: $input,
+			pub async fn $cmd<R:Runtime>(
+				window:Window<R>,
+				label:Option<String>,
+				value:$input,
 			) -> crate::Result<()> {
 				get_window(window, label)?.$cmd(value).map_err(Into::into)
 			}
@@ -145,22 +152,24 @@ mod desktop_commands {
 	setter!(set_size_constraints, WindowSizeConstraints);
 
 	#[command(root = "crate")]
-	pub async fn set_icon<R: Runtime>(
-		webview: Webview<R>,
-		window: Window<R>,
-		label: Option<String>,
-		value: crate::image::JsImage,
+	pub async fn set_icon<R:Runtime>(
+		webview:Webview<R>,
+		window:Window<R>,
+		label:Option<String>,
+		value:crate::image::JsImage,
 	) -> crate::Result<()> {
 		let window = get_window(window, label)?;
 
 		let resources_table = webview.resources_table();
-		window.set_icon(value.into_img(&resources_table)?.as_ref().clone()).map_err(Into::into)
+		window
+			.set_icon(value.into_img(&resources_table)?.as_ref().clone())
+			.map_err(Into::into)
 	}
 
 	#[command(root = "crate")]
-	pub async fn toggle_maximize<R: Runtime>(
-		window: Window<R>,
-		label: Option<String>,
+	pub async fn toggle_maximize<R:Runtime>(
+		window:Window<R>,
+		label:Option<String>,
 	) -> crate::Result<()> {
 		let window = get_window(window, label)?;
 		match window.is_maximized()? {
@@ -171,9 +180,9 @@ mod desktop_commands {
 	}
 
 	#[command(root = "crate")]
-	pub async fn internal_toggle_maximize<R: Runtime>(
-		window: Window<R>,
-		label: Option<String>,
+	pub async fn internal_toggle_maximize<R:Runtime>(
+		window:Window<R>,
+		label:Option<String>,
 	) -> crate::Result<()> {
 		let window = get_window(window, label)?;
 		if window.is_resizable()? {
@@ -186,11 +195,11 @@ mod desktop_commands {
 	}
 
 	#[command(root = "crate")]
-	pub async fn monitor_from_point<R: Runtime>(
-		window: Window<R>,
-		label: Option<String>,
-		x: f64,
-		y: f64,
+	pub async fn monitor_from_point<R:Runtime>(
+		window:Window<R>,
+		label:Option<String>,
+		x:f64,
+		y:f64,
 	) -> crate::Result<Option<Monitor>> {
 		let window = get_window(window, label)?;
 		window.monitor_from_point(x, y)
@@ -198,7 +207,7 @@ mod desktop_commands {
 }
 
 /// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
+pub fn init<R:Runtime>() -> TauriPlugin<R> {
 	use serialize_to_javascript::{default_template, DefaultTemplate, Template};
 
 	let mut init_script = String::new();
@@ -206,11 +215,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 	#[derive(Template)]
 	#[default_template("./scripts/drag.js")]
 	struct Drag<'a> {
-		os_name: &'a str,
+		os_name:&'a str,
 	}
 
 	init_script.push_str(
-		&Drag { os_name: std::env::consts::OS }
+		&Drag { os_name:std::env::consts::OS }
 			.render_default(&Default::default())
 			.unwrap()
 			.into_string(),
@@ -221,7 +230,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 		.invoke_handler(|invoke| {
 			#[cfg(desktop)]
 			{
-				let handler: Box<dyn Fn(crate::ipc::Invoke<R>) -> bool> =
+				let handler:Box<dyn Fn(crate::ipc::Invoke<R>) -> bool> =
 					Box::new(crate::generate_handler![
 						desktop_commands::create,
 						// getters

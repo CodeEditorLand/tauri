@@ -39,15 +39,13 @@ impl<'r, T:Send + Sync + std::fmt::Debug> std::fmt::Debug for State<'r, T> {
 	}
 }
 
-impl<'r, 'de:'r, T:Send + Sync + 'static, R:Runtime> CommandArg<'de, R>
-	for State<'r, T>
-{
+impl<'r, 'de:'r, T:Send + Sync + 'static, R:Runtime> CommandArg<'de, R> for State<'r, T> {
 	/// Grabs the [`State`] from the [`CommandItem`]. This will never fail.
 	fn from_command(command:CommandItem<'de, R>) -> Result<Self, InvokeError> {
 		Ok(command.message.state_ref().try_get().unwrap_or_else(|| {
 			panic!(
-				"state not managed for field `{}` on command `{}`. You must \
-				 call `.manage()` before using this command",
+				"state not managed for field `{}` on command `{}`. You must call `.manage()` \
+				 before using this command",
 				command.key, command.name
 			)
 		}))
@@ -61,17 +59,11 @@ pub struct StateManager(pub(crate) TypeMap![Send + Sync]);
 impl StateManager {
 	pub(crate) fn new() -> Self { Self(<TypeMap![Send + Sync]>::new()) }
 
-	pub(crate) fn set<T:Send + Sync + 'static>(&self, state:T) -> bool {
-		self.0.set(state)
-	}
+	pub(crate) fn set<T:Send + Sync + 'static>(&self, state:T) -> bool { self.0.set(state) }
 
 	/// Gets the state associated with the specified type.
 	pub fn get<T:Send + Sync + 'static>(&self) -> State<'_, T> {
-		State(
-			self.0
-				.try_get()
-				.expect("state: get() called before set() for given type"),
-		)
+		State(self.0.try_get().expect("state: get() called before set() for given type"))
 	}
 
 	/// Gets the state associated with the specified type.

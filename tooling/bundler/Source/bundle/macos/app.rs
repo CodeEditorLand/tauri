@@ -11,25 +11,17 @@
 //         MacOS          # A directory to hold executable binary files
 //             foobar          # The main binary executable of the app
 //             foobar_helper   # A helper application, possibly providing a CLI
-//         Resources      # Data files such as images, sounds, translations and nib files
-//             en.lproj        # Folder containing english translation strings/data
-//         Frameworks     # A directory containing private frameworks (shared libraries)
-//         ...            # Any other optional files the developer wants to place here
+//         Resources      # Data files such as images, sounds, translations and
+// nib files             en.lproj        # Folder containing english translation
+// strings/data         Frameworks     # A directory containing private
+// frameworks (shared libraries)         ...            # Any other optional
+// files the developer wants to place here
 //
 // See https://developer.apple.com/go/?id=bundle-structure for a full
 // explanation.
 //
-// Currently, cargo-bundle does not support Frameworks, nor does it support placing arbitrary
-// files into the `Contents` directory of the bundle.
-
-use super::{
-	super::common::{self, CommandExt},
-	icon::create_icns_file,
-	sign::{notarize, notarize_auth, sign, NotarizeAuthError, SignTarget},
-};
-use crate::Settings;
-
-use anyhow::Context;
+// Currently, cargo-bundle does not support Frameworks, nor does it support
+// placing arbitrary files into the `Contents` directory of the bundle.
 
 use std::{
 	ffi::OsStr,
@@ -38,12 +30,21 @@ use std::{
 	process::Command,
 };
 
-const NESTED_CODE_FOLDER: [&str; 6] =
+use anyhow::Context;
+
+use super::{
+	super::common::{self, CommandExt},
+	icon::create_icns_file,
+	sign::{notarize, notarize_auth, sign, NotarizeAuthError, SignTarget},
+};
+use crate::Settings;
+
+const NESTED_CODE_FOLDER:[&str; 6] =
 	["MacOS", "Frameworks", "Plugins", "Helpers", "XPCServices", "Libraries"];
 
 /// Bundles the project.
 /// Returns a vector of PathBuf that shows where the .app was created.
-pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
+pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 	// we should use the bundle name (App name) as a MacOS standard.
 	// version or platform shouldn't be included in the App name.
 	let app_product_name = format!("{}.app", settings.product_name());
@@ -65,7 +66,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 	let bin_dir = bundle_directory.join("MacOS");
 	let mut sign_paths = Vec::new();
 
-	let bundle_icon_file: Option<PathBuf> = {
+	let bundle_icon_file:Option<PathBuf> = {
 		create_icns_file(&resources_dir, settings).with_context(|| "Failed to create app icon")?
 	};
 
@@ -78,21 +79,20 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 
 	settings.copy_resources(&resources_dir)?;
 
-	let bin_paths =
-		settings.copy_binaries(&bin_dir).with_context(|| "Failed to copy external binaries")?;
-	sign_paths
-		.extend(bin_paths.into_iter().map(|path| SignTarget { path, is_an_executable: true }));
+	let bin_paths = settings
+		.copy_binaries(&bin_dir)
+		.with_context(|| "Failed to copy external binaries")?;
+	sign_paths.extend(bin_paths.into_iter().map(|path| SignTarget { path, is_an_executable:true }));
 
 	let bin_paths = copy_binaries_to_bundle(&bundle_directory, settings)?;
-	sign_paths
-		.extend(bin_paths.into_iter().map(|path| SignTarget { path, is_an_executable: true }));
+	sign_paths.extend(bin_paths.into_iter().map(|path| SignTarget { path, is_an_executable:true }));
 
 	copy_custom_files_to_bundle(&bundle_directory, settings)?;
 
 	if let Some(keychain) = super::sign::keychain(settings.macos().signing_identity.as_deref())? {
-		// Sign frameworks and sidecar binaries first, per apple, signing must be done inside out
-		// https://developer.apple.com/forums/thread/701514
-		sign_paths.push(SignTarget { path: app_bundle_path.clone(), is_an_executable: true });
+		// Sign frameworks and sidecar binaries first, per apple, signing must be done
+		// inside out https://developer.apple.com/forums/thread/701514
+		sign_paths.push(SignTarget { path:app_bundle_path.clone(), is_an_executable:true });
 
 		// Remove extra attributes, which could cause codesign to fail
 		// https://developer.apple.com/library/archive/qa/qa1940/_index.html
@@ -105,21 +105,21 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 		match notarize_auth() {
 			Ok(auth) => {
 				notarize(&keychain, app_bundle_path.clone(), &auth)?;
-			}
+			},
 			Err(e) => {
 				if matches!(e, NotarizeAuthError::MissingTeamId) {
 					return Err(anyhow::anyhow!("{e}").into());
 				} else {
 					log::warn!("skipping app notarization, {}", e.to_string());
 				}
-			}
+			},
 		}
 	}
 
 	Ok(vec![app_bundle_path])
 }
 
-fn remove_extra_attr(app_bundle_path: &Path) -> crate::Result<()> {
+fn remove_extra_attr(app_bundle_path:&Path) -> crate::Result<()> {
 	Command::new("xattr")
 		.arg("-crs")
 		.arg(app_bundle_path)
@@ -130,8 +130,8 @@ fn remove_extra_attr(app_bundle_path: &Path) -> crate::Result<()> {
 
 // Copies the app's binaries to the bundle.
 fn copy_binaries_to_bundle(
-	bundle_directory: &Path,
-	settings: &Settings,
+	bundle_directory:&Path,
+	settings:&Settings,
 ) -> crate::Result<Vec<PathBuf>> {
 	let mut paths = Vec::new();
 	let dest_dir = bundle_directory.join("MacOS");
@@ -147,7 +147,7 @@ fn copy_binaries_to_bundle(
 }
 
 /// Copies user-defined files to the app under Contents.
-fn copy_custom_files_to_bundle(bundle_directory: &Path, settings: &Settings) -> crate::Result<()> {
+fn copy_custom_files_to_bundle(bundle_directory:&Path, settings:&Settings) -> crate::Result<()> {
 	for (contents_path, path) in settings.macos().files.iter() {
 		let contents_path = if contents_path.is_absolute() {
 			contents_path.strip_prefix("/").unwrap()
@@ -169,14 +169,15 @@ fn copy_custom_files_to_bundle(bundle_directory: &Path, settings: &Settings) -> 
 
 // Creates the Info.plist file.
 fn create_info_plist(
-	bundle_dir: &Path,
-	bundle_icon_file: Option<PathBuf>,
-	settings: &Settings,
+	bundle_dir:&Path,
+	bundle_icon_file:Option<PathBuf>,
+	settings:&Settings,
 ) -> crate::Result<()> {
 	let format = time::format_description::parse("[year][month][day].[hour][minute][second]")
 		.map_err(time::error::Error::from)?;
-	let build_number =
-		time::OffsetDateTime::now_utc().format(&format).map_err(time::error::Error::from)?;
+	let build_number = time::OffsetDateTime::now_utc()
+		.format(&format)
+		.map_err(time::error::Error::from)?;
 
 	let mut plist = plist::Dictionary::new();
 	plist.insert("CFBundleDevelopmentRegion".into(), "English".into());
@@ -303,8 +304,9 @@ fn create_info_plist(
 	Ok(())
 }
 
-// Copies the framework under `{src_dir}/{framework}.framework` to `{dest_dir}/{framework}.framework`.
-fn copy_framework_from(dest_dir: &Path, framework: &str, src_dir: &Path) -> crate::Result<bool> {
+// Copies the framework under `{src_dir}/{framework}.framework` to
+// `{dest_dir}/{framework}.framework`.
+fn copy_framework_from(dest_dir:&Path, framework:&str, src_dir:&Path) -> crate::Result<bool> {
 	let src_name = format!("{}.framework", framework);
 	let src_path = src_dir.join(&src_name);
 	if src_path.exists() {
@@ -317,8 +319,8 @@ fn copy_framework_from(dest_dir: &Path, framework: &str, src_dir: &Path) -> crat
 
 // Copies the macOS application bundle frameworks to the .app
 fn copy_frameworks_to_bundle(
-	bundle_directory: &Path,
-	settings: &Settings,
+	bundle_directory:&Path,
+	settings:&Settings,
 ) -> crate::Result<Vec<SignTarget>> {
 	let mut paths = Vec::new();
 
@@ -348,7 +350,7 @@ fn copy_frameworks_to_bundle(
 			let src_name = src_path.file_name().expect("Couldn't get library filename");
 			let dest_path = dest_dir.join(src_name);
 			common::copy_file(&src_path, &dest_path)?;
-			paths.push(SignTarget { path: dest_path, is_an_executable: false });
+			paths.push(SignTarget { path:dest_path, is_an_executable:false });
 			continue;
 		} else if framework.contains('/') {
 			return Err(crate::Error::GenericError(format!(
@@ -378,12 +380,9 @@ fn copy_frameworks_to_bundle(
 }
 
 /// Recursively add framework's sign paths.
-/// If the framework has multiple versions, it will sign "Current" version by default.
-fn add_framework_sign_path(
-	framework_root: &Path,
-	dest_path: &Path,
-	sign_paths: &mut Vec<SignTarget>,
-) {
+/// If the framework has multiple versions, it will sign "Current" version by
+/// default.
+fn add_framework_sign_path(framework_root:&Path, dest_path:&Path, sign_paths:&mut Vec<SignTarget>) {
 	if framework_root.join("Versions/Current").exists() {
 		add_nested_code_sign_path(
 			&framework_root.join("Versions/Current"),
@@ -393,14 +392,14 @@ fn add_framework_sign_path(
 	} else {
 		add_nested_code_sign_path(framework_root, dest_path, sign_paths);
 	}
-	sign_paths.push(SignTarget { path: dest_path.into(), is_an_executable: false });
+	sign_paths.push(SignTarget { path:dest_path.into(), is_an_executable:false });
 }
 
 /// Recursively add executable bundle's sign path (.xpc, .app).
 fn add_executable_bundle_sign_path(
-	bundle_root: &Path,
-	dest_path: &Path,
-	sign_paths: &mut Vec<SignTarget>,
+	bundle_root:&Path,
+	dest_path:&Path,
+	sign_paths:&mut Vec<SignTarget>,
 ) {
 	if bundle_root.join("Contents").exists() {
 		add_nested_code_sign_path(
@@ -411,10 +410,10 @@ fn add_executable_bundle_sign_path(
 	} else {
 		add_nested_code_sign_path(bundle_root, dest_path, sign_paths);
 	}
-	sign_paths.push(SignTarget { path: dest_path.into(), is_an_executable: true });
+	sign_paths.push(SignTarget { path:dest_path.into(), is_an_executable:true });
 }
 
-fn add_nested_code_sign_path(src_path: &Path, dest_path: &Path, sign_paths: &mut Vec<SignTarget>) {
+fn add_nested_code_sign_path(src_path:&Path, dest_path:&Path, sign_paths:&mut Vec<SignTarget>) {
 	for folder_name in NESTED_CODE_FOLDER.iter() {
 		let src_folder_path = src_path.join(folder_name);
 
@@ -447,9 +446,9 @@ fn add_nested_code_sign_path(src_path: &Path, dest_path: &Path, sign_paths: &mut
 				} else if entry.path().is_file() {
 					// Binaries, like .dylib, Mach-O executables
 					if ext == Some(OsStr::new("dylib")) {
-						sign_paths.push(SignTarget { path: dest_path, is_an_executable: false });
+						sign_paths.push(SignTarget { path:dest_path, is_an_executable:false });
 					} else if ext.is_none() {
-						sign_paths.push(SignTarget { path: dest_path, is_an_executable: true });
+						sign_paths.push(SignTarget { path:dest_path, is_an_executable:true });
 					}
 				}
 			}

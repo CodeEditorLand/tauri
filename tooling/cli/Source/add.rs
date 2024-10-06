@@ -63,9 +63,9 @@ pub fn run(options:Options) -> Result<()> {
 		.desktop_only
 		.then_some(r#"cfg(not(any(target_os = "android", target_os = "ios")))"#)
 		.or_else(|| {
-			metadata.mobile_only.then_some(
-				r#"cfg(any(target_os = "android", target_os = "ios"))"#,
-			)
+			metadata
+				.mobile_only
+				.then_some(r#"cfg(any(target_os = "android", target_os = "ios"))"#)
 		});
 
 	let cargo_version_req = version.or(metadata.version_req.as_deref());
@@ -88,12 +88,7 @@ pub fn run(options:Options) -> Result<()> {
 			.map(PackageManager::from_project)
 			.and_then(|managers| managers.into_iter().next())
 		{
-			let npm_spec = match (
-				npm_version_req,
-				options.tag,
-				options.rev,
-				options.branch,
-			) {
+			let npm_spec = match (npm_version_req, options.tag, options.rev, options.branch) {
 				(Some(version), ..) => {
 					format!("{npm_name}@{version}")
 				},
@@ -108,10 +103,7 @@ pub fn run(options:Options) -> Result<()> {
 				},
 				(None, None, None, None) => npm_name,
 				_ => {
-					anyhow::bail!(
-						"Only one of --tag, --rev and --branch can be \
-						 specified"
-					)
+					anyhow::bail!("Only one of --tag, --rev and --branch can be specified")
 				},
 			};
 			manager.install(&[npm_spec], tauri_dir)?;
@@ -133,18 +125,14 @@ pub fn run(options:Options) -> Result<()> {
 	} else {
 		"init()"
 	};
-	let plugin_init =
-		format!(".plugin(tauri_plugin_{plugin_snake_case}::{plugin_init_fn})");
+	let plugin_init = format!(".plugin(tauri_plugin_{plugin_snake_case}::{plugin_init_fn})");
 
 	let re = Regex::new(r"(tauri\s*::\s*Builder\s*::\s*default\(\))(\s*)")?;
 	for file in [tauri_dir.join("src/main.rs"), tauri_dir.join("src/lib.rs")] {
 		let contents = std::fs::read_to_string(&file)?;
 
 		if contents.contains(&plugin_init) {
-			log::info!(
-				"Plugin initialization code already found on {}",
-				file.display()
-			);
+			log::info!("Plugin initialization code already found on {}", file.display());
 			return Ok(());
 		}
 
@@ -157,10 +145,7 @@ pub fn run(options:Options) -> Result<()> {
 			if !options.no_fmt {
 				// reformat code with rustfmt
 				log::info!("Running `cargo fmt`...");
-				let _ = Command::new("cargo")
-					.arg("fmt")
-					.current_dir(tauri_dir)
-					.status();
+				let _ = Command::new("cargo").arg("fmt").current_dir(tauri_dir).status();
 			}
 
 			return Ok(());
@@ -168,9 +153,7 @@ pub fn run(options:Options) -> Result<()> {
 	}
 
 	let builder_code = if metadata.builder {
-		format!(
-			r#"+    .plugin(tauri_plugin_{plugin_snake_case}::Builder::new().build())"#,
-		)
+		format!(r#"+    .plugin(tauri_plugin_{plugin_snake_case}::Builder::new().build())"#,)
 	} else {
 		format!(r#"+    .plugin(tauri_plugin_{plugin_snake_case}::init())"#)
 	};
@@ -188,8 +171,8 @@ pub fn run(options:Options) -> Result<()> {
 	);
 
 	log::warn!(
-		"Couldn't find `{}` in `{}` or `{}`, you must enable the plugin in \
-		 your Rust code manually:\n\n{}",
+		"Couldn't find `{}` in `{}` or `{}`, you must enable the plugin in your Rust code \
+		 manually:\n\n{}",
 		"tauri::Builder".cyan(),
 		"main.rs".cyan(),
 		"lib.rs".cyan(),

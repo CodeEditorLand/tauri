@@ -3,20 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::common;
-
-use crate::{
-	bundle::{
-		windows::{
-			NSIS_OUTPUT_FOLDER_NAME, NSIS_UPDATER_OUTPUT_FOLDER_NAME, WIX_OUTPUT_FOLDER_NAME,
-			WIX_UPDATER_OUTPUT_FOLDER_NAME,
-		},
-		Bundle,
-	},
-	Settings,
-};
-use tauri_utils::display_path;
-
 use std::{
 	fs::{self, File},
 	io::prelude::*,
@@ -24,10 +10,25 @@ use std::{
 };
 
 use anyhow::Context;
+use tauri_utils::display_path;
 use zip::write::SimpleFileOptions;
 
+use super::common;
+use crate::{
+	bundle::{
+		windows::{
+			NSIS_OUTPUT_FOLDER_NAME,
+			NSIS_UPDATER_OUTPUT_FOLDER_NAME,
+			WIX_OUTPUT_FOLDER_NAME,
+			WIX_UPDATER_OUTPUT_FOLDER_NAME,
+		},
+		Bundle,
+	},
+	Settings,
+};
+
 // Build update
-pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
+pub fn bundle_project(settings:&Settings, bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 	let target_os = settings
 		.target()
 		.split('-')
@@ -54,7 +55,7 @@ pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<
 // Create simple update-macos.tar.gz
 // This is the Mac OS App packaged
 #[cfg(target_os = "macos")]
-fn bundle_update_macos(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
+fn bundle_update_macos(bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 	use std::ffi::OsStr;
 
 	// find our .app or rebuild our bundle
@@ -62,7 +63,10 @@ fn bundle_update_macos(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
 		.iter()
 		.filter(|bundle| bundle.package_type == crate::PackageType::MacOsBundle)
 		.find_map(|bundle| {
-			bundle.bundle_paths.iter().find(|path| path.extension() == Some(OsStr::new("app")))
+			bundle
+				.bundle_paths
+				.iter()
+				.find(|path| path.extension() == Some(OsStr::new("app")))
 		}) {
 		// add .tar.gz to our path
 		let osx_archived = format!("{}.tar.gz", source_path.display());
@@ -87,7 +91,7 @@ fn bundle_update_macos(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
 // Right now in linux we hot replace the bin and request a restart
 // No assets are replaced
 #[cfg(target_os = "linux")]
-fn bundle_update_linux(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
+fn bundle_update_linux(bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 	use std::ffi::OsStr;
 
 	// build our app actually we support only appimage on linux
@@ -95,7 +99,10 @@ fn bundle_update_linux(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
 		.iter()
 		.filter(|bundle| bundle.package_type == crate::PackageType::AppImage)
 		.find_map(|bundle| {
-			bundle.bundle_paths.iter().find(|path| path.extension() == Some(OsStr::new("AppImage")))
+			bundle
+				.bundle_paths
+				.iter()
+				.find(|path| path.extension() == Some(OsStr::new("AppImage")))
 		}) {
 		// add .tar.gz to our path
 		let appimage_archived = format!("{}.tar.gz", source_path.display());
@@ -118,7 +125,7 @@ fn bundle_update_linux(bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
 // Including the binary as root
 // Right now in windows we hot replace the bin and request a restart
 // No assets are replaced
-fn bundle_update_windows(settings: &Settings, bundles: &[Bundle]) -> crate::Result<Vec<PathBuf>> {
+fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 	#[cfg(target_os = "windows")]
 	use crate::bundle::windows::msi;
 	use crate::{
@@ -134,7 +141,7 @@ fn bundle_update_windows(settings: &Settings, bundles: &[Bundle]) -> crate::Resu
 				#[cfg(target_os = "windows")]
 				PackageType::WindowsMsi => bundle_paths.extend(msi::bundle_project(settings, true)?),
 				PackageType::Nsis => bundle_paths.extend(nsis::bundle_project(settings, true)?),
-				_ => {}
+				_ => {},
 			};
 		}
 		Ok(())
@@ -166,26 +173,29 @@ fn bundle_update_windows(settings: &Settings, bundles: &[Bundle]) -> crate::Resu
 	for source_path in bundle_paths {
 		// add .zip to our path
 		let (archived_path, bundle_name) =
-			source_path.components().fold((PathBuf::new(), String::new()), |(mut p, mut b), c| {
-				if let std::path::Component::Normal(name) = c {
-					if let Some(name) = name.to_str() {
-						// installers bundled for updater should be put in a directory named `${bundle_name}-updater`
-						if name == WIX_UPDATER_OUTPUT_FOLDER_NAME
-							|| name == NSIS_UPDATER_OUTPUT_FOLDER_NAME
-						{
-							b = name.strip_suffix("-updater").unwrap().to_string();
-							p.push(&b);
-							return (p, b);
-						}
+			source_path
+				.components()
+				.fold((PathBuf::new(), String::new()), |(mut p, mut b), c| {
+					if let std::path::Component::Normal(name) = c {
+						if let Some(name) = name.to_str() {
+							// installers bundled for updater should be put in a directory named
+							// `${bundle_name}-updater`
+							if name == WIX_UPDATER_OUTPUT_FOLDER_NAME
+								|| name == NSIS_UPDATER_OUTPUT_FOLDER_NAME
+							{
+								b = name.strip_suffix("-updater").unwrap().to_string();
+								p.push(&b);
+								return (p, b);
+							}
 
-						if name == WIX_OUTPUT_FOLDER_NAME || name == NSIS_OUTPUT_FOLDER_NAME {
-							b = name.to_string();
+							if name == WIX_OUTPUT_FOLDER_NAME || name == NSIS_OUTPUT_FOLDER_NAME {
+								b = name.to_string();
+							}
 						}
 					}
-				}
-				p.push(c);
-				(p, b)
-			});
+					p.push(c);
+					(p, b)
+				});
 
 		let archived_path = archived_path.with_extension(format!("{}.zip", bundle_name));
 
@@ -200,7 +210,7 @@ fn bundle_update_windows(settings: &Settings, bundles: &[Bundle]) -> crate::Resu
 	Ok(installers_archived_paths)
 }
 
-pub fn create_zip(src_file: &Path, dst_file: &Path) -> crate::Result<PathBuf> {
+pub fn create_zip(src_file:&Path, dst_file:&Path) -> crate::Result<PathBuf> {
 	let parent_dir = dst_file.parent().expect("No data in parent");
 	fs::create_dir_all(parent_dir)?;
 	let writer = common::create_file(dst_file)?;
@@ -223,7 +233,7 @@ pub fn create_zip(src_file: &Path, dst_file: &Path) -> crate::Result<PathBuf> {
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn create_tar(src_dir: &Path, dest_path: &Path) -> crate::Result<PathBuf> {
+fn create_tar(src_dir:&Path, dest_path:&Path) -> crate::Result<PathBuf> {
 	use flate2::{write::GzEncoder, Compression};
 
 	let dest_file = common::create_file(dest_path)?;
@@ -237,7 +247,7 @@ fn create_tar(src_dir: &Path, dest_path: &Path) -> crate::Result<PathBuf> {
 }
 
 #[cfg(target_os = "macos")]
-fn create_tar_from_src<P: AsRef<Path>, W: Write>(src_dir: P, dest_file: W) -> crate::Result<W> {
+fn create_tar_from_src<P:AsRef<Path>, W:Write>(src_dir:P, dest_file:W) -> crate::Result<W> {
 	let src_dir = src_dir.as_ref();
 	let mut builder = tar::Builder::new(dest_file);
 	builder.follow_symlinks(false);
@@ -246,7 +256,7 @@ fn create_tar_from_src<P: AsRef<Path>, W: Write>(src_dir: P, dest_file: W) -> cr
 }
 
 #[cfg(target_os = "linux")]
-fn create_tar_from_src<P: AsRef<Path>, W: Write>(src_dir: P, dest_file: W) -> crate::Result<W> {
+fn create_tar_from_src<P:AsRef<Path>, W:Write>(src_dir:P, dest_file:W) -> crate::Result<W> {
 	let src_dir = src_dir.as_ref();
 	let mut tar_builder = tar::Builder::new(dest_file);
 

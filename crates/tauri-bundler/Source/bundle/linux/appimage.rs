@@ -3,6 +3,16 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{
+	collections::BTreeMap,
+	fs::{remove_dir_all, write},
+	path::PathBuf,
+	process::{Command, Stdio},
+};
+
+use anyhow::Context;
+use handlebars::Handlebars;
+
 use super::{
 	super::{
 		common::{self, CommandExt},
@@ -11,18 +21,10 @@ use super::{
 	debian,
 };
 use crate::Settings;
-use anyhow::Context;
-use handlebars::Handlebars;
-use std::{
-	collections::BTreeMap,
-	fs::{remove_dir_all, write},
-	path::PathBuf,
-	process::{Command, Stdio},
-};
 
 /// Bundles the project.
 /// Returns a vector of PathBuf that shows where the AppImage was created.
-pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
+pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 	// generate the deb binary name
 	let arch = match settings.binary_arch() {
 		"x86" => "i386",

@@ -54,9 +54,9 @@ impl TauriOptions {
 		map.insert("ms:edgeChromium".into(), json!(true));
 		map.insert("browserName".into(), json!("webview2"));
 		map.insert(
-      "ms:edgeOptions".into(),
-      json!({"binary": self.application, "args": self.args, "webviewOptions": self.webview_options}),
-    );
+			"ms:edgeOptions".into(),
+			json!({"binary": self.application, "args": self.args, "webviewOptions": self.webview_options}),
+		);
 		map
 	}
 }
@@ -89,10 +89,7 @@ async fn handle(
 }
 
 /// Transform the request to a request for the native webdriver server.
-fn forward_to_native_driver(
-	mut req:Request<Body>,
-	args:Args,
-) -> Result<Request<Body>, Error> {
+fn forward_to_native_driver(mut req:Request<Body>, args:Args) -> Result<Request<Body>, Error> {
 	let host:Authority = {
 		let headers = req.headers_mut();
 		headers.remove("host").expect("hyper request has host")
@@ -100,11 +97,9 @@ fn forward_to_native_driver(
 	.to_str()?
 	.parse()?;
 
-	let path =
-		req.uri().path_and_query().expect("hyper request has uri").clone();
+	let path = req.uri().path_and_query().expect("hyper request has uri").clone();
 
-	let uri =
-		format!("http://{}:{}{}", host.host(), args.native_port, path.as_str());
+	let uri = format!("http://{}:{}{}", host.host(), args.native_port, path.as_str());
 
 	let (mut parts, body) = req.into_parts();
 	parts.uri = uri.parse()?;
@@ -117,11 +112,8 @@ fn map_capabilities(mut json:Value) -> Value {
 	if let Some(capabilities) = json.get_mut("capabilities") {
 		if let Some(always_match) = capabilities.get_mut("alwaysMatch") {
 			if let Some(always_match) = always_match.as_object_mut() {
-				if let Some(tauri_options) = always_match.remove(TAURI_OPTIONS)
-				{
-					if let Ok(options) =
-						serde_json::from_value::<TauriOptions>(tauri_options)
-					{
+				if let Some(tauri_options) = always_match.remove(TAURI_OPTIONS) {
+					if let Ok(options) = serde_json::from_value::<TauriOptions>(tauri_options) {
 						native = Some(options.into_native_object());
 					}
 				}
@@ -152,8 +144,7 @@ pub async fn run(args:Args, mut _driver:Child) -> Result<(), Error> {
 		use futures_util::StreamExt;
 		use signal_hook::consts::signal::*;
 
-		let signals =
-			signal_hook_tokio::Signals::new([SIGTERM, SIGINT, SIGQUIT])?;
+		let signals = signal_hook_tokio::Signals::new([SIGTERM, SIGINT, SIGQUIT])?;
 		let signals_handle = signals.handle();
 		let signals_task = tokio::spawn(async move {
 			let mut signals = signals.fuse();
@@ -161,9 +152,7 @@ pub async fn run(args:Args, mut _driver:Child) -> Result<(), Error> {
 			while let Some(signal) = signals.next().await {
 				match signal {
 					SIGTERM | SIGINT | SIGQUIT => {
-						_driver
-							.kill()
-							.expect("unable to kill native webdriver server");
+						_driver.kill().expect("unable to kill native webdriver server");
 						std::process::exit(0);
 					},
 					_ => unreachable!(),

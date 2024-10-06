@@ -10,10 +10,7 @@ use std::io::BufRead;
 /// is reached, and append them to the provided buffer.
 ///
 /// Adapted from <https://doc.rust-lang.org/std/io/trait.BufRead.html#method.read_line>.
-pub fn read_line<R:BufRead + ?Sized>(
-	r:&mut R,
-	buf:&mut Vec<u8>,
-) -> std::io::Result<usize> {
+pub fn read_line<R:BufRead + ?Sized>(r:&mut R, buf:&mut Vec<u8>) -> std::io::Result<usize> {
 	let mut read = 0;
 	loop {
 		let (done, used) = {

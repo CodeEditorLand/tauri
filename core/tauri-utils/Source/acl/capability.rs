@@ -6,30 +6,34 @@
 
 use std::{path::Path, str::FromStr};
 
-use crate::{acl::Identifier, platform::Target};
 use serde::{
 	de::{Error, IntoDeserializer},
-	Deserialize, Deserializer, Serialize,
+	Deserialize,
+	Deserializer,
+	Serialize,
 };
 use serde_untagged::UntaggedEnumVisitor;
 
 use super::Scopes;
+use crate::{acl::Identifier, platform::Target};
 
-/// An entry for a permission value in a [`Capability`] can be either a raw permission [`Identifier`]
-/// or an object that references a permission and extends its scope.
+/// An entry for a permission value in a [`Capability`] can be either a raw
+/// permission [`Identifier`] or an object that references a permission and
+/// extends its scope.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub enum PermissionEntry {
 	/// Reference a permission or permission set by identifier.
 	PermissionRef(Identifier),
-	/// Reference a permission or permission set by identifier and extends its scope.
+	/// Reference a permission or permission set by identifier and extends its
+	/// scope.
 	ExtendedPermission {
 		/// Identifier of the permission or permission set.
-		identifier: Identifier,
+		identifier:Identifier,
 		/// Scope to append to the existing permission scope.
 		#[serde(default, flatten)]
-		scope: Scopes,
+		scope:Scopes,
 	},
 }
 
@@ -44,15 +48,14 @@ impl PermissionEntry {
 }
 
 impl<'de> Deserialize<'de> for PermissionEntry {
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	fn deserialize<D>(deserializer:D) -> Result<Self, D::Error>
 	where
-		D: Deserializer<'de>,
-	{
+		D: Deserializer<'de>, {
 		#[derive(Deserialize)]
 		struct ExtendedPermissionStruct {
-			identifier: Identifier,
+			identifier:Identifier,
 			#[serde(default, flatten)]
-			scope: Scopes,
+			scope:Scopes,
 		}
 
 		UntaggedEnumVisitor::new()
@@ -63,23 +66,26 @@ impl<'de> Deserialize<'de> for PermissionEntry {
 			.map(|map| {
 				let ext_perm = map.deserialize::<ExtendedPermissionStruct>()?;
 				Ok(Self::ExtendedPermission {
-					identifier: ext_perm.identifier,
-					scope: ext_perm.scope,
+					identifier:ext_perm.identifier,
+					scope:ext_perm.scope,
 				})
 			})
 			.deserialize(deserializer)
 	}
 }
 
-/// A grouping and boundary mechanism developers can use to isolate access to the IPC layer.
+/// A grouping and boundary mechanism developers can use to isolate access to
+/// the IPC layer.
 ///
-/// It controls application windows fine grained access to the Tauri core, application, or plugin commands.
-/// If a window is not matching any capability then it has no access to the IPC layer at all.
+/// It controls application windows fine grained access to the Tauri core,
+/// application, or plugin commands. If a window is not matching any capability
+/// then it has no access to the IPC layer at all.
 ///
-/// This can be done to create groups of windows, based on their required system access, which can reduce
-/// impact of frontend vulnerabilities in less privileged windows.
-/// Windows can be added to a capability by exact name (e.g. `main-window`) or glob patterns like `*` or `admin-*`.
-/// A Window can have none, one, or multiple associated capabilities.
+/// This can be done to create groups of windows, based on their required system
+/// access, which can reduce impact of frontend vulnerabilities in less
+/// privileged windows. Windows can be added to a capability by exact name (e.g.
+/// `main-window`) or glob patterns like `*` or `admin-*`. A Window can have
+/// none, one, or multiple associated capabilities.
 ///
 /// ## Example
 ///
@@ -108,22 +114,25 @@ pub struct Capability {
 	/// ## Example
 	///
 	/// `main-user-files-write`
+	pub identifier:String,
+	/// Description of what the capability is intended to allow on associated
+	/// windows.
 	///
-	pub identifier: String,
-	/// Description of what the capability is intended to allow on associated windows.
-	///
-	/// It should contain a description of what the grouped permissions should allow.
+	/// It should contain a description of what the grouped permissions should
+	/// allow.
 	///
 	/// ## Example
 	///
-	/// This capability allows the `main` window access to `filesystem` write related
-	/// commands and `dialog` commands to enable programatic access to files selected by the user.
+	/// This capability allows the `main` window access to `filesystem` write
+	/// related commands and `dialog` commands to enable programatic access to
+	/// files selected by the user.
 	#[serde(default)]
-	pub description: String,
+	pub description:String,
 	/// Configure remote URLs that can use the capability permissions.
 	///
 	/// This setting is optional and defaults to not being set, as our
-	/// default use case is that the content is served from our local application.
+	/// default use case is that the content is served from our local
+	/// application.
 	///
 	/// :::caution
 	/// Make sure you understand the security implications of providing remote
@@ -138,34 +147,39 @@ pub struct Capability {
 	/// }
 	/// ```
 	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub remote: Option<CapabilityRemote>,
-	/// Whether this capability is enabled for local app URLs or not. Defaults to `true`.
+	pub remote:Option<CapabilityRemote>,
+	/// Whether this capability is enabled for local app URLs or not. Defaults
+	/// to `true`.
 	#[serde(default = "default_capability_local")]
-	pub local: bool,
-	/// List of windows that are affected by this capability. Can be a glob pattern.
+	pub local:bool,
+	/// List of windows that are affected by this capability. Can be a glob
+	/// pattern.
 	///
-	/// On multiwebview windows, prefer [`Self::webviews`] for a fine grained access control.
+	/// On multiwebview windows, prefer [`Self::webviews`] for a fine grained
+	/// access control.
 	///
 	/// ## Example
 	///
 	/// `["main"]`
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
-	pub windows: Vec<String>,
-	/// List of webviews that are affected by this capability. Can be a glob pattern.
+	pub windows:Vec<String>,
+	/// List of webviews that are affected by this capability. Can be a glob
+	/// pattern.
 	///
 	/// This is only required when using on multiwebview contexts, by default
-	/// all child webviews of a window that matches [`Self::windows`] are linked.
+	/// all child webviews of a window that matches [`Self::windows`] are
+	/// linked.
 	///
 	/// ## Example
 	///
 	/// `["sub-webview-one", "sub-webview-two"]`
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
-	pub webviews: Vec<String>,
+	pub webviews:Vec<String>,
 	/// List of permissions attached to this capability.
 	///
-	/// Must include the plugin name as prefix in the form of `${plugin-name}:${permission-name}`.
-	/// For commands directly implemented in the application itself only `${permission-name}`
-	/// is required.
+	/// Must include the plugin name as prefix in the form of
+	/// `${plugin-name}:${permission-name}`. For commands directly implemented
+	/// in the application itself only `${permission-name}` is required.
 	///
 	/// ## Example
 	///
@@ -180,7 +194,7 @@ pub struct Capability {
 	///  }
 	/// ```
 	#[cfg_attr(feature = "schema", schemars(schema_with = "unique_permission"))]
-	pub permissions: Vec<PermissionEntry>,
+	pub permissions:Vec<PermissionEntry>,
 	/// Limit which target platforms this capability applies to.
 	///
 	/// By default all platforms are targeted.
@@ -189,17 +203,17 @@ pub struct Capability {
 	///
 	/// `["macOS","windows"]`
 	#[serde(skip_serializing_if = "Option::is_none")]
-	pub platforms: Option<Vec<Target>>,
+	pub platforms:Option<Vec<Target>>,
 }
 
 #[cfg(feature = "schema")]
-fn unique_permission(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+fn unique_permission(gen:&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
 	use schemars::schema;
 	schema::SchemaObject {
-		instance_type: Some(schema::InstanceType::Array.into()),
-		array: Some(Box::new(schema::ArrayValidation {
-			unique_items: Some(true),
-			items: Some(gen.subschema_for::<PermissionEntry>().into()),
+		instance_type:Some(schema::InstanceType::Array.into()),
+		array:Some(Box::new(schema::ArrayValidation {
+			unique_items:Some(true),
+			items:Some(gen.subschema_for::<PermissionEntry>().into()),
 			..Default::default()
 		})),
 		..Default::default()
@@ -207,9 +221,7 @@ fn unique_permission(gen: &mut schemars::gen::SchemaGenerator) -> schemars::sche
 	.into()
 }
 
-fn default_capability_local() -> bool {
-	true
-}
+fn default_capability_local() -> bool { true }
 
 /// Configuration for remote URLs that are associated with the capability.
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Eq, PartialEq, PartialOrd, Ord, Hash)]
@@ -222,7 +234,7 @@ pub struct CapabilityRemote {
 	///
 	/// - "https://*.mydomain.dev": allows subdomains of mydomain.dev
 	/// - "https://mydomain.dev/api/*": allows any subpath of mydomain.dev/api
-	pub urls: Vec<String>,
+	pub urls:Vec<String>,
 }
 
 /// Capability formats accepted in a capability file.
@@ -237,20 +249,20 @@ pub enum CapabilityFile {
 	/// A list of capabilities.
 	NamedList {
 		/// The list of capabilities.
-		capabilities: Vec<Capability>,
+		capabilities:Vec<Capability>,
 	},
 }
 
 impl CapabilityFile {
 	/// Load the given capability file.
-	pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, super::Error> {
+	pub fn load<P:AsRef<Path>>(path:P) -> Result<Self, super::Error> {
 		let path = path.as_ref();
 
 		let capability_file = std::fs::read_to_string(path).map_err(super::Error::ReadFile)?;
 
 		let ext = path.extension().unwrap().to_string_lossy().to_string();
 
-		let file: Self = match ext.as_str() {
+		let file:Self = match ext.as_str() {
 			"toml" => toml::from_str(&capability_file)?,
 			"json" => serde_json::from_str(&capability_file)?,
 			_ => return Err(super::Error::UnknownCapabilityFormat(ext)),
@@ -260,22 +272,21 @@ impl CapabilityFile {
 }
 
 impl<'de> Deserialize<'de> for CapabilityFile {
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	fn deserialize<D>(deserializer:D) -> Result<Self, D::Error>
 	where
-		D: Deserializer<'de>,
-	{
+		D: Deserializer<'de>, {
 		UntaggedEnumVisitor::new()
 			.seq(|seq| seq.deserialize::<Vec<Capability>>().map(Self::List))
 			.map(|map| {
 				#[derive(Deserialize)]
 				struct CapabilityNamedList {
-					capabilities: Vec<Capability>,
+					capabilities:Vec<Capability>,
 				}
 
-				let value: serde_json::Map<String, serde_json::Value> = map.deserialize()?;
+				let value:serde_json::Map<String, serde_json::Value> = map.deserialize()?;
 				if value.contains_key("capabilities") {
 					serde_json::from_value::<CapabilityNamedList>(value.into())
-						.map(|named| Self::NamedList { capabilities: named.capabilities })
+						.map(|named| Self::NamedList { capabilities:named.capabilities })
 						.map_err(|e| serde_untagged::de::Error::custom(e.to_string()))
 				} else {
 					serde_json::from_value::<Capability>(value.into())
@@ -290,7 +301,7 @@ impl<'de> Deserialize<'de> for CapabilityFile {
 impl FromStr for CapabilityFile {
 	type Err = super::Error;
 
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
+	fn from_str(s:&str) -> Result<Self, Self::Err> {
 		serde_json::from_str(s).or_else(|_| toml::from_str(s)).map_err(Into::into)
 	}
 }
@@ -306,32 +317,32 @@ mod build {
 	use crate::{literal_struct, tokens::*};
 
 	impl ToTokens for CapabilityRemote {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let urls = vec_lit(&self.urls, str_lit);
 			literal_struct!(tokens, ::tauri::utils::acl::capability::CapabilityRemote, urls);
 		}
 	}
 
 	impl ToTokens for PermissionEntry {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let prefix = quote! { ::tauri::utils::acl::capability::PermissionEntry };
 
 			tokens.append_all(match self {
 				Self::PermissionRef(id) => {
 					quote! { #prefix::PermissionRef(#id) }
-				}
+				},
 				Self::ExtendedPermission { identifier, scope } => {
 					quote! { #prefix::ExtendedPermission {
 					  identifier: #identifier,
 					  scope: #scope
 					} }
-				}
+				},
 			});
 		}
 	}
 
 	impl ToTokens for Capability {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let identifier = str_lit(&self.identifier);
 			let description = str_lit(&self.description);
 			let remote = opt_lit(self.remote.as_ref());
@@ -359,9 +370,8 @@ mod build {
 
 #[cfg(test)]
 mod tests {
-	use crate::acl::{Identifier, Scopes};
-
 	use super::{Capability, CapabilityFile, PermissionEntry};
+	use crate::acl::{Identifier, Scopes};
 
 	#[test]
 	fn permission_entry_de() {
@@ -382,7 +392,7 @@ mod tests {
 			.unwrap(),
 			PermissionEntry::ExtendedPermission {
 				identifier,
-				scope: Scopes { allow: Some(vec![]), deny: None }
+				scope:Scopes { allow:Some(vec![]), deny:None }
 			}
 		);
 	}
@@ -390,14 +400,14 @@ mod tests {
 	#[test]
 	fn capability_file_de() {
 		let capability = Capability {
-			identifier: "test".into(),
-			description: "".into(),
-			remote: None,
-			local: true,
-			windows: vec![],
-			webviews: vec![],
-			permissions: vec![],
-			platforms: None,
+			identifier:"test".into(),
+			description:"".into(),
+			remote:None,
+			local:true,
+			windows:vec![],
+			webviews:vec![],
+			permissions:vec![],
+			platforms:None,
 		};
 
 		let capability_json = serde_json::to_string(&capability).unwrap();
@@ -417,7 +427,7 @@ mod tests {
 				"{{ \"capabilities\": [{capability_json}] }}"
 			))
 			.unwrap(),
-			CapabilityFile::NamedList { capabilities: vec![capability.clone()] }
+			CapabilityFile::NamedList { capabilities:vec![capability.clone()] }
 		);
 	}
 }

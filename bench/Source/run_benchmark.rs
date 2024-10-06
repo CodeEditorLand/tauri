@@ -29,24 +29,15 @@ fn get_all_benchmarks() -> Vec<(String, String)> {
 	vec![
 		(
 			"tauri_hello_world".into(),
-			format!(
-				"../target/{}/release/bench_helloworld",
-				utils::get_target()
-			),
+			format!("../target/{}/release/bench_helloworld", utils::get_target()),
 		),
 		(
 			"tauri_cpu_intensive".into(),
-			format!(
-				"../target/{}/release/bench_cpu_intensive",
-				utils::get_target()
-			),
+			format!("../target/{}/release/bench_cpu_intensive", utils::get_target()),
 		),
 		(
 			"tauri_3mb_transfer".into(),
-			format!(
-				"../target/{}/release/bench_files_transfer",
-				utils::get_target()
-			),
+			format!("../target/{}/release/bench_files_transfer", utils::get_target()),
 		),
 	]
 }
@@ -96,8 +87,7 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 	let mut results = HashMap::<String, u64>::new();
 
 	for (name, example_exe) in get_all_benchmarks() {
-		let benchmark_file =
-			utils::target_dir().join(format!("mprof{}_.dat", name));
+		let benchmark_file = utils::target_dir().join(format!("mprof{}_.dat", name));
 		let benchmark_file = benchmark_file.to_str().unwrap();
 
 		let proc = Command::new("mprof")
@@ -114,10 +104,7 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 
 		let proc_result = proc.wait_with_output()?;
 		println!("{:?}", proc_result);
-		results.insert(
-			name.to_string(),
-			utils::parse_max_mem(benchmark_file).unwrap(),
-		);
+		results.insert(name.to_string(), utils::parse_max_mem(benchmark_file).unwrap());
 	}
 
 	Ok(results)
@@ -196,10 +183,8 @@ fn cargo_deps() -> HashMap<String, usize> {
 			cmd.args(["--target", target]);
 			cmd.current_dir(utils::tauri_root_path());
 
-			let full_deps =
-				cmd.output().expect("failed to run cargo tree").stdout;
-			let full_deps = String::from_utf8(full_deps)
-				.expect("cargo tree output not utf-8");
+			let full_deps = cmd.output().expect("failed to run cargo tree").stdout;
+			let full_deps = String::from_utf8(full_deps).expect("cargo tree output not utf-8");
 			let count = full_deps.lines().collect::<HashSet<_>>().len() - 1; // output includes wry itself
 
 			// set the count to the highest count seen for this OS
@@ -213,32 +198,18 @@ fn cargo_deps() -> HashMap<String, usize> {
 
 const RESULT_KEYS:&[&str] = &["mean", "stddev", "user", "system", "min", "max"];
 
-fn run_exec_time(
-	target_dir:&Path,
-) -> Result<HashMap<String, HashMap<String, f64>>> {
+fn run_exec_time(target_dir:&Path) -> Result<HashMap<String, HashMap<String, f64>>> {
 	let benchmark_file = target_dir.join("hyperfine_results.json");
 	let benchmark_file = benchmark_file.to_str().unwrap();
 
-	let mut command = [
-		"hyperfine",
-		"--export-json",
-		benchmark_file,
-		"--show-output",
-		"--warmup",
-		"3",
-	]
-	.iter()
-	.map(|s| s.to_string())
-	.collect::<Vec<_>>();
+	let mut command =
+		["hyperfine", "--export-json", benchmark_file, "--show-output", "--warmup", "3"]
+			.iter()
+			.map(|s| s.to_string())
+			.collect::<Vec<_>>();
 
 	for (_, example_exe) in get_all_benchmarks() {
-		command.push(
-			utils::bench_root_path()
-				.join(example_exe)
-				.to_str()
-				.unwrap()
-				.to_string(),
-		);
+		command.push(utils::bench_root_path().join(example_exe).to_str().unwrap().to_string());
 	}
 
 	utils::run(&command.iter().map(|s| s.as_ref()).collect::<Vec<_>>());
@@ -273,9 +244,9 @@ fn main() -> Result<()> {
 
 	if !json_3mb.exists() {
 		utils::download_file(
-      "https://github.com/lemarier/tauri-test/releases/download/v2.0.0/json_3mb.json",
-      json_3mb,
-    );
+			"https://github.com/lemarier/tauri-test/releases/download/v2.0.0/json_3mb.json",
+			json_3mb,
+		);
 	}
 
 	println!("Starting tauri benchmark");
@@ -284,17 +255,12 @@ fn main() -> Result<()> {
 
 	env::set_current_dir(utils::bench_root_path())?;
 
-	let format = time::format_description::parse(
-		"[year]-[month]-[day]T[hour]:[minute]:[second]Z",
-	)
-	.unwrap();
+	let format =
+		time::format_description::parse("[year]-[month]-[day]T[hour]:[minute]:[second]Z").unwrap();
 	let now = time::OffsetDateTime::now_utc();
 	let mut new_data = utils::BenchResult {
 		created_at:now.format(&format).unwrap(),
-		sha1:utils::run_collect(&["git", "rev-parse", "HEAD"])
-			.0
-			.trim()
-			.to_string(),
+		sha1:utils::run_collect(&["git", "rev-parse", "HEAD"]).0.trim().to_string(),
 		exec_time:run_exec_time(&target_dir)?,
 		binary_size:get_binary_sizes(&target_dir)?,
 		cargo_deps:cargo_deps(),

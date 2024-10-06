@@ -9,7 +9,7 @@ use tauri_utils::acl::{manifest::PermissionFile, PERMISSION_SCHEMA_FILE_NAME};
 
 use crate::{acl::FileFormat, helpers::app_paths::resolve_tauri_dir, Result};
 
-fn rm_permission_files(identifier: &str, dir: &Path) -> Result<()> {
+fn rm_permission_files(identifier:&str, dir:&Path) -> Result<()> {
 	for entry in std::fs::read_dir(dir)?.flatten() {
 		let file_type = entry.file_type()?;
 
@@ -17,24 +17,27 @@ fn rm_permission_files(identifier: &str, dir: &Path) -> Result<()> {
 		if file_type.is_dir() {
 			rm_permission_files(identifier, &path)?;
 		} else {
-			if path.file_name().map(|name| name == PERMISSION_SCHEMA_FILE_NAME).unwrap_or_default()
+			if path
+				.file_name()
+				.map(|name| name == PERMISSION_SCHEMA_FILE_NAME)
+				.unwrap_or_default()
 			{
 				continue;
 			}
 
-			let (mut permission_file, format): (PermissionFile, FileFormat) =
+			let (mut permission_file, format):(PermissionFile, FileFormat) =
 				match path.extension().and_then(|o| o.to_str()) {
 					Some("toml") => {
 						let content = std::fs::read_to_string(&path)?;
 						(toml::from_str(&content)?, FileFormat::Toml)
-					}
+					},
 					Some("json") => {
 						let content = std::fs::read(&path)?;
 						(serde_json::from_slice(&content)?, FileFormat::Json)
-					}
+					},
 					_ => {
 						continue;
-					}
+					},
 				};
 
 			let mut updated;
@@ -69,7 +72,7 @@ fn rm_permission_files(identifier: &str, dir: &Path) -> Result<()> {
 	Ok(())
 }
 
-fn rm_permission_from_capabilities(identifier: &str, dir: &Path) -> Result<()> {
+fn rm_permission_from_capabilities(identifier:&str, dir:&Path) -> Result<()> {
 	for entry in std::fs::read_dir(dir)?.flatten() {
 		let file_type = entry.file_type()?;
 		if file_type.is_file() {
@@ -90,7 +93,7 @@ fn rm_permission_from_capabilities(identifier: &str, dir: &Path) -> Result<()> {
 							}
 						}
 					}
-				}
+				},
 				Some("json") => {
 					let content = std::fs::read(&path)?;
 					if let Ok(mut value) = serde_json::from_slice::<serde_json::Value>(&content) {
@@ -106,8 +109,8 @@ fn rm_permission_from_capabilities(identifier: &str, dir: &Path) -> Result<()> {
 							}
 						}
 					}
-				}
-				_ => {}
+				},
+				_ => {},
 			}
 		}
 	}
@@ -119,10 +122,10 @@ fn rm_permission_from_capabilities(identifier: &str, dir: &Path) -> Result<()> {
 #[clap(about = "Remove a permission file, and its reference from any capability")]
 pub struct Options {
 	/// Permission to remove.
-	identifier: String,
+	identifier:String,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	let permissions_dir = std::env::current_dir()?.join("permissions");
 	if permissions_dir.exists() {
 		rm_permission_files(&options.identifier, &permissions_dir)?;

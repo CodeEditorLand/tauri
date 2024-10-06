@@ -8,17 +8,17 @@ use std::{
 	path::{Path, PathBuf},
 };
 
-pub fn parse<P: AsRef<Path>>(path: P) -> crate::Result<Pbxproj> {
+pub fn parse<P:AsRef<Path>>(path:P) -> crate::Result<Pbxproj> {
 	let path = path.as_ref();
 	let pbxproj = std::fs::read_to_string(path)?;
 
 	let mut proj = Pbxproj {
-		path: path.to_owned(),
-		raw_lines: pbxproj.split('\n').map(ToOwned::to_owned).collect(),
-		xc_build_configuration: BTreeMap::new(),
-		xc_configuration_list: BTreeMap::new(),
-		additions: BTreeMap::new(),
-		has_changes: false,
+		path:path.to_owned(),
+		raw_lines:pbxproj.split('\n').map(ToOwned::to_owned).collect(),
+		xc_build_configuration:BTreeMap::new(),
+		xc_configuration_list:BTreeMap::new(),
+		additions:BTreeMap::new(),
+		has_changes:false,
 	};
 
 	let mut state = State::Idle;
@@ -33,29 +33,29 @@ pub fn parse<P: AsRef<Path>>(path: P) -> crate::Result<Pbxproj> {
 				} else if line == "/* Begin XCConfigurationList section */" {
 					state = State::XCConfigurationList;
 				}
-			}
+			},
 			// XCBuildConfiguration
 			State::XCBuildConfiguration => {
 				if line == "/* End XCBuildConfiguration section */" {
 					state = State::Idle;
 				} else if let Some((_identation, token)) = split_at_identation(line) {
-					let id: String = token.chars().take_while(|c| c.is_alphanumeric()).collect();
+					let id:String = token.chars().take_while(|c| c.is_alphanumeric()).collect();
 					proj.xc_build_configuration
-						.insert(id.clone(), XCBuildConfiguration { build_settings: Vec::new() });
+						.insert(id.clone(), XCBuildConfiguration { build_settings:Vec::new() });
 					state = State::XCBuildConfigurationObject { id };
 				}
-			}
+			},
 			State::XCBuildConfigurationObject { id } => {
 				if line.contains("buildSettings") {
-					state = State::XCBuildConfigurationObjectBuildSettings { id: id.clone() };
+					state = State::XCBuildConfigurationObjectBuildSettings { id:id.clone() };
 				} else if split_at_identation(line).map_or(false, |(_ident, token)| token == "};") {
 					state = State::XCBuildConfiguration;
 				}
-			}
+			},
 			State::XCBuildConfigurationObjectBuildSettings { id } => {
 				if let Some((identation, token)) = split_at_identation(line) {
 					if token == "};" {
-						state = State::XCBuildConfigurationObject { id: id.clone() };
+						state = State::XCBuildConfigurationObject { id:id.clone() };
 					} else {
 						let assignment = token.trim_end_matches(';');
 						if let Some((key, value)) = assignment.split_once(" = ") {
@@ -83,16 +83,16 @@ pub fn parse<P: AsRef<Path>>(path: P) -> crate::Result<Pbxproj> {
 
 							proj.xc_build_configuration.get_mut(id).unwrap().build_settings.push(
 								BuildSettings {
-									identation: identation.into(),
+									identation:identation.into(),
 									line_number,
-									key: key.trim().into(),
+									key:key.trim().into(),
 									value,
 								},
 							);
 						}
 					}
 				}
-			}
+			},
 			// XCConfigurationList
 			State::XCConfigurationList => {
 				if line == "/* End XCConfigurationList section */" {
@@ -105,44 +105,44 @@ pub fn parse<P: AsRef<Path>>(path: P) -> crate::Result<Pbxproj> {
 					proj.xc_configuration_list.insert(
 						id.to_string(),
 						XCConfigurationList {
-							comment: comment.trim_end_matches(" = {").to_string(),
-							build_configurations: Vec::new(),
+							comment:comment.trim_end_matches(" = {").to_string(),
+							build_configurations:Vec::new(),
 						},
 					);
-					state = State::XCConfigurationListObject { id: id.to_string() };
+					state = State::XCConfigurationListObject { id:id.to_string() };
 				}
-			}
+			},
 			State::XCConfigurationListObject { id } => {
 				if line.contains("buildConfigurations") {
-					state = State::XCConfigurationListObjectBuildConfigurations { id: id.clone() };
+					state = State::XCConfigurationListObjectBuildConfigurations { id:id.clone() };
 				} else if split_at_identation(line).map_or(false, |(_ident, token)| token == "};") {
 					state = State::XCConfigurationList;
 				}
-			}
+			},
 			State::XCConfigurationListObjectBuildConfigurations { id } => {
 				if let Some((_identation, token)) = split_at_identation(line) {
 					if token == ");" {
-						state = State::XCConfigurationListObject { id: id.clone() };
+						state = State::XCConfigurationListObject { id:id.clone() };
 					} else {
 						let Some((build_configuration_id, comments)) = token.split_once(' ') else {
 							continue;
 						};
 						proj.xc_configuration_list.get_mut(id).unwrap().build_configurations.push(
 							BuildConfigurationRef {
-								id: build_configuration_id.to_string(),
-								comments: comments.trim_end_matches(',').to_string(),
+								id:build_configuration_id.to_string(),
+								comments:comments.trim_end_matches(',').to_string(),
 							},
 						);
 					}
 				}
-			}
+			},
 		}
 	}
 
 	Ok(proj)
 }
 
-fn split_at_identation(s: &str) -> Option<(&str, &str)> {
+fn split_at_identation(s:&str) -> Option<(&str, &str)> {
 	s.chars().position(|c| !c.is_ascii_whitespace()).map(|pos| s.split_at(pos))
 }
 
@@ -150,28 +150,28 @@ enum State {
 	Idle,
 	// XCBuildConfiguration
 	XCBuildConfiguration,
-	XCBuildConfigurationObject { id: String },
-	XCBuildConfigurationObjectBuildSettings { id: String },
+	XCBuildConfigurationObject { id:String },
+	XCBuildConfigurationObjectBuildSettings { id:String },
 	// XCConfigurationList
 	XCConfigurationList,
-	XCConfigurationListObject { id: String },
-	XCConfigurationListObjectBuildConfigurations { id: String },
+	XCConfigurationListObject { id:String },
+	XCConfigurationListObjectBuildConfigurations { id:String },
 }
 
 pub struct Pbxproj {
-	path: PathBuf,
-	raw_lines: Vec<String>,
-	pub xc_build_configuration: BTreeMap<String, XCBuildConfiguration>,
-	pub xc_configuration_list: BTreeMap<String, XCConfigurationList>,
+	path:PathBuf,
+	raw_lines:Vec<String>,
+	pub xc_build_configuration:BTreeMap<String, XCBuildConfiguration>,
+	pub xc_configuration_list:BTreeMap<String, XCConfigurationList>,
 
 	// maps the line number to the line to add
-	additions: BTreeMap<usize, String>,
+	additions:BTreeMap<usize, String>,
 
-	has_changes: bool,
+	has_changes:bool,
 }
 
 impl fmt::Debug for Pbxproj {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		f.debug_struct("Pbxproj")
 			.field("xc_build_configuration", &self.xc_build_configuration)
 			.field("xc_configuration_list", &self.xc_configuration_list)
@@ -180,9 +180,7 @@ impl fmt::Debug for Pbxproj {
 }
 
 impl Pbxproj {
-	pub fn has_changes(&self) -> bool {
-		!self.additions.is_empty() || self.has_changes
-	}
+	pub fn has_changes(&self) -> bool { !self.additions.is_empty() || self.has_changes }
 
 	fn serialize(&self) -> String {
 		let mut proj = String::new();
@@ -204,11 +202,9 @@ impl Pbxproj {
 		proj
 	}
 
-	pub fn save(&self) -> std::io::Result<()> {
-		std::fs::write(&self.path, self.serialize())
-	}
+	pub fn save(&self) -> std::io::Result<()> { std::fs::write(&self.path, self.serialize()) }
 
-	pub fn set_build_settings(&mut self, build_configuration_id: &str, key: &str, value: &str) {
+	pub fn set_build_settings(&mut self, build_configuration_id:&str, key:&str, value:&str) {
 		let Some(build_configuration) = self.xc_build_configuration.get_mut(build_configuration_id)
 		else {
 			return;
@@ -231,10 +227,10 @@ impl Pbxproj {
 				return;
 			};
 			build_configuration.build_settings.push(BuildSettings {
-				identation: last_build_setting.identation.clone(),
-				line_number: last_build_setting.line_number + 1,
-				key: key.to_string(),
-				value: value.to_string(),
+				identation:last_build_setting.identation.clone(),
+				line_number:last_build_setting.line_number + 1,
+				key:key.to_string(),
+				value:value.to_string(),
 			});
 			self.additions.insert(
 				last_build_setting.line_number + 1,
@@ -246,33 +242,33 @@ impl Pbxproj {
 
 #[derive(Debug)]
 pub struct XCBuildConfiguration {
-	build_settings: Vec<BuildSettings>,
+	build_settings:Vec<BuildSettings>,
 }
 
 impl XCBuildConfiguration {
-	pub fn get_build_setting(&self, key: &str) -> Option<&BuildSettings> {
+	pub fn get_build_setting(&self, key:&str) -> Option<&BuildSettings> {
 		self.build_settings.iter().find(|s| s.key == key)
 	}
 }
 
 #[derive(Debug, Clone)]
 pub struct BuildSettings {
-	identation: String,
-	line_number: usize,
-	pub key: String,
-	pub value: String,
+	identation:String,
+	line_number:usize,
+	pub key:String,
+	pub value:String,
 }
 
 #[derive(Debug, Clone)]
 pub struct XCConfigurationList {
-	pub comment: String,
-	pub build_configurations: Vec<BuildConfigurationRef>,
+	pub comment:String,
+	pub build_configurations:Vec<BuildConfigurationRef>,
 }
 
 #[derive(Debug, Clone)]
 pub struct BuildConfigurationRef {
-	pub id: String,
-	pub comments: String,
+	pub id:String,
+	pub comments:String,
 }
 
 #[cfg(test)]

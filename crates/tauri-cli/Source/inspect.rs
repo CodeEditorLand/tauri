@@ -35,11 +35,9 @@ fn wix_upgrade_code() -> Result<()> {
 	let target = tauri_utils::platform::Target::Windows;
 	let config = crate::helpers::config::get(target, None)?;
 
-	let interface =
-		AppInterface::new(config.lock().unwrap().as_ref().unwrap(), None)?;
+	let interface = AppInterface::new(config.lock().unwrap().as_ref().unwrap(), None)?;
 
-	let product_name =
-		interface.app_settings().get_package_settings().product_name;
+	let product_name = interface.app_settings().get_package_settings().product_name;
 
 	let upgrade_code = uuid::Uuid::new_v5(
 		&uuid::Uuid::NAMESPACE_DNS,
@@ -47,12 +45,13 @@ fn wix_upgrade_code() -> Result<()> {
 	)
 	.to_string();
 
-	log::info!(
-		"Default WiX Upgrade Code, derived from {product_name}: {upgrade_code}"
-	);
-	if let Some(code) = config.lock().unwrap().as_ref().and_then(|c| {
-		c.bundle.windows.wix.as_ref().and_then(|wix| wix.upgrade_code)
-	}) {
+	log::info!("Default WiX Upgrade Code, derived from {product_name}: {upgrade_code}");
+	if let Some(code) = config
+		.lock()
+		.unwrap()
+		.as_ref()
+		.and_then(|c| c.bundle.windows.wix.as_ref().and_then(|wix| wix.upgrade_code))
+	{
 		log::info!("Application Upgrade Code override: {code}");
 	}
 

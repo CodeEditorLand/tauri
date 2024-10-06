@@ -9,13 +9,9 @@ use tauri::WebviewWindowBuilder;
 fn main() {
 	tauri::Builder::default()
 		.setup(|app| {
-			WebviewWindowBuilder::new(
-				app,
-				"Third",
-				tauri::WebviewUrl::default(),
-			)
-			.title("Tauri - Third")
-			.build()?;
+			WebviewWindowBuilder::new(app, "Third", tauri::WebviewUrl::default())
+				.title("Tauri - Third")
+				.build()?;
 
 			Ok(())
 		})
@@ -24,18 +20,16 @@ fn main() {
 }
 
 fn generate_context() -> tauri::Context {
-	let mut context =
-		tauri::generate_context!("../../examples/multiwindow/tauri.conf.json");
+	let mut context = tauri::generate_context!("../../examples/multiwindow/tauri.conf.json");
 	for cmd in [
 		"plugin:event|listen",
 		"plugin:event|emit",
 		"plugin:event|emit_to",
 		"plugin:webview|create_webview_window",
 	] {
-		context.runtime_authority_mut().__allow_command(
-			cmd.to_string(),
-			tauri_utils::acl::ExecutionContext::Local,
-		);
+		context
+			.runtime_authority_mut()
+			.__allow_command(cmd.to_string(), tauri_utils::acl::ExecutionContext::Local);
 	}
 	context
 }

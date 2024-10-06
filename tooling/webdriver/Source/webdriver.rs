@@ -22,22 +22,15 @@ pub fn native(args:&Args) -> Command {
 				custom.to_owned()
 			} else {
 				eprintln!(
-					"can not find the supplied binary path {}. This is \
-					 currently required.",
+					"can not find the supplied binary path {}. This is currently required.",
 					custom.display()
 				);
 				match current_dir() {
 					Ok(cwd) => {
-						eprintln!(
-							"current working directory: {}",
-							cwd.display()
-						)
+						eprintln!("current working directory: {}", cwd.display())
 					},
 					Err(error) => {
-						eprintln!(
-							"can not find current working directory: {}",
-							error
-						)
+						eprintln!("can not find current working directory: {}", error)
 					},
 				}
 				std::process::exit(1);
@@ -48,9 +41,8 @@ pub fn native(args:&Args) -> Command {
 				Ok(binary) => binary,
 				Err(error) => {
 					eprintln!(
-						"can not find binary {} in the PATH. This is \
-						 currently required.You can also pass a custom path \
-						 with --native-driver",
+						"can not find binary {} in the PATH. This is currently required.You can \
+						 also pass a custom path with --native-driver",
 						DRIVER_BINARY
 					);
 					eprintln!("{:?}", error);

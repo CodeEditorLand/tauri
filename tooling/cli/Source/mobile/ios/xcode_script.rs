@@ -2,19 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{ensure_init, env, get_app, get_config, read_options, MobileTarget};
-use crate::{
-	helpers::config::get as get_tauri_config,
-	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
-	mobile::ios::LIB_OUTPUT_FILE_NAME,
-	Result,
-};
-
-use anyhow::Context;
-use cargo_mobile2::{apple::target::Target, opts::Profile};
-use clap::Parser;
-use object::{Object, ObjectSymbol};
-
 use std::{
 	collections::HashMap,
 	env::{current_dir, set_current_dir, var, var_os},
@@ -24,49 +11,57 @@ use std::{
 	path::{Path, PathBuf},
 };
 
+use anyhow::Context;
+use cargo_mobile2::{apple::target::Target, opts::Profile};
+use clap::Parser;
+use object::{Object, ObjectSymbol};
+
+use super::{ensure_init, env, get_app, get_config, read_options, MobileTarget};
+use crate::{
+	helpers::config::get as get_tauri_config,
+	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
+	mobile::ios::LIB_OUTPUT_FILE_NAME,
+	Result,
+};
+
 #[derive(Debug, Parser)]
 pub struct Options {
 	/// Value of `PLATFORM_DISPLAY_NAME` env var
 	#[clap(long)]
-	platform: String,
+	platform:String,
 	/// Value of `SDKROOT` env var
 	#[clap(long)]
-	sdk_root: PathBuf,
+	sdk_root:PathBuf,
 	/// Value of `FRAMEWORK_SEARCH_PATHS` env var
 	#[clap(long)]
-	framework_search_paths: String,
+	framework_search_paths:String,
 	/// Value of `GCC_PREPROCESSOR_DEFINITIONS` env var
 	#[clap(long)]
-	gcc_preprocessor_definitions: String,
+	gcc_preprocessor_definitions:String,
 	/// Value of `HEADER_SEARCH_PATHS` env var
 	#[clap(long)]
-	header_search_paths: String,
+	header_search_paths:String,
 	/// Value of `CONFIGURATION` env var
 	#[clap(long)]
-	configuration: String,
+	configuration:String,
 	/// Value of `FORCE_COLOR` env var
 	#[clap(long)]
-	force_color: bool,
+	force_color:bool,
 	/// Value of `ARCHS` env var
 	#[clap(index = 1, required = true)]
-	arches: Vec<String>,
+	arches:Vec<String>,
 }
 
-pub fn command(options: Options) -> Result<()> {
-	fn macos_from_platform(platform: &str) -> bool {
-		platform == "macOS"
-	}
+pub fn command(options:Options) -> Result<()> {
+	fn macos_from_platform(platform:&str) -> bool { platform == "macOS" }
 
-	fn profile_from_configuration(configuration: &str) -> Profile {
-		if configuration == "release" {
-			Profile::Release
-		} else {
-			Profile::Debug
-		}
+	fn profile_from_configuration(configuration:&str) -> Profile {
+		if configuration == "release" { Profile::Release } else { Profile::Debug }
 	}
 
 	// `xcode-script` is ran from the `gen/apple` folder when not using NPM.
-	// so we must change working directory to the src-tauri folder to resolve the tauri dir
+	// so we must change working directory to the src-tauri folder to resolve the
+	// tauri dir
 	if (var_os("npm_lifecycle_event").is_none() && var_os("PNPM_PACKAGE_NAME").is_none())
 		|| var("npm_config_user_agent").map_or(false, |agent| agent.starts_with("bun"))
 	{
@@ -151,16 +146,16 @@ pub fn command(options: Options) -> Result<()> {
 			"arm64-sim" => ("aarch64_apple_ios_sim", "aarch64-apple-ios-sim"),
 			"x86_64" => ("x86_64_apple_ios", "x86_64-apple-ios"),
 			"Simulator" => {
-				// when using Xcode, the arches for a simulator build will be ['Simulator', 'arm64-sim'] instead of ['arm64-sim']
-				// so we ignore that on our end
+				// when using Xcode, the arches for a simulator build will be ['Simulator',
+				// 'arm64-sim'] instead of ['arm64-sim'] so we ignore that on our end
 				continue;
-			}
+			},
 			_ => {
 				return Err(anyhow::anyhow!(
 					"Arch specified by Xcode was invalid. {} isn't a known arch",
 					arch
-				))
-			}
+				));
+			},
 		};
 
 		let interface = AppInterface::new(
@@ -197,8 +192,8 @@ pub fn command(options: Options) -> Result<()> {
 		)?;
 
 		let bin_path = interface.app_settings().app_binary_path(&InterfaceOptions {
-			debug: matches!(profile, Profile::Debug),
-			target: Some(rust_triple.into()),
+			debug:matches!(profile, Profile::Debug),
+			target:Some(rust_triple.into()),
 			..Default::default()
 		})?;
 
@@ -206,7 +201,11 @@ pub fn command(options: Options) -> Result<()> {
 
 		let lib_path = out_dir.join(format!("lib{}.a", config.app().lib_name()));
 		if !lib_path.exists() {
-			return Err(anyhow::anyhow!("Library not found at {}. Make sure your Cargo.toml file has a [lib] block with `crate-type = [\"staticlib\", \"cdylib\", \"lib\"]`", lib_path.display()));
+			return Err(anyhow::anyhow!(
+				"Library not found at {}. Make sure your Cargo.toml file has a [lib] block with \
+				 `crate-type = [\"staticlib\", \"cdylib\", \"lib\"]`",
+				lib_path.display()
+			));
 		}
 
 		validate_lib(&lib_path)?;
@@ -239,7 +238,7 @@ pub fn command(options: Options) -> Result<()> {
 	Ok(())
 }
 
-fn validate_lib(path: &Path) -> Result<()> {
+fn validate_lib(path:&Path) -> Result<()> {
 	let mut archive = ar::Archive::new(std::fs::File::open(path)?);
 	// Iterate over all entries in the archive:
 	while let Some(entry) = archive.next_entry() {

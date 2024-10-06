@@ -6,15 +6,24 @@
 
 pub(crate) mod plugin;
 
+use std::{
+	fmt,
+	hash::{Hash, Hasher},
+	sync::{Arc, Mutex, MutexGuard},
+};
+
+use serde::Serialize;
+use tauri_macros::default_runtime;
 use tauri_runtime::{
 	dpi::{PhysicalPosition, PhysicalSize},
 	webview::PendingWebview,
 };
 pub use tauri_utils::{config::Color, WindowEffect as Effect, WindowEffectState as EffectState};
+#[cfg(windows)]
+use windows::Win32::Foundation::HWND;
 
 #[cfg(desktop)]
 pub use crate::runtime::ProgressBarStatus;
-
 use crate::{
 	app::AppHandle,
 	event::{Event, EventId, EventTarget},
@@ -23,12 +32,20 @@ use crate::{
 	runtime::{
 		monitor::Monitor as RuntimeMonitor,
 		window::{DetachedWindow, PendingWindow, WindowBuilder as _},
-		RuntimeHandle, WindowDispatch,
+		RuntimeHandle,
+		WindowDispatch,
 	},
 	sealed::{ManagerBase, RuntimeOrDispatch},
 	utils::config::{WindowConfig, WindowEffectsConfig},
 	webview::WebviewBuilder,
-	Emitter, EventLoopMessage, Listener, Manager, ResourceTable, Runtime, Theme, Webview,
+	Emitter,
+	EventLoopMessage,
+	Listener,
+	Manager,
+	ResourceTable,
+	Runtime,
+	Theme,
+	Webview,
 	WindowEvent,
 };
 #[cfg(desktop)]
@@ -42,35 +59,23 @@ use crate::{
 	CursorIcon,
 };
 
-use serde::Serialize;
-#[cfg(windows)]
-use windows::Win32::Foundation::HWND;
-
-use tauri_macros::default_runtime;
-
-use std::{
-	fmt,
-	hash::{Hash, Hasher},
-	sync::{Arc, Mutex, MutexGuard},
-};
-
 /// Monitor descriptor.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Monitor {
-	pub(crate) name: Option<String>,
-	pub(crate) size: PhysicalSize<u32>,
-	pub(crate) position: PhysicalPosition<i32>,
-	pub(crate) scale_factor: f64,
+	pub(crate) name:Option<String>,
+	pub(crate) size:PhysicalSize<u32>,
+	pub(crate) position:PhysicalPosition<i32>,
+	pub(crate) scale_factor:f64,
 }
 
 impl From<RuntimeMonitor> for Monitor {
-	fn from(monitor: RuntimeMonitor) -> Self {
+	fn from(monitor:RuntimeMonitor) -> Self {
 		Self {
-			name: monitor.name,
-			size: monitor.size,
-			position: monitor.position,
-			scale_factor: monitor.scale_factor,
+			name:monitor.name,
+			size:monitor.size,
+			position:monitor.position,
+			scale_factor:monitor.scale_factor,
 		}
 	}
 }
@@ -78,24 +83,18 @@ impl From<RuntimeMonitor> for Monitor {
 impl Monitor {
 	/// Returns a human-readable name of the monitor.
 	/// Returns None if the monitor doesn't exist anymore.
-	pub fn name(&self) -> Option<&String> {
-		self.name.as_ref()
-	}
+	pub fn name(&self) -> Option<&String> { self.name.as_ref() }
 
 	/// Returns the monitor's resolution.
-	pub fn size(&self) -> &PhysicalSize<u32> {
-		&self.size
-	}
+	pub fn size(&self) -> &PhysicalSize<u32> { &self.size }
 
-	/// Returns the top-left corner position of the monitor relative to the larger full screen area.
-	pub fn position(&self) -> &PhysicalPosition<i32> {
-		&self.position
-	}
+	/// Returns the top-left corner position of the monitor relative to the
+	/// larger full screen area.
+	pub fn position(&self) -> &PhysicalPosition<i32> { &self.position }
 
-	/// Returns the scale factor that can be used to map logical pixels to physical pixels, and vice versa.
-	pub fn scale_factor(&self) -> f64 {
-		self.scale_factor
-	}
+	/// Returns the scale factor that can be used to map logical pixels to
+	/// physical pixels, and vice versa.
+	pub fn scale_factor(&self) -> f64 { self.scale_factor }
 }
 
 macro_rules! unstable_struct {
@@ -111,22 +110,22 @@ macro_rules! unstable_struct {
 }
 
 unstable_struct!(
-	#[doc = "A builder for a window managed by Tauri."]
-	struct WindowBuilder<'a, R: Runtime, M: Manager<R>> {
-		manager: &'a M,
-		pub(crate) label: String,
+	/// A builder for a window managed by Tauri.
+	struct WindowBuilder<'a, R:Runtime, M:Manager<R>> {
+		manager:&'a M,
+		pub(crate) label:String,
 		pub(crate) window_builder:
 			<R::WindowDispatcher as WindowDispatch<EventLoopMessage>>::WindowBuilder,
 		#[cfg(desktop)]
-		pub(crate) menu: Option<Menu<R>>,
+		pub(crate) menu:Option<Menu<R>>,
 		#[cfg(desktop)]
-		on_menu_event: Option<crate::app::GlobalMenuEventListener<Window<R>>>,
-		window_effects: Option<WindowEffectsConfig>,
+		on_menu_event:Option<crate::app::GlobalMenuEventListener<Window<R>>>,
+		window_effects:Option<WindowEffectsConfig>,
 	}
 );
 
-impl<'a, R: Runtime, M: Manager<R>> fmt::Debug for WindowBuilder<'a, R, M> {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<'a, R:Runtime, M:Manager<R>> fmt::Debug for WindowBuilder<'a, R, M> {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		f.debug_struct("WindowBuilder")
 			.field("label", &self.label)
 			.field("window_builder", &self.window_builder)
@@ -135,18 +134,18 @@ impl<'a, R: Runtime, M: Manager<R>> fmt::Debug for WindowBuilder<'a, R, M> {
 }
 
 #[cfg_attr(not(feature = "unstable"), allow(dead_code))]
-impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
+impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	/// Initializes a window builder with the given window label.
 	///
 	/// # Known issues
 	///
-	/// On Windows, this function deadlocks when used in a synchronous command, see [the Webview2 issue].
-	/// You should use `async` commands when creating windows.
+	/// On Windows, this function deadlocks when used in a synchronous command,
+	/// see [the Webview2 issue]. You should use `async` commands when creating
+	/// windows.
 	///
 	/// # Examples
 	///
 	/// - Create a window in the setup hook:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -161,7 +160,6 @@ tauri::Builder::default()
   "####
 	)]
 	/// - Create a window in a separate thread:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -179,9 +177,7 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	///
 	/// - Create a window in a command:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -195,35 +191,35 @@ async fn create_window(app: tauri::AppHandle) {
 ```
   "####
 	)]
-	///
 	/// [the Webview2 issue]: https://github.com/tauri-apps/wry/issues/583
-	pub fn new<L: Into<String>>(manager: &'a M, label: L) -> Self {
+	pub fn new<L:Into<String>>(manager:&'a M, label:L) -> Self {
 		Self {
 			manager,
-			label: label.into(),
+			label:label.into(),
 			window_builder:
 				<R::WindowDispatcher as WindowDispatch<EventLoopMessage>>::WindowBuilder::new(),
 			#[cfg(desktop)]
-			menu: None,
+			menu:None,
 			#[cfg(desktop)]
-			on_menu_event: None,
-			window_effects: None,
+			on_menu_event:None,
+			window_effects:None,
 		}
 	}
 
-	/// Initializes a window builder from a [`WindowConfig`] from tauri.conf.json.
-	/// Keep in mind that you can't create 2 windows with the same `label` so make sure
-	/// that the initial window was closed or change the label of the new [`WindowBuilder`].
+	/// Initializes a window builder from a [`WindowConfig`] from
+	/// tauri.conf.json. Keep in mind that you can't create 2 windows with the
+	/// same `label` so make sure that the initial window was closed or change
+	/// the label of the new [`WindowBuilder`].
 	///
 	/// # Known issues
 	///
-	/// On Windows, this function deadlocks when used in a synchronous command, see [the Webview2 issue].
-	/// You should use `async` commands when creating windows.
+	/// On Windows, this function deadlocks when used in a synchronous command,
+	/// see [the Webview2 issue]. You should use `async` commands when creating
+	/// windows.
 	///
 	/// # Examples
 	///
 	/// - Create a window in a command:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -238,9 +234,8 @@ async fn reopen_window(app: tauri::AppHandle) {
 ```
   "####
 	)]
-	///
 	/// [the Webview2 issue]: https://github.com/tauri-apps/wry/issues/583
-	pub fn from_config(manager: &'a M, config: &WindowConfig) -> crate::Result<Self> {
+	pub fn from_config(manager:&'a M, config:&WindowConfig) -> crate::Result<Self> {
 		#[cfg_attr(not(windows), allow(unused_mut))]
     let mut builder = Self {
       manager,
@@ -269,7 +264,8 @@ async fn reopen_window(app: tauri::AppHandle) {
 	/// Registers a global menu event listener.
 	///
 	/// Note that this handler is called for any menu event,
-	/// whether it is coming from this window, another window or from the tray icon menu.
+	/// whether it is coming from this window, another window or from the tray
+	/// icon menu.
 	///
 	/// Also note that this handler will not be called if
 	/// the window used to register it was closed.
@@ -304,9 +300,9 @@ tauri::Builder::default()
 ```"####
 	)]
 	#[cfg(desktop)]
-	pub fn on_menu_event<F: Fn(&Window<R>, crate::menu::MenuEvent) + Send + Sync + 'static>(
+	pub fn on_menu_event<F:Fn(&Window<R>, crate::menu::MenuEvent) + Send + Sync + 'static>(
 		mut self,
-		f: F,
+		f:F,
 	) -> Self {
 		self.on_menu_event.replace(Box::new(f));
 		self
@@ -316,7 +312,7 @@ tauri::Builder::default()
 	#[cfg_attr(feature = "tracing", tracing::instrument(name = "webview::create", skip_all))]
 	pub(crate) fn with_webview(
 		self,
-		webview: WebviewBuilder<R>,
+		webview:WebviewBuilder<R>,
 	) -> crate::Result<(Window<R>, Webview<R>)> {
 		let pending_webview = webview.into_pending_webview(self.manager, &self.label)?;
 
@@ -328,14 +324,12 @@ tauri::Builder::default()
 	}
 
 	/// Creates a new window.
-	pub fn build(self) -> crate::Result<Window<R>> {
-		self.build_internal(None)
-	}
+	pub fn build(self) -> crate::Result<Window<R>> { self.build_internal(None) }
 
 	/// Creates a new window with an optional webview.
 	fn build_internal(
 		self,
-		webview: Option<PendingWebview<EventLoopMessage, R>>,
+		webview:Option<PendingWebview<EventLoopMessage, R>>,
 	) -> crate::Result<Window<R>> {
 		let mut pending = PendingWindow::new(self.window_builder.clone(), self.label.clone())?;
 		if let Some(webview) = webview {
@@ -361,7 +355,7 @@ tauri::Builder::default()
 		);
 		#[cfg(not(desktop))]
 		#[allow(clippy::type_complexity)]
-		let handler: Option<Box<dyn Fn(tauri_runtime::window::RawWindow<'_>) + Send>> = None;
+		let handler:Option<Box<dyn Fn(tauri_runtime::window::RawWindow<'_>) + Send>> = None;
 
 		let window = match &mut self.manager.runtime() {
 			RuntimeOrDispatch::Runtime(runtime) => runtime.create_window(pending, handler),
@@ -395,11 +389,12 @@ tauri::Builder::default()
 		let app_manager = self.manager.manager_owned();
 
 		let window_label = window.label().to_string();
-		// run on the main thread to fix a deadlock on webview.eval if the tracing feature is enabled
+		// run on the main thread to fix a deadlock on webview.eval if the tracing
+		// feature is enabled
 		let _ = window.run_on_main_thread(move || {
 			let _ = app_manager.emit(
 				"tauri://window-created",
-				Some(crate::webview::CreatedEvent { label: window_label }),
+				Some(crate::webview::CreatedEvent { label:window_label }),
 			);
 		});
 
@@ -410,10 +405,10 @@ tauri::Builder::default()
 /// Desktop APIs.
 #[cfg(desktop)]
 #[cfg_attr(not(feature = "unstable"), allow(dead_code))]
-impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
+impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	/// Sets the menu for the window.
 	#[must_use]
-	pub fn menu(mut self, menu: Menu<R>) -> Self {
+	pub fn menu(mut self, menu:Menu<R>) -> Self {
 		self.menu.replace(menu);
 		self
 	}
@@ -427,28 +422,28 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 
 	/// The initial position of the window's.
 	#[must_use]
-	pub fn position(mut self, x: f64, y: f64) -> Self {
+	pub fn position(mut self, x:f64, y:f64) -> Self {
 		self.window_builder = self.window_builder.position(x, y);
 		self
 	}
 
 	/// Window size.
 	#[must_use]
-	pub fn inner_size(mut self, width: f64, height: f64) -> Self {
+	pub fn inner_size(mut self, width:f64, height:f64) -> Self {
 		self.window_builder = self.window_builder.inner_size(width, height);
 		self
 	}
 
 	/// Window min inner size.
 	#[must_use]
-	pub fn min_inner_size(mut self, min_width: f64, min_height: f64) -> Self {
+	pub fn min_inner_size(mut self, min_width:f64, min_height:f64) -> Self {
 		self.window_builder = self.window_builder.min_inner_size(min_width, min_height);
 		self
 	}
 
 	/// Window max inner size.
 	#[must_use]
-	pub fn max_inner_size(mut self, max_width: f64, max_height: f64) -> Self {
+	pub fn max_inner_size(mut self, max_width:f64, max_height:f64) -> Self {
 		self.window_builder = self.window_builder.max_inner_size(max_width, max_height);
 		self
 	}
@@ -457,16 +452,17 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn inner_size_constraints(
 		mut self,
-		constraints: tauri_runtime::window::WindowSizeConstraints,
+		constraints:tauri_runtime::window::WindowSizeConstraints,
 	) -> Self {
 		self.window_builder = self.window_builder.inner_size_constraints(constraints);
 		self
 	}
 
 	/// Whether the window is resizable or not.
-	/// When resizable is set to false, native window's maximize button is automatically disabled.
+	/// When resizable is set to false, native window's maximize button is
+	/// automatically disabled.
 	#[must_use]
-	pub fn resizable(mut self, resizable: bool) -> Self {
+	pub fn resizable(mut self, resizable:bool) -> Self {
 		self.window_builder = self.window_builder.resizable(resizable);
 		self
 	}
@@ -476,10 +472,11 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// ## Platform-specific
 	///
-	/// - **macOS:** Disables the "zoom" button in the window titlebar, which is also used to enter fullscreen mode.
+	/// - **macOS:** Disables the "zoom" button in the window titlebar, which is
+	///   also used to enter fullscreen mode.
 	/// - **Linux / iOS / Android:** Unsupported.
 	#[must_use]
-	pub fn maximizable(mut self, maximizable: bool) -> Self {
+	pub fn maximizable(mut self, maximizable:bool) -> Self {
 		self.window_builder = self.window_builder.maximizable(maximizable);
 		self
 	}
@@ -490,7 +487,7 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// - **Linux / iOS / Android:** Unsupported.
 	#[must_use]
-	pub fn minimizable(mut self, minimizable: bool) -> Self {
+	pub fn minimizable(mut self, minimizable:bool) -> Self {
 		self.window_builder = self.window_builder.minimizable(minimizable);
 		self
 	}
@@ -499,25 +496,26 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** "GTK+ will do its best to convince the window manager not to show a close button.
-	///   Depending on the system, this function may not have any effect when called on a window that is already visible"
+	/// - **Linux:** "GTK+ will do its best to convince the window manager not
+	///   to show a close button. Depending on the system, this function may not
+	///   have any effect when called on a window that is already visible"
 	/// - **iOS / Android:** Unsupported.
 	#[must_use]
-	pub fn closable(mut self, closable: bool) -> Self {
+	pub fn closable(mut self, closable:bool) -> Self {
 		self.window_builder = self.window_builder.closable(closable);
 		self
 	}
 
 	/// The title of the window in the title bar.
 	#[must_use]
-	pub fn title<S: Into<String>>(mut self, title: S) -> Self {
+	pub fn title<S:Into<String>>(mut self, title:S) -> Self {
 		self.window_builder = self.window_builder.title(title);
 		self
 	}
 
 	/// Whether to start the window in fullscreen or not.
 	#[must_use]
-	pub fn fullscreen(mut self, fullscreen: bool) -> Self {
+	pub fn fullscreen(mut self, fullscreen:bool) -> Self {
 		self.window_builder = self.window_builder.fullscreen(fullscreen);
 		self
 	}
@@ -526,7 +524,8 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	#[deprecated(
 		since = "1.2.0",
-		note = "The window is automatically focused by default. This function Will be removed in 2.0.0. Use `focused` instead."
+		note = "The window is automatically focused by default. This function Will be removed in \
+		        2.0.0. Use `focused` instead."
 	)]
 	pub fn focus(mut self) -> Self {
 		self.window_builder = self.window_builder.focused(true);
@@ -535,21 +534,21 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 
 	/// Whether the window will be initially focused or not.
 	#[must_use]
-	pub fn focused(mut self, focused: bool) -> Self {
+	pub fn focused(mut self, focused:bool) -> Self {
 		self.window_builder = self.window_builder.focused(focused);
 		self
 	}
 
 	/// Whether the window should be maximized upon creation.
 	#[must_use]
-	pub fn maximized(mut self, maximized: bool) -> Self {
+	pub fn maximized(mut self, maximized:bool) -> Self {
 		self.window_builder = self.window_builder.maximized(maximized);
 		self
 	}
 
 	/// Whether the window should be immediately visible upon creation.
 	#[must_use]
-	pub fn visible(mut self, visible: bool) -> Self {
+	pub fn visible(mut self, visible:bool) -> Self {
 		self.window_builder = self.window_builder.visible(visible);
 		self
 	}
@@ -560,49 +559,51 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// - **macOS**: Only supported on macOS 10.14+.
 	#[must_use]
-	pub fn theme(mut self, theme: Option<Theme>) -> Self {
+	pub fn theme(mut self, theme:Option<Theme>) -> Self {
 		self.window_builder = self.window_builder.theme(theme);
 		self
 	}
 
-	/// Whether the window should be transparent. If this is true, writing colors
-	/// with alpha values different than `1.0` will produce a transparent window.
+	/// Whether the window should be transparent. If this is true, writing
+	/// colors with alpha values different than `1.0` will produce a
+	/// transparent window.
 	#[cfg(any(not(target_os = "macos"), feature = "macos-private-api"))]
 	#[cfg_attr(docsrs, doc(cfg(any(not(target_os = "macos"), feature = "macos-private-api"))))]
 	#[must_use]
-	pub fn transparent(mut self, transparent: bool) -> Self {
+	pub fn transparent(mut self, transparent:bool) -> Self {
 		self.window_builder = self.window_builder.transparent(transparent);
 		self
 	}
 
 	/// Whether the window should have borders and bars.
 	#[must_use]
-	pub fn decorations(mut self, decorations: bool) -> Self {
+	pub fn decorations(mut self, decorations:bool) -> Self {
 		self.window_builder = self.window_builder.decorations(decorations);
 		self
 	}
 
 	/// Whether the window should always be below other windows.
 	#[must_use]
-	pub fn always_on_bottom(mut self, always_on_bottom: bool) -> Self {
+	pub fn always_on_bottom(mut self, always_on_bottom:bool) -> Self {
 		self.window_builder = self.window_builder.always_on_bottom(always_on_bottom);
 		self
 	}
 
 	/// Whether the window should always be on top of other windows.
 	#[must_use]
-	pub fn always_on_top(mut self, always_on_top: bool) -> Self {
+	pub fn always_on_top(mut self, always_on_top:bool) -> Self {
 		self.window_builder = self.window_builder.always_on_top(always_on_top);
 		self
 	}
 
-	/// Whether the window will be visible on all workspaces or virtual desktops.
+	/// Whether the window will be visible on all workspaces or virtual
+	/// desktops.
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows / iOS / Android:** Unsupported.
 	#[must_use]
-	pub fn visible_on_all_workspaces(mut self, visible_on_all_workspaces: bool) -> Self {
+	pub fn visible_on_all_workspaces(mut self, visible_on_all_workspaces:bool) -> Self {
 		self.window_builder =
 			self.window_builder.visible_on_all_workspaces(visible_on_all_workspaces);
 		self
@@ -610,13 +611,13 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 
 	/// Prevents the window contents from being captured by other apps.
 	#[must_use]
-	pub fn content_protected(mut self, protected: bool) -> Self {
+	pub fn content_protected(mut self, protected:bool) -> Self {
 		self.window_builder = self.window_builder.content_protected(protected);
 		self
 	}
 
 	/// Sets the window icon.
-	pub fn icon(mut self, icon: Image<'a>) -> crate::Result<Self> {
+	pub fn icon(mut self, icon:Image<'a>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.icon(icon.into())?;
 		Ok(self)
 	}
@@ -627,7 +628,7 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// - **macOS**: Unsupported.
 	#[must_use]
-	pub fn skip_taskbar(mut self, skip: bool) -> Self {
+	pub fn skip_taskbar(mut self, skip:bool) -> Self {
 		self.window_builder = self.window_builder.skip_taskbar(skip);
 		self
 	}
@@ -638,11 +639,11 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// - **Windows:**
 	///   - `false` has no effect on decorated window, shadows are always ON.
-	///   - `true` will make undecorated window have a 1px white border,
-	///     and on Windows 11, it will have a rounded corners.
+	///   - `true` will make undecorated window have a 1px white border, and on
+	///     Windows 11, it will have a rounded corners.
 	/// - **Linux:** Unsupported.
 	#[must_use]
-	pub fn shadow(mut self, enable: bool) -> Self {
+	pub fn shadow(mut self, enable:bool) -> Self {
 		self.window_builder = self.window_builder.shadow(enable);
 		self
 	}
@@ -654,11 +655,12 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	/// - **Windows**: This sets the passed parent as an owner window to the window to be created.
 	///   From [MSDN owned windows docs](https://docs.microsoft.com/en-us/windows/win32/winmsg/window-features#owned-windows):
 	///     - An owned window is always above its owner in the z-order.
-	///     - The system automatically destroys an owned window when its owner is destroyed.
+	///     - The system automatically destroys an owned window when its owner
+	///       is destroyed.
 	///     - An owned window is hidden when its owner is minimized.
 	/// - **Linux**: This makes the new window transient for parent, see <https://docs.gtk.org/gtk3/method.Window.set_transient_for.html>
 	/// - **macOS**: This adds the window as a child of parent, see <https://developer.apple.com/documentation/appkit/nswindow/1419152-addchildwindow?language=objc>
-	pub fn parent(mut self, parent: &Window<R>) -> crate::Result<Self> {
+	pub fn parent(mut self, parent:&Window<R>) -> crate::Result<Self> {
 		#[cfg(windows)]
 		{
 			self.window_builder = self.window_builder.owner(parent.hwnd()?);
@@ -687,12 +689,13 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// From MSDN:
 	/// - An owned window is always above its owner in the z-order.
-	/// - The system automatically destroys an owned window when its owner is destroyed.
+	/// - The system automatically destroys an owned window when its owner is
+	///   destroyed.
 	/// - An owned window is hidden when its owner is minimized.
 	///
 	/// For more information, see <https://docs.microsoft.com/en-us/windows/win32/winmsg/window-features#owned-windows>
 	#[cfg(windows)]
-	pub fn owner(mut self, owner: &Window<R>) -> crate::Result<Self> {
+	pub fn owner(mut self, owner:&Window<R>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.owner(owner.hwnd()?);
 		Ok(self)
 	}
@@ -701,29 +704,33 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// From MSDN:
 	/// - An owned window is always above its owner in the z-order.
-	/// - The system automatically destroys an owned window when its owner is destroyed.
+	/// - The system automatically destroys an owned window when its owner is
+	///   destroyed.
 	/// - An owned window is hidden when its owner is minimized.
 	///
 	/// For more information, see <https://docs.microsoft.com/en-us/windows/win32/winmsg/window-features#owned-windows>
 	///
-	/// **Note:** This is a low level API. See [`Self::parent`] for a higher level wrapper for Tauri windows.
+	/// **Note:** This is a low level API. See [`Self::parent`] for a higher
+	/// level wrapper for Tauri windows.
 	#[cfg(windows)]
 	#[must_use]
-	pub fn owner_raw(mut self, owner: HWND) -> Self {
+	pub fn owner_raw(mut self, owner:HWND) -> Self {
 		self.window_builder = self.window_builder.owner(owner);
 		self
 	}
 
 	/// Sets a parent to the window to be created.
 	///
-	/// A child window has the WS_CHILD style and is confined to the client area of its parent window.
+	/// A child window has the WS_CHILD style and is confined to the client area
+	/// of its parent window.
 	///
 	/// For more information, see <https://docs.microsoft.com/en-us/windows/win32/winmsg/window-features#child-windows>
 	///
-	/// **Note:** This is a low level API. See [`Self::parent`] for a higher level wrapper for Tauri windows.
+	/// **Note:** This is a low level API. See [`Self::parent`] for a higher
+	/// level wrapper for Tauri windows.
 	#[cfg(windows)]
 	#[must_use]
-	pub fn parent_raw(mut self, parent: HWND) -> Self {
+	pub fn parent_raw(mut self, parent:HWND) -> Self {
 		self.window_builder = self.window_builder.parent(parent);
 		self
 	}
@@ -732,10 +739,11 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// See <https://developer.apple.com/documentation/appkit/nswindow/1419152-addchildwindow?language=objc>
 	///
-	/// **Note:** This is a low level API. See [`Self::parent`] for a higher level wrapper for Tauri windows.
+	/// **Note:** This is a low level API. See [`Self::parent`] for a higher
+	/// level wrapper for Tauri windows.
 	#[cfg(target_os = "macos")]
 	#[must_use]
-	pub fn parent_raw(mut self, parent: *mut std::ffi::c_void) -> Self {
+	pub fn parent_raw(mut self, parent:*mut std::ffi::c_void) -> Self {
 		self.window_builder = self.window_builder.parent(parent);
 		self
 	}
@@ -744,7 +752,8 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// See <https://docs.gtk.org/gtk3/method.Window.set_transient_for.html>
 	///
-	/// **Note:** This is a low level API. See [`Self::parent`] for a higher level wrapper for Tauri windows.
+	/// **Note:** This is a low level API. See [`Self::parent`] for a higher
+	/// level wrapper for Tauri windows.
 	#[cfg(any(
 		target_os = "linux",
 		target_os = "dragonfly",
@@ -752,7 +761,7 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 		target_os = "netbsd",
 		target_os = "openbsd"
 	))]
-	pub fn transient_for(mut self, parent: &Window<R>) -> crate::Result<Self> {
+	pub fn transient_for(mut self, parent:&Window<R>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.transient_for(&parent.gtk_window()?);
 		Ok(self)
 	}
@@ -761,7 +770,8 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// See <https://docs.gtk.org/gtk3/method.Window.set_transient_for.html>
 	///
-	/// **Note:** This is a low level API. See [`Self::parent`] and [`Self::transient_for`] for higher level wrappers for Tauri windows.
+	/// **Note:** This is a low level API. See [`Self::parent`] and
+	/// [`Self::transient_for`] for higher level wrappers for Tauri windows.
 	#[cfg(any(
 		target_os = "linux",
 		target_os = "dragonfly",
@@ -770,7 +780,7 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 		target_os = "openbsd"
 	))]
 	#[must_use]
-	pub fn transient_for_raw(mut self, parent: &impl gtk::glib::IsA<gtk::Window>) -> Self {
+	pub fn transient_for_raw(mut self, parent:&impl gtk::glib::IsA<gtk::Window>) -> Self {
 		self.window_builder = self.window_builder.transient_for(parent);
 		self
 	}
@@ -778,7 +788,7 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	/// Enables or disables drag and drop support.
 	#[cfg(windows)]
 	#[must_use]
-	pub fn drag_and_drop(mut self, enabled: bool) -> Self {
+	pub fn drag_and_drop(mut self, enabled:bool) -> Self {
 		self.window_builder = self.window_builder.drag_and_drop(enabled);
 		self
 	}
@@ -786,7 +796,7 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	/// Sets the [`crate::TitleBarStyle`].
 	#[cfg(target_os = "macos")]
 	#[must_use]
-	pub fn title_bar_style(mut self, style: crate::TitleBarStyle) -> Self {
+	pub fn title_bar_style(mut self, style:crate::TitleBarStyle) -> Self {
 		self.window_builder = self.window_builder.title_bar_style(style);
 		self
 	}
@@ -794,7 +804,7 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	/// Hide the window title.
 	#[cfg(target_os = "macos")]
 	#[must_use]
-	pub fn hidden_title(mut self, hidden: bool) -> Self {
+	pub fn hidden_title(mut self, hidden:bool) -> Self {
 		self.window_builder = self.window_builder.hidden_title(hidden);
 		self
 	}
@@ -802,12 +812,13 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	/// Defines the window [tabbing identifier] for macOS.
 	///
 	/// Windows with matching tabbing identifiers will be grouped together.
-	/// If the tabbing identifier is not set, automatic tabbing will be disabled.
+	/// If the tabbing identifier is not set, automatic tabbing will be
+	/// disabled.
 	///
 	/// [tabbing identifier]: <https://developer.apple.com/documentation/appkit/nswindow/1644704-tabbingidentifier>
 	#[cfg(target_os = "macos")]
 	#[must_use]
-	pub fn tabbing_identifier(mut self, identifier: &str) -> Self {
+	pub fn tabbing_identifier(mut self, identifier:&str) -> Self {
 		self.window_builder = self.window_builder.tabbing_identifier(identifier);
 		self
 	}
@@ -818,9 +829,10 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 	///
 	/// ## Platform-specific:
 	///
-	/// - **Windows**: If using decorations or shadows, you may want to try this workaround <https://github.com/tauri-apps/tao/issues/72#issuecomment-975607891>
+	/// - **Windows**: If using decorations or shadows, you may want to try this
+	///   workaround <https://github.com/tauri-apps/tao/issues/72#issuecomment-975607891>
 	/// - **Linux**: Unsupported
-	pub fn effects(mut self, effects: WindowEffectsConfig) -> Self {
+	pub fn effects(mut self, effects:WindowEffectsConfig) -> Self {
 		self.window_effects.replace(effects);
 		self
 	}
@@ -829,31 +841,31 @@ impl<'a, R: Runtime, M: Manager<R>> WindowBuilder<'a, R, M> {
 /// A wrapper struct to hold the window menu state
 /// and whether it is global per-app or specific to this window.
 #[cfg(desktop)]
-pub(crate) struct WindowMenu<R: Runtime> {
-	pub(crate) is_app_wide: bool,
-	pub(crate) menu: Menu<R>,
+pub(crate) struct WindowMenu<R:Runtime> {
+	pub(crate) is_app_wide:bool,
+	pub(crate) menu:Menu<R>,
 }
 
 // TODO: expand these docs since this is a pretty important type
 /// A window managed by Tauri.
 ///
-/// This type also implements [`Manager`] which allows you to manage other windows attached to
-/// the same application.
+/// This type also implements [`Manager`] which allows you to manage other
+/// windows attached to the same application.
 #[default_runtime(crate::Wry, wry)]
-pub struct Window<R: Runtime> {
+pub struct Window<R:Runtime> {
 	/// The window created by the runtime.
-	pub(crate) window: DetachedWindow<EventLoopMessage, R>,
+	pub(crate) window:DetachedWindow<EventLoopMessage, R>,
 	/// The manager to associate this window with.
-	pub(crate) manager: Arc<AppManager<R>>,
-	pub(crate) app_handle: AppHandle<R>,
+	pub(crate) manager:Arc<AppManager<R>>,
+	pub(crate) app_handle:AppHandle<R>,
 	// The menu set for this window
 	#[cfg(desktop)]
-	pub(crate) menu: Arc<Mutex<Option<WindowMenu<R>>>>,
-	pub(crate) resources_table: Arc<Mutex<ResourceTable>>,
+	pub(crate) menu:Arc<Mutex<Option<WindowMenu<R>>>>,
+	pub(crate) resources_table:Arc<Mutex<ResourceTable>>,
 }
 
-impl<R: Runtime> std::fmt::Debug for Window<R> {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<R:Runtime> std::fmt::Debug for Window<R> {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		f.debug_struct("Window")
 			.field("window", &self.window)
 			.field("manager", &self.manager)
@@ -862,7 +874,7 @@ impl<R: Runtime> std::fmt::Debug for Window<R> {
 	}
 }
 
-impl<R: Runtime> raw_window_handle::HasWindowHandle for Window<R> {
+impl<R:Runtime> raw_window_handle::HasWindowHandle for Window<R> {
 	fn window_handle(
 		&self,
 	) -> std::result::Result<raw_window_handle::WindowHandle<'_>, raw_window_handle::HandleError> {
@@ -870,7 +882,7 @@ impl<R: Runtime> raw_window_handle::HasWindowHandle for Window<R> {
 	}
 }
 
-impl<R: Runtime> raw_window_handle::HasDisplayHandle for Window<R> {
+impl<R:Runtime> raw_window_handle::HasDisplayHandle for Window<R> {
 	fn display_handle(
 		&self,
 	) -> std::result::Result<raw_window_handle::DisplayHandle<'_>, raw_window_handle::HandleError>
@@ -879,81 +891,71 @@ impl<R: Runtime> raw_window_handle::HasDisplayHandle for Window<R> {
 	}
 }
 
-impl<R: Runtime> Clone for Window<R> {
+impl<R:Runtime> Clone for Window<R> {
 	fn clone(&self) -> Self {
 		Self {
-			window: self.window.clone(),
-			manager: self.manager.clone(),
-			app_handle: self.app_handle.clone(),
+			window:self.window.clone(),
+			manager:self.manager.clone(),
+			app_handle:self.app_handle.clone(),
 			#[cfg(desktop)]
-			menu: self.menu.clone(),
-			resources_table: self.resources_table.clone(),
+			menu:self.menu.clone(),
+			resources_table:self.resources_table.clone(),
 		}
 	}
 }
 
-impl<R: Runtime> Hash for Window<R> {
+impl<R:Runtime> Hash for Window<R> {
 	/// Only use the [`Window`]'s label to represent its hash.
-	fn hash<H: Hasher>(&self, state: &mut H) {
-		self.window.label.hash(state)
-	}
+	fn hash<H:Hasher>(&self, state:&mut H) { self.window.label.hash(state) }
 }
 
-impl<R: Runtime> Eq for Window<R> {}
-impl<R: Runtime> PartialEq for Window<R> {
+impl<R:Runtime> Eq for Window<R> {}
+impl<R:Runtime> PartialEq for Window<R> {
 	/// Only use the [`Window`]'s label to compare equality.
-	fn eq(&self, other: &Self) -> bool {
-		self.window.label.eq(&other.window.label)
-	}
+	fn eq(&self, other:&Self) -> bool { self.window.label.eq(&other.window.label) }
 }
 
-impl<R: Runtime> Manager<R> for Window<R> {
+impl<R:Runtime> Manager<R> for Window<R> {
 	fn resources_table(&self) -> MutexGuard<'_, ResourceTable> {
 		self.resources_table.lock().expect("poisoned window resources table")
 	}
 }
 
-impl<R: Runtime> ManagerBase<R> for Window<R> {
-	fn manager(&self) -> &AppManager<R> {
-		&self.manager
-	}
+impl<R:Runtime> ManagerBase<R> for Window<R> {
+	fn manager(&self) -> &AppManager<R> { &self.manager }
 
-	fn manager_owned(&self) -> Arc<AppManager<R>> {
-		self.manager.clone()
-	}
+	fn manager_owned(&self) -> Arc<AppManager<R>> { self.manager.clone() }
 
 	fn runtime(&self) -> RuntimeOrDispatch<'_, R> {
 		RuntimeOrDispatch::Dispatch(self.window.dispatcher.clone())
 	}
 
-	fn managed_app_handle(&self) -> &AppHandle<R> {
-		&self.app_handle
-	}
+	fn managed_app_handle(&self) -> &AppHandle<R> { &self.app_handle }
 }
 
-impl<'de, R: Runtime> CommandArg<'de, R> for Window<R> {
+impl<'de, R:Runtime> CommandArg<'de, R> for Window<R> {
 	/// Grabs the [`Window`] from the [`CommandItem`]. This will never fail.
-	fn from_command(command: CommandItem<'de, R>) -> Result<Self, InvokeError> {
+	fn from_command(command:CommandItem<'de, R>) -> Result<Self, InvokeError> {
 		Ok(command.message.webview().window())
 	}
 }
 
 /// Base window functions.
-impl<R: Runtime> Window<R> {
+impl<R:Runtime> Window<R> {
 	/// Create a new window that is attached to the manager.
 	pub(crate) fn new(
-		manager: Arc<AppManager<R>>,
-		window: DetachedWindow<EventLoopMessage, R>,
-		app_handle: AppHandle<R>,
-		#[cfg(desktop)] menu: Option<WindowMenu<R>>,
+		manager:Arc<AppManager<R>>,
+		window:DetachedWindow<EventLoopMessage, R>,
+		app_handle:AppHandle<R>,
+		#[cfg(desktop)] menu:Option<WindowMenu<R>>,
 	) -> Self {
 		Self {
 			window,
 			manager,
 			app_handle,
 			#[cfg(desktop)]
-			menu: Arc::new(std::sync::Mutex::new(menu)),
-			resources_table: Default::default(),
+			menu:Arc::new(std::sync::Mutex::new(menu)),
+			resources_table:Default::default(),
 		}
 	}
 
@@ -962,21 +964,18 @@ impl<R: Runtime> Window<R> {
 	/// Data URLs are only supported with the `webview-data-url` feature flag.
 	#[cfg(feature = "unstable")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
-	pub fn builder<M: Manager<R>, L: Into<String>>(
-		manager: &M,
-		label: L,
-	) -> WindowBuilder<'_, R, M> {
+	pub fn builder<M:Manager<R>, L:Into<String>>(manager:&M, label:L) -> WindowBuilder<'_, R, M> {
 		WindowBuilder::new(manager, label.into())
 	}
 
 	/// Adds a new webview as a child of this window.
 	#[cfg(any(test, all(desktop, feature = "unstable")))]
 	#[cfg_attr(docsrs, doc(cfg(all(desktop, feature = "unstable"))))]
-	pub fn add_child<P: Into<Position>, S: Into<Size>>(
+	pub fn add_child<P:Into<Position>, S:Into<Size>>(
 		&self,
-		webview_builder: WebviewBuilder<R>,
-		position: P,
-		size: S,
+		webview_builder:WebviewBuilder<R>,
+		position:P,
+		size:S,
 	) -> crate::Result<Webview<R>> {
 		use std::sync::mpsc::channel;
 
@@ -1010,28 +1009,27 @@ impl<R: Runtime> Window<R> {
 	}
 
 	/// Runs the given closure on the main thread.
-	pub fn run_on_main_thread<F: FnOnce() + Send + 'static>(&self, f: F) -> crate::Result<()> {
+	pub fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> crate::Result<()> {
 		self.window.dispatcher.run_on_main_thread(f).map_err(Into::into)
 	}
 
 	/// The label of this window.
-	pub fn label(&self) -> &str {
-		&self.window.label
-	}
+	pub fn label(&self) -> &str { &self.window.label }
 
 	/// Registers a window event listener.
-	pub fn on_window_event<F: Fn(&WindowEvent) + Send + 'static>(&self, f: F) {
+	pub fn on_window_event<F:Fn(&WindowEvent) + Send + 'static>(&self, f:F) {
 		self.window.dispatcher.on_window_event(move |event| f(&event.clone().into()));
 	}
 }
 
 /// Menu APIs
 #[cfg(desktop)]
-impl<R: Runtime> Window<R> {
+impl<R:Runtime> Window<R> {
 	/// Registers a global menu event listener.
 	///
 	/// Note that this handler is called for any menu event,
-	/// whether it is coming from this window, another window or from the tray icon menu.
+	/// whether it is coming from this window, another window or from the tray
+	/// icon menu.
 	///
 	/// Also note that this handler will not be called if
 	/// the window used to register it was closed.
@@ -1067,9 +1065,9 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	pub fn on_menu_event<F: Fn(&Window<R>, crate::menu::MenuEvent) + Send + Sync + 'static>(
+	pub fn on_menu_event<F:Fn(&Window<R>, crate::menu::MenuEvent) + Send + Sync + 'static>(
 		&self,
-		f: F,
+		f:F,
 	) {
 		self.manager
 			.menu
@@ -1089,23 +1087,22 @@ tauri::Builder::default()
 	}
 
 	#[cfg_attr(target_os = "macos", allow(dead_code))]
-	pub(crate) fn is_menu_in_use<I: PartialEq<MenuId>>(&self, id: &I) -> bool {
+	pub(crate) fn is_menu_in_use<I:PartialEq<MenuId>>(&self, id:&I) -> bool {
 		self.menu_lock().as_ref().map(|m| id.eq(m.menu.id())).unwrap_or(false)
 	}
 
 	/// Returns this window menu .
-	pub fn menu(&self) -> Option<Menu<R>> {
-		self.menu_lock().as_ref().map(|m| m.menu.clone())
-	}
+	pub fn menu(&self) -> Option<Menu<R>> { self.menu_lock().as_ref().map(|m| m.menu.clone()) }
 
 	/// Sets the window menu and returns the previous one.
 	///
 	/// ## Platform-specific:
 	///
-	/// - **macOS:** Unsupported. The menu on macOS is app-wide and not specific to one
-	///   window, if you need to set it, use [`AppHandle::set_menu`] instead.
+	/// - **macOS:** Unsupported. The menu on macOS is app-wide and not specific
+	///   to one window, if you need to set it, use [`AppHandle::set_menu`]
+	///   instead.
 	#[cfg_attr(target_os = "macos", allow(unused_variables))]
-	pub fn set_menu(&self, menu: Menu<R>) -> crate::Result<Option<Menu<R>>> {
+	pub fn set_menu(&self, menu:Menu<R>) -> crate::Result<Option<Menu<R>>> {
 		let prev_menu = self.remove_menu()?;
 
 		self.manager.menu.insert_menu_into_stash(&menu);
@@ -1135,7 +1132,7 @@ tauri::Builder::default()
 			}
 		})?;
 
-		self.menu_lock().replace(WindowMenu { is_app_wide: false, menu });
+		self.menu_lock().replace(WindowMenu { is_app_wide:false, menu });
 
 		Ok(prev_menu)
 	}
@@ -1144,8 +1141,9 @@ tauri::Builder::default()
 	///
 	/// ## Platform-specific:
 	///
-	/// - **macOS:** Unsupported. The menu on macOS is app-wide and not specific to one
-	///   window, if you need to remove it, use [`AppHandle::remove_menu`] instead.
+	/// - **macOS:** Unsupported. The menu on macOS is app-wide and not specific
+	///   to one window, if you need to remove it, use
+	///   [`AppHandle::remove_menu`] instead.
 	pub fn remove_menu(&self) -> crate::Result<Option<Menu<R>>> {
 		let prev_menu = self.menu_lock().take().map(|m| m.menu);
 
@@ -1265,49 +1263,54 @@ tauri::Builder::default()
 	}
 
 	/// Shows the specified menu as a context menu at the cursor position.
-	pub fn popup_menu<M: ContextMenu>(&self, menu: &M) -> crate::Result<()> {
+	pub fn popup_menu<M:ContextMenu>(&self, menu:&M) -> crate::Result<()> {
 		menu.popup(self.clone())
 	}
 
 	/// Shows the specified menu as a context menu at the specified position.
 	///
 	/// The position is relative to the window's top-left corner.
-	pub fn popup_menu_at<M: ContextMenu, P: Into<Position>>(
+	pub fn popup_menu_at<M:ContextMenu, P:Into<Position>>(
 		&self,
-		menu: &M,
-		position: P,
+		menu:&M,
+		position:P,
 	) -> crate::Result<()> {
 		menu.popup_at(self.clone(), position)
 	}
 }
 
 /// Window getters.
-impl<R: Runtime> Window<R> {
-	/// Returns the scale factor that can be used to map logical pixels to physical pixels, and vice versa.
+impl<R:Runtime> Window<R> {
+	/// Returns the scale factor that can be used to map logical pixels to
+	/// physical pixels, and vice versa.
 	pub fn scale_factor(&self) -> crate::Result<f64> {
 		self.window.dispatcher.scale_factor().map_err(Into::into)
 	}
 
-	/// Returns the position of the top-left hand corner of the window's client area relative to the top-left hand corner of the desktop.
+	/// Returns the position of the top-left hand corner of the window's client
+	/// area relative to the top-left hand corner of the desktop.
 	pub fn inner_position(&self) -> crate::Result<PhysicalPosition<i32>> {
 		self.window.dispatcher.inner_position().map_err(Into::into)
 	}
 
-	/// Returns the position of the top-left hand corner of the window relative to the top-left hand corner of the desktop.
+	/// Returns the position of the top-left hand corner of the window relative
+	/// to the top-left hand corner of the desktop.
 	pub fn outer_position(&self) -> crate::Result<PhysicalPosition<i32>> {
 		self.window.dispatcher.outer_position().map_err(Into::into)
 	}
 
 	/// Returns the physical size of the window's client area.
 	///
-	/// The client area is the content of the window, excluding the title bar and borders.
+	/// The client area is the content of the window, excluding the title bar
+	/// and borders.
 	pub fn inner_size(&self) -> crate::Result<PhysicalSize<u32>> {
 		self.window.dispatcher.inner_size().map_err(Into::into)
 	}
 
 	/// Returns the physical size of the entire window.
 	///
-	/// These dimensions include the title bar and borders. If you don't want that (and you usually don't), use inner_size instead.
+	/// These dimensions include the title bar and borders. If you don't want
+	/// that (and you usually don't), use inner_size instead.
 	pub fn outer_size(&self) -> crate::Result<PhysicalSize<u32>> {
 		self.window.dispatcher.outer_size().map_err(Into::into)
 	}
@@ -1383,11 +1386,15 @@ impl<R: Runtime> Window<R> {
 	///
 	/// Returns None if current monitor can't be detected.
 	pub fn current_monitor(&self) -> crate::Result<Option<Monitor>> {
-		self.window.dispatcher.current_monitor().map(|m| m.map(Into::into)).map_err(Into::into)
+		self.window
+			.dispatcher
+			.current_monitor()
+			.map(|m| m.map(Into::into))
+			.map_err(Into::into)
 	}
 
 	/// Returns the monitor that contains the given point.
-	pub fn monitor_from_point(&self, x: f64, y: f64) -> crate::Result<Option<Monitor>> {
+	pub fn monitor_from_point(&self, x:f64, y:f64) -> crate::Result<Option<Monitor>> {
 		self.window
 			.dispatcher
 			.monitor_from_point(x, y)
@@ -1399,7 +1406,11 @@ impl<R: Runtime> Window<R> {
 	///
 	/// Returns None if it can't identify any monitor as a primary one.
 	pub fn primary_monitor(&self) -> crate::Result<Option<Monitor>> {
-		self.window.dispatcher.primary_monitor().map(|m| m.map(Into::into)).map_err(Into::into)
+		self.window
+			.dispatcher
+			.primary_monitor()
+			.map(|m| m.map(Into::into))
+			.map_err(Into::into)
 	}
 
 	/// Returns the list of all the monitors available on the system.
@@ -1418,7 +1429,7 @@ impl<R: Runtime> Window<R> {
 			if let raw_window_handle::RawWindowHandle::AppKit(h) = handle.as_raw() {
 				Ok(unsafe {
 					use objc::*;
-					let ns_window: cocoa::base::id =
+					let ns_window:cocoa::base::id =
 						objc::msg_send![h.ns_view.as_ptr() as cocoa::base::id, window];
 					ns_window as *mut _
 				})
@@ -1452,7 +1463,8 @@ impl<R: Runtime> Window<R> {
 		})
 	}
 
-	/// Returns the `ApplicationWindow` from gtk crate that is used by this window.
+	/// Returns the `ApplicationWindow` from gtk crate that is used by this
+	/// window.
 	///
 	/// Note that this type can only be used on the main thread.
 	#[cfg(any(
@@ -1466,7 +1478,8 @@ impl<R: Runtime> Window<R> {
 		self.window.dispatcher.gtk_window().map_err(Into::into)
 	}
 
-	/// Returns the vertical [`gtk::Box`] that is added by default as the sole child of this window.
+	/// Returns the vertical [`gtk::Box`] that is added by default as the sole
+	/// child of this window.
 	///
 	/// Note that this type can only be used on the main thread.
 	#[cfg(any(
@@ -1492,15 +1505,18 @@ impl<R: Runtime> Window<R> {
 
 /// Desktop window getters.
 #[cfg(desktop)]
-impl<R: Runtime> Window<R> {
-	/// Get the cursor position relative to the top-left hand corner of the desktop.
+impl<R:Runtime> Window<R> {
+	/// Get the cursor position relative to the top-left hand corner of the
+	/// desktop.
 	///
-	/// Note that the top-left hand corner of the desktop is not necessarily the same as the screen.
-	/// If the user uses a desktop with multiple monitors,
-	/// the top-left hand corner of the desktop is the top-left hand corner of the main monitor on Windows and macOS
-	/// or the top-left of the leftmost monitor on X11.
+	/// Note that the top-left hand corner of the desktop is not necessarily the
+	/// same as the screen. If the user uses a desktop with multiple monitors,
+	/// the top-left hand corner of the desktop is the top-left hand corner of
+	/// the main monitor on Windows and macOS or the top-left of the leftmost
+	/// monitor on X11.
 	///
-	/// The coordinates can be negative if the top-left hand corner of the window is outside of the visible screen region.
+	/// The coordinates can be negative if the top-left hand corner of the
+	/// window is outside of the visible screen region.
 	pub fn cursor_position(&self) -> crate::Result<PhysicalPosition<f64>> {
 		self.app_handle.cursor_position()
 	}
@@ -1508,18 +1524,19 @@ impl<R: Runtime> Window<R> {
 
 /// Desktop window setters and actions.
 #[cfg(desktop)]
-impl<R: Runtime> Window<R> {
+impl<R:Runtime> Window<R> {
 	/// Centers the window.
 	pub fn center(&self) -> crate::Result<()> {
 		self.window.dispatcher.center().map_err(Into::into)
 	}
 
-	/// Requests user attention to the window, this has no effect if the application
-	/// is already focused. How requesting for user attention manifests is platform dependent,
-	/// see `UserAttentionType` for details.
+	/// Requests user attention to the window, this has no effect if the
+	/// application is already focused. How requesting for user attention
+	/// manifests is platform dependent, see `UserAttentionType` for details.
 	///
-	/// Providing `None` will unset the request for user attention. Unsetting the request for
-	/// user attention might not be done automatically by the WM when the window receives input.
+	/// Providing `None` will unset the request for user attention. Unsetting
+	/// the request for user attention might not be done automatically by the
+	/// WM when the window receives input.
 	///
 	/// ## Platform-specific
 	///
@@ -1527,14 +1544,15 @@ impl<R: Runtime> Window<R> {
 	/// - **Linux:** Urgency levels have the same effect.
 	pub fn request_user_attention(
 		&self,
-		request_type: Option<UserAttentionType>,
+		request_type:Option<UserAttentionType>,
 	) -> crate::Result<()> {
 		self.window.dispatcher.request_user_attention(request_type).map_err(Into::into)
 	}
 
 	/// Determines if this window should be resizable.
-	/// When resizable is set to false, native window's maximize button is automatically disabled.
-	pub fn set_resizable(&self, resizable: bool) -> crate::Result<()> {
+	/// When resizable is set to false, native window's maximize button is
+	/// automatically disabled.
+	pub fn set_resizable(&self, resizable:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_resizable(resizable).map_err(Into::into)
 	}
 
@@ -1543,9 +1561,10 @@ impl<R: Runtime> Window<R> {
 	///
 	/// ## Platform-specific
 	///
-	/// - **macOS:** Disables the "zoom" button in the window titlebar, which is also used to enter fullscreen mode.
+	/// - **macOS:** Disables the "zoom" button in the window titlebar, which is
+	///   also used to enter fullscreen mode.
 	/// - **Linux / iOS / Android:** Unsupported.
-	pub fn set_maximizable(&self, maximizable: bool) -> crate::Result<()> {
+	pub fn set_maximizable(&self, maximizable:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_maximizable(maximizable).map_err(Into::into)
 	}
 
@@ -1554,7 +1573,7 @@ impl<R: Runtime> Window<R> {
 	/// ## Platform-specific
 	///
 	/// - **Linux / iOS / Android:** Unsupported.
-	pub fn set_minimizable(&self, minimizable: bool) -> crate::Result<()> {
+	pub fn set_minimizable(&self, minimizable:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_minimizable(minimizable).map_err(Into::into)
 	}
 
@@ -1562,15 +1581,16 @@ impl<R: Runtime> Window<R> {
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** "GTK+ will do its best to convince the window manager not to show a close button.
-	///   Depending on the system, this function may not have any effect when called on a window that is already visible"
+	/// - **Linux:** "GTK+ will do its best to convince the window manager not
+	///   to show a close button. Depending on the system, this function may not
+	///   have any effect when called on a window that is already visible"
 	/// - **iOS / Android:** Unsupported.
-	pub fn set_closable(&self, closable: bool) -> crate::Result<()> {
+	pub fn set_closable(&self, closable:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_closable(closable).map_err(Into::into)
 	}
 
 	/// Set this window's title.
-	pub fn set_title(&self, title: &str) -> crate::Result<()> {
+	pub fn set_title(&self, title:&str) -> crate::Result<()> {
 		self.window.dispatcher.set_title(title.to_string()).map_err(Into::into)
 	}
 
@@ -1595,21 +1615,17 @@ impl<R: Runtime> Window<R> {
 	}
 
 	/// Show this window.
-	pub fn show(&self) -> crate::Result<()> {
-		self.window.dispatcher.show().map_err(Into::into)
-	}
+	pub fn show(&self) -> crate::Result<()> { self.window.dispatcher.show().map_err(Into::into) }
 
 	/// Hide this window.
-	pub fn hide(&self) -> crate::Result<()> {
-		self.window.dispatcher.hide().map_err(Into::into)
-	}
+	pub fn hide(&self) -> crate::Result<()> { self.window.dispatcher.hide().map_err(Into::into) }
 
-	/// Closes this window. It emits [`crate::RunEvent::CloseRequested`] first like a user-initiated close request so you can intercept it.
-	pub fn close(&self) -> crate::Result<()> {
-		self.window.dispatcher.close().map_err(Into::into)
-	}
+	/// Closes this window. It emits [`crate::RunEvent::CloseRequested`] first
+	/// like a user-initiated close request so you can intercept it.
+	pub fn close(&self) -> crate::Result<()> { self.window.dispatcher.close().map_err(Into::into) }
 
-	/// Destroys this window. Similar to [`Self::close`] but does not emit any events and force close the window instead.
+	/// Destroys this window. Similar to [`Self::close`] but does not emit any
+	/// events and force close the window instead.
 	pub fn destroy(&self) -> crate::Result<()> {
 		self.window.dispatcher.destroy().map_err(Into::into)
 	}
@@ -1617,7 +1633,7 @@ impl<R: Runtime> Window<R> {
 	/// Determines if this window should be [decorated].
 	///
 	/// [decorated]: https://en.wikipedia.org/wiki/Window_(computing)#Window_decoration
-	pub fn set_decorations(&self, decorations: bool) -> crate::Result<()> {
+	pub fn set_decorations(&self, decorations:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_decorations(decorations).map_err(Into::into)
 	}
 
@@ -1627,19 +1643,20 @@ impl<R: Runtime> Window<R> {
 	///
 	/// - **Windows:**
 	///   - `false` has no effect on decorated window, shadow are always ON.
-	///   - `true` will make undecorated window have a 1px white border,
-	///     and on Windows 11, it will have a rounded corners.
+	///   - `true` will make undecorated window have a 1px white border, and on
+	///     Windows 11, it will have a rounded corners.
 	/// - **Linux:** Unsupported.
-	pub fn set_shadow(&self, enable: bool) -> crate::Result<()> {
+	pub fn set_shadow(&self, enable:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_shadow(enable).map_err(Into::into)
 	}
 
-	/// Sets window effects, pass [`None`] to clear any effects applied if possible.
+	/// Sets window effects, pass [`None`] to clear any effects applied if
+	/// possible.
 	///
 	/// Requires the window to be transparent.
 	///
-	/// See [`EffectsBuilder`] for a convenient builder for [`WindowEffectsConfig`].
-	///
+	/// See [`EffectsBuilder`] for a convenient builder for
+	/// [`WindowEffectsConfig`].
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -1661,15 +1678,12 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	///
 	/// ## Platform-specific:
 	///
-	/// - **Windows**: If using decorations or shadows, you may want to try this workaround <https://github.com/tauri-apps/tao/issues/72#issuecomment-975607891>
+	/// - **Windows**: If using decorations or shadows, you may want to try this
+	///   workaround <https://github.com/tauri-apps/tao/issues/72#issuecomment-975607891>
 	/// - **Linux**: Unsupported
-	pub fn set_effects<E: Into<Option<WindowEffectsConfig>>>(
-		&self,
-		effects: E,
-	) -> crate::Result<()> {
+	pub fn set_effects<E:Into<Option<WindowEffectsConfig>>>(&self, effects:E) -> crate::Result<()> {
 		let effects = effects.into();
 
 		let window = self.clone();
@@ -1679,23 +1693,27 @@ tauri::Builder::default()
 	}
 
 	/// Determines if this window should always be below other windows.
-	pub fn set_always_on_bottom(&self, always_on_bottom: bool) -> crate::Result<()> {
-		self.window.dispatcher.set_always_on_bottom(always_on_bottom).map_err(Into::into)
+	pub fn set_always_on_bottom(&self, always_on_bottom:bool) -> crate::Result<()> {
+		self.window
+			.dispatcher
+			.set_always_on_bottom(always_on_bottom)
+			.map_err(Into::into)
 	}
 
 	/// Determines if this window should always be on top of other windows.
-	pub fn set_always_on_top(&self, always_on_top: bool) -> crate::Result<()> {
+	pub fn set_always_on_top(&self, always_on_top:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_always_on_top(always_on_top).map_err(Into::into)
 	}
 
-	/// Sets whether the window should be visible on all workspaces or virtual desktops.
+	/// Sets whether the window should be visible on all workspaces or virtual
+	/// desktops.
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows / iOS / Android:** Unsupported.
 	pub fn set_visible_on_all_workspaces(
 		&self,
-		visible_on_all_workspaces: bool,
+		visible_on_all_workspaces:bool,
 	) -> crate::Result<()> {
 		self.window
 			.dispatcher
@@ -1704,40 +1722,40 @@ tauri::Builder::default()
 	}
 
 	/// Prevents the window contents from being captured by other apps.
-	pub fn set_content_protected(&self, protected: bool) -> crate::Result<()> {
+	pub fn set_content_protected(&self, protected:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_content_protected(protected).map_err(Into::into)
 	}
 
 	/// Resizes this window.
-	pub fn set_size<S: Into<Size>>(&self, size: S) -> crate::Result<()> {
+	pub fn set_size<S:Into<Size>>(&self, size:S) -> crate::Result<()> {
 		self.window.dispatcher.set_size(size.into()).map_err(Into::into)
 	}
 
 	/// Sets this window's minimum inner size.
-	pub fn set_min_size<S: Into<Size>>(&self, size: Option<S>) -> crate::Result<()> {
+	pub fn set_min_size<S:Into<Size>>(&self, size:Option<S>) -> crate::Result<()> {
 		self.window.dispatcher.set_min_size(size.map(|s| s.into())).map_err(Into::into)
 	}
 
 	/// Sets this window's maximum inner size.
-	pub fn set_max_size<S: Into<Size>>(&self, size: Option<S>) -> crate::Result<()> {
+	pub fn set_max_size<S:Into<Size>>(&self, size:Option<S>) -> crate::Result<()> {
 		self.window.dispatcher.set_max_size(size.map(|s| s.into())).map_err(Into::into)
 	}
 
 	/// Sets this window's minimum inner width.
 	pub fn set_size_constraints(
 		&self,
-		constriants: tauri_runtime::window::WindowSizeConstraints,
+		constriants:tauri_runtime::window::WindowSizeConstraints,
 	) -> crate::Result<()> {
 		self.window.dispatcher.set_size_constraints(constriants).map_err(Into::into)
 	}
 
 	/// Sets this window's position.
-	pub fn set_position<Pos: Into<Position>>(&self, position: Pos) -> crate::Result<()> {
+	pub fn set_position<Pos:Into<Position>>(&self, position:Pos) -> crate::Result<()> {
 		self.window.dispatcher.set_position(position.into()).map_err(Into::into)
 	}
 
 	/// Determines if this window should be fullscreen.
-	pub fn set_fullscreen(&self, fullscreen: bool) -> crate::Result<()> {
+	pub fn set_fullscreen(&self, fullscreen:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_fullscreen(fullscreen).map_err(Into::into)
 	}
 
@@ -1747,7 +1765,7 @@ tauri::Builder::default()
 	}
 
 	/// Sets this window' icon.
-	pub fn set_icon(&self, icon: Image<'_>) -> crate::Result<()> {
+	pub fn set_icon(&self, icon:Image<'_>) -> crate::Result<()> {
 		self.window.dispatcher.set_icon(icon.into()).map_err(Into::into)
 	}
 
@@ -1756,7 +1774,7 @@ tauri::Builder::default()
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub fn set_skip_taskbar(&self, skip: bool) -> crate::Result<()> {
+	pub fn set_skip_taskbar(&self, skip:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_skip_taskbar(skip).map_err(Into::into)
 	}
 
@@ -1768,36 +1786,39 @@ tauri::Builder::default()
 	/// ## Platform-specific
 	///
 	/// - **Linux:** Unsupported.
-	/// - **macOS:** This locks the cursor in a fixed location, which looks visually awkward.
-	pub fn set_cursor_grab(&self, grab: bool) -> crate::Result<()> {
+	/// - **macOS:** This locks the cursor in a fixed location, which looks
+	///   visually awkward.
+	pub fn set_cursor_grab(&self, grab:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_cursor_grab(grab).map_err(Into::into)
 	}
 
 	/// Modifies the cursor's visibility.
 	///
-	/// If `false`, this will hide the cursor. If `true`, this will show the cursor.
+	/// If `false`, this will hide the cursor. If `true`, this will show the
+	/// cursor.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Windows:** The cursor is only hidden within the confines of the window.
-	/// - **macOS:** The cursor is hidden as long as the window has input focus, even if the cursor is
-	///   outside of the window.
-	pub fn set_cursor_visible(&self, visible: bool) -> crate::Result<()> {
+	/// - **Windows:** The cursor is only hidden within the confines of the
+	///   window.
+	/// - **macOS:** The cursor is hidden as long as the window has input focus,
+	///   even if the cursor is outside of the window.
+	pub fn set_cursor_visible(&self, visible:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_cursor_visible(visible).map_err(Into::into)
 	}
 
 	/// Modifies the cursor icon of the window.
-	pub fn set_cursor_icon(&self, icon: CursorIcon) -> crate::Result<()> {
+	pub fn set_cursor_icon(&self, icon:CursorIcon) -> crate::Result<()> {
 		self.window.dispatcher.set_cursor_icon(icon).map_err(Into::into)
 	}
 
 	/// Changes the position of the cursor in window coordinates.
-	pub fn set_cursor_position<Pos: Into<Position>>(&self, position: Pos) -> crate::Result<()> {
+	pub fn set_cursor_position<Pos:Into<Position>>(&self, position:Pos) -> crate::Result<()> {
 		self.window.dispatcher.set_cursor_position(position).map_err(Into::into)
 	}
 
 	/// Ignores the window cursor events.
-	pub fn set_ignore_cursor_events(&self, ignore: bool) -> crate::Result<()> {
+	pub fn set_ignore_cursor_events(&self, ignore:bool) -> crate::Result<()> {
 		self.window.dispatcher.set_ignore_cursor_events(ignore).map_err(Into::into)
 	}
 
@@ -1809,7 +1830,7 @@ tauri::Builder::default()
 	/// Starts resize-dragging the window.
 	pub fn start_resize_dragging(
 		&self,
-		direction: tauri_runtime::ResizeDirection,
+		direction:tauri_runtime::ResizeDirection,
 	) -> crate::Result<()> {
 		self.window.dispatcher.start_resize_dragging(direction).map_err(Into::into)
 	}
@@ -1818,21 +1839,24 @@ tauri::Builder::default()
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux / macOS**: Progress bar is app-wide and not specific to this window.
-	/// - **Linux**: Only supported desktop environments with `libunity` (e.g. GNOME).
+	/// - **Linux / macOS**: Progress bar is app-wide and not specific to this
+	///   window.
+	/// - **Linux**: Only supported desktop environments with `libunity` (e.g.
+	///   GNOME).
 	/// - **iOS / Android:** Unsupported.
-	pub fn set_progress_bar(&self, progress_state: ProgressBarState) -> crate::Result<()> {
+	pub fn set_progress_bar(&self, progress_state:ProgressBarState) -> crate::Result<()> {
 		self.window
 			.dispatcher
 			.set_progress_bar(crate::runtime::ProgressBarState {
-				status: progress_state.status,
-				progress: progress_state.progress,
-				desktop_filename: Some(format!("{}.desktop", self.package_info().crate_name)),
+				status:progress_state.status,
+				progress:progress_state.progress,
+				desktop_filename:Some(format!("{}.desktop", self.package_info().crate_name)),
 			})
 			.map_err(Into::into)
 	}
+
 	/// Sets the title bar style. **macOS only**.
-	pub fn set_title_bar_style(&self, style: tauri_utils::TitleBarStyle) -> crate::Result<()> {
+	pub fn set_title_bar_style(&self, style:tauri_utils::TitleBarStyle) -> crate::Result<()> {
 		self.window.dispatcher.set_title_bar_style(style).map_err(Into::into)
 	}
 }
@@ -1843,12 +1867,12 @@ tauri::Builder::default()
 #[derive(serde::Deserialize)]
 pub struct ProgressBarState {
 	/// The progress bar status.
-	pub status: Option<ProgressBarStatus>,
+	pub status:Option<ProgressBarStatus>,
 	/// The progress bar progress. This can be a value ranging from `0` to `100`
-	pub progress: Option<u64>,
+	pub progress:Option<u64>,
 }
 
-impl<R: Runtime> Listener<R> for Window<R> {
+impl<R:Runtime> Listener<R> for Window<R> {
 	/// Listen to an event on this window.
 	///
 	/// # Examples
@@ -1870,13 +1894,12 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	fn listen<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn listen<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
-		F: Fn(Event) + Send + 'static,
-	{
+		F: Fn(Event) + Send + 'static, {
 		self.manager.listen(
 			event.into(),
-			EventTarget::Window { label: self.label().to_string() },
+			EventTarget::Window { label:self.label().to_string() },
 			handler,
 		)
 	}
@@ -1884,13 +1907,12 @@ tauri::Builder::default()
 	/// Listen to an event on this window only once.
 	///
 	/// See [`Self::listen`] for more information.
-	fn once<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn once<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
-		F: FnOnce(Event) + Send + 'static,
-	{
+		F: FnOnce(Event) + Send + 'static, {
 		self.manager.once(
 			event.into(),
-			EventTarget::Window { label: self.label().to_string() },
+			EventTarget::Window { label:self.label().to_string() },
 			handler,
 		)
 	}
@@ -1924,12 +1946,10 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	fn unlisten(&self, id: EventId) {
-		self.manager.unlisten(id)
-	}
+	fn unlisten(&self, id:EventId) { self.manager.unlisten(id) }
 }
 
-impl<R: Runtime> Emitter<R> for Window<R> {
+impl<R:Runtime> Emitter<R> for Window<R> {
 	/// Emits an event to all [targets](EventTarget).
 	///
 	/// # Examples
@@ -1947,7 +1967,7 @@ fn synchronize(window: tauri::Window) {
   ```
   "####
 	)]
-	fn emit<S: Serialize + Clone>(&self, event: &str, payload: S) -> crate::Result<()> {
+	fn emit<S:Serialize + Clone>(&self, event:&str, payload:S) -> crate::Result<()> {
 		self.manager.emit(event, payload)
 	}
 
@@ -1978,11 +1998,10 @@ fn download(window: tauri::Window) {
 ```
 "####
 	)]
-	fn emit_to<I, S>(&self, target: I, event: &str, payload: S) -> crate::Result<()>
+	fn emit_to<I, S>(&self, target:I, event:&str, payload:S) -> crate::Result<()>
 	where
 		I: Into<EventTarget>,
-		S: Serialize + Clone,
-	{
+		S: Serialize + Clone, {
 		self.manager.emit_to(target, event, payload)
 	}
 
@@ -2009,11 +2028,10 @@ fn download(window: tauri::Window) {
   ```
   "####
 	)]
-	fn emit_filter<S, F>(&self, event: &str, payload: S, filter: F) -> crate::Result<()>
+	fn emit_filter<S, F>(&self, event:&str, payload:S, filter:F) -> crate::Result<()>
 	where
 		S: Serialize + Clone,
-		F: Fn(&EventTarget) -> bool,
-	{
+		F: Fn(&EventTarget) -> bool, {
 		self.manager.emit_filter(event, payload, filter)
 	}
 }
@@ -2023,18 +2041,16 @@ fn download(window: tauri::Window) {
 pub struct EffectsBuilder(WindowEffectsConfig);
 impl EffectsBuilder {
 	/// Create a new [`WindowEffectsConfig`] builder
-	pub fn new() -> Self {
-		Self(WindowEffectsConfig::default())
-	}
+	pub fn new() -> Self { Self(WindowEffectsConfig::default()) }
 
 	/// Adds effect to the [`WindowEffectsConfig`] `effects` field
-	pub fn effect(mut self, effect: Effect) -> Self {
+	pub fn effect(mut self, effect:Effect) -> Self {
 		self.0.effects.push(effect);
 		self
 	}
 
 	/// Adds effects to the [`WindowEffectsConfig`] `effects` field
-	pub fn effects<I: IntoIterator<Item = Effect>>(mut self, effects: I) -> Self {
+	pub fn effects<I:IntoIterator<Item = Effect>>(mut self, effects:I) -> Self {
 		self.0.effects.extend(effects);
 		self
 	}
@@ -2046,31 +2062,29 @@ impl EffectsBuilder {
 	}
 
 	/// Sets `state` field for the [`WindowEffectsConfig`] **macOS Only**
-	pub fn state(mut self, state: EffectState) -> Self {
+	pub fn state(mut self, state:EffectState) -> Self {
 		self.0.state = Some(state);
 		self
 	}
+
 	/// Sets `radius` field fo the [`WindowEffectsConfig`] **macOS Only**
-	pub fn radius(mut self, radius: f64) -> Self {
+	pub fn radius(mut self, radius:f64) -> Self {
 		self.0.radius = Some(radius);
 		self
 	}
+
 	/// Sets `color` field fo the [`WindowEffectsConfig`] **Windows Only**
-	pub fn color(mut self, color: Color) -> Self {
+	pub fn color(mut self, color:Color) -> Self {
 		self.0.color = Some(color);
 		self
 	}
 
 	/// Builds a [`WindowEffectsConfig`]
-	pub fn build(self) -> WindowEffectsConfig {
-		self.0
-	}
+	pub fn build(self) -> WindowEffectsConfig { self.0 }
 }
 
 impl From<WindowEffectsConfig> for EffectsBuilder {
-	fn from(value: WindowEffectsConfig) -> Self {
-		Self(value)
-	}
+	fn from(value:WindowEffectsConfig) -> Self { Self(value) }
 }
 
 #[cfg(test)]

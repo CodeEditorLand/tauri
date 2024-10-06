@@ -9,11 +9,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, spanned::Spanned, ItemFn};
 
-fn get_env_var(
-	name:&str,
-	error:&mut Option<TokenStream2>,
-	function:&ItemFn,
-) -> TokenStream2 {
+fn get_env_var(name:&str, error:&mut Option<TokenStream2>, function:&ItemFn) -> TokenStream2 {
 	match var(name) {
 		Ok(value) => {
 			let ident = format_ident!("{value}");
@@ -24,8 +20,7 @@ fn get_env_var(
 				syn::Error::new(
 					function.span(),
 					format!(
-						"`{name}` env var not set, do you have a build script \
-						 with tauri-build?",
+						"`{name}` env var not set, do you have a build script with tauri-build?",
 					),
 				)
 				.into_compile_error(),
@@ -40,13 +35,8 @@ pub fn entry_point(_attributes:TokenStream, item:TokenStream) -> TokenStream {
 	let function_name = &function.sig.ident;
 
 	let mut error = None;
-	let domain =
-		get_env_var("TAURI_ANDROID_PACKAGE_NAME_PREFIX", &mut error, &function);
-	let app_name = get_env_var(
-		"TAURI_ANDROID_PACKAGE_NAME_APP_NAME",
-		&mut error,
-		&function,
-	);
+	let domain = get_env_var("TAURI_ANDROID_PACKAGE_NAME_PREFIX", &mut error, &function);
+	let app_name = get_env_var("TAURI_ANDROID_PACKAGE_NAME_APP_NAME", &mut error, &function);
 
 	if let Some(e) = error {
 		quote!(#e).into()

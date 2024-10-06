@@ -2,16 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::PluginIosFramework;
-use crate::{
-	helpers::{prompts, resolve_tauri_path, template},
-	Result, VersionMetadata,
-};
-use anyhow::Context;
-use clap::Parser;
-use handlebars::{to_json, Handlebars};
-use heck::{ToKebabCase, ToPascalCase, ToSnakeCase};
-use include_dir::{include_dir, Dir};
 use std::{
 	collections::BTreeMap,
 	env::current_dir,
@@ -20,43 +10,56 @@ use std::{
 	path::{Component, Path, PathBuf},
 };
 
-pub const TEMPLATE_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/plugin");
+use anyhow::Context;
+use clap::Parser;
+use handlebars::{to_json, Handlebars};
+use heck::{ToKebabCase, ToPascalCase, ToSnakeCase};
+use include_dir::{include_dir, Dir};
+
+use super::PluginIosFramework;
+use crate::{
+	helpers::{prompts, resolve_tauri_path, template},
+	Result,
+	VersionMetadata,
+};
+
+pub const TEMPLATE_DIR:Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/plugin");
 
 #[derive(Debug, Parser)]
 #[clap(about = "Initialize a Tauri plugin project on an existing directory")]
 pub struct Options {
 	/// Name of your Tauri plugin.
 	/// If not specified, it will be inferred from the current directory.
-	pub(crate) plugin_name: Option<String>,
+	pub(crate) plugin_name:Option<String>,
 	/// Initializes a Tauri plugin without the TypeScript API
 	#[clap(long)]
-	pub(crate) no_api: bool,
+	pub(crate) no_api:bool,
 	/// Initializes a Tauri core plugin (internal usage)
 	#[clap(long, hide(true))]
-	pub(crate) tauri: bool,
+	pub(crate) tauri:bool,
 	/// Set target directory for init
 	#[clap(short, long)]
 	#[clap(default_value_t = current_dir().expect("failed to read cwd").display().to_string())]
-	pub(crate) directory: String,
+	pub(crate) directory:String,
 	/// Path of the Tauri project to use (relative to the cwd)
 	#[clap(short, long)]
-	pub(crate) tauri_path: Option<PathBuf>,
+	pub(crate) tauri_path:Option<PathBuf>,
 	/// Author name
 	#[clap(short, long)]
-	pub(crate) author: Option<String>,
+	pub(crate) author:Option<String>,
 	/// Whether to initialize an Android project for the plugin.
 	#[clap(long)]
-	pub(crate) android: bool,
+	pub(crate) android:bool,
 	/// Whether to initialize an iOS project for the plugin.
 	#[clap(long)]
-	pub(crate) ios: bool,
+	pub(crate) ios:bool,
 	/// Whether to initialize Android and iOS projects for the plugin.
 	#[clap(long)]
-	pub(crate) mobile: bool,
+	pub(crate) mobile:bool,
 	/// Type of framework to use for the iOS project.
 	#[clap(long)]
 	#[clap(default_value_t = PluginIosFramework::default())]
-	pub(crate) ios_framework: PluginIosFramework,
+	pub(crate) ios_framework:PluginIosFramework,
 }
 
 impl Options {
@@ -71,7 +74,7 @@ impl Options {
 	}
 }
 
-pub fn command(mut options: Options) -> Result<()> {
+pub fn command(mut options:Options) -> Result<()> {
 	options.load();
 
 	let plugin_name = match options.plugin_name {
@@ -177,14 +180,14 @@ pub fn command(mut options: Options) -> Result<()> {
 							} else {
 								path = Path::new("examples").join(components.collect::<PathBuf>());
 							}
-						}
+						},
 						"__example-basic" => {
 							if options.no_api {
 								path = Path::new("examples").join(components.collect::<PathBuf>());
 							} else {
 								return Ok(None);
 							}
-						}
+						},
 						"android" => {
 							if options.android || options.mobile {
 								return generate_android_out_file(
@@ -196,16 +199,16 @@ pub fn command(mut options: Options) -> Result<()> {
 							} else {
 								return Ok(None);
 							}
-						}
+						},
 						"ios-spm" | "ios-xcode" if !(options.ios || options.mobile) => {
-							return Ok(None)
-						}
+							return Ok(None);
+						},
 						"ios-spm" if !matches!(ios_framework, PluginIosFramework::Spm) => {
-							return Ok(None)
-						}
+							return Ok(None);
+						},
 						"ios-xcode" if !matches!(ios_framework, PluginIosFramework::Xcode) => {
-							return Ok(None)
-						}
+							return Ok(None);
+						},
 						"ios-spm" | "ios-xcode" => {
 							let folder_name =
 								components.next().unwrap().as_os_str().to_string_lossy();
@@ -220,12 +223,12 @@ pub fn command(mut options: Options) -> Result<()> {
 							.into_iter()
 							.chain(components)
 							.collect::<PathBuf>();
-						}
+						},
 						"guest-js" | "rollup.config.js" | "tsconfig.json" | "package.json"
 							if options.no_api =>
 						{
 							return Ok(None);
-						}
+						},
 						_ => (),
 					}
 				}
@@ -256,7 +259,7 @@ permissions = ["allow-ping"]
 	Ok(())
 }
 
-pub fn plugin_name_data(data: &mut BTreeMap<&'static str, serde_json::Value>, plugin_name: &str) {
+pub fn plugin_name_data(data:&mut BTreeMap<&'static str, serde_json::Value>, plugin_name:&str) {
 	data.insert("plugin_name_original", to_json(plugin_name));
 	data.insert("plugin_name", to_json(plugin_name.to_kebab_case()));
 	data.insert("plugin_name_snake_case", to_json(plugin_name.to_snake_case()));
@@ -269,10 +272,10 @@ pub fn crates_metadata() -> Result<VersionMetadata> {
 }
 
 pub fn generate_android_out_file(
-	path: &Path,
-	dest: &Path,
-	package_path: &str,
-	created_dirs: &mut Vec<PathBuf>,
+	path:&Path,
+	dest:&Path,
+	package_path:&str,
+	created_dirs:&mut Vec<PathBuf>,
 ) -> std::io::Result<Option<File>> {
 	let mut iter = path.iter();
 	let root = iter.next().unwrap().to_str().unwrap();
@@ -282,7 +285,7 @@ pub fn generate_android_out_file(
 			let file_name = path.file_name().unwrap();
 			let out_dir = dest.join(parent).join(package_path);
 			out_dir.join(file_name)
-		}
+		},
 		_ => dest.join(path),
 	};
 

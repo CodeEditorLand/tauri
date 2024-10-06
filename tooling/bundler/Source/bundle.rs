@@ -19,13 +19,7 @@ use std::{fmt::Write, path::PathBuf};
 
 #[cfg(target_os = "macos")]
 use anyhow::Context;
-pub use settings::{
-	NsisSettings,
-	WindowsSettings,
-	WixLanguage,
-	WixLanguageConfig,
-	WixSettings,
-};
+pub use settings::{NsisSettings, WindowsSettings, WixLanguage, WixLanguageConfig, WixSettings};
 use tauri_utils::display_path;
 
 pub use self::{
@@ -77,9 +71,8 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 
 	if target_os != std::env::consts::OS {
 		log::warn!(
-			"Cross-platform compilation is experimental and does not support \
-			 all features. Please use a matching host system for full \
-			 compatibility."
+			"Cross-platform compilation is experimental and does not support all features. Please \
+			 use a matching host system for full compatibility."
 		);
 	}
 
@@ -103,10 +96,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 
 				#[cfg(windows)]
 				if windows::sign::verify(&path)? {
-					log::info!(
-						"sidecar at \"{}\" already signed. Skipping...",
-						path.display()
-					);
+					log::info!("sidecar at \"{}\" already signed. Skipping...", path.display());
 					continue;
 				}
 
@@ -115,10 +105,9 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 		} else {
 			#[cfg(not(target_os = "windows"))]
 			log::warn!(
-				"Signing, by default, is only supported on Windows hosts, but \
-				 you can specify a custom signing command in `bundler > \
-				 windows > sign_command`, for now, skipping signing the \
-				 installer..."
+				"Signing, by default, is only supported on Windows hosts, but you can specify a \
+				 custom signing command in `bundler > windows > sign_command`, for now, skipping \
+				 signing the installer..."
 			);
 		}
 	}
@@ -151,9 +140,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 
 			#[cfg(target_os = "windows")]
 			PackageType::WindowsMsi => windows::msi::bundle_project(settings, false)?,
-			PackageType::Nsis => {
-				windows::nsis::bundle_project(settings, false)?
-			},
+			PackageType::Nsis => windows::nsis::bundle_project(settings, false)?,
 
 			#[cfg(target_os = "linux")]
 			PackageType::Deb => linux::debian::bundle_project(settings)?,
@@ -167,10 +154,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 			},
 		};
 
-		bundles.push(Bundle {
-			package_type:package_type.to_owned(),
-			bundle_paths,
-		});
+		bundles.push(Bundle { package_type:package_type.to_owned(), bundle_paths });
 	}
 
 	if let Some(updater) = settings.updater() {
@@ -187,34 +171,26 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 				matches!(package_type, PackageType::MacOsBundle)
 			}
 		}) {
-			let updater_paths =
-				updater_bundle::bundle_project(settings, &bundles)?;
-			bundles.push(Bundle {
-				package_type:PackageType::Updater,
-				bundle_paths:updater_paths,
-			});
+			let updater_paths = updater_bundle::bundle_project(settings, &bundles)?;
+			bundles.push(Bundle { package_type:PackageType::Updater, bundle_paths:updater_paths });
 		} else if updater.v1_compatible
 			|| !package_types.iter().any(|package_type| {
 				// Self contained updater, no need to zip
 				matches!(
 					package_type,
-					PackageType::AppImage
-						| PackageType::Nsis
-						| PackageType::WindowsMsi
+					PackageType::AppImage | PackageType::Nsis | PackageType::WindowsMsi
 				)
 			}) {
 			log::warn!(
-				"The bundler was configured to create updater artifacts but \
-				 no updater-enabled targets were built. Please enable one of \
-				 these targets: app, appimage, msi, nsis"
+				"The bundler was configured to create updater artifacts but no updater-enabled \
+				 targets were built. Please enable one of these targets: app, appimage, msi, nsis"
 			);
 		}
 		if updater.v1_compatible {
 			log::warn!(
-				"Legacy v1 compatible updater is deprecated and will be \
-				 removed in v3, change bundle > createUpdaterArtifacts to \
-				 true when your users are updated to the version with v2 \
-				 updater plugin"
+				"Legacy v1 compatible updater is deprecated and will be removed in v3, change \
+				 bundle > createUpdaterArtifacts to true when your users are updated to the \
+				 version with v2 updater plugin"
 			);
 		}
 	}
@@ -236,10 +212,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 						false => std::fs::remove_file(app_bundle_path),
 					}
 					.with_context(|| {
-						format!(
-							"Failed to clean the app bundle at {}",
-							app_bundle_path.display()
-						)
+						format!("Failed to clean the app bundle at {}", app_bundle_path.display())
 					})?
 				}
 			}

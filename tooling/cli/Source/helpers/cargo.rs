@@ -8,16 +8,16 @@ use anyhow::Context;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CargoInstallOptions<'a> {
-	pub name: &'a str,
-	pub version: Option<&'a str>,
-	pub rev: Option<&'a str>,
-	pub tag: Option<&'a str>,
-	pub branch: Option<&'a str>,
-	pub cwd: Option<&'a std::path::Path>,
-	pub target: Option<&'a str>,
+	pub name:&'a str,
+	pub version:Option<&'a str>,
+	pub rev:Option<&'a str>,
+	pub tag:Option<&'a str>,
+	pub branch:Option<&'a str>,
+	pub cwd:Option<&'a std::path::Path>,
+	pub target:Option<&'a str>,
 }
 
-pub fn install_one(options: CargoInstallOptions) -> crate::Result<()> {
+pub fn install_one(options:CargoInstallOptions) -> crate::Result<()> {
 	let mut cargo = Command::new("cargo");
 	cargo.arg("add");
 
@@ -33,14 +33,14 @@ pub fn install_one(options: CargoInstallOptions) -> crate::Result<()> {
 		match (options.tag, options.rev, options.branch) {
 			(Some(tag), None, None) => {
 				cargo.args(["--tag", tag]);
-			}
+			},
 			(None, Some(rev), None) => {
 				cargo.args(["--rev", rev]);
-			}
+			},
 			(None, None, Some(branch)) => {
 				cargo.args(["--branch", branch]);
-			}
-			(None, None, None) => {}
+			},
+			(None, None, None) => {},
 			_ => anyhow::bail!("Only one of --tag, --rev and --branch can be specified"),
 		};
 	}

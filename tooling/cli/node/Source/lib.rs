@@ -6,12 +6,15 @@
 
 use napi::{
 	threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-	Error, JsFunction, Result, Status,
+	Error,
+	JsFunction,
+	Result,
+	Status,
 };
 
 #[napi_derive::napi]
-pub fn run(args: Vec<String>, bin_name: Option<String>, callback: JsFunction) -> Result<()> {
-	let function: ThreadsafeFunction<bool, ErrorStrategy::CalleeHandled> = callback
+pub fn run(args:Vec<String>, bin_name:Option<String>, callback:JsFunction) -> Result<()> {
+	let function:ThreadsafeFunction<bool, ErrorStrategy::CalleeHandled> = callback
 		.create_threadsafe_function(0, |ctx| ctx.env.get_boolean(ctx.value).map(|v| vec![v]))?;
 
 	// we need to run in a separate thread so Node.js consumers
@@ -26,15 +29,17 @@ pub fn run(args: Vec<String>, bin_name: Option<String>, callback: JsFunction) ->
 					Err(Error::new(Status::GenericFailure, "Tauri CLI unexpected panic")),
 					ThreadsafeFunctionCallMode::Blocking,
 				);
-			}
+			},
 		};
 
 		match res {
 			Ok(_) => function.call(Ok(true), ThreadsafeFunctionCallMode::Blocking),
-			Err(e) => function.call(
-				Err(Error::new(Status::GenericFailure, format!("{:#}", e))),
-				ThreadsafeFunctionCallMode::Blocking,
-			),
+			Err(e) => {
+				function.call(
+					Err(Error::new(Status::GenericFailure, format!("{:#}", e))),
+					ThreadsafeFunctionCallMode::Blocking,
+				)
+			},
 		}
 	});
 
@@ -42,6 +47,6 @@ pub fn run(args: Vec<String>, bin_name: Option<String>, callback: JsFunction) ->
 }
 
 #[napi_derive::napi]
-pub fn log_error(error: String) {
+pub fn log_error(error:String) {
 	log::error!("{}", error);
 }

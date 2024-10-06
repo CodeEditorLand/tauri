@@ -98,15 +98,7 @@ pub fn url_lit(url:&Url) -> TokenStream {
 ///
 /// This function is pretty generic because the types of keys AND values get
 /// transformed.
-pub fn map_lit<
-	Map,
-	Key,
-	Value,
-	TokenStreamKey,
-	TokenStreamValue,
-	FuncKey,
-	FuncValue,
->(
+pub fn map_lit<Map, Key, Value, TokenStreamKey, TokenStreamValue, FuncKey, FuncValue>(
 	map_type:TokenStream,
 	map:Map,
 	map_key:FuncKey,
@@ -178,12 +170,7 @@ pub fn json_value_lit(jv:&JsonValue) -> TokenStream {
 			quote! { #prefix::Array(vec![#(#items),*]) }
 		},
 		JsonValue::Object(map) => {
-			let map = map_lit(
-				quote! { ::serde_json::Map },
-				map,
-				str_lit,
-				json_value_lit,
-			);
+			let map = map_lit(quote! { ::serde_json::Map }, map, str_lit, json_value_lit);
 			quote! { #prefix::Object(#map) }
 		},
 	}

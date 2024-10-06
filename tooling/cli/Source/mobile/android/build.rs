@@ -2,9 +2,28 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::env::set_current_dir;
+
+use anyhow::Context;
+use cargo_mobile2::{
+	android::{aab, apk, config::Config as AndroidConfig, env::Env, target::Target},
+	opts::{NoiseLevel, Profile},
+	target::TargetTrait,
+};
+use clap::{ArgAction, Parser};
+
 use super::{
-	configure_cargo, delete_codegen_vars, ensure_init, env, get_app, get_config, inject_resources,
-	log_finished, open_and_wait, MobileTarget, OptionsHandle,
+	configure_cargo,
+	delete_codegen_vars,
+	ensure_init,
+	env,
+	get_app,
+	get_config,
+	inject_resources,
+	log_finished,
+	open_and_wait,
+	MobileTarget,
+	OptionsHandle,
 };
 use crate::{
 	build::Options as BuildOptions,
@@ -15,28 +34,22 @@ use crate::{
 	},
 	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
 	mobile::{write_options, CliOptions},
-	ConfigValue, Result,
+	ConfigValue,
+	Result,
 };
-use clap::{ArgAction, Parser};
-
-use anyhow::Context;
-use cargo_mobile2::{
-	android::{aab, apk, config::Config as AndroidConfig, env::Env, target::Target},
-	opts::{NoiseLevel, Profile},
-	target::TargetTrait,
-};
-
-use std::env::set_current_dir;
 
 #[derive(Debug, Clone, Parser)]
 #[clap(
 	about = "Build your app in release mode for Android and generate APKs and AABs",
-	long_about = "Build your app in release mode for Android and generate APKs and AABs. It makes use of the `build.frontendDist` property from your `tauri.conf.json` file. It also runs your `build.beforeBuildCommand` which usually builds your frontend into `build.frontendDist`."
+	long_about = "Build your app in release mode for Android and generate APKs and AABs. It makes \
+	              use of the `build.frontendDist` property from your `tauri.conf.json` file. It \
+	              also runs your `build.beforeBuildCommand` which usually builds your frontend \
+	              into `build.frontendDist`."
 )]
 pub struct Options {
 	/// Builds with the debug flag
 	#[clap(short, long)]
-	pub debug: bool,
+	pub debug:bool,
 	/// Which targets to build (all by default).
 	#[clap(
     short,
@@ -45,52 +58,52 @@ pub struct Options {
     num_args(0..),
     value_parser(clap::builder::PossibleValuesParser::new(Target::name_list()))
   )]
-	pub targets: Option<Vec<String>>,
+	pub targets:Option<Vec<String>>,
 	/// List of cargo features to activate
 	#[clap(short, long, action = ArgAction::Append, num_args(0..))]
-	pub features: Option<Vec<String>>,
+	pub features:Option<Vec<String>>,
 	/// JSON string or path to JSON file to merge with tauri.conf.json
 	#[clap(short, long)]
-	pub config: Option<ConfigValue>,
+	pub config:Option<ConfigValue>,
 	/// Whether to split the APKs and AABs per ABIs.
 	#[clap(long)]
-	pub split_per_abi: bool,
+	pub split_per_abi:bool,
 	/// Build APKs.
 	#[clap(long)]
-	pub apk: bool,
+	pub apk:bool,
 	/// Build AABs.
 	#[clap(long)]
-	pub aab: bool,
+	pub aab:bool,
 	/// Open Android Studio
 	#[clap(short, long)]
-	pub open: bool,
+	pub open:bool,
 	/// Skip prompting for values
 	#[clap(long, env = "CI")]
-	pub ci: bool,
+	pub ci:bool,
 }
 
 impl From<Options> for BuildOptions {
-	fn from(options: Options) -> Self {
+	fn from(options:Options) -> Self {
 		Self {
-			runner: None,
-			debug: options.debug,
-			target: None,
-			features: options.features,
-			bundles: None,
-			no_bundle: false,
-			config: options.config,
-			args: Vec::new(),
-			ci: options.ci,
+			runner:None,
+			debug:options.debug,
+			target:None,
+			features:options.features,
+			bundles:None,
+			no_bundle:false,
+			config:options.config,
+			args:Vec::new(),
+			ci:options.ci,
 		}
 	}
 }
 
-pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
+pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	delete_codegen_vars();
 
-	let mut build_options: BuildOptions = options.clone().into();
+	let mut build_options:BuildOptions = options.clone().into();
 
 	let first_target = Target::all()
 		.get(
@@ -158,14 +171,14 @@ pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
 
 #[allow(clippy::too_many_arguments)]
 fn run_build(
-	interface: AppInterface,
-	mut options: Options,
-	build_options: BuildOptions,
-	tauri_config: ConfigHandle,
-	profile: Profile,
-	config: &AndroidConfig,
-	env: &mut Env,
-	noise_level: NoiseLevel,
+	interface:AppInterface,
+	mut options:Options,
+	build_options:BuildOptions,
+	tauri_config:ConfigHandle,
+	profile:Profile,
+	config:&AndroidConfig,
+	env:&mut Env,
+	noise_level:NoiseLevel,
 ) -> Result<OptionsHandle> {
 	if !(options.apk || options.aab) {
 		// if the user didn't specify the format to build, we'll do both
@@ -174,8 +187,8 @@ fn run_build(
 	}
 
 	let interface_options = InterfaceOptions {
-		debug: build_options.debug,
-		target: build_options.target.clone(),
+		debug:build_options.debug,
+		target:build_options.target.clone(),
 		..Default::default()
 	};
 
@@ -185,13 +198,13 @@ fn run_build(
 	let _lock = flock::open_rw(out_dir.join("lock").with_extension("android"), "Android")?;
 
 	let cli_options = CliOptions {
-		dev: false,
-		features: build_options.features.clone(),
-		args: build_options.args.clone(),
+		dev:false,
+		features:build_options.features.clone(),
+		args:build_options.args.clone(),
 		noise_level,
-		vars: Default::default(),
-		config: build_options.config.clone(),
-		target_device: None,
+		vars:Default::default(),
+		config:build_options.config.clone(),
+		target_device:None,
 	};
 	let handle =
 		write_options(&tauri_config.lock().unwrap().as_ref().unwrap().identifier, cli_options)?;
@@ -230,14 +243,17 @@ fn run_build(
 	Ok(handle)
 }
 
-fn get_targets_or_all<'a>(targets: Vec<String>) -> Result<Vec<&'a Target<'a>>> {
+fn get_targets_or_all<'a>(targets:Vec<String>) -> Result<Vec<&'a Target<'a>>> {
 	if targets.is_empty() {
 		Ok(Target::all().iter().map(|t| t.1).collect())
 	} else {
 		let mut outs = Vec::new();
 
-		let possible_targets =
-			Target::all().keys().map(|key| key.to_string()).collect::<Vec<String>>().join(",");
+		let possible_targets = Target::all()
+			.keys()
+			.map(|key| key.to_string())
+			.collect::<Vec<String>>()
+			.join(",");
 
 		for t in targets {
 			let target = Target::for_name(&t).ok_or_else(|| {

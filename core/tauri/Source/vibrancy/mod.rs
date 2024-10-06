@@ -13,9 +13,9 @@ mod macos;
 #[cfg(windows)]
 mod windows;
 
-pub fn set_window_effects<R: Runtime>(
-	window: &Window<R>,
-	effects: Option<WindowEffectsConfig>,
+pub fn set_window_effects<R:Runtime>(
+	window:&Window<R>,
+	effects:Option<WindowEffectsConfig>,
 ) -> crate::Result<()> {
 	if let Some(_effects) = effects {
 		#[cfg(windows)]

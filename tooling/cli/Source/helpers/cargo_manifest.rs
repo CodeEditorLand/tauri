@@ -2,33 +2,33 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use serde::Deserialize;
-
 use std::{
 	collections::HashMap,
 	fs,
 	path::{Path, PathBuf},
 };
 
+use serde::Deserialize;
+
 #[derive(Clone, Deserialize)]
 pub struct CargoLockPackage {
-	pub name: String,
-	pub version: String,
-	pub source: Option<String>,
+	pub name:String,
+	pub version:String,
+	pub source:Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct CargoLock {
-	pub package: Vec<CargoLockPackage>,
+	pub package:Vec<CargoLockPackage>,
 }
 
 #[derive(Clone, Deserialize)]
 pub struct CargoManifestDependencyPackage {
-	pub version: Option<String>,
-	pub git: Option<String>,
-	pub branch: Option<String>,
-	pub rev: Option<String>,
-	pub path: Option<PathBuf>,
+	pub version:Option<String>,
+	pub git:Option<String>,
+	pub branch:Option<String>,
+	pub rev:Option<String>,
+	pub path:Option<PathBuf>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -40,23 +40,23 @@ pub enum CargoManifestDependency {
 
 #[derive(Deserialize)]
 pub struct CargoManifestPackage {
-	pub version: String,
+	pub version:String,
 }
 
 #[derive(Deserialize)]
 pub struct CargoManifest {
-	pub package: CargoManifestPackage,
-	pub dependencies: HashMap<String, CargoManifestDependency>,
+	pub package:CargoManifestPackage,
+	pub dependencies:HashMap<String, CargoManifestDependency>,
 }
 
 #[derive(Default)]
 pub struct CrateVersion {
-	pub version: Option<String>,
-	pub git: Option<String>,
-	pub git_branch: Option<String>,
-	pub git_rev: Option<String>,
-	pub path: Option<PathBuf>,
-	pub lock_version: Option<String>,
+	pub version:Option<String>,
+	pub git:Option<String>,
+	pub git_branch:Option<String>,
+	pub git_rev:Option<String>,
+	pub path:Option<PathBuf>,
+	pub lock_version:Option<String>,
 }
 
 impl CrateVersion {
@@ -66,7 +66,7 @@ impl CrateVersion {
 }
 
 impl std::fmt::Display for CrateVersion {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		if let Some(g) = &self.git {
 			if let Some(version) = &self.version {
 				write!(f, "{g} ({version})")?;
@@ -97,26 +97,28 @@ impl std::fmt::Display for CrateVersion {
 	}
 }
 
-pub fn crate_latest_version(name: &str) -> Option<String> {
+pub fn crate_latest_version(name:&str) -> Option<String> {
 	let url = format!("https://docs.rs/crate/{name}/");
 	match ureq::get(&url).call() {
-		Ok(response) => match (response.status(), response.header("location")) {
-			(302, Some(location)) => Some(location.replace(&url, "")),
-			_ => None,
+		Ok(response) => {
+			match (response.status(), response.header("location")) {
+				(302, Some(location)) => Some(location.replace(&url, "")),
+				_ => None,
+			}
 		},
 		Err(_) => None,
 	}
 }
 
 pub fn crate_version(
-	tauri_dir: &Path,
-	manifest: Option<&CargoManifest>,
-	lock: Option<&CargoLock>,
-	name: &str,
+	tauri_dir:&Path,
+	manifest:Option<&CargoManifest>,
+	lock:Option<&CargoLock>,
+	name:&str,
 ) -> CrateVersion {
 	let mut version = CrateVersion::default();
 
-	let crate_lock_packages: Vec<CargoLockPackage> = lock
+	let crate_lock_packages:Vec<CargoLockPackage> = lock
 		.as_ref()
 		.map(|lock| lock.package.iter().filter(|p| p.name == name).cloned().collect())
 		.unwrap_or_default();
@@ -148,7 +150,7 @@ pub fn crate_version(
 						version.git_branch = p.branch;
 						version.git_rev = p.rev;
 					}
-				}
+				},
 			}
 		}
 

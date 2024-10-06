@@ -12,11 +12,11 @@ use std::{
 use crate::Settings;
 
 pub struct SignTarget {
-	pub path: PathBuf,
-	pub is_an_executable: bool,
+	pub path:PathBuf,
+	pub is_an_executable:bool,
 }
 
-pub fn keychain(identity: Option<&str>) -> crate::Result<Option<tauri_macos_sign::Keychain>> {
+pub fn keychain(identity:Option<&str>) -> crate::Result<Option<tauri_macos_sign::Keychain>> {
 	if let (Some(certificate_encoded), Some(certificate_password)) =
 		(var_os("APPLE_CERTIFICATE"), var_os("APPLE_CERTIFICATE_PASSWORD"))
 	{
@@ -28,7 +28,11 @@ pub fn keychain(identity: Option<&str>) -> crate::Result<Option<tauri_macos_sign
 		if let Some(identity) = identity {
 			let certificate_identity = keychain.signing_identity();
 			if !certificate_identity.contains(identity) {
-				return Err(anyhow::anyhow!("certificate from APPLE_CERTIFICATE \"{certificate_identity}\" environment variable does not match provided identity \"{identity}\"").into());
+				return Err(anyhow::anyhow!(
+					"certificate from APPLE_CERTIFICATE \"{certificate_identity}\" environment \
+					 variable does not match provided identity \"{identity}\""
+				)
+				.into());
 			}
 		}
 		Ok(Some(keychain))
@@ -40,9 +44,9 @@ pub fn keychain(identity: Option<&str>) -> crate::Result<Option<tauri_macos_sign
 }
 
 pub fn sign(
-	keychain: &tauri_macos_sign::Keychain,
-	targets: Vec<SignTarget>,
-	settings: &Settings,
+	keychain:&tauri_macos_sign::Keychain,
+	targets:Vec<SignTarget>,
+	settings:&Settings,
 ) -> crate::Result<()> {
 	log::info!(action = "Signing"; "with identity \"{}\"", keychain.signing_identity());
 
@@ -58,9 +62,9 @@ pub fn sign(
 }
 
 pub fn notarize(
-	keychain: &tauri_macos_sign::Keychain,
-	app_bundle_path: PathBuf,
-	credentials: &tauri_macos_sign::AppleNotarizationCredentials,
+	keychain:&tauri_macos_sign::Keychain,
+	app_bundle_path:PathBuf,
+	credentials:&tauri_macos_sign::AppleNotarizationCredentials,
 ) -> crate::Result<()> {
 	tauri_macos_sign::notarize(keychain, &app_bundle_path, credentials).map_err(Into::into)
 }
@@ -84,50 +88,64 @@ pub fn notarize_auth() -> Result<tauri_macos_sign::AppleNotarizationCredentials,
 				password,
 				team_id,
 			})
-		}
+		},
 		(Some(_apple_id), Some(_password), None) => Err(NotarizeAuthError::MissingTeamId),
 		_ => {
 			match (var_os("APPLE_API_KEY"), var_os("APPLE_API_ISSUER"), var("APPLE_API_KEY_PATH")) {
-        (Some(key_id), Some(issuer), Ok(key_path)) => {
-          Ok(tauri_macos_sign::AppleNotarizationCredentials::ApiKey { key_id, key: tauri_macos_sign::ApiKey::Path( key_path.into()), issuer })
-        },
-        (Some(key_id), Some(issuer), Err(_)) => {
-          let mut api_key_file_name = OsString::from("AuthKey_");
-          api_key_file_name.push(&key_id);
-          api_key_file_name.push(".p8");
-          let mut key_path = None;
+				(Some(key_id), Some(issuer), Ok(key_path)) => {
+					Ok(tauri_macos_sign::AppleNotarizationCredentials::ApiKey {
+						key_id,
+						key:tauri_macos_sign::ApiKey::Path(key_path.into()),
+						issuer,
+					})
+				},
+				(Some(key_id), Some(issuer), Err(_)) => {
+					let mut api_key_file_name = OsString::from("AuthKey_");
+					api_key_file_name.push(&key_id);
+					api_key_file_name.push(".p8");
+					let mut key_path = None;
 
-          let mut search_paths = vec!["./private_keys".into()];
-          if let Some(home_dir) = dirs::home_dir() {
-            search_paths.push(home_dir.join("private_keys"));
-            search_paths.push(home_dir.join(".private_keys"));
-            search_paths.push(home_dir.join(".appstoreconnect").join("private_keys"));
-          }
+					let mut search_paths = vec!["./private_keys".into()];
+					if let Some(home_dir) = dirs::home_dir() {
+						search_paths.push(home_dir.join("private_keys"));
+						search_paths.push(home_dir.join(".private_keys"));
+						search_paths.push(home_dir.join(".appstoreconnect").join("private_keys"));
+					}
 
-          for folder in search_paths {
-            if let Some(path) = find_api_key(folder, &api_key_file_name) {
-              key_path = Some(path);
-              break;
-            }
-          }
+					for folder in search_paths {
+						if let Some(path) = find_api_key(folder, &api_key_file_name) {
+							key_path = Some(path);
+							break;
+						}
+					}
 
-          if let Some(key_path) = key_path {
-          Ok(tauri_macos_sign::AppleNotarizationCredentials::ApiKey { key_id, key: tauri_macos_sign::ApiKey::Path(key_path), issuer })
-          } else {
-            Err(anyhow::anyhow!("could not find API key file. Please set the APPLE_API_KEY_PATH environment variables to the path to the {api_key_file_name:?} file").into())
-          }
-        }
-        _ => Err(anyhow::anyhow!("no APPLE_ID & APPLE_PASSWORD & APPLE_TEAM_ID or APPLE_API_KEY & APPLE_API_ISSUER & APPLE_API_KEY_PATH environment variables found").into())
-      }
-		}
+					if let Some(key_path) = key_path {
+						Ok(tauri_macos_sign::AppleNotarizationCredentials::ApiKey {
+							key_id,
+							key:tauri_macos_sign::ApiKey::Path(key_path),
+							issuer,
+						})
+					} else {
+						Err(anyhow::anyhow!(
+							"could not find API key file. Please set the APPLE_API_KEY_PATH \
+							 environment variables to the path to the {api_key_file_name:?} file"
+						)
+						.into())
+					}
+				},
+				_ => {
+					Err(anyhow::anyhow!(
+						"no APPLE_ID & APPLE_PASSWORD & APPLE_TEAM_ID or APPLE_API_KEY & \
+						 APPLE_API_ISSUER & APPLE_API_KEY_PATH environment variables found"
+					)
+					.into())
+				},
+			}
+		},
 	}
 }
 
-fn find_api_key(folder: PathBuf, file_name: &OsString) -> Option<PathBuf> {
+fn find_api_key(folder:PathBuf, file_name:&OsString) -> Option<PathBuf> {
 	let path = folder.join(file_name);
-	if path.exists() {
-		Some(path)
-	} else {
-		None
-	}
+	if path.exists() { Some(path) } else { None }
 }

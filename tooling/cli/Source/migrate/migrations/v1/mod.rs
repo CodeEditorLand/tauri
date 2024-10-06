@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use anyhow::Context;
+
 use crate::{
 	helpers::app_paths::{app_dir, tauri_dir},
 	Result,
 };
-
-use anyhow::Context;
 
 mod config;
 mod frontend;
@@ -26,11 +26,11 @@ pub fn run() -> Result<()> {
 	// Add plugins
 	for plugin in migrated.plugins {
 		crate::add::run(crate::add::Options {
-			plugin: plugin.clone(),
-			branch: None,
-			tag: None,
-			rev: None,
-			no_fmt: false,
+			plugin:plugin.clone(),
+			branch:None,
+			tag:None,
+			rev:None,
+			no_fmt:false,
 		})
 		.with_context(|| format!("Could not migrate plugin '{plugin}'"))?;
 	}

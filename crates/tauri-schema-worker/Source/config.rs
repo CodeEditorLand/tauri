@@ -79,9 +79,7 @@ async fn try_schema_for_version(version:String) -> anyhow::Result<String> {
 		return try_stable_schema().await;
 	}
 
-	let Some(version) =
-		releases.into_iter().find(|r| version.matches(&r.version))
-	else {
+	let Some(version) = releases.into_iter().find(|r| version.matches(&r.version)) else {
 		return try_stable_schema().await;
 	};
 

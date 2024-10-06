@@ -4,55 +4,51 @@
 
 //! Identifier for plugins.
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::num::NonZeroU8;
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
-const IDENTIFIER_SEPARATOR: u8 = b':';
-const PLUGIN_PREFIX: &str = "tauri-plugin-";
-const CORE_PLUGIN_IDENTIFIER_PREFIX: &str = "core:";
+const IDENTIFIER_SEPARATOR:u8 = b':';
+const PLUGIN_PREFIX:&str = "tauri-plugin-";
+const CORE_PLUGIN_IDENTIFIER_PREFIX:&str = "core:";
 
 // <https://doc.rust-lang.org/cargo/reference/manifest.html#the-name-field>
-const MAX_LEN_PREFIX: usize = 64 - PLUGIN_PREFIX.len();
-const MAX_LEN_BASE: usize = 64;
-const MAX_LEN_IDENTIFIER: usize = MAX_LEN_PREFIX + 1 + MAX_LEN_BASE;
+const MAX_LEN_PREFIX:usize = 64 - PLUGIN_PREFIX.len();
+const MAX_LEN_BASE:usize = 64;
+const MAX_LEN_IDENTIFIER:usize = MAX_LEN_PREFIX + 1 + MAX_LEN_BASE;
 
 /// Plugin identifier.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Identifier {
-	inner: String,
-	separator: Option<NonZeroU8>,
+	inner:String,
+	separator:Option<NonZeroU8>,
 }
 
 #[cfg(feature = "schema")]
 impl schemars::JsonSchema for Identifier {
-	fn schema_name() -> String {
-		"Identifier".to_string()
-	}
+	fn schema_name() -> String { "Identifier".to_string() }
 
 	fn schema_id() -> std::borrow::Cow<'static, str> {
-		// Include the module, in case a type with the same name is in another module/crate
+		// Include the module, in case a type with the same name is in another
+		// module/crate
 		std::borrow::Cow::Borrowed(concat!(module_path!(), "::Identifier"))
 	}
 
-	fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+	fn json_schema(gen:&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
 		String::json_schema(gen)
 	}
 }
 
 impl AsRef<str> for Identifier {
 	#[inline(always)]
-	fn as_ref(&self) -> &str {
-		&self.inner
-	}
+	fn as_ref(&self) -> &str { &self.inner }
 }
 
 impl Identifier {
 	/// Get the identifier str.
 	#[inline(always)]
-	pub fn get(&self) -> &str {
-		self.as_ref()
-	}
+	pub fn get(&self) -> &str { self.as_ref() }
 
 	/// Get the identifier without prefix.
 	pub fn get_base(&self) -> &str {
@@ -63,23 +59,15 @@ impl Identifier {
 	}
 
 	/// Get the prefix of the identifier.
-	pub fn get_prefix(&self) -> Option<&str> {
-		self.separator_index().map(|i| &self.inner[0..i])
-	}
+	pub fn get_prefix(&self) -> Option<&str> { self.separator_index().map(|i| &self.inner[0..i]) }
 
 	/// Set the identifier prefix.
-	pub fn set_prefix(&mut self) -> Result<(), ParseIdentifierError> {
-		todo!()
-	}
+	pub fn set_prefix(&mut self) -> Result<(), ParseIdentifierError> { todo!() }
 
 	/// Get the identifier string and its separator.
-	pub fn into_inner(self) -> (String, Option<NonZeroU8>) {
-		(self.inner, self.separator)
-	}
+	pub fn into_inner(self) -> (String, Option<NonZeroU8>) { (self.inner, self.separator) }
 
-	fn separator_index(&self) -> Option<usize> {
-		self.separator.map(|i| i.get() as usize)
-	}
+	fn separator_index(&self) -> Option<usize> { self.separator.map(|i| i.get() as usize) }
 }
 
 #[derive(Debug)]
@@ -89,15 +77,15 @@ enum ValidByte {
 }
 
 impl ValidByte {
-	fn alpha_numeric(byte: u8) -> Option<Self> {
+	fn alpha_numeric(byte:u8) -> Option<Self> {
 		byte.is_ascii_alphanumeric().then_some(Self::Byte(byte))
 	}
 
-	fn alpha_numeric_hyphen(byte: u8) -> Option<Self> {
+	fn alpha_numeric_hyphen(byte:u8) -> Option<Self> {
 		(byte.is_ascii_alphanumeric() || byte == b'-').then_some(Self::Byte(byte))
 	}
 
-	fn next(&self, next: u8) -> Option<ValidByte> {
+	fn next(&self, next:u8) -> Option<ValidByte> {
 		match (self, next) {
 			(ValidByte::Byte(b'-'), IDENTIFIER_SEPARATOR) => None,
 			(ValidByte::Separator, b'-') => None,
@@ -126,7 +114,10 @@ pub enum ParseIdentifierError {
 	Humongous(usize),
 
 	/// Identifier is not in a valid format.
-	#[error("identifiers can only include lowercase ASCII, hyphens which are not leading or trailing, and a single colon if using a prefix")]
+	#[error(
+		"identifiers can only include lowercase ASCII, hyphens which are not leading or trailing, \
+		 and a single colon if using a prefix"
+	)]
 	InvalidFormat,
 
 	/// Identifier has multiple separators.
@@ -145,7 +136,7 @@ pub enum ParseIdentifierError {
 impl TryFrom<String> for Identifier {
 	type Error = ParseIdentifierError;
 
-	fn try_from(value: String) -> Result<Self, Self::Error> {
+	fn try_from(value:String) -> Result<Self, Self::Error> {
 		if value.starts_with(PLUGIN_PREFIX) {
 			return Err(Self::Error::StartsWithTauriPlugin);
 		}
@@ -163,8 +154,10 @@ impl TryFrom<String> for Identifier {
 		let mut bytes = value.bytes();
 
 		// grab the first byte only before parsing the rest
-		let mut prev =
-			bytes.next().and_then(ValidByte::alpha_numeric).ok_or(Self::Error::InvalidFormat)?;
+		let mut prev = bytes
+			.next()
+			.and_then(ValidByte::alpha_numeric)
+			.ok_or(Self::Error::InvalidFormat)?;
 
 		let mut idx = 0;
 
@@ -176,13 +169,14 @@ impl TryFrom<String> for Identifier {
 				Some(next @ ValidByte::Byte(_)) => prev = next,
 				Some(ValidByte::Separator) => {
 					if separator.is_none() || is_core_identifier {
-						// safe to unwrap because idx starts at 1 and cannot go over MAX_IDENTIFIER_LEN
+						// safe to unwrap because idx starts at 1 and cannot go over
+						// MAX_IDENTIFIER_LEN
 						separator = Some(idx.try_into().unwrap());
 						prev = ValidByte::Separator
 					} else {
 						return Err(Self::Error::MultipleSeparators);
 					}
-				}
+				},
 			}
 		}
 
@@ -196,24 +190,22 @@ impl TryFrom<String> for Identifier {
 			_ => (),
 		}
 
-		Ok(Self { inner: value, separator })
+		Ok(Self { inner:value, separator })
 	}
 }
 
 impl<'de> Deserialize<'de> for Identifier {
-	fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+	fn deserialize<D>(deserializer:D) -> std::result::Result<Self, D::Error>
 	where
-		D: Deserializer<'de>,
-	{
+		D: Deserializer<'de>, {
 		Self::try_from(String::deserialize(deserializer)?).map_err(serde::de::Error::custom)
 	}
 }
 
 impl Serialize for Identifier {
-	fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+	fn serialize<S>(&self, serializer:S) -> std::result::Result<S::Ok, S::Error>
 	where
-		S: Serializer,
-	{
+		S: Serializer, {
 		serializer.serialize_str(self.get())
 	}
 }
@@ -222,14 +214,12 @@ impl Serialize for Identifier {
 mod tests {
 	use super::*;
 
-	fn ident(s: impl Into<String>) -> Result<Identifier, ParseIdentifierError> {
+	fn ident(s:impl Into<String>) -> Result<Identifier, ParseIdentifierError> {
 		Identifier::try_from(s.into())
 	}
 
 	#[test]
-	fn max_len_fits_in_u8() {
-		assert!(MAX_LEN_IDENTIFIER < u8::MAX as usize)
-	}
+	fn max_len_fits_in_u8() { assert!(MAX_LEN_IDENTIFIER < u8::MAX as usize) }
 
 	#[test]
 	fn format() {
@@ -283,7 +273,7 @@ mod build {
 	use super::*;
 
 	impl ToTokens for Identifier {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let s = self.get();
 			tokens.append_all(
 				quote! { ::tauri::utils::acl::Identifier::try_from(#s.to_string()).unwrap() },

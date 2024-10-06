@@ -64,10 +64,7 @@ pub struct Rect {
 
 impl Default for Rect {
 	fn default() -> Self {
-		Self {
-			position:Position::Logical((0, 0).into()),
-			size:Size::Logical((0, 0).into()),
-		}
+		Self { position:Position::Logical((0, 0).into()), size:Size::Logical((0, 0).into()) }
 	}
 }
 
@@ -155,10 +152,7 @@ pub enum Error {
 	#[error("failed to create window")]
 	CreateWindow,
 	/// The given window label is invalid.
-	#[error(
-		"Window labels must only include alphanumeric characters, `-`, `/`, \
-		 `:` and `_`."
-	)]
+	#[error("Window labels must only include alphanumeric characters, `-`, `/`, `:` and `_`.")]
 	InvalidWindowLabel,
 	/// Failed to send message to webview.
 	#[error("failed to send message to the webview")]
@@ -290,8 +284,7 @@ pub enum ActivationPolicy {
 }
 
 /// A [`Send`] handle to the runtime.
-pub trait RuntimeHandle<T:UserEvent>:
-	Debug + Clone + Send + Sync + Sized + 'static {
+pub trait RuntimeHandle<T:UserEvent>: Debug + Clone + Send + Sync + Sized + 'static {
 	type Runtime: Runtime<T, Handle = Self>;
 
 	/// Creates an `EventLoopProxy` that can be used to dispatch user events to
@@ -301,10 +294,7 @@ pub trait RuntimeHandle<T:UserEvent>:
 	/// Sets the activation policy for the application.
 	#[cfg(target_os = "macos")]
 	#[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
-	fn set_activation_policy(
-		&self,
-		activation_policy:ActivationPolicy,
-	) -> Result<()>;
+	fn set_activation_policy(&self, activation_policy:ActivationPolicy) -> Result<()>;
 
 	/// Requests an exit of the event loop.
 	fn request_exit(&self, code:i32) -> Result<()>;
@@ -324,14 +314,9 @@ pub trait RuntimeHandle<T:UserEvent>:
 	) -> Result<DetachedWebview<T, Self::Runtime>>;
 
 	/// Run a task on the main thread.
-	fn run_on_main_thread<F:FnOnce() + Send + 'static>(
-		&self,
-		f:F,
-	) -> Result<()>;
+	fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> Result<()>;
 
-	fn display_handle(
-		&self,
-	) -> std::result::Result<DisplayHandle, raw_window_handle::HandleError>;
+	fn display_handle(&self) -> std::result::Result<DisplayHandle, raw_window_handle::HandleError>;
 
 	fn primary_monitor(&self) -> Option<Monitor>;
 	fn monitor_from_point(&self, x:f64, y:f64) -> Option<Monitor>;
@@ -367,11 +352,8 @@ pub trait RuntimeHandle<T:UserEvent>:
 	#[cfg(target_os = "android")]
 	fn run_on_android_context<F>(&self, f:F)
 	where
-		F: FnOnce(
-				&mut jni::JNIEnv,
-				&jni::objects::JObject,
-				&jni::objects::JObject,
-			) + Send
+		F: FnOnce(&mut jni::JNIEnv, &jni::objects::JObject, &jni::objects::JObject)
+			+ Send
 			+ 'static;
 }
 
@@ -390,8 +372,7 @@ pub struct RuntimeInitArgs {
 	))]
 	pub app_id:Option<String>,
 	#[cfg(windows)]
-	pub msg_hook:
-		Option<Box<dyn FnMut(*const std::ffi::c_void) -> bool + 'static>>,
+	pub msg_hook:Option<Box<dyn FnMut(*const std::ffi::c_void) -> bool + 'static>>,
 }
 
 /// The webview runtime interface.
@@ -481,28 +462,18 @@ pub trait Runtime<T:UserEvent>: Debug + Sized + 'static {
 }
 
 /// Webview dispatcher. A thread-safe handle to the webview APIs.
-pub trait WebviewDispatch<T:UserEvent>:
-	Debug + Clone + Send + Sync + Sized + 'static {
+pub trait WebviewDispatch<T:UserEvent>: Debug + Clone + Send + Sync + Sized + 'static {
 	/// The runtime this [`WebviewDispatch`] runs under.
 	type Runtime: Runtime<T>;
 
 	/// Run a task on the main thread.
-	fn run_on_main_thread<F:FnOnce() + Send + 'static>(
-		&self,
-		f:F,
-	) -> Result<()>;
+	fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> Result<()>;
 
 	/// Registers a webview event handler.
-	fn on_webview_event<F:Fn(&WebviewEvent) + Send + 'static>(
-		&self,
-		f:F,
-	) -> WebviewEventId;
+	fn on_webview_event<F:Fn(&WebviewEvent) + Send + 'static>(&self, f:F) -> WebviewEventId;
 
 	/// Runs a closure with the platform webview object as argument.
-	fn with_webview<F:FnOnce(Box<dyn std::any::Any>) + Send + 'static>(
-		&self,
-		f:F,
-	) -> Result<()>;
+	fn with_webview<F:FnOnce(Box<dyn std::any::Any>) + Send + 'static>(&self, f:F) -> Result<()>;
 
 	/// Open the web inspector which is usually called devtools.
 	#[cfg(any(debug_assertions, feature = "devtools"))]
@@ -578,8 +549,7 @@ pub trait WebviewDispatch<T:UserEvent>:
 }
 
 /// Window dispatcher. A thread-safe handle to the window APIs.
-pub trait WindowDispatch<T:UserEvent>:
-	Debug + Clone + Send + Sync + Sized + 'static {
+pub trait WindowDispatch<T:UserEvent>: Debug + Clone + Send + Sync + Sized + 'static {
 	/// The runtime this [`WindowDispatch`] runs under.
 	type Runtime: Runtime<T>;
 
@@ -587,16 +557,10 @@ pub trait WindowDispatch<T:UserEvent>:
 	type WindowBuilder: WindowBuilder;
 
 	/// Run a task on the main thread.
-	fn run_on_main_thread<F:FnOnce() + Send + 'static>(
-		&self,
-		f:F,
-	) -> Result<()>;
+	fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> Result<()>;
 
 	/// Registers a window event handler.
-	fn on_window_event<F:Fn(&WindowEvent) + Send + 'static>(
-		&self,
-		f:F,
-	) -> WindowEventId;
+	fn on_window_event<F:Fn(&WindowEvent) + Send + 'static>(&self, f:F) -> WindowEventId;
 
 	// GETTERS
 
@@ -713,10 +677,7 @@ pub trait WindowDispatch<T:UserEvent>:
 	/// Raw window handle.
 	fn window_handle(
 		&self,
-	) -> std::result::Result<
-		raw_window_handle::WindowHandle<'_>,
-		raw_window_handle::HandleError,
-	>;
+	) -> std::result::Result<raw_window_handle::WindowHandle<'_>, raw_window_handle::HandleError>;
 
 	/// Returns the current window theme.
 	fn theme(&self) -> Result<Theme>;
@@ -729,10 +690,7 @@ pub trait WindowDispatch<T:UserEvent>:
 	/// Requests user attention to the window.
 	///
 	/// Providing `None` will unset the request for user attention.
-	fn request_user_attention(
-		&self,
-		request_type:Option<UserAttentionType>,
-	) -> Result<()>;
+	fn request_user_attention(&self, request_type:Option<UserAttentionType>) -> Result<()>;
 
 	/// Create a new window.
 	fn create_window<F:Fn(RawWindow) + Send + 'static>(
@@ -823,10 +781,7 @@ pub trait WindowDispatch<T:UserEvent>:
 	fn set_always_on_top(&self, always_on_top:bool) -> Result<()>;
 
 	/// Updates the window visibleOnAllWorkspaces flag.
-	fn set_visible_on_all_workspaces(
-		&self,
-		visible_on_all_workspaces:bool,
-	) -> Result<()>;
+	fn set_visible_on_all_workspaces(&self, visible_on_all_workspaces:bool) -> Result<()>;
 
 	/// Prevents the window contents from being captured by other apps.
 	fn set_content_protected(&self, protected:bool) -> Result<()>;
@@ -841,10 +796,7 @@ pub trait WindowDispatch<T:UserEvent>:
 	fn set_max_size(&self, size:Option<Size>) -> Result<()>;
 
 	/// Sets this window's minimum inner width.
-	fn set_size_constraints(
-		&self,
-		constraints:WindowSizeConstraints,
-	) -> Result<()>;
+	fn set_size_constraints(&self, constraints:WindowSizeConstraints) -> Result<()>;
 
 	/// Updates the window position.
 	fn set_position(&self, position:Position) -> Result<()>;
@@ -877,10 +829,7 @@ pub trait WindowDispatch<T:UserEvent>:
 	fn set_cursor_icon(&self, icon:CursorIcon) -> Result<()>;
 
 	/// Changes the position of the cursor in window coordinates.
-	fn set_cursor_position<Pos:Into<Position>>(
-		&self,
-		position:Pos,
-	) -> Result<()>;
+	fn set_cursor_position<Pos:Into<Position>>(&self, position:Pos) -> Result<()>;
 
 	/// Ignores the window cursor events.
 	fn set_ignore_cursor_events(&self, ignore:bool) -> Result<()>;
@@ -906,10 +855,7 @@ pub trait WindowDispatch<T:UserEvent>:
 	/// ## Platform-specific
 	///
 	/// - **Linux / Windows / iOS / Android:** Unsupported.
-	fn set_title_bar_style(
-		&self,
-		style:tauri_utils::TitleBarStyle,
-	) -> Result<()>;
+	fn set_title_bar_style(&self, style:tauri_utils::TitleBarStyle) -> Result<()>;
 
 	/// Sets the theme for this window.
 	///

@@ -4,16 +4,17 @@
 // SPDX-License-Identifier: MIT
 
 #[cfg(windows)]
+use std::path::PathBuf;
+#[cfg(windows)]
+use std::sync::OnceLock;
+use std::{path::Path, process::Command};
+
+#[cfg(windows)]
 use crate::bundle::windows::util;
 use crate::{
 	bundle::{common::CommandExt, settings::CustomSignCommandSettings},
 	Settings,
 };
-#[cfg(windows)]
-use std::path::PathBuf;
-#[cfg(windows)]
-use std::sync::OnceLock;
-use std::{path::Path, process::Command};
 
 impl Settings {
 	pub(crate) fn can_sign(&self) -> bool {
@@ -22,48 +23,48 @@ impl Settings {
 
 	pub(crate) fn sign_params(&self) -> SignParams {
 		SignParams {
-			product_name: self.product_name().into(),
-			digest_algorithm: self
+			product_name:self.product_name().into(),
+			digest_algorithm:self
 				.windows()
 				.digest_algorithm
 				.as_ref()
 				.map(|algorithm| algorithm.to_string())
 				.unwrap_or_else(|| "sha256".to_string()),
-			certificate_thumbprint: self
+			certificate_thumbprint:self
 				.windows()
 				.certificate_thumbprint
 				.clone()
 				.unwrap_or_default(),
-			timestamp_url: self.windows().timestamp_url.as_ref().map(|url| url.to_string()),
-			tsp: self.windows().tsp,
-			sign_command: self.windows().sign_command.clone(),
+			timestamp_url:self.windows().timestamp_url.as_ref().map(|url| url.to_string()),
+			tsp:self.windows().tsp,
+			sign_command:self.windows().sign_command.clone(),
 		}
 	}
 }
 
 #[cfg_attr(not(windows), allow(dead_code))]
 pub struct SignParams {
-	pub product_name: String,
-	pub digest_algorithm: String,
-	pub certificate_thumbprint: String,
-	pub timestamp_url: Option<String>,
-	pub tsp: bool,
-	pub sign_command: Option<CustomSignCommandSettings>,
+	pub product_name:String,
+	pub digest_algorithm:String,
+	pub certificate_thumbprint:String,
+	pub timestamp_url:Option<String>,
+	pub tsp:bool,
+	pub sign_command:Option<CustomSignCommandSettings>,
 }
 
 #[cfg(windows)]
 fn signtool() -> Option<PathBuf> {
 	// sign code forked from https://github.com/forbjok/rust-codesign
-	static SIGN_TOOL: OnceLock<crate::Result<PathBuf>> = OnceLock::new();
+	static SIGN_TOOL:OnceLock<crate::Result<PathBuf>> = OnceLock::new();
 	SIGN_TOOL
 		.get_or_init(|| {
 			if let Some(signtool) = std::env::var_os("TAURI_WINDOWS_SIGNTOOL_PATH") {
 				return Ok(PathBuf::from(signtool));
 			}
 
-			const INSTALLED_ROOTS_REGKEY_PATH: &str =
+			const INSTALLED_ROOTS_REGKEY_PATH:&str =
 				r"SOFTWARE\Microsoft\Windows Kits\Installed Roots";
-			const KITS_ROOT_REGVALUE_NAME: &str = r"KitsRoot10";
+			const KITS_ROOT_REGVALUE_NAME:&str = r"KitsRoot10";
 
 			// Open 32-bit HKLM "Installed Roots" key
 			let installed_roots_key = windows_registry::LOCAL_MACHINE
@@ -71,14 +72,14 @@ fn signtool() -> Option<PathBuf> {
 				.map_err(|_| crate::Error::OpenRegistry(INSTALLED_ROOTS_REGKEY_PATH.to_string()))?;
 
 			// Get the Windows SDK root path
-			let kits_root_10_path: String = installed_roots_key
+			let kits_root_10_path:String = installed_roots_key
 				.get_string(KITS_ROOT_REGVALUE_NAME)
 				.map_err(|_| crate::Error::GetRegistryValue(KITS_ROOT_REGVALUE_NAME.to_string()))?;
 
 			// Construct Windows SDK bin path
 			let kits_root_10_bin_path = Path::new(&kits_root_10_path).join("bin");
 
-			let mut installed_kits: Vec<String> = installed_roots_key
+			let mut installed_kits:Vec<String> = installed_roots_key
 				.keys()
 				.map_err(|_| crate::Error::FailedToEnumerateRegKeys)?
 				.collect();
@@ -86,25 +87,28 @@ fn signtool() -> Option<PathBuf> {
 			// Sort installed kits
 			installed_kits.sort();
 
-			/* Iterate through installed kit version keys in reverse (from newest to oldest),
-			adding their bin paths to the list.
-			Windows SDK 10 v10.0.15063.468 and later will have their signtools located there. */
-			let mut kit_bin_paths: Vec<PathBuf> =
+			// Iterate through installed kit version keys in reverse (from newest to
+			// oldest), adding their bin paths to the list.
+			// Windows SDK 10 v10.0.15063.468 and later will have their signtools located
+			// there.
+			let mut kit_bin_paths:Vec<PathBuf> =
 				installed_kits.iter().rev().map(|kit| kits_root_10_bin_path.join(kit)).collect();
 
-			/* Add kits root bin path.
-			For Windows SDK 10 versions earlier than v10.0.15063.468, signtool will be located there. */
+			// Add kits root bin path.
+			// For Windows SDK 10 versions earlier than v10.0.15063.468, signtool will be
+			// located there.
 			kit_bin_paths.push(kits_root_10_bin_path);
 
 			// Choose which version of SignTool to use based on OS bitness
 			let arch_dir = util::os_bitness().ok_or(crate::Error::UnsupportedBitness)?;
 
-			/* Iterate through all bin paths, checking for existence of a SignTool executable. */
+			// Iterate through all bin paths, checking for existence of a SignTool
+			// executable.
 			for kit_bin_path in &kit_bin_paths {
-				/* Construct SignTool path. */
+				// Construct SignTool path.
 				let signtool_path = kit_bin_path.join(arch_dir).join("signtool.exe");
 
-				/* Check if SignTool exists at this location. */
+				// Check if SignTool exists at this location.
 				if signtool_path.exists() {
 					// SignTool found. Return it.
 					return Ok(signtool_path);
@@ -121,7 +125,7 @@ fn signtool() -> Option<PathBuf> {
 /// Check if binary is already signed.
 /// Used to skip sidecar binaries that are already signed.
 #[cfg(windows)]
-pub fn verify(path: &Path) -> crate::Result<bool> {
+pub fn verify(path:&Path) -> crate::Result<bool> {
 	let signtool = signtool().ok_or(crate::Error::SignToolNotFound)?;
 
 	let mut cmd = Command::new(signtool);
@@ -132,9 +136,9 @@ pub fn verify(path: &Path) -> crate::Result<bool> {
 	Ok(cmd.status()?.success())
 }
 
-pub fn sign_command_custom<P: AsRef<Path>>(
-	path: P,
-	command: &CustomSignCommandSettings,
+pub fn sign_command_custom<P:AsRef<Path>>(
+	path:P,
+	command:&CustomSignCommandSettings,
 ) -> crate::Result<Command> {
 	let path = path.as_ref();
 
@@ -150,10 +154,7 @@ pub fn sign_command_custom<P: AsRef<Path>>(
 }
 
 #[cfg(windows)]
-pub fn sign_command_default<P: AsRef<Path>>(
-	path: P,
-	params: &SignParams,
-) -> crate::Result<Command> {
+pub fn sign_command_default<P:AsRef<Path>>(path:P, params:&SignParams) -> crate::Result<Command> {
 	let signtool = signtool().ok_or(crate::Error::SignToolNotFound)?;
 
 	let mut cmd = Command::new(signtool);
@@ -176,7 +177,7 @@ pub fn sign_command_default<P: AsRef<Path>>(
 	Ok(cmd)
 }
 
-pub fn sign_command<P: AsRef<Path>>(path: P, params: &SignParams) -> crate::Result<Command> {
+pub fn sign_command<P:AsRef<Path>>(path:P, params:&SignParams) -> crate::Result<Command> {
 	match &params.sign_command {
 		Some(custom_command) => sign_command_custom(path, custom_command),
 		#[cfg(windows)]
@@ -188,9 +189,9 @@ pub fn sign_command<P: AsRef<Path>>(path: P, params: &SignParams) -> crate::Resu
 	}
 }
 
-pub fn sign_custom<P: AsRef<Path>>(
-	path: P,
-	custom_command: &CustomSignCommandSettings,
+pub fn sign_custom<P:AsRef<Path>>(
+	path:P,
+	custom_command:&CustomSignCommandSettings,
 ) -> crate::Result<()> {
 	let path = path.as_ref();
 
@@ -207,7 +208,7 @@ pub fn sign_custom<P: AsRef<Path>>(
 }
 
 #[cfg(windows)]
-pub fn sign_default<P: AsRef<Path>>(path: P, params: &SignParams) -> crate::Result<()> {
+pub fn sign_default<P:AsRef<Path>>(path:P, params:&SignParams) -> crate::Result<()> {
 	let signtool = signtool().ok_or(crate::Error::SignToolNotFound)?;
 	let path = path.as_ref();
 
@@ -225,7 +226,7 @@ pub fn sign_default<P: AsRef<Path>>(path: P, params: &SignParams) -> crate::Resu
 	Ok(())
 }
 
-pub fn sign<P: AsRef<Path>>(path: P, params: &SignParams) -> crate::Result<()> {
+pub fn sign<P:AsRef<Path>>(path:P, params:&SignParams) -> crate::Result<()> {
 	match &params.sign_command {
 		Some(custom_command) => sign_custom(path, custom_command),
 		#[cfg(windows)]
@@ -237,7 +238,7 @@ pub fn sign<P: AsRef<Path>>(path: P, params: &SignParams) -> crate::Result<()> {
 	}
 }
 
-pub fn try_sign(file_path: &std::path::PathBuf, settings: &Settings) -> crate::Result<()> {
+pub fn try_sign(file_path:&std::path::PathBuf, settings:&Settings) -> crate::Result<()> {
 	if settings.can_sign() {
 		log::info!(action = "Signing"; "{}", tauri_utils::display_path(file_path));
 		sign(file_path, &settings.sign_params())?;

@@ -82,9 +82,8 @@ pub fn restart(env:&Env) -> ! {
 		#[cfg(target_os = "macos")]
 		restart_macos_app(&path, env);
 
-		if let Err(e) = Command::new(path)
-			.args(env.args_os.iter().skip(1).collect::<Vec<_>>())
-			.spawn()
+		if let Err(e) =
+			Command::new(path).args(env.args_os.iter().skip(1).collect::<Vec<_>>()).spawn()
 		{
 			log::error!("failed to restart app: {e}");
 		}
@@ -106,25 +105,20 @@ fn restart_macos_app(current_binary:&std::path::Path, env:&Env) {
 
 		if let Some(contents_directory) = macos_directory.parent() {
 			if contents_directory.components().last()
-				!= Some(std::path::Component::Normal(std::ffi::OsStr::new(
-					"Contents",
-				))) {
+				!= Some(std::path::Component::Normal(std::ffi::OsStr::new("Contents")))
+			{
 				return;
 			}
 
-			if let Ok(info_plist) = plist::from_file::<_, plist::Dictionary>(
-				contents_directory.join("Info.plist"),
-			) {
-				if let Some(binary_name) = info_plist
-					.get("CFBundleExecutable")
-					.and_then(|v| v.as_string())
+			if let Ok(info_plist) =
+				plist::from_file::<_, plist::Dictionary>(contents_directory.join("Info.plist"))
+			{
+				if let Some(binary_name) =
+					info_plist.get("CFBundleExecutable").and_then(|v| v.as_string())
 				{
-					if let Err(e) =
-						Command::new(macos_directory.join(binary_name))
-							.args(
-								env.args_os.iter().skip(1).collect::<Vec<_>>(),
-							)
-							.spawn()
+					if let Err(e) = Command::new(macos_directory.join(binary_name))
+						.args(env.args_os.iter().skip(1).collect::<Vec<_>>())
+						.spawn()
 					{
 						log::error!("failed to restart app: {e}");
 					}

@@ -2,24 +2,25 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{Error, Result};
-use crate::{AppHandle, Manager, Runtime};
 use std::path::PathBuf;
 
-/// The path resolver is a helper class for general and application-specific path APIs.
-pub struct PathResolver<R: Runtime>(pub(crate) AppHandle<R>);
+use super::{Error, Result};
+use crate::{AppHandle, Manager, Runtime};
 
-impl<R: Runtime> PathResolver<R> {
+/// The path resolver is a helper class for general and application-specific
+/// path APIs.
+pub struct PathResolver<R:Runtime>(pub(crate) AppHandle<R>);
+
+impl<R:Runtime> PathResolver<R> {
 	/// Returns the path to the user's audio directory.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_MUSIC_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_MUSIC_DIR`.
 	/// - **macOS:** Resolves to `$HOME/Music`.
 	/// - **Windows:** Resolves to `{FOLDERID_Music}`.
-	pub fn audio_dir(&self) -> Result<PathBuf> {
-		dirs::audio_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn audio_dir(&self) -> Result<PathBuf> { dirs::audio_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's cache directory.
 	///
@@ -28,9 +29,7 @@ impl<R: Runtime> PathResolver<R> {
 	/// - **Linux:** Resolves to `$XDG_CACHE_HOME` or `$HOME/.cache`.
 	/// - **macOS:** Resolves to `$HOME/Library/Caches`.
 	/// - **Windows:** Resolves to `{FOLDERID_LocalAppData}`.
-	pub fn cache_dir(&self) -> Result<PathBuf> {
-		dirs::cache_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn cache_dir(&self) -> Result<PathBuf> { dirs::cache_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's config directory.
 	///
@@ -39,9 +38,7 @@ impl<R: Runtime> PathResolver<R> {
 	/// - **Linux:** Resolves to `$XDG_CONFIG_HOME` or `$HOME/.config`.
 	/// - **macOS:** Resolves to `$HOME/Library/Application Support`.
 	/// - **Windows:** Resolves to `{FOLDERID_RoamingAppData}`.
-	pub fn config_dir(&self) -> Result<PathBuf> {
-		dirs::config_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn config_dir(&self) -> Result<PathBuf> { dirs::config_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's data directory.
 	///
@@ -50,9 +47,7 @@ impl<R: Runtime> PathResolver<R> {
 	/// - **Linux:** Resolves to `$XDG_DATA_HOME` or `$HOME/.local/share`.
 	/// - **macOS:** Resolves to `$HOME/Library/Application Support`.
 	/// - **Windows:** Resolves to `{FOLDERID_RoamingAppData}`.
-	pub fn data_dir(&self) -> Result<PathBuf> {
-		dirs::data_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn data_dir(&self) -> Result<PathBuf> { dirs::data_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's local data directory.
 	///
@@ -69,40 +64,38 @@ impl<R: Runtime> PathResolver<R> {
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_DESKTOP_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_DESKTOP_DIR`.
 	/// - **macOS:** Resolves to `$HOME/Desktop`.
 	/// - **Windows:** Resolves to `{FOLDERID_Desktop}`.
-	pub fn desktop_dir(&self) -> Result<PathBuf> {
-		dirs::desktop_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn desktop_dir(&self) -> Result<PathBuf> { dirs::desktop_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's document directory.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_DOCUMENTS_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_DOCUMENTS_DIR`.
 	/// - **macOS:** Resolves to `$HOME/Documents`.
 	/// - **Windows:** Resolves to `{FOLDERID_Documents}`.
-	pub fn document_dir(&self) -> Result<PathBuf> {
-		dirs::document_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn document_dir(&self) -> Result<PathBuf> { dirs::document_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's download directory.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_DOWNLOAD_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_DOWNLOAD_DIR`.
 	/// - **macOS:** Resolves to `$HOME/Downloads`.
 	/// - **Windows:** Resolves to `{FOLDERID_Downloads}`.
-	pub fn download_dir(&self) -> Result<PathBuf> {
-		dirs::download_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn download_dir(&self) -> Result<PathBuf> { dirs::download_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's executable directory.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to `$XDG_BIN_HOME/../bin` or `$XDG_DATA_HOME/../bin` or `$HOME/.local/bin`.
+	/// - **Linux:** Resolves to `$XDG_BIN_HOME/../bin` or
+	///   `$XDG_DATA_HOME/../bin` or `$HOME/.local/bin`.
 	/// - **macOS:** Not supported.
 	/// - **Windows:** Not supported.
 	pub fn executable_dir(&self) -> Result<PathBuf> {
@@ -113,12 +106,11 @@ impl<R: Runtime> PathResolver<R> {
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to `$XDG_DATA_HOME/fonts` or `$HOME/.local/share/fonts`.
+	/// - **Linux:** Resolves to `$XDG_DATA_HOME/fonts` or
+	///   `$HOME/.local/share/fonts`.
 	/// - **macOS:** Resolves to `$HOME/Library/Fonts`.
 	/// - **Windows:** Not supported.
-	pub fn font_dir(&self) -> Result<PathBuf> {
-		dirs::font_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn font_dir(&self) -> Result<PathBuf> { dirs::font_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's home directory.
 	///
@@ -127,31 +119,27 @@ impl<R: Runtime> PathResolver<R> {
 	/// - **Linux:** Resolves to `$HOME`.
 	/// - **macOS:** Resolves to `$HOME`.
 	/// - **Windows:** Resolves to `{FOLDERID_Profile}`.
-	pub fn home_dir(&self) -> Result<PathBuf> {
-		dirs::home_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn home_dir(&self) -> Result<PathBuf> { dirs::home_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's picture directory.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_PICTURES_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_PICTURES_DIR`.
 	/// - **macOS:** Resolves to `$HOME/Pictures`.
 	/// - **Windows:** Resolves to `{FOLDERID_Pictures}`.
-	pub fn picture_dir(&self) -> Result<PathBuf> {
-		dirs::picture_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn picture_dir(&self) -> Result<PathBuf> { dirs::picture_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's public directory.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_PUBLICSHARE_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_PUBLICSHARE_DIR`.
 	/// - **macOS:** Resolves to `$HOME/Public`.
 	/// - **Windows:** Resolves to `{FOLDERID_Public}`.
-	pub fn public_dir(&self) -> Result<PathBuf> {
-		dirs::public_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn public_dir(&self) -> Result<PathBuf> { dirs::public_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's runtime directory.
 	///
@@ -160,31 +148,27 @@ impl<R: Runtime> PathResolver<R> {
 	/// - **Linux:** Resolves to `$XDG_RUNTIME_DIR`.
 	/// - **macOS:** Not supported.
 	/// - **Windows:** Not supported.
-	pub fn runtime_dir(&self) -> Result<PathBuf> {
-		dirs::runtime_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn runtime_dir(&self) -> Result<PathBuf> { dirs::runtime_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's template directory.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_TEMPLATES_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_TEMPLATES_DIR`.
 	/// - **macOS:** Not supported.
 	/// - **Windows:** Resolves to `{FOLDERID_Templates}`.
-	pub fn template_dir(&self) -> Result<PathBuf> {
-		dirs::template_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn template_dir(&self) -> Result<PathBuf> { dirs::template_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the user's video dir
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)' `XDG_VIDEOS_DIR`.
+	/// - **Linux:** Resolves to [`xdg-user-dirs`](https://www.freedesktop.org/wiki/Software/xdg-user-dirs/)'
+	///   `XDG_VIDEOS_DIR`.
 	/// - **macOS:** Resolves to `$HOME/Movies`.
 	/// - **Windows:** Resolves to `{FOLDERID_Videos}`.
-	pub fn video_dir(&self) -> Result<PathBuf> {
-		dirs::video_dir().ok_or(Error::UnknownPath)
-	}
+	pub fn video_dir(&self) -> Result<PathBuf> { dirs::video_dir().ok_or(Error::UnknownPath) }
 
 	/// Returns the path to the resource directory of this app.
 	pub fn resource_dir(&self) -> Result<PathBuf> {
@@ -205,12 +189,16 @@ impl<R: Runtime> PathResolver<R> {
 	///
 	/// Resolves to [`data_dir`](self.data_dir)`/${bundle_identifier}`.
 	pub fn app_data_dir(&self) -> Result<PathBuf> {
-		dirs::data_dir().ok_or(Error::UnknownPath).map(|dir| dir.join(&self.0.config().identifier))
+		dirs::data_dir()
+			.ok_or(Error::UnknownPath)
+			.map(|dir| dir.join(&self.0.config().identifier))
 	}
 
-	/// Returns the path to the suggested directory for your app's local data files.
+	/// Returns the path to the suggested directory for your app's local data
+	/// files.
 	///
-	/// Resolves to [`local_data_dir`](self.local_data_dir)`/${bundle_identifier}`.
+	/// Resolves to
+	/// [`local_data_dir`](self.local_data_dir)`/${bundle_identifier}`.
 	pub fn app_local_data_dir(&self) -> Result<PathBuf> {
 		dirs::data_local_dir()
 			.ok_or(Error::UnknownPath)
@@ -221,16 +209,21 @@ impl<R: Runtime> PathResolver<R> {
 	///
 	/// Resolves to [`cache_dir`](self.cache_dir)`/${bundle_identifier}`.
 	pub fn app_cache_dir(&self) -> Result<PathBuf> {
-		dirs::cache_dir().ok_or(Error::UnknownPath).map(|dir| dir.join(&self.0.config().identifier))
+		dirs::cache_dir()
+			.ok_or(Error::UnknownPath)
+			.map(|dir| dir.join(&self.0.config().identifier))
 	}
 
 	/// Returns the path to the suggested directory for your app's log files.
 	///
 	/// ## Platform-specific
 	///
-	/// - **Linux:** Resolves to [`data_local_dir`](self.data_local_dir)`/${bundle_identifier}/logs`.
-	/// - **macOS:** Resolves to [`home_dir`](self.home_dir)`/Library/Logs/${bundle_identifier}`
-	/// - **Windows:** Resolves to [`data_local_dir`](self.data_local_dir)`/${bundle_identifier}/logs`.
+	/// - **Linux:** Resolves to
+	///   [`data_local_dir`](self.data_local_dir)`/${bundle_identifier}/logs`.
+	/// - **macOS:** Resolves to
+	///   [`home_dir`](self.home_dir)`/Library/Logs/${bundle_identifier}`
+	/// - **Windows:** Resolves to
+	///   [`data_local_dir`](self.data_local_dir)`/${bundle_identifier}/logs`.
 	pub fn app_log_dir(&self) -> Result<PathBuf> {
 		#[cfg(target_os = "macos")]
 		let path = dirs::home_dir()
@@ -246,7 +239,5 @@ impl<R: Runtime> PathResolver<R> {
 	}
 
 	/// A temporary directory. Resolves to [`std::env::temp_dir`].
-	pub fn temp_dir(&self) -> Result<PathBuf> {
-		Ok(std::env::temp_dir())
-	}
+	pub fn temp_dir(&self) -> Result<PathBuf> { Ok(std::env::temp_dir()) }
 }

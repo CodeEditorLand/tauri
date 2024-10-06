@@ -2,6 +2,4 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-pub fn greet(name: &str) -> String {
-	format!("Hello, {name}!")
-}
+pub fn greet(name:&str) -> String { format!("Hello, {name}!") }

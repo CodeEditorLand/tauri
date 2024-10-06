@@ -14,7 +14,15 @@ use syn::{
 	parse_macro_input,
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Expr, ExprLit, FnArg, ItemFn, Lit, Meta, Pat, Token, Visibility,
+	Expr,
+	ExprLit,
+	FnArg,
+	ItemFn,
+	Lit,
+	Meta,
+	Pat,
+	Token,
+	Visibility,
 };
 
 enum WrapperAttributeKind {
@@ -23,29 +31,31 @@ enum WrapperAttributeKind {
 }
 
 impl Parse for WrapperAttributeKind {
-	fn parse(input: ParseStream) -> syn::Result<Self> {
+	fn parse(input:ParseStream) -> syn::Result<Self> {
 		match input.parse::<Meta>() {
 			Ok(m) => Ok(Self::Meta(m)),
-			Err(e) => match input.parse::<Token![async]>() {
-				Ok(_) => Ok(Self::Async),
-				Err(_) => Err(e),
+			Err(e) => {
+				match input.parse::<Token![async]>() {
+					Ok(_) => Ok(Self::Async),
+					Err(_) => Err(e),
+				}
 			},
 		}
 	}
 }
 
 struct WrapperAttributes {
-	root: TokenStream2,
-	execution_context: ExecutionContext,
-	argument_case: ArgumentCase,
+	root:TokenStream2,
+	execution_context:ExecutionContext,
+	argument_case:ArgumentCase,
 }
 
 impl Parse for WrapperAttributes {
-	fn parse(input: ParseStream) -> syn::Result<Self> {
+	fn parse(input:ParseStream) -> syn::Result<Self> {
 		let mut wrapper_attributes = WrapperAttributes {
-			root: quote!(::tauri),
-			execution_context: ExecutionContext::Blocking,
-			argument_case: ArgumentCase::Camel,
+			root:quote!(::tauri),
+			execution_context:ExecutionContext::Blocking,
+			argument_case:ArgumentCase::Camel,
 		};
 
 		let attrs = Punctuated::<WrapperAttributeKind, Token![,]>::parse_terminated(input)?;
@@ -53,7 +63,7 @@ impl Parse for WrapperAttributes {
 			match attr {
 				WrapperAttributeKind::Meta(Meta::List(_)) => {
 					return Err(syn::Error::new(input.span(), "unexpected list input"));
-				}
+				},
 				WrapperAttributeKind::Meta(Meta::NameValue(v)) => {
 					if v.path.is_ident("rename_all") {
 						if let Expr::Lit(ExprLit { lit: Lit::Str(s), attrs: _ }) = v.value {
@@ -64,8 +74,8 @@ impl Parse for WrapperAttributes {
 									return Err(syn::Error::new(
 										s.span(),
 										"expected \"camelCase\" or \"snake_case\"",
-									))
-								}
+									));
+								},
 							};
 						}
 					} else if v.path.is_ident("root") {
@@ -80,16 +90,16 @@ impl Parse for WrapperAttributes {
 							};
 						}
 					}
-				}
+				},
 				WrapperAttributeKind::Meta(Meta::Path(_)) => {
 					return Err(syn::Error::new(
 						input.span(),
 						"unexpected input, expected one of `rename_all`, `root`, `async`",
 					));
-				}
+				},
 				WrapperAttributeKind::Async => {
 					wrapper_attributes.execution_context = ExecutionContext::Async;
-				}
+				},
 			}
 		}
 
@@ -112,13 +122,14 @@ enum ArgumentCase {
 
 /// The bindings we attach to `tauri::Invoke`.
 struct Invoke {
-	message: Ident,
-	resolver: Ident,
-	acl: Ident,
+	message:Ident,
+	resolver:Ident,
+	acl:Ident,
 }
 
-/// Create a new [`Wrapper`] from the function and the generated code parsed from the function.
-pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
+/// Create a new [`Wrapper`] from the function and the generated code parsed
+/// from the function.
+pub fn wrapper(attributes:TokenStream, item:TokenStream) -> TokenStream {
 	let mut attrs = parse_macro_input!(attributes as WrapperAttributes);
 	let function = parse_macro_input!(item as ItemFn);
 	let wrapper = super::format_command_wrapper(&function.sig.ident);
@@ -128,26 +139,28 @@ pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
 		attrs.execution_context = ExecutionContext::Async;
 	}
 
-	// macros used with `pub use my_macro;` need to be exported with `#[macro_export]`
+	// macros used with `pub use my_macro;` need to be exported with
+	// `#[macro_export]`
 	let maybe_macro_export = match &function.vis {
 		Visibility::Public(_) | Visibility::Restricted(_) => quote!(#[macro_export]),
 		_ => TokenStream2::default(),
 	};
 
 	let invoke = Invoke {
-		message: format_ident!("__tauri_message__"),
-		resolver: format_ident!("__tauri_resolver__"),
-		acl: format_ident!("__tauri_acl__"),
+		message:format_ident!("__tauri_message__"),
+		resolver:format_ident!("__tauri_resolver__"),
+		acl:format_ident!("__tauri_acl__"),
 	};
 
-	// Tauri currently doesn't support async commands that take a reference as input and don't return
-	// a result. See: https://github.com/tauri-apps/tauri/issues/2533
+	// Tauri currently doesn't support async commands that take a reference as input
+	// and don't return a result. See: https://github.com/tauri-apps/tauri/issues/2533
 	//
-	// For now, we provide an informative error message to the user in that case. Once #2533 is
-	// resolved, this check can be removed.
+	// For now, we provide an informative error message to the user in that case.
+	// Once #2533 is resolved, this check can be removed.
 	let mut async_command_check = TokenStream2::new();
 	if function.sig.asyncness.is_some() {
-		// This check won't catch all possible problems but it should catch the most common ones.
+		// This check won't catch all possible problems but it should catch the most
+		// common ones.
 		let mut ref_argument_span = None;
 
 		for arg in &function.sig.inputs {
@@ -155,7 +168,7 @@ pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
 				match &*pat.ty {
 					syn::Type::Reference(_) => {
 						ref_argument_span = Some(pat.span());
-					}
+					},
 					syn::Type::Path(path) => {
 						// Check if the type contains a lifetime argument
 						let last = path.path.segments.last().unwrap();
@@ -168,16 +181,17 @@ pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
 								ref_argument_span = Some(pat.span());
 							}
 						}
-					}
-					_ => {}
+					},
+					_ => {},
 				}
 
 				if let Some(span) = ref_argument_span {
 					if let syn::ReturnType::Type(_, return_type) = &function.sig.output {
-						// To check if the return type is `Result` we require it to check a trait that is
-						// only implemented by `Result`. That way we don't exclude renamed result types
-						// which we wouldn't otherwise be able to detect purely from the token stream.
-						// The "error message" displayed to the user is simply the trait name.
+						// To check if the return type is `Result` we require it to check a trait
+						// that is only implemented by `Result`. That way we don't exclude
+						// renamed result types which we wouldn't otherwise be able to detect
+						// purely from the token stream. The "error message" displayed to the
+						// user is simply the trait name.
 						async_command_check = quote_spanned! {return_type.span() =>
 						  #[allow(unreachable_code, clippy::diverging_sub_expression)]
 						  const _: () = if false {
@@ -204,10 +218,14 @@ pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
 		.unwrap_or_else(|| quote!(::core::option::Option::None));
 
 	let body = match attrs.execution_context {
-		ExecutionContext::Async => body_async(&plugin_name, &function, &invoke, &attrs)
-			.unwrap_or_else(syn::Error::into_compile_error),
-		ExecutionContext::Blocking => body_blocking(&plugin_name, &function, &invoke, &attrs)
-			.unwrap_or_else(syn::Error::into_compile_error),
+		ExecutionContext::Async => {
+			body_async(&plugin_name, &function, &invoke, &attrs)
+				.unwrap_or_else(syn::Error::into_compile_error)
+		},
+		ExecutionContext::Blocking => {
+			body_blocking(&plugin_name, &function, &invoke, &attrs)
+				.unwrap_or_else(syn::Error::into_compile_error)
+		},
 	};
 
 	let Invoke { message, resolver, acl } = invoke;
@@ -270,16 +288,18 @@ pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
 	.into()
 }
 
-/// Generates an asynchronous command response from the arguments and return value of a function.
+/// Generates an asynchronous command response from the arguments and return
+/// value of a function.
 ///
-/// See the [`tauri::command`] module for all the items and traits that make this possible.
+/// See the [`tauri::command`] module for all the items and traits that make
+/// this possible.
 ///
 /// [`tauri::command`]: https://docs.rs/tauri/*/tauri/runtime/index.html
 fn body_async(
-	plugin_name: &TokenStream2,
-	function: &ItemFn,
-	invoke: &Invoke,
-	attributes: &WrapperAttributes,
+	plugin_name:&TokenStream2,
+	function:&ItemFn,
+	invoke:&Invoke,
+	attributes:&WrapperAttributes,
 ) -> syn::Result<TokenStream2> {
 	let Invoke { message, resolver, acl } = invoke;
 	parse_args(plugin_name, function, message, acl, attributes).map(|args| {
@@ -309,21 +329,24 @@ fn body_async(
 	})
 }
 
-/// Generates a blocking command response from the arguments and return value of a function.
+/// Generates a blocking command response from the arguments and return value of
+/// a function.
 ///
-/// See the [`tauri::command`] module for all the items and traits that make this possible.
+/// See the [`tauri::command`] module for all the items and traits that make
+/// this possible.
 ///
 /// [`tauri::command`]: https://docs.rs/tauri/*/tauri/runtime/index.html
 fn body_blocking(
-	plugin_name: &TokenStream2,
-	function: &ItemFn,
-	invoke: &Invoke,
-	attributes: &WrapperAttributes,
+	plugin_name:&TokenStream2,
+	function:&ItemFn,
+	invoke:&Invoke,
+	attributes:&WrapperAttributes,
 ) -> syn::Result<TokenStream2> {
 	let Invoke { message, resolver, acl } = invoke;
 	let args = parse_args(plugin_name, function, message, acl, attributes)?;
 
-	// the body of a `match` to early return any argument that wasn't successful in parsing.
+	// the body of a `match` to early return any argument that wasn't successful in
+	// parsing.
 	let match_body = quote!({
 	  Ok(arg) => arg,
 	  Err(err) => { #resolver.invoke_error(err); return true },
@@ -344,13 +367,14 @@ fn body_blocking(
 	})
 }
 
-/// Parse all arguments for the command wrapper to use from the signature of the command function.
+/// Parse all arguments for the command wrapper to use from the signature of the
+/// command function.
 fn parse_args(
-	plugin_name: &TokenStream2,
-	function: &ItemFn,
-	message: &Ident,
-	acl: &Ident,
-	attributes: &WrapperAttributes,
+	plugin_name:&TokenStream2,
+	function:&ItemFn,
+	message:&Ident,
+	acl:&Ident,
+	attributes:&WrapperAttributes,
 ) -> syn::Result<Vec<TokenStream2>> {
 	function
 		.sig
@@ -362,12 +386,12 @@ fn parse_args(
 
 /// Transform a [`FnArg`] into a command argument.
 fn parse_arg(
-	plugin_name: &TokenStream2,
-	command: &Ident,
-	arg: &FnArg,
-	message: &Ident,
-	acl: &Ident,
-	attributes: &WrapperAttributes,
+	plugin_name:&TokenStream2,
+	command:&Ident,
+	arg:&FnArg,
+	message:&Ident,
+	acl:&Ident,
+	attributes:&WrapperAttributes,
 ) -> syn::Result<TokenStream2> {
 	// we have no use for self arguments
 	let mut arg = match arg {
@@ -376,22 +400,24 @@ fn parse_arg(
 			return Err(syn::Error::new(
 				arg.span(),
 				"unable to use self as a command function parameter",
-			))
-		}
+			));
+		},
 	};
 
-	// we only support patterns that allow us to extract some sort of keyed identifier
+	// we only support patterns that allow us to extract some sort of keyed
+	// identifier
 	let mut key = match &mut arg {
 		Pat::Ident(arg) => arg.ident.unraw().to_string(),
-		Pat::Wild(_) => "".into(), // we always convert to camelCase, so "_" will end up empty anyways
+		Pat::Wild(_) => "".into(), // we always convert to camelCase, so "_" will end up empty
+		// anyways
 		Pat::Struct(s) => super::path_to_command(&mut s.path).ident.to_string(),
 		Pat::TupleStruct(s) => super::path_to_command(&mut s.path).ident.to_string(),
 		err => {
 			return Err(syn::Error::new(
 				err.span(),
 				"only named, wildcard, struct, and tuple struct arguments allowed",
-			))
-		}
+			));
+		},
 	};
 
 	// also catch self arguments that use FnArg::Typed syntax
@@ -405,10 +431,10 @@ fn parse_arg(
 	match attributes.argument_case {
 		ArgumentCase::Camel => {
 			key = key.to_lower_camel_case();
-		}
+		},
 		ArgumentCase::Snake => {
 			key = key.to_snake_case();
-		}
+		},
 	}
 
 	let root = &attributes.root;

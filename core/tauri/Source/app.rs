@@ -46,10 +46,7 @@ use crate::{
 	plugin::{Plugin, PluginStore},
 	resources::ResourceTable,
 	runtime::{
-		window::{
-			WebviewEvent as RuntimeWebviewEvent,
-			WindowEvent as RuntimeWindowEvent,
-		},
+		window::{WebviewEvent as RuntimeWebviewEvent, WindowEvent as RuntimeWindowEvent},
 		ExitRequestedEventAction,
 		RunEvent as RuntimeRunEvent,
 		RuntimeHandle,
@@ -79,25 +76,18 @@ use crate::{
 pub(crate) mod plugin;
 
 #[cfg(desktop)]
-pub(crate) type GlobalMenuEventListener<T> =
-	Box<dyn Fn(&T, crate::menu::MenuEvent) + Send + Sync>;
+pub(crate) type GlobalMenuEventListener<T> = Box<dyn Fn(&T, crate::menu::MenuEvent) + Send + Sync>;
 #[cfg(all(desktop, feature = "tray-icon"))]
 pub(crate) type GlobalTrayIconEventListener<T> =
 	Box<dyn Fn(&T, crate::tray::TrayIconEvent) + Send + Sync>;
-pub(crate) type GlobalWindowEventListener<R> =
-	Box<dyn Fn(&Window<R>, &WindowEvent) + Send + Sync>;
+pub(crate) type GlobalWindowEventListener<R> = Box<dyn Fn(&Window<R>, &WindowEvent) + Send + Sync>;
 pub(crate) type GlobalWebviewEventListener<R> =
 	Box<dyn Fn(&Webview<R>, &WebviewEvent) + Send + Sync>;
 /// A closure that is run when the Tauri application is setting up.
-pub type SetupHook<R> = Box<
-	dyn FnOnce(
-			&mut App<R>,
-		) -> std::result::Result<(), Box<dyn std::error::Error>>
-		+ Send,
->;
+pub type SetupHook<R> =
+	Box<dyn FnOnce(&mut App<R>) -> std::result::Result<(), Box<dyn std::error::Error>> + Send>;
 /// A closure that is run every time a page starts or finishes loading.
-pub type OnPageLoad<R> =
-	dyn Fn(&Webview<R>, &PageLoadPayload<'_>) + Send + Sync + 'static;
+pub type OnPageLoad<R> = dyn Fn(&Webview<R>, &PageLoadPayload<'_>) + Send + Sync + 'static;
 
 /// The exit code on [`RunEvent::ExitRequested`] when
 /// [`AppHandle#method.restart`] is called.
@@ -111,9 +101,7 @@ impl ExitRequestApi {
 	/// Prevents the app from exiting.
 	///
 	/// **Note:** This is ignored when using [`AppHandle#method.restart`].
-	pub fn prevent_exit(&self) {
-		self.0.send(ExitRequestedEventAction::Prevent).unwrap();
-	}
+	pub fn prevent_exit(&self) { self.0.send(ExitRequestedEventAction::Prevent).unwrap(); }
 }
 
 /// Api exposed on the `CloseRequested` event.
@@ -187,14 +175,11 @@ impl From<RuntimeWindowEvent> for WindowEvent {
 			},
 			RuntimeWindowEvent::Destroyed => Self::Destroyed,
 			RuntimeWindowEvent::Focused(flag) => Self::Focused(flag),
-			RuntimeWindowEvent::ScaleFactorChanged {
-				scale_factor,
-				new_inner_size,
-			} => Self::ScaleFactorChanged { scale_factor, new_inner_size },
-			RuntimeWindowEvent::DragDrop(event) => Self::DragDrop(event),
-			RuntimeWindowEvent::ThemeChanged(theme) => {
-				Self::ThemeChanged(theme)
+			RuntimeWindowEvent::ScaleFactorChanged { scale_factor, new_inner_size } => {
+				Self::ScaleFactorChanged { scale_factor, new_inner_size }
 			},
+			RuntimeWindowEvent::DragDrop(event) => Self::DragDrop(event),
+			RuntimeWindowEvent::ThemeChanged(theme) => Self::ThemeChanged(theme),
 		}
 	}
 }
@@ -326,13 +311,9 @@ impl<R:Runtime> AssetResolver<R> {
 			// embedded assets so we can use get_asset() directly
 			// we only fallback to reading from distDir directly if we're using
 			// an external URL (which is likely)
-			if let (
-				Some(_),
-				Some(crate::utils::config::FrontendDist::Directory(dist_path)),
-			) = (
-				&self.manager.config().build.dev_url,
-				&self.manager.config().build.frontend_dist,
-			) {
+			if let (Some(_), Some(crate::utils::config::FrontendDist::Directory(dist_path))) =
+				(&self.manager.config().build.dev_url, &self.manager.config().build.frontend_dist)
+			{
 				let asset_path = std::path::PathBuf::from(&path)
 					.components()
 					.filter(|c| !matches!(c, std::path::Component::RootDir))
@@ -344,8 +325,7 @@ impl<R:Runtime> AssetResolver<R> {
 					.map(|p| p.join(dist_path).join(&asset_path))
 					.unwrap_or_else(|| dist_path.join(&asset_path));
 				return std::fs::read(asset_path).ok().map(|bytes| {
-					let mime_type =
-						crate::utils::mime_type::MimeType::parse(&bytes, &path);
+					let mime_type = crate::utils::mime_type::MimeType::parse(&bytes, &path);
 					Asset { bytes, mime_type, csp_header:None }
 				});
 			}
@@ -375,9 +355,7 @@ impl AppHandle<crate::Wry> {
 	/// Create a new tao window using a callback. The event loop must be running
 	/// at this point.
 	pub fn create_tao_window<
-		F:FnOnce() -> (String, tauri_runtime_wry::TaoWindowBuilder)
-			+ Send
-			+ 'static,
+		F:FnOnce() -> (String, tauri_runtime_wry::TaoWindowBuilder) + Send + 'static,
 	>(
 		&self,
 		f:F,
@@ -402,29 +380,21 @@ impl AppHandle<crate::Wry> {
 
 impl<R:Runtime> Clone for AppHandle<R> {
 	fn clone(&self) -> Self {
-		Self {
-			runtime_handle:self.runtime_handle.clone(),
-			manager:self.manager.clone(),
-		}
+		Self { runtime_handle:self.runtime_handle.clone(), manager:self.manager.clone() }
 	}
 }
 
 impl<'de, R:Runtime> CommandArg<'de, R> for AppHandle<R> {
 	/// Grabs the [`Window`] from the [`CommandItem`] and returns the associated
 	/// [`AppHandle`]. This will never fail.
-	fn from_command(
-		command:CommandItem<'de, R>,
-	) -> std::result::Result<Self, InvokeError> {
+	fn from_command(command:CommandItem<'de, R>) -> std::result::Result<Self, InvokeError> {
 		Ok(command.message.webview().window().app_handle)
 	}
 }
 
 impl<R:Runtime> AppHandle<R> {
 	/// Runs the given closure on the main thread.
-	pub fn run_on_main_thread<F:FnOnce() + Send + 'static>(
-		&self,
-		f:F,
-	) -> crate::Result<()> {
+	pub fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> crate::Result<()> {
 		self.runtime_handle.run_on_main_thread(f).map_err(Into::into)
 	}
 
@@ -443,9 +413,7 @@ impl<R:Runtime> AppHandle<R> {
 	/// 	Runtime,
 	/// };
 	///
-	/// fn init_plugin<R:Runtime>() -> TauriPlugin<R> {
-	/// 	PluginBuilder::new("dummy").build()
-	/// }
+	/// fn init_plugin<R:Runtime>() -> TauriPlugin<R> { PluginBuilder::new("dummy").build() }
 	///
 	/// tauri::Builder::default().setup(move |app| {
 	/// 	let handle = app.handle().clone();
@@ -477,9 +445,7 @@ impl<R:Runtime> AppHandle<R> {
 	/// 	Runtime,
 	/// };
 	///
-	/// fn init_plugin<R:Runtime>() -> TauriPlugin<R> {
-	/// 	PluginBuilder::new("dummy").build()
-	/// }
+	/// fn init_plugin<R:Runtime>() -> TauriPlugin<R> { PluginBuilder::new("dummy").build() }
 	///
 	/// let plugin = init_plugin();
 	/// // `.name()` requires the `PLugin` trait import
@@ -529,20 +495,13 @@ impl<R:Runtime> AppHandle<R> {
 	/// ```
 	#[cfg(target_os = "macos")]
 	#[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
-	pub fn set_activation_policy(
-		&self,
-		activation_policy:ActivationPolicy,
-	) -> crate::Result<()> {
-		self.runtime_handle
-			.set_activation_policy(activation_policy)
-			.map_err(Into::into)
+	pub fn set_activation_policy(&self, activation_policy:ActivationPolicy) -> crate::Result<()> {
+		self.runtime_handle.set_activation_policy(activation_policy).map_err(Into::into)
 	}
 }
 
 impl<R:Runtime> Manager<R> for AppHandle<R> {
-	fn resources_table(&self) -> MutexGuard<'_, ResourceTable> {
-		self.manager.resources_table()
-	}
+	fn resources_table(&self) -> MutexGuard<'_, ResourceTable> { self.manager.resources_table() }
 }
 
 impl<R:Runtime> ManagerBase<R> for AppHandle<R> {
@@ -581,9 +540,7 @@ impl<R:Runtime> fmt::Debug for App<R> {
 }
 
 impl<R:Runtime> Manager<R> for App<R> {
-	fn resources_table(&self) -> MutexGuard<'_, ResourceTable> {
-		self.manager.resources_table()
-	}
+	fn resources_table(&self) -> MutexGuard<'_, ResourceTable> { self.manager.resources_table() }
 }
 
 impl<R:Runtime> ManagerBase<R> for App<R> {
@@ -611,9 +568,7 @@ impl App<crate::Wry> {
 	/// # Stability
 	///
 	/// This API is unstable.
-	pub fn wry_plugin<
-		P:tauri_runtime_wry::PluginBuilder<EventLoopMessage> + Send + 'static,
-	>(
+	pub fn wry_plugin<P:tauri_runtime_wry::PluginBuilder<EventLoopMessage> + Send + 'static>(
 		&mut self,
 		plugin:P,
 	) where
@@ -627,9 +582,7 @@ macro_rules! shared_app_impl {
 		impl<R:Runtime> $app {
 			/// Registers a global menu event listener.
 			#[cfg(desktop)]
-			pub fn on_menu_event<
-				F:Fn(&AppHandle<R>, MenuEvent) + Send + Sync + 'static,
-			>(
+			pub fn on_menu_event<F:Fn(&AppHandle<R>, MenuEvent) + Send + Sync + 'static>(
 				&self,
 				handler:F,
 			) {
@@ -666,10 +619,7 @@ macro_rules! shared_app_impl {
 			/// JS.
 			#[cfg(all(desktop, feature = "tray-icon"))]
 			#[cfg_attr(docsrs, doc(cfg(all(desktop, feature = "tray-icon"))))]
-			pub fn remove_tray_by_id<'a, I>(
-				&self,
-				id:&'a I,
-			) -> Option<TrayIcon<R>>
+			pub fn remove_tray_by_id<'a, I>(&self, id:&'a I) -> Option<TrayIcon<R>>
 			where
 				I: ?Sized,
 				TrayIconId: PartialEq<&'a I>, {
@@ -681,9 +631,7 @@ macro_rules! shared_app_impl {
 			pub fn config(&self) -> &Config { self.manager.config() }
 
 			/// Gets the app's package information.
-			pub fn package_info(&self) -> &PackageInfo {
-				self.manager.package_info()
-			}
+			pub fn package_info(&self) -> &PackageInfo { self.manager.package_info() }
 
 			/// The application's asset resolver.
 			pub fn asset_resolver(&self) -> AssetResolver<R> {
@@ -695,26 +643,16 @@ macro_rules! shared_app_impl {
 			/// Returns None if it can't identify any monitor as a primary one.
 			pub fn primary_monitor(&self) -> crate::Result<Option<Monitor>> {
 				Ok(match self.runtime() {
-					RuntimeOrDispatch::Runtime(h) => {
-						h.primary_monitor().map(Into::into)
-					},
-					RuntimeOrDispatch::RuntimeHandle(h) => {
-						h.primary_monitor().map(Into::into)
-					},
+					RuntimeOrDispatch::Runtime(h) => h.primary_monitor().map(Into::into),
+					RuntimeOrDispatch::RuntimeHandle(h) => h.primary_monitor().map(Into::into),
 					_ => unreachable!(),
 				})
 			}
 
 			/// Returns the monitor that contains the given point.
-			pub fn monitor_from_point(
-				&self,
-				x:f64,
-				y:f64,
-			) -> crate::Result<Option<Monitor>> {
+			pub fn monitor_from_point(&self, x:f64, y:f64) -> crate::Result<Option<Monitor>> {
 				Ok(match self.runtime() {
-					RuntimeOrDispatch::Runtime(h) => {
-						h.monitor_from_point(x, y).map(Into::into)
-					},
+					RuntimeOrDispatch::Runtime(h) => h.monitor_from_point(x, y).map(Into::into),
 					RuntimeOrDispatch::RuntimeHandle(h) => {
 						h.monitor_from_point(x, y).map(Into::into)
 					},
@@ -726,16 +664,10 @@ macro_rules! shared_app_impl {
 			pub fn available_monitors(&self) -> crate::Result<Vec<Monitor>> {
 				Ok(match self.runtime() {
 					RuntimeOrDispatch::Runtime(h) => {
-						h.available_monitors()
-							.into_iter()
-							.map(Into::into)
-							.collect()
+						h.available_monitors().into_iter().map(Into::into).collect()
 					},
 					RuntimeOrDispatch::RuntimeHandle(h) => {
-						h.available_monitors()
-							.into_iter()
-							.map(Into::into)
-							.collect()
+						h.available_monitors().into_iter().map(Into::into).collect()
 					},
 					_ => unreachable!(),
 				})
@@ -752,14 +684,10 @@ macro_rules! shared_app_impl {
 			///
 			/// The coordinates can be negative if the top-left hand corner of
 			/// the window is outside of the visible screen region.
-			pub fn cursor_position(
-				&self,
-			) -> crate::Result<PhysicalPosition<f64>> {
+			pub fn cursor_position(&self) -> crate::Result<PhysicalPosition<f64>> {
 				Ok(match self.runtime() {
 					RuntimeOrDispatch::Runtime(h) => h.cursor_position()?,
-					RuntimeOrDispatch::RuntimeHandle(h) => {
-						h.cursor_position()?
-					},
+					RuntimeOrDispatch::RuntimeHandle(h) => h.cursor_position()?,
 					_ => unreachable!(),
 				})
 			}
@@ -771,19 +699,14 @@ macro_rules! shared_app_impl {
 
 			/// Returns the app-wide menu.
 			#[cfg(desktop)]
-			pub fn menu(&self) -> Option<Menu<R>> {
-				self.manager.menu.menu_lock().clone()
-			}
+			pub fn menu(&self) -> Option<Menu<R>> { self.manager.menu.menu_lock().clone() }
 
 			/// Sets the app-wide menu and returns the previous one.
 			///
 			/// If a window was not created with an explicit menu or had one set
 			/// explicitly, this menu will be assigned to it.
 			#[cfg(desktop)]
-			pub fn set_menu(
-				&self,
-				menu:Menu<R>,
-			) -> crate::Result<Option<Menu<R>>> {
+			pub fn set_menu(&self, menu:Menu<R>) -> crate::Result<Option<Menu<R>>> {
 				let prev_menu = self.remove_menu()?;
 
 				self.manager.menu.insert_menu_into_stash(&menu);
@@ -795,16 +718,14 @@ macro_rules! shared_app_impl {
 				#[cfg(not(target_os = "macos"))]
 				{
 					for window in self.manager.windows().values() {
-						let has_app_wide_menu = window.has_app_wide_menu()
-							|| window.menu().is_none();
+						let has_app_wide_menu =
+							window.has_app_wide_menu() || window.menu().is_none();
 						if has_app_wide_menu {
 							window.set_menu(menu.clone())?;
-							window.menu_lock().replace(
-								crate::window::WindowMenu {
-									is_app_wide:true,
-									menu:menu.clone(),
-								},
-							);
+							window.menu_lock().replace(crate::window::WindowMenu {
+								is_app_wide:true,
+								menu:menu.clone(),
+							});
 						}
 					}
 				}
@@ -853,9 +774,7 @@ macro_rules! shared_app_impl {
 
 				let prev_menu = self.manager.menu.menu_lock().take();
 
-				self.manager.remove_menu_from_stash_by_id(
-					prev_menu.as_ref().map(|m| m.id()),
-				);
+				self.manager.remove_menu_from_stash_by_id(prev_menu.as_ref().map(|m| m.id()));
 
 				Ok(prev_menu)
 			}
@@ -868,8 +787,7 @@ macro_rules! shared_app_impl {
 			pub fn hide_menu(&self) -> crate::Result<()> {
 				#[cfg(not(target_os = "macos"))]
 				{
-					let is_app_menu_set =
-						self.manager.menu.menu_lock().is_some();
+					let is_app_menu_set = self.manager.menu.menu_lock().is_some();
 					if is_app_menu_set {
 						for window in self.manager.windows().values() {
 							if window.has_app_wide_menu() {
@@ -890,8 +808,7 @@ macro_rules! shared_app_impl {
 			pub fn show_menu(&self) -> crate::Result<()> {
 				#[cfg(not(target_os = "macos"))]
 				{
-					let is_app_menu_set =
-						self.manager.menu.menu_lock().is_some();
+					let is_app_menu_set = self.manager.menu.menu_lock().is_some();
 					if is_app_menu_set {
 						for window in self.manager.windows().values() {
 							if window.has_app_wide_menu() {
@@ -1009,11 +926,7 @@ macro_rules! shared_app_impl {
 			/// 	app.emit("synchronized", ());
 			/// }
 			/// ```
-			fn emit<S:Serialize + Clone>(
-				&self,
-				event:&str,
-				payload:S,
-			) -> Result<()> {
+			fn emit<S:Serialize + Clone>(&self, event:&str, payload:S) -> Result<()> {
 				self.manager.emit(event, payload)
 			}
 
@@ -1025,27 +938,22 @@ macro_rules! shared_app_impl {
 			/// use tauri::{Emitter, EventTarget};
 			///
 			/// #[tauri::command]
-			/// fn download(app: tauri::AppHandle) {
-			///   for i in 1..100 {
-			///     std::thread::sleep(std::time::Duration::from_millis(150));
-			///     // emit a download progress event to all listeners
-			///     app.emit_to(EventTarget::any(), "download-progress", i);
-			///     // emit an event to listeners that used App::listen or AppHandle::listen
-			///     app.emit_to(EventTarget::app(), "download-progress", i);
-			///     // emit an event to any webview/window/webviewWindow matching the given label
-			///     app.emit_to("updater", "download-progress", i); // similar to using EventTarget::labeled
-			///     app.emit_to(EventTarget::labeled("updater"), "download-progress", i);
-			///     // emit an event to listeners that used WebviewWindow::listen
-			///     app.emit_to(EventTarget::webview_window("updater"), "download-progress", i);
-			///   }
+			/// fn download(app:tauri::AppHandle) {
+			/// 	for i in 1..100 {
+			/// 		std::thread::sleep(std::time::Duration::from_millis(150));
+			/// 		// emit a download progress event to all listeners
+			/// 		app.emit_to(EventTarget::any(), "download-progress", i);
+			/// 		// emit an event to listeners that used App::listen or AppHandle::listen
+			/// 		app.emit_to(EventTarget::app(), "download-progress", i);
+			/// 		// emit an event to any webview/window/webviewWindow matching the given label
+			/// 		app.emit_to("updater", "download-progress", i); // similar to using EventTarget::labeled
+			/// 		app.emit_to(EventTarget::labeled("updater"), "download-progress", i);
+			/// 		// emit an event to listeners that used WebviewWindow::listen
+			/// 		app.emit_to(EventTarget::webview_window("updater"), "download-progress", i);
+			/// 	}
 			/// }
 			/// ```
-			fn emit_to<I, S>(
-				&self,
-				target:I,
-				event:&str,
-				payload:S,
-			) -> Result<()>
+			fn emit_to<I, S>(&self, target:I, event:&str, payload:S) -> Result<()>
 			where
 				I: Into<EventTarget>,
 				S: Serialize + Clone, {
@@ -1066,21 +974,14 @@ macro_rules! shared_app_impl {
 			/// 		// emit a download progress event to the updater window
 			/// 		app.emit_filter("download-progress", i, |t| {
 			/// 			match t {
-			/// 				EventTarget::WebviewWindow { label } => {
-			/// 					label == "main"
-			/// 				},
+			/// 				EventTarget::WebviewWindow { label } => label == "main",
 			/// 				_ => false,
 			/// 			}
 			/// 		});
 			/// 	}
 			/// }
 			/// ```
-			fn emit_filter<S, F>(
-				&self,
-				event:&str,
-				payload:S,
-				filter:F,
-			) -> Result<()>
+			fn emit_filter<S, F>(&self, event:&str, payload:S, filter:F) -> Result<()>
 			where
 				S: Serialize + Clone,
 				F: Fn(&EventTarget) -> bool, {
@@ -1094,10 +995,7 @@ shared_app_impl!(App<R>);
 shared_app_impl!(AppHandle<R>);
 
 impl<R:Runtime> App<R> {
-	#[cfg_attr(
-		feature = "tracing",
-		tracing::instrument(name = "app::core_plugins::register")
-	)]
+	#[cfg_attr(feature = "tracing", tracing::instrument(name = "app::core_plugins::register"))]
 	fn register_core_plugins(&self) -> crate::Result<()> {
 		self.handle.plugin(crate::path::plugin::init())?;
 		self.handle.plugin(crate::event::plugin::init())?;
@@ -1114,10 +1012,7 @@ impl<R:Runtime> App<R> {
 	}
 
 	/// Runs the given closure on the main thread.
-	pub fn run_on_main_thread<F:FnOnce() + Send + 'static>(
-		&self,
-		f:F,
-	) -> crate::Result<()> {
+	pub fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> crate::Result<()> {
 		self.app_handle().run_on_main_thread(f)
 	}
 
@@ -1137,10 +1032,7 @@ impl<R:Runtime> App<R> {
 	/// ```
 	#[cfg(target_os = "macos")]
 	#[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
-	pub fn set_activation_policy(
-		&mut self,
-		activation_policy:ActivationPolicy,
-	) {
+	pub fn set_activation_policy(&mut self, activation_policy:ActivationPolicy) {
 		if let Some(runtime) = self.runtime.as_mut() {
 			runtime.set_activation_policy(activation_policy);
 		} else {
@@ -1191,10 +1083,7 @@ impl<R:Runtime> App<R> {
 	/// 	}
 	/// });
 	/// ```
-	pub fn run<F:FnMut(&AppHandle<R>, RunEvent) + 'static>(
-		mut self,
-		mut callback:F,
-	) {
+	pub fn run<F:FnMut(&AppHandle<R>, RunEvent) + 'static>(mut self, mut callback:F) {
 		let app_handle = self.handle().clone();
 
 		let manager = self.manager.clone();
@@ -1204,25 +1093,16 @@ impl<R:Runtime> App<R> {
 					if let Err(e) = setup(&mut self) {
 						panic!("Failed to setup app: {e}");
 					}
-					let event = on_event_loop_event(
-						&app_handle,
-						RuntimeRunEvent::Ready,
-						&manager,
-					);
+					let event = on_event_loop_event(&app_handle, RuntimeRunEvent::Ready, &manager);
 					callback(&app_handle, event);
 				},
 				RuntimeRunEvent::Exit => {
-					let event = on_event_loop_event(
-						&app_handle,
-						RuntimeRunEvent::Exit,
-						&manager,
-					);
+					let event = on_event_loop_event(&app_handle, RuntimeRunEvent::Exit, &manager);
 					callback(&app_handle, event);
 					app_handle.cleanup_before_exit();
 				},
 				_ => {
-					let event =
-						on_event_loop_event(&app_handle, event, &manager);
+					let event = on_event_loop_event(&app_handle, event, &manager);
 					callback(&app_handle, event);
 				},
 			}
@@ -1253,10 +1133,7 @@ impl<R:Runtime> App<R> {
 	/// }
 	/// ```
 	#[cfg(desktop)]
-	pub fn run_iteration<F:FnMut(&AppHandle<R>, RunEvent) + 'static>(
-		&mut self,
-		mut callback:F,
-	) {
+	pub fn run_iteration<F:FnMut(&AppHandle<R>, RunEvent) + 'static>(&mut self, mut callback:F) {
 		let manager = self.manager.clone();
 
 		let app_handle = self.handle().clone();
@@ -1317,8 +1194,7 @@ pub struct Builder<R:Runtime> {
 
 	/// A closure that returns the menu set to all windows.
 	#[cfg(desktop)]
-	menu:
-		Option<Box<dyn FnOnce(&AppHandle<R>) -> crate::Result<Menu<R>> + Send>>,
+	menu:Option<Box<dyn FnOnce(&AppHandle<R>) -> crate::Result<Menu<R>> + Send>>,
 
 	/// Enable macOS default menu creation.
 	#[allow(unused)]
@@ -1372,11 +1248,9 @@ impl<R:Runtime> Builder<R> {
 			invoke_handler:Box::new(|_| false),
 			invoke_responder:None,
 			invoke_initialization_script:InvokeInitializationScript {
-				process_ipc_message_fn:
-					crate::manager::webview::PROCESS_IPC_MESSAGE_FN,
+				process_ipc_message_fn:crate::manager::webview::PROCESS_IPC_MESSAGE_FN,
 				os_name:std::env::consts::OS,
-				fetch_channel_data_command:
-					crate::ipc::channel::FETCH_CHANNEL_DATA_COMMAND,
+				fetch_channel_data_command:crate::ipc::channel::FETCH_CHANNEL_DATA_COMMAND,
 				invoke_key:&invoke_key.clone(),
 			}
 			.render_default(&Default::default())
@@ -1442,16 +1316,9 @@ impl<R:Runtime> Builder<R> {
 	/// `(message: object, options: object)` arguments and send it to the
 	/// backend.
 	#[must_use]
-	pub fn invoke_system<F>(
-		mut self,
-		initialization_script:String,
-		responder:F,
-	) -> Self
+	pub fn invoke_system<F>(mut self, initialization_script:String, responder:F) -> Self
 	where
-		F: Fn(&Webview<R>, &str, &InvokeResponse, CallbackFn, CallbackFn)
-			+ Send
-			+ Sync
-			+ 'static, {
+		F: Fn(&Webview<R>, &str, &InvokeResponse, CallbackFn, CallbackFn) + Send + Sync + 'static, {
 		self.invoke_initialization_script = initialization_script;
 		self.invoke_responder.replace(Arc::new(responder));
 		self
@@ -1492,15 +1359,13 @@ impl<R:Runtime> Builder<R> {
 	/// }
 	/// "#;
 	///
-	/// tauri::Builder::default()
-	/// 	.append_invoke_initialization_script(custom_script);
+	/// tauri::Builder::default().append_invoke_initialization_script(custom_script);
 	/// ```
 	pub fn append_invoke_initialization_script(
 		mut self,
 		initialization_script:impl AsRef<str>,
 	) -> Self {
-		self.invoke_initialization_script
-			.push_str(initialization_script.as_ref());
+		self.invoke_initialization_script.push_str(initialization_script.as_ref());
 		self
 	}
 
@@ -1524,9 +1389,7 @@ tauri::Builder::default()
 	#[must_use]
 	pub fn setup<F>(mut self, setup:F) -> Self
 	where
-		F: FnOnce(
-				&mut App<R>,
-			) -> std::result::Result<(), Box<dyn std::error::Error>>
+		F: FnOnce(&mut App<R>) -> std::result::Result<(), Box<dyn std::error::Error>>
 			+ Send
 			+ 'static, {
 		self.setup = Box::new(setup);
@@ -1551,38 +1414,44 @@ tauri::Builder::default()
 	///
 	/// ```
 	/// mod plugin {
-	///   use tauri::{plugin::{Builder as PluginBuilder, TauriPlugin}, RunEvent, Runtime};
+	/// 	use tauri::{
+	/// 		plugin::{Builder as PluginBuilder, TauriPlugin},
+	/// 		RunEvent,
+	/// 		Runtime,
+	/// 	};
 	///
-	///   // this command can be called in the frontend using `invoke('plugin:window|do_something')`.
-	///   #[tauri::command]
-	///   async fn do_something<R: Runtime>(app: tauri::AppHandle<R>, window: tauri::Window<R>) -> Result<(), String> {
-	///     println!("command called");
-	///     Ok(())
-	///   }
-	///   pub fn init<R: Runtime>() -> TauriPlugin<R> {
-	///     PluginBuilder::new("window")
-	///       .setup(|app, api| {
-	///         // initialize the plugin here
-	///         Ok(())
-	///       })
-	///       .on_event(|app, event| {
-	///         match event {
-	///           RunEvent::Ready => {
-	///             println!("app is ready");
-	///           }
-	///           RunEvent::WindowEvent { label, event, .. } => {
-	///             println!("window {} received an event: {:?}", label, event);
-	///           }
-	///           _ => (),
-	///         }
-	///       })
-	///       .invoke_handler(tauri::generate_handler![do_something])
-	///       .build()
-	///   }
+	/// 	// this command can be called in the frontend using `invoke('plugin:window|do_something')`.
+	/// 	#[tauri::command]
+	/// 	async fn do_something<R:Runtime>(
+	/// 		app:tauri::AppHandle<R>,
+	/// 		window:tauri::Window<R>,
+	/// 	) -> Result<(), String> {
+	/// 		println!("command called");
+	/// 		Ok(())
+	/// 	}
+	/// 	pub fn init<R:Runtime>() -> TauriPlugin<R> {
+	/// 		PluginBuilder::new("window")
+	/// 			.setup(|app, api| {
+	/// 				// initialize the plugin here
+	/// 				Ok(())
+	/// 			})
+	/// 			.on_event(|app, event| {
+	/// 				match event {
+	/// 					RunEvent::Ready => {
+	/// 						println!("app is ready");
+	/// 					},
+	/// 					RunEvent::WindowEvent { label, event, .. } => {
+	/// 						println!("window {} received an event: {:?}", label, event);
+	/// 					},
+	/// 					_ => (),
+	/// 				}
+	/// 			})
+	/// 			.invoke_handler(tauri::generate_handler![do_something])
+	/// 			.build()
+	/// 	}
 	/// }
 	///
-	/// tauri::Builder::default()
-	///   .plugin(plugin::init());
+	/// tauri::Builder::default().plugin(plugin::init());
 	/// ```
 	#[must_use]
 	pub fn plugin<P:Plugin<R> + 'static>(mut self, plugin:P) -> Self {
@@ -1654,9 +1523,7 @@ tauri::Builder::default()
 	/// struct MyString(String);
 	///
 	/// #[tauri::command]
-	/// fn int_command(state:State<MyInt>) -> String {
-	/// 	format!("The stateful int is: {}", state.0)
-	/// }
+	/// fn int_command(state:State<MyInt>) -> String { format!("The stateful int is: {}", state.0) }
 	///
 	/// #[tauri::command]
 	/// fn string_command<'r>(state:State<'r, MyString>) {
@@ -1676,10 +1543,7 @@ tauri::Builder::default()
 	where
 		T: Send + Sync + 'static, {
 		let type_name = std::any::type_name::<T>();
-		assert!(
-			self.state.set(state),
-			"state for type '{type_name}' is already being managed",
-		);
+		assert!(self.state.set(state), "state for type '{type_name}' is already being managed",);
 		self
 	}
 
@@ -1707,9 +1571,7 @@ tauri::Builder::default()
 	/// ```
 	#[must_use]
 	#[cfg(desktop)]
-	pub fn menu<
-		F:FnOnce(&AppHandle<R>) -> crate::Result<Menu<R>> + Send + 'static,
-	>(
+	pub fn menu<F:FnOnce(&AppHandle<R>) -> crate::Result<Menu<R>> + Send + 'static>(
 		mut self,
 		f:F,
 	) -> Self {
@@ -1746,9 +1608,7 @@ tauri::Builder::default()
 	/// });
 	/// ```
 	#[must_use]
-	pub fn on_window_event<
-		F:Fn(&Window<R>, &WindowEvent) + Send + Sync + 'static,
-	>(
+	pub fn on_window_event<F:Fn(&Window<R>, &WindowEvent) + Send + Sync + 'static>(
 		mut self,
 		handler:F,
 	) -> Self {
@@ -1770,9 +1630,7 @@ tauri::Builder::default()
 	/// });
 	/// ```
 	#[must_use]
-	pub fn on_webview_event<
-		F:Fn(&Webview<R>, &WebviewEvent) + Send + Sync + 'static,
-	>(
+	pub fn on_webview_event<F:Fn(&Webview<R>, &WebviewEvent) + Send + Sync + 'static>(
 		mut self,
 		handler:F,
 	) -> Self {
@@ -1793,33 +1651,24 @@ tauri::Builder::default()
 	///
 	/// # Examples
 	/// ```
-	/// tauri::Builder::default().register_uri_scheme_protocol(
-	/// 	"app-files",
-	/// 	|_app, request| {
-	/// 		// skip leading `/`
-	/// 		if let Ok(data) = std::fs::read(&request.uri().path()[1..]) {
-	/// 			http::Response::builder().body(data).unwrap()
-	/// 		} else {
-	/// 			http::Response::builder()
-	/// 				.status(http::StatusCode::BAD_REQUEST)
-	/// 				.header(
-	/// 					http::header::CONTENT_TYPE,
-	/// 					mime::TEXT_PLAIN.essence_str(),
-	/// 				)
-	/// 				.body("failed to read file".as_bytes().to_vec())
-	/// 				.unwrap()
-	/// 		}
-	/// 	},
-	/// );
+	/// tauri::Builder::default().register_uri_scheme_protocol("app-files", |_app, request| {
+	/// 	// skip leading `/`
+	/// 	if let Ok(data) = std::fs::read(&request.uri().path()[1..]) {
+	/// 		http::Response::builder().body(data).unwrap()
+	/// 	} else {
+	/// 		http::Response::builder()
+	/// 			.status(http::StatusCode::BAD_REQUEST)
+	/// 			.header(http::header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
+	/// 			.body("failed to read file".as_bytes().to_vec())
+	/// 			.unwrap()
+	/// 	}
+	/// });
 	/// ```
 	#[must_use]
 	pub fn register_uri_scheme_protocol<
 		N:Into<String>,
 		T:Into<Cow<'static, [u8]>>,
-		H:Fn(&AppHandle<R>, http::Request<Vec<u8>>) -> http::Response<T>
-			+ Send
-			+ Sync
-			+ 'static,
+		H:Fn(&AppHandle<R>, http::Request<Vec<u8>>) -> http::Response<T> + Send + Sync + 'static,
 	>(
 		mut self,
 		uri_scheme:N,
@@ -1855,16 +1704,12 @@ tauri::Builder::default()
 	/// 		let path = request.uri().path()[1..].to_string();
 	/// 		std::thread::spawn(move || {
 	/// 			if let Ok(data) = std::fs::read(path) {
-	/// 				responder
-	/// 					.respond(http::Response::builder().body(data).unwrap());
+	/// 				responder.respond(http::Response::builder().body(data).unwrap());
 	/// 			} else {
 	/// 				responder.respond(
 	/// 					http::Response::builder()
 	/// 						.status(http::StatusCode::BAD_REQUEST)
-	/// 						.header(
-	/// 							http::header::CONTENT_TYPE,
-	/// 							mime::TEXT_PLAIN.essence_str(),
-	/// 						)
+	/// 						.header(http::header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
 	/// 						.body("failed to read file".as_bytes().to_vec())
 	/// 						.unwrap(),
 	/// 				);
@@ -1876,19 +1721,14 @@ tauri::Builder::default()
 	#[must_use]
 	pub fn register_asynchronous_uri_scheme_protocol<
 		N:Into<String>,
-		H:Fn(&AppHandle<R>, http::Request<Vec<u8>>, UriSchemeResponder)
-			+ Send
-			+ Sync
-			+ 'static,
+		H:Fn(&AppHandle<R>, http::Request<Vec<u8>>, UriSchemeResponder) + Send + Sync + 'static,
 	>(
 		mut self,
 		uri_scheme:N,
 		protocol:H,
 	) -> Self {
-		self.uri_scheme_protocols.insert(
-			uri_scheme.into(),
-			Arc::new(UriSchemeProtocol { protocol:Box::new(protocol) }),
-		);
+		self.uri_scheme_protocols
+			.insert(uri_scheme.into(), Arc::new(UriSchemeProtocol { protocol:Box::new(protocol) }));
 		self
 	}
 
@@ -1905,8 +1745,7 @@ tauri::Builder::default()
 	///
 	/// # Examples
 	/// ```,no_run
-	/// tauri::Builder::default()
-	/// 	.device_event_filter(tauri::DeviceEventFilter::Always);
+	/// tauri::Builder::default().device_event_filter(tauri::DeviceEventFilter::Always); 
 	/// ```
 	///
 	/// [`tao`]: https://crates.io/crates/tao
@@ -1917,16 +1756,11 @@ tauri::Builder::default()
 
 	/// Builds the application.
 	#[allow(clippy::type_complexity, unused_mut)]
-	#[cfg_attr(
-		feature = "tracing",
-		tracing::instrument(name = "app::build", skip_all)
-	)]
+	#[cfg_attr(feature = "tracing", tracing::instrument(name = "app::build", skip_all))]
 	pub fn build(mut self, context:Context<R>) -> crate::Result<App<R>> {
 		#[cfg(target_os = "macos")]
 		if self.menu.is_none() && self.enable_macos_default_menu {
-			self.menu = Some(Box::new(|app_handle| {
-				crate::menu::Menu::default(app_handle)
-			}));
+			self.menu = Some(Box::new(|app_handle| crate::menu::Menu::default(app_handle)));
 		}
 
 		let manager = Arc::new(AppManager::with_handlers(
@@ -2008,12 +1842,9 @@ tauri::Builder::default()
 		{
 			// setup menu event handler
 			let proxy = runtime.create_proxy();
-			muda::MenuEvent::set_event_handler(Some(
-				move |e:muda::MenuEvent| {
-					let _ =
-						proxy.send_event(EventLoopMessage::MenuEvent(e.into()));
-				},
-			));
+			muda::MenuEvent::set_event_handler(Some(move |e:muda::MenuEvent| {
+				let _ = proxy.send_event(EventLoopMessage::MenuEvent(e.into()));
+			}));
 
 			// setup tray event handler
 			#[cfg(feature = "tray-icon")]
@@ -2021,9 +1852,7 @@ tauri::Builder::default()
 				let proxy = runtime.create_proxy();
 				tray_icon::TrayIconEvent::set_event_handler(Some(
 					move |e:tray_icon::TrayIconEvent| {
-						let _ = proxy.send_event(
-							EventLoopMessage::TrayIconEvent(e.into()),
-						);
+						let _ = proxy.send_event(EventLoopMessage::TrayIconEvent(e.into()));
 					},
 				));
 			}
@@ -2045,10 +1874,7 @@ tauri::Builder::default()
 		#[cfg(desktop)]
 		if let Some(menu) = self.menu {
 			let menu = menu(&app.handle)?;
-			app.manager
-				.menu
-				.menus_stash_lock()
-				.insert(menu.id().clone(), menu.clone());
+			app.manager.menu.menus_stash_lock().insert(menu.id().clone(), menu.clone());
 
 			#[cfg(target_os = "macos")]
 			init_app_menu(&menu)?;
@@ -2074,9 +1900,8 @@ tauri::Builder::default()
 
 		#[cfg(windows)]
 		{
-			if let crate::utils::config::WebviewInstallMode::FixedRuntime {
-				path,
-			} = &app.manager.config().bundle.windows.webview_install_mode
+			if let crate::utils::config::WebviewInstallMode::FixedRuntime { path } =
+				&app.manager.config().bundle.windows.webview_install_mode
 			{
 				if let Ok(resource_dir) = app.path().resource_dir() {
 					std::env::set_var(
@@ -2086,8 +1911,8 @@ tauri::Builder::default()
 				} else {
 					#[cfg(debug_assertions)]
 					eprintln!(
-						"failed to resolve resource directory; fallback to \
-						 the installed Webview2 runtime."
+						"failed to resolve resource directory; fallback to the installed Webview2 \
+						 runtime."
 					);
 				}
 			}
@@ -2130,18 +1955,14 @@ tauri::Builder::default()
 	}
 }
 
-pub(crate) type UriSchemeResponderFn =
-	Box<dyn FnOnce(http::Response<Cow<'static, [u8]>>) + Send>;
+pub(crate) type UriSchemeResponderFn = Box<dyn FnOnce(http::Response<Cow<'static, [u8]>>) + Send>;
 
 /// Async uri scheme protocol responder.
 pub struct UriSchemeResponder(pub(crate) UriSchemeResponderFn);
 
 impl UriSchemeResponder {
 	/// Resolves the request with the given response.
-	pub fn respond<T:Into<Cow<'static, [u8]>>>(
-		self,
-		response:http::Response<T>,
-	) {
+	pub fn respond<T:Into<Cow<'static, [u8]>>>(self, response:http::Response<T>) {
 		let (parts, body) = response.into_parts();
 		(self.0)(http::Response::from_parts(parts, body.into()))
 	}
@@ -2168,10 +1989,8 @@ fn init_app_menu<R:Runtime>(menu:&Menu<R>) -> crate::Result<()> {
 impl<R:Runtime> HasDisplayHandle for AppHandle<R> {
 	fn display_handle(
 		&self,
-	) -> std::result::Result<
-		raw_window_handle::DisplayHandle<'_>,
-		raw_window_handle::HandleError,
-	> {
+	) -> std::result::Result<raw_window_handle::DisplayHandle<'_>, raw_window_handle::HandleError>
+	{
 		self.runtime_handle.display_handle()
 	}
 }
@@ -2179,10 +1998,8 @@ impl<R:Runtime> HasDisplayHandle for AppHandle<R> {
 impl<R:Runtime> HasDisplayHandle for App<R> {
 	fn display_handle(
 		&self,
-	) -> std::result::Result<
-		raw_window_handle::DisplayHandle<'_>,
-		raw_window_handle::HandleError,
-	> {
+	) -> std::result::Result<raw_window_handle::DisplayHandle<'_>, raw_window_handle::HandleError>
+	{
 		self.handle.display_handle()
 	}
 }
@@ -2192,8 +2009,7 @@ fn setup<R:Runtime>(app:&mut App<R>) -> crate::Result<()> {
 	app.ran_setup = true;
 
 	for window_config in app.config().app.windows.clone() {
-		WebviewWindowBuilder::from_config(app.handle(), &window_config)?
-			.build()?;
+		WebviewWindowBuilder::from_config(app.handle(), &window_config)?.build()?;
 	}
 
 	app.manager.assets.setup(app);
@@ -2210,11 +2026,7 @@ fn on_event_loop_event<R:Runtime>(
 	event:RuntimeRunEvent<EventLoopMessage>,
 	manager:&AppManager<R>,
 ) -> RunEvent {
-	if let RuntimeRunEvent::WindowEvent {
-		label,
-		event: RuntimeWindowEvent::Destroyed,
-	} = &event
-	{
+	if let RuntimeRunEvent::WindowEvent { label, event: RuntimeWindowEvent::Destroyed } = &event {
 		manager.on_window_close(label);
 	}
 
@@ -2240,17 +2052,14 @@ fn on_event_loop_event<R:Runtime>(
 				};
 				use objc::*;
 				if let Some(icon) = app_handle.manager.app_icon.clone() {
-					let ns_app:id =
-						msg_send![class!(NSApplication), sharedApplication];
+					let ns_app:id = msg_send![class!(NSApplication), sharedApplication];
 					let data = NSData::dataWithBytes_length_(
 						nil,
 						icon.as_ptr() as *const std::os::raw::c_void,
 						icon.len() as u64,
 					);
-					let app_icon =
-						NSImage::initWithData_(NSImage::alloc(nil), data);
-					let _:() =
-						msg_send![ns_app, setApplicationIconImage: app_icon];
+					let app_icon = NSImage::initWithData_(NSImage::alloc(nil), data);
+					let _:() = msg_send![ns_app, setApplicationIconImage: app_icon];
 				}
 			}
 			RunEvent::Ready
@@ -2261,46 +2070,26 @@ fn on_event_loop_event<R:Runtime>(
 			match t {
 				#[cfg(desktop)]
 				EventLoopMessage::MenuEvent(ref e) => {
-					for listener in &*app_handle
-						.manager
-						.menu
-						.global_event_listeners
-						.lock()
-						.unwrap()
+					for listener in &*app_handle.manager.menu.global_event_listeners.lock().unwrap()
 					{
 						listener(app_handle, e.clone());
 					}
-					for (label, listener) in &*app_handle
-						.manager
-						.menu
-						.event_listeners
-						.lock()
-						.unwrap()
+					for (label, listener) in
+						&*app_handle.manager.menu.event_listeners.lock().unwrap()
 					{
-						if let Some(w) = app_handle.manager().get_window(label)
-						{
+						if let Some(w) = app_handle.manager().get_window(label) {
 							listener(&w, e.clone());
 						}
 					}
 				},
 				#[cfg(all(desktop, feature = "tray-icon"))]
 				EventLoopMessage::TrayIconEvent(ref e) => {
-					for listener in &*app_handle
-						.manager
-						.tray
-						.global_event_listeners
-						.lock()
-						.unwrap()
+					for listener in &*app_handle.manager.tray.global_event_listeners.lock().unwrap()
 					{
 						listener(app_handle, e.clone());
 					}
 
-					for (id, listener) in &*app_handle
-						.manager
-						.tray
-						.event_listeners
-						.lock()
-						.unwrap()
+					for (id, listener) in &*app_handle.manager.tray.event_listeners.lock().unwrap()
 					{
 						if e.id() == id {
 							if let Some(tray) = app_handle.tray_by_id(id) {
@@ -2317,9 +2106,7 @@ fn on_event_loop_event<R:Runtime>(
 		#[cfg(any(target_os = "macos", target_os = "ios"))]
 		RuntimeRunEvent::Opened { urls } => RunEvent::Opened { urls },
 		#[cfg(target_os = "macos")]
-		RuntimeRunEvent::Reopen { has_visible_windows } => {
-			RunEvent::Reopen { has_visible_windows }
-		},
+		RuntimeRunEvent::Reopen { has_visible_windows } => RunEvent::Reopen { has_visible_windows },
 		_ => unimplemented!(),
 	};
 
@@ -2341,10 +2128,8 @@ mod tests {
 
 		#[cfg(feature = "wry")]
 		{
-			crate::test_utils::assert_send::<super::AssetResolver<crate::Wry>>(
-			);
-			crate::test_utils::assert_sync::<super::AssetResolver<crate::Wry>>(
-			);
+			crate::test_utils::assert_send::<super::AssetResolver<crate::Wry>>();
+			crate::test_utils::assert_sync::<super::AssetResolver<crate::Wry>>();
 		}
 	}
 }

@@ -3,14 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{app, icon::create_icns_file};
-use crate::{
-	bundle::{common::CommandExt, Bundle},
-	PackageType, Settings,
-};
-
-use anyhow::Context;
-
 use std::{
 	env,
 	fs::{self, write},
@@ -18,14 +10,23 @@ use std::{
 	process::{Command, Stdio},
 };
 
+use anyhow::Context;
+
+use super::{app, icon::create_icns_file};
+use crate::{
+	bundle::{common::CommandExt, Bundle},
+	PackageType,
+	Settings,
+};
+
 pub struct Bundled {
-	pub dmg: Vec<PathBuf>,
-	pub app: Vec<PathBuf>,
+	pub dmg:Vec<PathBuf>,
+	pub app:Vec<PathBuf>,
 }
 
 /// Bundles the project.
 /// Returns a vector of PathBuf that shows where the DMG was created.
-pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<Bundled> {
+pub fn bundle_project(settings:&Settings, bundles:&[Bundle]) -> crate::Result<Bundled> {
 	// generate the .app bundle if needed
 	let app_bundle_paths =
 		if !bundles.iter().any(|bundle| bundle.package_type == PackageType::MacOsBundle) {
@@ -182,10 +183,10 @@ pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<
 	if let Some(keychain) = super::sign::keychain(settings.macos().signing_identity.as_deref())? {
 		super::sign::sign(
 			&keychain,
-			vec![super::sign::SignTarget { path: dmg_path.clone(), is_an_executable: false }],
+			vec![super::sign::SignTarget { path:dmg_path.clone(), is_an_executable:false }],
 			settings,
 		)?;
 	}
 
-	Ok(Bundled { dmg: vec![dmg_path], app: app_bundle_paths })
+	Ok(Bundled { dmg:vec![dmg_path], app:app_bundle_paths })
 }

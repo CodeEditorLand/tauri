@@ -2,12 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{get_app, Target};
-use crate::{
-	helpers::{config::get as get_tauri_config, template::JsonMap},
-	interface::{AppInterface, Interface},
-	Result,
-};
+use std::{env::var_os, path::PathBuf};
+
 use cargo_mobile2::{
 	android::env::Env as AndroidEnv,
 	config::app::App,
@@ -18,17 +14,28 @@ use cargo_mobile2::{
 	},
 };
 use handlebars::{
-	Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderError,
+	Context,
+	Handlebars,
+	Helper,
+	HelperResult,
+	Output,
+	RenderContext,
+	RenderError,
 	RenderErrorReason,
 };
 
-use std::{env::var_os, path::PathBuf};
+use super::{get_app, Target};
+use crate::{
+	helpers::{config::get as get_tauri_config, template::JsonMap},
+	interface::{AppInterface, Interface},
+	Result,
+};
 
 pub fn command(
-	target: Target,
-	ci: bool,
-	reinstall_deps: bool,
-	skip_targets_install: bool,
+	target:Target,
+	ci:bool,
+	reinstall_deps:bool,
+	skip_targets_install:bool,
 ) -> Result<()> {
 	let wrapper = TextWrapper::default();
 
@@ -38,11 +45,11 @@ pub fn command(
 }
 
 pub fn exec(
-	target: Target,
-	wrapper: &TextWrapper,
-	#[allow(unused_variables)] non_interactive: bool,
-	#[allow(unused_variables)] reinstall_deps: bool,
-	skip_targets_install: bool,
+	target:Target,
+	wrapper:&TextWrapper,
+	#[allow(unused_variables)] non_interactive:bool,
+	#[allow(unused_variables)] reinstall_deps:bool,
+	skip_targets_install:bool,
 ) -> Result<App> {
 	let tauri_config = get_tauri_config(target.platform_target(), None)?;
 
@@ -103,31 +110,34 @@ pub fn exec(
 
 	let app = match target {
 		// Generate Android Studio project
-		Target::Android => match AndroidEnv::new() {
-			Ok(_env) => {
-				let (config, metadata) =
-					super::android::get_config(&app, tauri_config_, None, &Default::default());
-				map.insert("android", &config);
-				super::android::project::gen(
-					&config,
-					&metadata,
-					(handlebars, map),
-					wrapper,
-					skip_targets_install,
-				)?;
-				app
-			}
-			Err(err) => {
-				if err.sdk_or_ndk_issue() {
-					Report::action_request(
-            " to initialize Android environment; Android support won't be usable until you fix the issue below and re-run `tauri android init`!",
-            err,
-          )
-          .print(wrapper);
+		Target::Android => {
+			match AndroidEnv::new() {
+				Ok(_env) => {
+					let (config, metadata) =
+						super::android::get_config(&app, tauri_config_, None, &Default::default());
+					map.insert("android", &config);
+					super::android::project::gen(
+						&config,
+						&metadata,
+						(handlebars, map),
+						wrapper,
+						skip_targets_install,
+					)?;
 					app
-				} else {
-					return Err(err.into());
-				}
+				},
+				Err(err) => {
+					if err.sdk_or_ndk_issue() {
+						Report::action_request(
+							" to initialize Android environment; Android support won't be usable \
+							 until you fix the issue below and re-run `tauri android init`!",
+							err,
+						)
+						.print(wrapper);
+						app
+					} else {
+						return Err(err.into());
+					}
+				},
 			}
 		},
 		#[cfg(target_os = "macos")]
@@ -147,14 +157,14 @@ pub fn exec(
 				skip_targets_install,
 			)?;
 			app
-		}
+		},
 	};
 
 	Report::victory("Project generated successfully!", "Make cool apps! 🌻 🐕 🎉").print(wrapper);
 	Ok(app)
 }
 
-fn handlebars(app: &App) -> (Handlebars<'static>, JsonMap) {
+fn handlebars(app:&App) -> (Handlebars<'static>, JsonMap) {
 	let mut h = Handlebars::new();
 	h.register_escape_fn(handlebars::no_escape);
 
@@ -174,11 +184,11 @@ fn handlebars(app: &App) -> (Handlebars<'static>, JsonMap) {
 	(h, map)
 }
 
-fn get_str<'a>(helper: &'a Helper) -> &'a str {
+fn get_str<'a>(helper:&'a Helper) -> &'a str {
 	helper.param(0).and_then(|v| v.value().as_str()).unwrap_or("")
 }
 
-fn get_str_array(helper: &Helper, formatter: impl Fn(&str) -> String) -> Option<Vec<String>> {
+fn get_str_array(helper:&Helper, formatter:impl Fn(&str) -> String) -> Option<Vec<String>> {
 	helper.param(0).and_then(|v| {
 		v.value().as_array().and_then(|arr| {
 			arr.iter()
@@ -194,21 +204,21 @@ fn get_str_array(helper: &Helper, formatter: impl Fn(&str) -> String) -> Option<
 }
 
 fn html_escape(
-	helper: &Helper,
-	_: &Handlebars,
-	_ctx: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	_ctx:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	out.write(&handlebars::html_escape(get_str(helper))).map_err(Into::into)
 }
 
 fn join(
-	helper: &Helper,
-	_: &Handlebars,
-	_: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	_:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	out.write(
 		&get_str_array(helper, |s| s.to_string())
@@ -225,11 +235,11 @@ fn join(
 }
 
 fn quote_and_join(
-	helper: &Helper,
-	_: &Handlebars,
-	_: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	_:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	out.write(
 		&get_str_array(helper, |s| format!("{s:?}"))
@@ -246,11 +256,11 @@ fn quote_and_join(
 }
 
 fn quote_and_join_colon_prefix(
-	helper: &Helper,
-	_: &Handlebars,
-	_: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	_:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	out.write(
 		&get_str_array(helper, |s| format!("{:?}", format!(":{s}")))
@@ -267,33 +277,39 @@ fn quote_and_join_colon_prefix(
 }
 
 fn snake_case(
-	helper: &Helper,
-	_: &Handlebars,
-	_: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	_:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	use heck::ToSnekCase as _;
 	out.write(&get_str(helper).to_snek_case()).map_err(Into::into)
 }
 
 fn escape_kotlin_keyword(
-	helper: &Helper,
-	_: &Handlebars,
-	_: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	_:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	let escaped_result = get_str(helper)
 		.split('.')
-		.map(|s| if KOTLIN_ONLY_KEYWORDS.contains(&s) { format!("`{}`", s) } else { s.to_string() })
+		.map(|s| {
+			if KOTLIN_ONLY_KEYWORDS.contains(&s) {
+				format!("`{}`", s)
+			} else {
+				s.to_string()
+			}
+		})
 		.collect::<Vec<_>>()
 		.join(".");
 
 	out.write(&escaped_result).map_err(Into::into)
 }
 
-fn app_root(ctx: &Context) -> Result<&str, RenderError> {
+fn app_root(ctx:&Context) -> Result<&str, RenderError> {
 	let app_root = ctx
 		.data()
 		.get("app")
@@ -308,11 +324,11 @@ fn app_root(ctx: &Context) -> Result<&str, RenderError> {
 }
 
 fn prefix_path(
-	helper: &Helper,
-	_: &Handlebars,
-	ctx: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	ctx:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	out.write(util::prefix_path(app_root(ctx)?, get_str(helper)).to_str().ok_or_else(|| {
 		RenderErrorReason::Other(
@@ -323,11 +339,11 @@ fn prefix_path(
 }
 
 fn unprefix_path(
-	helper: &Helper,
-	_: &Handlebars,
-	ctx: &Context,
-	_: &mut RenderContext,
-	out: &mut dyn Output,
+	helper:&Helper,
+	_:&Handlebars,
+	ctx:&Context,
+	_:&mut RenderContext,
+	out:&mut dyn Output,
 ) -> HelperResult {
 	out.write(
 		util::unprefix_path(app_root(ctx)?, get_str(helper))

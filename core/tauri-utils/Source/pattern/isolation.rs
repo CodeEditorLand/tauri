@@ -14,7 +14,7 @@ use getrandom::{getrandom, Error as CsprngError};
 use serialize_to_javascript::{default_template, Template};
 
 /// The style for the isolation iframe.
-pub const IFRAME_STYLE: &str = "#__tauri_isolation__ { display: none !important }";
+pub const IFRAME_STYLE:&str = "#__tauri_isolation__ { display: none !important }";
 
 /// Errors that can occur during Isolation keys generation.
 #[derive(Debug, thiserror::Error)]
@@ -41,17 +41,16 @@ pub enum Error {
 	Json(#[from] serde_json::Error),
 }
 
-/// A formatted AES-GCM cipher instance along with the key used to initialize it.
+/// A formatted AES-GCM cipher instance along with the key used to initialize
+/// it.
 #[derive(Clone)]
 pub struct AesGcmPair {
-	raw: [u8; 32],
-	key: Aes256Gcm,
+	raw:[u8; 32],
+	key:Aes256Gcm,
 }
 
 impl Debug for AesGcmPair {
-	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		write!(f, "AesGcmPair(...)")
-	}
+	fn fmt(&self, f:&mut Formatter<'_>) -> std::fmt::Result { write!(f, "AesGcmPair(...)") }
 }
 
 impl AesGcmPair {
@@ -60,21 +59,17 @@ impl AesGcmPair {
 		getrandom(&mut raw)?;
 
 		let key = aes_gcm::Key::<Aes256Gcm>::from_slice(&raw);
-		Ok(Self { raw, key: Aes256Gcm::new(key) })
+		Ok(Self { raw, key:Aes256Gcm::new(key) })
 	}
 
 	/// The raw value used to create the AES-GCM key
-	pub fn raw(&self) -> &[u8; 32] {
-		&self.raw
-	}
+	pub fn raw(&self) -> &[u8; 32] { &self.raw }
 
 	/// The formatted AES-GCM key
-	pub fn key(&self) -> &Aes256Gcm {
-		&self.key
-	}
+	pub fn key(&self) -> &Aes256Gcm { &self.key }
 
 	#[doc(hidden)]
-	pub fn encrypt(&self, nonce: &[u8; 12], payload: &[u8]) -> Result<Vec<u8>, Error> {
+	pub fn encrypt(&self, nonce:&[u8; 12], payload:&[u8]) -> Result<Vec<u8>, Error> {
 		self.key.encrypt(nonce.into(), payload).map_err(|_| self::Error::Aes)
 	}
 }
@@ -83,7 +78,7 @@ impl AesGcmPair {
 #[derive(Debug, Clone)]
 pub struct Keys {
 	/// AES-GCM key
-	aes_gcm: AesGcmPair,
+	aes_gcm:AesGcmPair,
 }
 
 impl Keys {
@@ -93,15 +88,13 @@ impl Keys {
 	}
 
 	/// The AES-GCM data (and raw data).
-	pub fn aes_gcm(&self) -> &AesGcmPair {
-		&self.aes_gcm
-	}
+	pub fn aes_gcm(&self) -> &AesGcmPair { &self.aes_gcm }
 
 	/// Decrypts a message using the generated keys.
-	pub fn decrypt(&self, raw: RawIsolationPayload<'_>) -> Result<Vec<u8>, Error> {
+	pub fn decrypt(&self, raw:RawIsolationPayload<'_>) -> Result<Vec<u8>, Error> {
 		let RawIsolationPayload { nonce, payload, .. } = raw;
 
-		let nonce: [u8; 12] = nonce.as_ref().try_into()?;
+		let nonce:[u8; 12] = nonce.as_ref().try_into()?;
 		self.aes_gcm
 			.key
 			.decrypt(Nonce::from_slice(&nonce), payload.as_ref())
@@ -113,22 +106,20 @@ impl Keys {
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RawIsolationPayload<'a> {
-	nonce: Cow<'a, [u8]>,
-	payload: Cow<'a, [u8]>,
-	content_type: Cow<'a, str>,
+	nonce:Cow<'a, [u8]>,
+	payload:Cow<'a, [u8]>,
+	content_type:Cow<'a, str>,
 }
 
 impl<'a> RawIsolationPayload<'a> {
 	/// Content type of this payload.
-	pub fn content_type(&self) -> &Cow<'a, str> {
-		&self.content_type
-	}
+	pub fn content_type(&self) -> &Cow<'a, str> { &self.content_type }
 }
 
 impl<'a> TryFrom<&'a Vec<u8>> for RawIsolationPayload<'a> {
 	type Error = Error;
 
-	fn try_from(value: &'a Vec<u8>) -> Result<Self, Self::Error> {
+	fn try_from(value:&'a Vec<u8>) -> Result<Self, Self::Error> {
 		serde_json::from_slice(value).map_err(Into::into)
 	}
 }
@@ -149,12 +140,12 @@ pub struct IsolationJavascriptCodegen {
 #[default_template("isolation.js")]
 pub struct IsolationJavascriptRuntime<'a> {
 	/// The key used on the Rust backend and the Isolation Javascript
-	pub runtime_aes_gcm_key: &'a [u8; 32],
+	pub runtime_aes_gcm_key:&'a [u8; 32],
 	/// The origin the isolation application is expecting messages from.
-	pub origin: String,
+	pub origin:String,
 	/// The function that processes the IPC message.
 	#[raw]
-	pub process_ipc_message_fn: &'a str,
+	pub process_ipc_message_fn:&'a str,
 }
 
 #[cfg(test)]

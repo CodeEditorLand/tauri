@@ -7,7 +7,12 @@
 pub(crate) mod plugin;
 mod webview_window;
 
-pub use webview_window::{WebviewWindow, WebviewWindowBuilder};
+use std::{
+	borrow::Cow,
+	hash::{Hash, Hasher},
+	path::PathBuf,
+	sync::{Arc, Mutex, MutexGuard},
+};
 
 use http::HeaderMap;
 use serde::Serialize;
@@ -24,25 +29,35 @@ use tauri_runtime::{
 };
 use tauri_utils::config::{WebviewUrl, WindowConfig};
 pub use url::Url;
+pub use webview_window::{WebviewWindow, WebviewWindowBuilder};
 
 use crate::{
 	app::{UriSchemeResponder, WebviewEvent},
 	event::{EmitArgs, EventTarget},
 	ipc::{
-		CallbackFn, CommandArg, CommandItem, Invoke, InvokeBody, InvokeError, InvokeMessage,
-		InvokeResolver, Origin, OwnedInvokeResponder,
+		CallbackFn,
+		CommandArg,
+		CommandItem,
+		Invoke,
+		InvokeBody,
+		InvokeError,
+		InvokeMessage,
+		InvokeResolver,
+		Origin,
+		OwnedInvokeResponder,
 	},
 	manager::AppManager,
 	sealed::{ManagerBase, RuntimeOrDispatch},
-	AppHandle, Emitter, Event, EventId, EventLoopMessage, Listener, Manager, ResourceTable,
-	Runtime, Window,
-};
-
-use std::{
-	borrow::Cow,
-	hash::{Hash, Hasher},
-	path::PathBuf,
-	sync::{Arc, Mutex, MutexGuard},
+	AppHandle,
+	Emitter,
+	Event,
+	EventId,
+	EventLoopMessage,
+	Listener,
+	Manager,
+	ResourceTable,
+	Runtime,
+	Window,
 };
 
 pub(crate) type WebResourceRequestHandler =
@@ -56,7 +71,7 @@ pub(crate) type DownloadHandler<R> = dyn Fn(Webview<R>, DownloadEvent<'_>) -> bo
 
 #[derive(Clone, Serialize)]
 pub(crate) struct CreatedEvent {
-	pub(crate) label: String,
+	pub(crate) label:String,
 }
 
 /// Download event for the [`WebviewBuilder#method.on_download`] hook.
@@ -65,75 +80,74 @@ pub enum DownloadEvent<'a> {
 	/// Download requested.
 	Requested {
 		/// The url being downloaded.
-		url: Url,
+		url:Url,
 		/// Represents where the file will be downloaded to.
-		/// Can be used to set the download location by assigning a new path to it.
-		/// The assigned path _must_ be absolute.
-		destination: &'a mut PathBuf,
+		/// Can be used to set the download location by assigning a new path to
+		/// it. The assigned path _must_ be absolute.
+		destination:&'a mut PathBuf,
 	},
 	/// Download finished.
 	Finished {
 		/// The URL of the original download request.
-		url: Url,
-		/// Potentially representing the filesystem path the file was downloaded to.
+		url:Url,
+		/// Potentially representing the filesystem path the file was downloaded
+		/// to.
 		///
-		/// A value of `None` being passed instead of a `PathBuf` does not necessarily indicate that the download
-		/// did not succeed, and may instead indicate some other failure - always check the third parameter if you need to
-		/// know if the download succeeded.
+		/// A value of `None` being passed instead of a `PathBuf` does not
+		/// necessarily indicate that the download did not succeed, and may
+		/// instead indicate some other failure - always check the third
+		/// parameter if you need to know if the download succeeded.
 		///
 		/// ## Platform-specific:
 		///
-		/// - **macOS**: The second parameter indicating the path the file was saved to is always empty, due to API
-		///   limitations.
-		path: Option<PathBuf>,
+		/// - **macOS**: The second parameter indicating the path the file was
+		///   saved to is always empty, due to API limitations.
+		path:Option<PathBuf>,
 		/// Indicates if the download succeeded or not.
-		success: bool,
+		success:bool,
 	},
 }
 
 /// The payload for the [`WebviewBuilder::on_page_load`] hook.
 #[derive(Debug, Clone)]
 pub struct PageLoadPayload<'a> {
-	pub(crate) url: &'a Url,
-	pub(crate) event: PageLoadEvent,
+	pub(crate) url:&'a Url,
+	pub(crate) event:PageLoadEvent,
 }
 
 impl<'a> PageLoadPayload<'a> {
 	/// The page URL.
-	pub fn url(&self) -> &'a Url {
-		self.url
-	}
+	pub fn url(&self) -> &'a Url { self.url }
 
 	/// The page load event.
-	pub fn event(&self) -> PageLoadEvent {
-		self.event
-	}
+	pub fn event(&self) -> PageLoadEvent { self.event }
 }
 
 /// The IPC invoke request.
 ///
 /// # Stability
 ///
-/// This struct is **NOT** part of the public stable API and is only meant to be used
-/// by internal code and external testing/fuzzing tools. If not used with feature `unstable`, this
-/// struct is marked `#[non_exhaustive]` and is non-constructable externally.
+/// This struct is **NOT** part of the public stable API and is only meant to be
+/// used by internal code and external testing/fuzzing tools. If not used with
+/// feature `unstable`, this struct is marked `#[non_exhaustive]` and is
+/// non-constructable externally.
 #[derive(Debug)]
 #[cfg_attr(not(feature = "test"), non_exhaustive)]
 pub struct InvokeRequest {
 	/// The invoke command.
-	pub cmd: String,
+	pub cmd:String,
 	/// The success callback.
-	pub callback: CallbackFn,
+	pub callback:CallbackFn,
 	/// The error callback.
-	pub error: CallbackFn,
+	pub error:CallbackFn,
 	/// URL of the frame that requested this command.
-	pub url: Url,
+	pub url:Url,
 	/// The body of the request.
-	pub body: InvokeBody,
+	pub body:InvokeBody,
 	/// The request headers.
-	pub headers: HeaderMap,
+	pub headers:HeaderMap,
 	/// The invoke key. Must match what was passed to the app manager.
-	pub invoke_key: String,
+	pub invoke_key:String,
 }
 
 /// The platform webview handle. Accessed with [`Webview#method.with_webview`];
@@ -161,9 +175,7 @@ impl PlatformWebview {
 			target_os = "openbsd"
 		)))
 	)]
-	pub fn inner(&self) -> webkit2gtk::WebView {
-		self.0.clone()
-	}
+	pub fn inner(&self) -> webkit2gtk::WebView { self.0.clone() }
 
 	/// Returns the WebView2 controller.
 	#[cfg(windows)]
@@ -179,42 +191,32 @@ impl PlatformWebview {
 	/// [WKWebView]: https://developer.apple.com/documentation/webkit/wkwebview
 	#[cfg(any(target_os = "macos", target_os = "ios"))]
 	#[cfg_attr(docsrs, doc(cfg(any(target_os = "macos", target_os = "ios"))))]
-	pub fn inner(&self) -> cocoa::base::id {
-		self.0.webview
-	}
+	pub fn inner(&self) -> cocoa::base::id { self.0.webview }
 
 	/// Returns WKWebView [controller] handle.
 	///
 	/// [controller]: https://developer.apple.com/documentation/webkit/wkusercontentcontroller
 	#[cfg(any(target_os = "macos", target_os = "ios"))]
 	#[cfg_attr(docsrs, doc(cfg(any(target_os = "macos", target_os = "ios"))))]
-	pub fn controller(&self) -> cocoa::base::id {
-		self.0.manager
-	}
+	pub fn controller(&self) -> cocoa::base::id { self.0.manager }
 
 	/// Returns [NSWindow] associated with the WKWebView webview.
 	///
 	/// [NSWindow]: https://developer.apple.com/documentation/appkit/nswindow
 	#[cfg(target_os = "macos")]
 	#[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
-	pub fn ns_window(&self) -> cocoa::base::id {
-		self.0.ns_window
-	}
+	pub fn ns_window(&self) -> cocoa::base::id { self.0.ns_window }
 
 	/// Returns [UIViewController] used by the WKWebView webview NSWindow.
 	///
 	/// [UIViewController]: https://developer.apple.com/documentation/uikit/uiviewcontroller
 	#[cfg(target_os = "ios")]
 	#[cfg_attr(docsrs, doc(cfg(target_os = "ios")))]
-	pub fn view_controller(&self) -> cocoa::base::id {
-		self.0.view_controller
-	}
+	pub fn view_controller(&self) -> cocoa::base::id { self.0.view_controller }
 
 	/// Returns handle for JNI execution.
 	#[cfg(target_os = "android")]
-	pub fn jni_handle(&self) -> tauri_runtime_wry::wry::JniHandle {
-		self.0
-	}
+	pub fn jni_handle(&self) -> tauri_runtime_wry::wry::JniHandle { self.0 }
 }
 
 macro_rules! unstable_struct {
@@ -230,30 +232,31 @@ macro_rules! unstable_struct {
 }
 
 unstable_struct!(
-	#[doc = "A builder for a webview."]
-	struct WebviewBuilder<R: Runtime> {
-		pub(crate) label: String,
-		pub(crate) webview_attributes: WebviewAttributes,
-		pub(crate) web_resource_request_handler: Option<Box<WebResourceRequestHandler>>,
-		pub(crate) navigation_handler: Option<Box<NavigationHandler>>,
-		pub(crate) on_page_load_handler: Option<Box<OnPageLoad<R>>>,
-		pub(crate) download_handler: Option<Arc<DownloadHandler<R>>>,
+	/// A builder for a webview.
+	struct WebviewBuilder<R:Runtime> {
+		pub(crate) label:String,
+		pub(crate) webview_attributes:WebviewAttributes,
+		pub(crate) web_resource_request_handler:Option<Box<WebResourceRequestHandler>>,
+		pub(crate) navigation_handler:Option<Box<NavigationHandler>>,
+		pub(crate) on_page_load_handler:Option<Box<OnPageLoad<R>>>,
+		pub(crate) download_handler:Option<Arc<DownloadHandler<R>>>,
 	}
 );
 
 #[cfg_attr(not(feature = "unstable"), allow(dead_code))]
-impl<R: Runtime> WebviewBuilder<R> {
-	/// Initializes a webview builder with the given webview label and URL to load.
+impl<R:Runtime> WebviewBuilder<R> {
+	/// Initializes a webview builder with the given webview label and URL to
+	/// load.
 	///
 	/// # Known issues
 	///
-	/// On Windows, this function deadlocks when used in a synchronous command, see [the Webview2 issue].
-	/// You should use `async` commands when creating windows.
+	/// On Windows, this function deadlocks when used in a synchronous command,
+	/// see [the Webview2 issue]. You should use `async` commands when creating
+	/// windows.
 	///
 	/// # Examples
 	///
 	/// - Create a webview in the setup hook:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -268,9 +271,7 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	///
 	/// - Create a webview in a separate thread:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -288,9 +289,7 @@ tauri::Builder::default()
 ```
    "####
 	)]
-	///
 	/// - Create a webview in a command:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -304,32 +303,32 @@ async fn create_window(app: tauri::AppHandle) {
 ```
   "####
 	)]
-	///
 	/// [the Webview2 issue]: https://github.com/tauri-apps/wry/issues/583
-	pub fn new<L: Into<String>>(label: L, url: WebviewUrl) -> Self {
+	pub fn new<L:Into<String>>(label:L, url:WebviewUrl) -> Self {
 		Self {
-			label: label.into(),
-			webview_attributes: WebviewAttributes::new(url),
-			web_resource_request_handler: None,
-			navigation_handler: None,
-			on_page_load_handler: None,
-			download_handler: None,
+			label:label.into(),
+			webview_attributes:WebviewAttributes::new(url),
+			web_resource_request_handler:None,
+			navigation_handler:None,
+			on_page_load_handler:None,
+			download_handler:None,
 		}
 	}
 
-	/// Initializes a webview builder from a [`WindowConfig`] from tauri.conf.json.
-	/// Keep in mind that you can't create 2 webviews with the same `label` so make sure
-	/// that the initial webview was closed or change the label of the new [`WebviewBuilder`].
+	/// Initializes a webview builder from a [`WindowConfig`] from
+	/// tauri.conf.json. Keep in mind that you can't create 2 webviews with the
+	/// same `label` so make sure that the initial webview was closed or change
+	/// the label of the new [`WebviewBuilder`].
 	///
 	/// # Known issues
 	///
-	/// On Windows, this function deadlocks when used in a synchronous command, see [the Webview2 issue].
-	/// You should use `async` commands when creating webviews.
+	/// On Windows, this function deadlocks when used in a synchronous command,
+	/// see [the Webview2 issue]. You should use `async` commands when creating
+	/// webviews.
 	///
 	/// # Examples
 	///
 	/// - Create a webview in a command:
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -344,28 +343,28 @@ async fn reopen_window(app: tauri::AppHandle) {
 ```
   "####
 	)]
-	///
 	/// [the Webview2 issue]: https://github.com/tauri-apps/wry/issues/583
-	pub fn from_config(config: &WindowConfig) -> Self {
+	pub fn from_config(config:&WindowConfig) -> Self {
 		Self {
-			label: config.label.clone(),
-			webview_attributes: WebviewAttributes::from(config),
-			web_resource_request_handler: None,
-			navigation_handler: None,
-			on_page_load_handler: None,
-			download_handler: None,
+			label:config.label.clone(),
+			webview_attributes:WebviewAttributes::from(config),
+			web_resource_request_handler:None,
+			navigation_handler:None,
+			on_page_load_handler:None,
+			download_handler:None,
 		}
 	}
 
-	/// Defines a closure to be executed when the webview makes an HTTP request for a web resource, allowing you to modify the response.
+	/// Defines a closure to be executed when the webview makes an HTTP request
+	/// for a web resource, allowing you to modify the response.
 	///
 	/// Currently only implemented for the `tauri` URI protocol.
 	///
-	/// **NOTE:** Currently this is **not** executed when using external URLs such as a development server,
-	/// but it might be implemented in the future. **Always** check the request URL.
+	/// **NOTE:** Currently this is **not** executed when using external URLs
+	/// such as a development server, but it might be implemented in the
+	/// future. **Always** check the request URL.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -405,19 +404,19 @@ tauri::Builder::default()
   "####
 	)]
 	pub fn on_web_resource_request<
-		F: Fn(http::Request<Vec<u8>>, &mut http::Response<Cow<'static, [u8]>>) + Send + Sync + 'static,
+		F:Fn(http::Request<Vec<u8>>, &mut http::Response<Cow<'static, [u8]>>) + Send + Sync + 'static,
 	>(
 		mut self,
-		f: F,
+		f:F,
 	) -> Self {
 		self.web_resource_request_handler.replace(Box::new(f));
 		self
 	}
 
-	/// Defines a closure to be executed when the webview navigates to a URL. Returning `false` cancels the navigation.
+	/// Defines a closure to be executed when the webview navigates to a URL.
+	/// Returning `false` cancels the navigation.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -445,17 +444,18 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	pub fn on_navigation<F: Fn(&Url) -> bool + Send + 'static>(mut self, f: F) -> Self {
+	pub fn on_navigation<F:Fn(&Url) -> bool + Send + 'static>(mut self, f:F) -> Self {
 		self.navigation_handler.replace(Box::new(f));
 		self
 	}
 
-	/// Set a download event handler to be notified when a download is requested or finished.
+	/// Set a download event handler to be notified when a download is requested
+	/// or finished.
 	///
-	/// Returning `false` prevents the download from happening on a [`DownloadEvent::Requested`] event.
+	/// Returning `false` prevents the download from happening on a
+	/// [`DownloadEvent::Requested`] event.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -491,20 +491,20 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	pub fn on_download<F: Fn(Webview<R>, DownloadEvent<'_>) -> bool + Send + Sync + 'static>(
+	pub fn on_download<F:Fn(Webview<R>, DownloadEvent<'_>) -> bool + Send + Sync + 'static>(
 		mut self,
-		f: F,
+		f:F,
 	) -> Self {
 		self.download_handler.replace(Arc::new(f));
 		self
 	}
 
 	/// Defines a closure to be executed when a page load event is triggered.
-	/// The event can be either [`PageLoadEvent::Started`] if the page has started loading
-	/// or [`PageLoadEvent::Finished`] when the page finishes loading.
+	/// The event can be either [`PageLoadEvent::Started`] if the page has
+	/// started loading or [`PageLoadEvent::Finished`] when the page finishes
+	/// loading.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -536,18 +536,18 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	pub fn on_page_load<F: Fn(Webview<R>, PageLoadPayload<'_>) + Send + Sync + 'static>(
+	pub fn on_page_load<F:Fn(Webview<R>, PageLoadPayload<'_>) + Send + Sync + 'static>(
 		mut self,
-		f: F,
+		f:F,
 	) -> Self {
 		self.on_page_load_handler.replace(Box::new(f));
 		self
 	}
 
-	pub(crate) fn into_pending_webview<M: Manager<R>>(
+	pub(crate) fn into_pending_webview<M:Manager<R>>(
 		mut self,
-		manager: &M,
-		window_label: &str,
+		manager:&M,
+		window_label:&str,
 	) -> crate::Result<PendingWebview<EventLoopMessage, R>> {
 		let mut pending = PendingWebview::new(self.webview_attributes, self.label.clone())?;
 		pending.navigation_handler = self.navigation_handler.take();
@@ -584,7 +584,7 @@ tauri::Builder::default()
 		pending.on_page_load_handler.replace(Box::new(move |url, event| {
 			if let Some(w) = manager_.get_webview(&label_) {
 				if let Some(handler) = self.on_page_load_handler.as_ref() {
-					handler(w, PageLoadPayload { url: &url, event });
+					handler(w, PageLoadPayload { url:&url, event });
 				}
 			}
 		}));
@@ -596,9 +596,9 @@ tauri::Builder::default()
 	#[cfg(desktop)]
 	pub(crate) fn build(
 		self,
-		window: Window<R>,
-		position: Position,
-		size: Size,
+		window:Window<R>,
+		position:Position,
+		size:Size,
 	) -> crate::Result<Webview<R>> {
 		let app_manager = window.manager();
 
@@ -617,22 +617,25 @@ tauri::Builder::default()
 }
 
 /// Webview attributes.
-impl<R: Runtime> WebviewBuilder<R> {
-	/// Sets whether clicking an inactive window also clicks through to the webview.
+impl<R:Runtime> WebviewBuilder<R> {
+	/// Sets whether clicking an inactive window also clicks through to the
+	/// webview.
 	#[must_use]
-	pub fn accept_first_mouse(mut self, accept: bool) -> Self {
+	pub fn accept_first_mouse(mut self, accept:bool) -> Self {
 		self.webview_attributes.accept_first_mouse = accept;
 		self
 	}
 
-	/// Adds the provided JavaScript to a list of scripts that should be run after the global object has been created,
-	/// but before the HTML document has been parsed and before any other script included by the HTML document is run.
+	/// Adds the provided JavaScript to a list of scripts that should be run
+	/// after the global object has been created, but before the HTML document
+	/// has been parsed and before any other script included by the HTML
+	/// document is run.
 	///
-	/// Since it runs on all top-level document and child frame page navigations,
-	/// it's recommended to check the `window.location` to guard your script from running on unexpected origins.
+	/// Since it runs on all top-level document and child frame page
+	/// navigations, it's recommended to check the `window.location` to guard
+	/// your script from running on unexpected origins.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -661,14 +664,14 @@ fn main() {
   "####
 	)]
 	#[must_use]
-	pub fn initialization_script(mut self, script: &str) -> Self {
+	pub fn initialization_script(mut self, script:&str) -> Self {
 		self.webview_attributes.initialization_scripts.push(script.to_string());
 		self
 	}
 
 	/// Set the user agent for the webview
 	#[must_use]
-	pub fn user_agent(mut self, user_agent: &str) -> Self {
+	pub fn user_agent(mut self, user_agent:&str) -> Self {
 		self.webview_attributes.user_agent = Some(user_agent.to_string());
 		self
 	}
@@ -681,29 +684,33 @@ fn main() {
 	///
 	/// ## Warning
 	///
-	/// By default wry passes `--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection`
-	/// so if you use this method, you also need to disable these components by yourself if you want.
+	/// By default wry passes
+	/// `--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection`
+	/// so if you use this method, you also need to disable these components by
+	/// yourself if you want.
 	#[must_use]
-	pub fn additional_browser_args(mut self, additional_args: &str) -> Self {
+	pub fn additional_browser_args(mut self, additional_args:&str) -> Self {
 		self.webview_attributes.additional_browser_args = Some(additional_args.to_string());
 		self
 	}
 
 	/// Data directory for the webview.
 	#[must_use]
-	pub fn data_directory(mut self, data_directory: PathBuf) -> Self {
+	pub fn data_directory(mut self, data_directory:PathBuf) -> Self {
 		self.webview_attributes.data_directory.replace(data_directory);
 		self
 	}
 
-	/// Disables the drag and drop handler. This is required to use HTML5 drag and drop APIs on the frontend on Windows.
+	/// Disables the drag and drop handler. This is required to use HTML5 drag
+	/// and drop APIs on the frontend on Windows.
 	#[must_use]
 	pub fn disable_drag_drop_handler(mut self) -> Self {
 		self.webview_attributes.drag_drop_handler_enabled = false;
 		self
 	}
 
-	/// Enables clipboard access for the page rendered on **Linux** and **Windows**.
+	/// Enables clipboard access for the page rendered on **Linux** and
+	/// **Windows**.
 	///
 	/// **macOS** doesn't provide such method and is always enabled by default,
 	/// but you still need to add menu item accelerators to use shortcuts.
@@ -719,7 +726,7 @@ fn main() {
 	///
 	///  **Android**: Unsupported.
 	#[must_use]
-	pub fn incognito(mut self, incognito: bool) -> Self {
+	pub fn incognito(mut self, incognito:bool) -> Self {
 		self.webview_attributes.incognito = incognito;
 		self
 	}
@@ -730,9 +737,10 @@ fn main() {
 	///
 	/// ## Platform-specific
 	///
-	/// - **macOS**: Requires the `macos-proxy` feature flag and only compiles for macOS 14+.
+	/// - **macOS**: Requires the `macos-proxy` feature flag and only compiles
+	///   for macOS 14+.
 	#[must_use]
-	pub fn proxy_url(mut self, url: Url) -> Self {
+	pub fn proxy_url(mut self, url:Url) -> Self {
 		self.webview_attributes.proxy_url = Some(url);
 		self
 	}
@@ -741,12 +749,13 @@ fn main() {
 	#[cfg(any(not(target_os = "macos"), feature = "macos-private-api"))]
 	#[cfg_attr(docsrs, doc(cfg(any(not(target_os = "macos"), feature = "macos-private-api"))))]
 	#[must_use]
-	pub fn transparent(mut self, transparent: bool) -> Self {
+	pub fn transparent(mut self, transparent:bool) -> Self {
 		self.webview_attributes.transparent = transparent;
 		self
 	}
 
-	/// Sets the webview to automatically grow and shrink its size and position when the parent window resizes.
+	/// Sets the webview to automatically grow and shrink its size and position
+	/// when the parent window resizes.
 	#[must_use]
 	pub fn auto_resize(mut self) -> Self {
 		self.webview_attributes.auto_resize = true;
@@ -757,13 +766,15 @@ fn main() {
 	///
 	/// ## Platform-specific:
 	///
-	/// - **Windows**: Controls WebView2's [`IsZoomControlEnabled`](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/winrt/microsoft_web_webview2_core/corewebview2settings?view=webview2-winrt-1.0.2420.47#iszoomcontrolenabled) setting.
-	/// - **MacOS / Linux**: Injects a polyfill that zooms in and out with `ctrl/command` + `-/=`,
-	///   20% in each step, ranging from 20% to 1000%. Requires `webview:allow-set-webview-zoom` permission
+	/// - **Windows**: Controls WebView2's [`IsZoomControlEnabled`](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/winrt/microsoft_web_webview2_core/corewebview2settings?view=webview2-winrt-1.0.2420.47#iszoomcontrolenabled)
+	///   setting.
+	/// - **MacOS / Linux**: Injects a polyfill that zooms in and out with
+	///   `ctrl/command` + `-/=`, 20% in each step, ranging from 20% to 1000%.
+	///   Requires `webview:allow-set-webview-zoom` permission
 	///
 	/// - **Android / iOS**: Unsupported.
 	#[must_use]
-	pub fn zoom_hotkeys_enabled(mut self, enabled: bool) -> Self {
+	pub fn zoom_hotkeys_enabled(mut self, enabled:bool) -> Self {
 		self.webview_attributes.zoom_hotkeys_enabled = enabled;
 		self
 	}
@@ -771,18 +782,18 @@ fn main() {
 
 /// Webview.
 #[default_runtime(crate::Wry, wry)]
-pub struct Webview<R: Runtime> {
-	window_label: Arc<Mutex<String>>,
+pub struct Webview<R:Runtime> {
+	window_label:Arc<Mutex<String>>,
 	/// The manager to associate this webview with.
-	pub(crate) manager: Arc<AppManager<R>>,
-	pub(crate) app_handle: AppHandle<R>,
+	pub(crate) manager:Arc<AppManager<R>>,
+	pub(crate) app_handle:AppHandle<R>,
 	/// The webview created by the runtime.
-	pub(crate) webview: DetachedWebview<EventLoopMessage, R>,
-	pub(crate) resources_table: Arc<Mutex<ResourceTable>>,
+	pub(crate) webview:DetachedWebview<EventLoopMessage, R>,
+	pub(crate) resources_table:Arc<Mutex<ResourceTable>>,
 }
 
-impl<R: Runtime> std::fmt::Debug for Webview<R> {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<R:Runtime> std::fmt::Debug for Webview<R> {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("Window")
 			.field("window_label", &self.window_label)
 			.field("webview", &self.webview)
@@ -790,89 +801,85 @@ impl<R: Runtime> std::fmt::Debug for Webview<R> {
 	}
 }
 
-impl<R: Runtime> Clone for Webview<R> {
+impl<R:Runtime> Clone for Webview<R> {
 	fn clone(&self) -> Self {
 		Self {
-			window_label: self.window_label.clone(),
-			manager: self.manager.clone(),
-			app_handle: self.app_handle.clone(),
-			webview: self.webview.clone(),
-			resources_table: self.resources_table.clone(),
+			window_label:self.window_label.clone(),
+			manager:self.manager.clone(),
+			app_handle:self.app_handle.clone(),
+			webview:self.webview.clone(),
+			resources_table:self.resources_table.clone(),
 		}
 	}
 }
 
-impl<R: Runtime> Hash for Webview<R> {
+impl<R:Runtime> Hash for Webview<R> {
 	/// Only use the [`Webview`]'s label to represent its hash.
-	fn hash<H: Hasher>(&self, state: &mut H) {
-		self.webview.label.hash(state)
-	}
+	fn hash<H:Hasher>(&self, state:&mut H) { self.webview.label.hash(state) }
 }
 
-impl<R: Runtime> Eq for Webview<R> {}
-impl<R: Runtime> PartialEq for Webview<R> {
+impl<R:Runtime> Eq for Webview<R> {}
+impl<R:Runtime> PartialEq for Webview<R> {
 	/// Only use the [`Webview`]'s label to compare equality.
-	fn eq(&self, other: &Self) -> bool {
-		self.webview.label.eq(&other.webview.label)
-	}
+	fn eq(&self, other:&Self) -> bool { self.webview.label.eq(&other.webview.label) }
 }
 
 /// Base webview functions.
-impl<R: Runtime> Webview<R> {
+impl<R:Runtime> Webview<R> {
 	/// Create a new webview that is attached to the window.
-	pub(crate) fn new(window: Window<R>, webview: DetachedWebview<EventLoopMessage, R>) -> Self {
+	pub(crate) fn new(window:Window<R>, webview:DetachedWebview<EventLoopMessage, R>) -> Self {
 		Self {
-			window_label: Arc::new(Mutex::new(window.label().into())),
-			manager: window.manager.clone(),
-			app_handle: window.app_handle.clone(),
+			window_label:Arc::new(Mutex::new(window.label().into())),
+			manager:window.manager.clone(),
+			app_handle:window.app_handle.clone(),
 			webview,
-			resources_table: Default::default(),
+			resources_table:Default::default(),
 		}
 	}
 
-	/// Initializes a webview builder with the given window label and URL to load on the webview.
+	/// Initializes a webview builder with the given window label and URL to
+	/// load on the webview.
 	///
 	/// Data URLs are only supported with the `webview-data-url` feature flag.
 	#[cfg(feature = "unstable")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
-	pub fn builder<L: Into<String>>(label: L, url: WebviewUrl) -> WebviewBuilder<R> {
+	pub fn builder<L:Into<String>>(label:L, url:WebviewUrl) -> WebviewBuilder<R> {
 		WebviewBuilder::new(label.into(), url)
 	}
 
 	/// Runs the given closure on the main thread.
-	pub fn run_on_main_thread<F: FnOnce() + Send + 'static>(&self, f: F) -> crate::Result<()> {
+	pub fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> crate::Result<()> {
 		self.webview.dispatcher.run_on_main_thread(f).map_err(Into::into)
 	}
 
 	/// The webview label.
-	pub fn label(&self) -> &str {
-		&self.webview.label
-	}
+	pub fn label(&self) -> &str { &self.webview.label }
 
 	/// Registers a window event listener.
-	pub fn on_webview_event<F: Fn(&WebviewEvent) + Send + 'static>(&self, f: F) {
+	pub fn on_webview_event<F:Fn(&WebviewEvent) + Send + 'static>(&self, f:F) {
 		self.webview.dispatcher.on_webview_event(move |event| f(&event.clone().into()));
 	}
 }
 
 /// Desktop webview setters and actions.
 #[cfg(desktop)]
-impl<R: Runtime> Webview<R> {
+impl<R:Runtime> Webview<R> {
 	/// Opens the dialog to prints the contents of the webview.
 	/// Currently only supported on macOS on `wry`.
 	/// `window.print()` works on all platforms.
-	pub fn print(&self) -> crate::Result<()> {
-		self.webview.dispatcher.print().map_err(Into::into)
-	}
+	pub fn print(&self) -> crate::Result<()> { self.webview.dispatcher.print().map_err(Into::into) }
 
-	/// Get the cursor position relative to the top-left hand corner of the desktop.
+	/// Get the cursor position relative to the top-left hand corner of the
+	/// desktop.
 	///
-	/// Note that the top-left hand corner of the desktop is not necessarily the same as the screen.
-	/// If the user uses a desktop with multiple monitors,
-	/// the top-left hand corner of the desktop is the top-left hand corner of the main monitor on Windows and macOS
-	/// or the top-left of the leftmost monitor on X11.
+	/// Note that the top-left hand corner of the desktop is not necessarily the
+	/// same as the screen. If the user uses a desktop with multiple monitors,
+	/// the top-left hand corner of the desktop is the top-left hand corner of
+	/// the main monitor on Windows and macOS or the top-left of the leftmost
+	/// monitor on X11.
 	///
-	/// The coordinates can be negative if the top-left hand corner of the window is outside of the visible screen region.
+	/// The coordinates can be negative if the top-left hand corner of the
+	/// window is outside of the visible screen region.
 	pub fn cursor_position(&self) -> crate::Result<PhysicalPosition<f64>> {
 		self.app_handle.cursor_position()
 	}
@@ -885,17 +892,17 @@ impl<R: Runtime> Webview<R> {
 	}
 
 	/// Resizes this webview.
-	pub fn set_bounds(&self, bounds: tauri_runtime::Rect) -> crate::Result<()> {
+	pub fn set_bounds(&self, bounds:tauri_runtime::Rect) -> crate::Result<()> {
 		self.webview.dispatcher.set_bounds(bounds).map_err(Into::into)
 	}
 
 	/// Resizes this webview.
-	pub fn set_size<S: Into<Size>>(&self, size: S) -> crate::Result<()> {
+	pub fn set_size<S:Into<Size>>(&self, size:S) -> crate::Result<()> {
 		self.webview.dispatcher.set_size(size.into()).map_err(Into::into)
 	}
 
 	/// Sets this webviews's position.
-	pub fn set_position<Pos: Into<Position>>(&self, position: Pos) -> crate::Result<()> {
+	pub fn set_position<Pos:Into<Position>>(&self, position:Pos) -> crate::Result<()> {
 		self.webview.dispatcher.set_position(position.into()).map_err(Into::into)
 	}
 
@@ -905,7 +912,7 @@ impl<R: Runtime> Webview<R> {
 	}
 
 	/// Move the webview to the given window.
-	pub fn reparent(&self, window: &Window<R>) -> crate::Result<()> {
+	pub fn reparent(&self, window:&Window<R>) -> crate::Result<()> {
 		#[cfg(not(feature = "unstable"))]
 		{
 			let current_window = self.window();
@@ -919,8 +926,9 @@ impl<R: Runtime> Webview<R> {
 		Ok(())
 	}
 
-	/// Sets whether the webview should automatically grow and shrink its size and position when the parent window resizes.
-	pub fn set_auto_resize(&self, auto_resize: bool) -> crate::Result<()> {
+	/// Sets whether the webview should automatically grow and shrink its size
+	/// and position when the parent window resizes.
+	pub fn set_auto_resize(&self, auto_resize:bool) -> crate::Result<()> {
 		self.webview.dispatcher.set_auto_resize(auto_resize).map_err(Into::into)
 	}
 
@@ -931,7 +939,9 @@ impl<R: Runtime> Webview<R> {
 
 	/// Returns the webview position.
 	///
-	/// - For child webviews, returns the position of the top-left hand corner of the webviews's client area relative to the top-left hand corner of the parent window.
+	/// - For child webviews, returns the position of the top-left hand corner
+	///   of the webviews's client area relative to the top-left hand corner of
+	///   the parent window.
 	/// - For webview window, returns the inner position of the window.
 	pub fn position(&self) -> crate::Result<PhysicalPosition<i32>> {
 		self.webview.dispatcher.position().map_err(Into::into)
@@ -944,7 +954,7 @@ impl<R: Runtime> Webview<R> {
 }
 
 /// Webview APIs.
-impl<R: Runtime> Webview<R> {
+impl<R:Runtime> Webview<R> {
 	/// The window that is hosting this webview.
 	pub fn window(&self) -> Window<R> {
 		self.manager
@@ -952,16 +962,14 @@ impl<R: Runtime> Webview<R> {
 			.expect("could not locate webview parent window")
 	}
 
-	pub(crate) fn window_label(&self) -> String {
-		self.window_label.lock().unwrap().clone()
-	}
+	pub(crate) fn window_label(&self) -> String { self.window_label.lock().unwrap().clone() }
 
-	/// Executes a closure, providing it with the webview handle that is specific to the current platform.
+	/// Executes a closure, providing it with the webview handle that is
+	/// specific to the current platform.
 	///
 	/// The closure is executed on the main thread.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -1014,9 +1022,9 @@ fn main() {
 	)]
 	#[cfg(feature = "wry")]
 	#[cfg_attr(docsrs, doc(feature = "wry"))]
-	pub fn with_webview<F: FnOnce(PlatformWebview) + Send + 'static>(
+	pub fn with_webview<F:FnOnce(PlatformWebview) + Send + 'static>(
 		&self,
-		f: F,
+		f:F,
 	) -> crate::Result<()> {
 		self.webview
 			.dispatcher
@@ -1026,15 +1034,18 @@ fn main() {
 
 	/// Returns the current url of the webview.
 	pub fn url(&self) -> crate::Result<Url> {
-		self.webview.dispatcher.url().map(|url| url.parse().map_err(crate::Error::InvalidUrl))?
+		self.webview
+			.dispatcher
+			.url()
+			.map(|url| url.parse().map_err(crate::Error::InvalidUrl))?
 	}
 
 	/// Navigates the webview to the defined url.
-	pub fn navigate(&mut self, url: Url) -> crate::Result<()> {
+	pub fn navigate(&mut self, url:Url) -> crate::Result<()> {
 		self.webview.dispatcher.navigate(url).map_err(Into::into)
 	}
 
-	fn is_local_url(&self, current_url: &Url) -> bool {
+	fn is_local_url(&self, current_url:&Url) -> bool {
 		// if from `tauri://` custom protocol
 		({
       let protocol_url = self.manager().protocol_url();
@@ -1076,7 +1087,7 @@ fn main() {
 	}
 
 	/// Handles this window receiving an [`InvokeRequest`].
-	pub fn on_message(self, request: InvokeRequest, responder: Box<OwnedInvokeResponder<R>>) {
+	pub fn on_message(self, request:InvokeRequest, responder:Box<OwnedInvokeResponder<R>>) {
 		let manager = self.manager_owned();
 
 		let is_local = self.is_local_url(&request.url);
@@ -1105,7 +1116,7 @@ fn main() {
 			self.clone(),
 			Arc::new(Mutex::new(Some(Box::new(
 				#[allow(unused_variables)]
-				move |webview: Webview<R>, cmd, response, callback, error| {
+				move |webview:Webview<R>, cmd, response, callback, error| {
 					if let Some(responder) = &custom_responder {
 						(responder)(&webview, &cmd, &response, callback, error);
 					}
@@ -1129,8 +1140,11 @@ fn main() {
 			request.headers,
 		);
 
-		let acl_origin =
-			if is_local { Origin::Local } else { Origin::Remote { url: request.url.clone() } };
+		let acl_origin = if is_local {
+			Origin::Local
+		} else {
+			Origin::Remote { url:request.url.clone() }
+		};
 
 		let (resolved_acl, has_app_acl_manifest) = {
 			let runtime_authority = manager.runtime_authority.lock().unwrap();
@@ -1143,7 +1157,7 @@ fn main() {
 			(acl, runtime_authority.has_app_manifest())
 		};
 
-		let mut invoke = Invoke { message, resolver: resolver.clone(), acl: resolved_acl };
+		let mut invoke = Invoke { message, resolver:resolver.clone(), acl:resolved_acl };
 
 		let plugin_command = request.cmd.strip_prefix("plugin:").map(|raw_command| {
 			let mut tokens = raw_command.split('|');
@@ -1194,10 +1208,7 @@ fn main() {
 				if !handled {
 					handled = true;
 
-					fn load_channels<R: Runtime>(
-						payload: &serde_json::Value,
-						webview: &Webview<R>,
-					) {
+					fn load_channels<R:Runtime>(payload:&serde_json::Value, webview:&Webview<R>) {
 						use std::str::FromStr;
 
 						if let serde_json::Value::Object(map) = payload {
@@ -1220,9 +1231,11 @@ fn main() {
 						&app_handle,
 						heck::AsLowerCamelCase(message.command).to_string(),
 						payload,
-						move |response| match response {
-							Ok(r) => resolver_.resolve(r),
-							Err(e) => resolver_.reject(e),
+						move |response| {
+							match response {
+								Ok(r) => resolver_.resolve(r),
+								Err(e) => resolver_.reject(e),
+							}
 						},
 					) {
 						resolver.reject(e.to_string());
@@ -1244,16 +1257,16 @@ fn main() {
 	}
 
 	/// Evaluates JavaScript on this window.
-	pub fn eval(&self, js: &str) -> crate::Result<()> {
+	pub fn eval(&self, js:&str) -> crate::Result<()> {
 		self.webview.dispatcher.eval_script(js).map_err(Into::into)
 	}
 
 	/// Register a JS event listener and return its identifier.
 	pub(crate) fn listen_js(
 		&self,
-		event: &str,
-		target: EventTarget,
-		handler: CallbackFn,
+		event:&str,
+		target:EventTarget,
+		handler:CallbackFn,
 	) -> crate::Result<EventId> {
 		let listeners = self.manager().listeners();
 
@@ -1273,7 +1286,7 @@ fn main() {
 	}
 
 	/// Unregister a JS event listener.
-	pub(crate) fn unlisten_js(&self, event: &str, id: EventId) -> crate::Result<()> {
+	pub(crate) fn unlisten_js(&self, event:&str, id:EventId) -> crate::Result<()> {
 		let listeners = self.manager().listeners();
 
 		self.eval(&crate::event::unlisten_js_script(listeners.listeners_object_name(), event, id))?;
@@ -1283,7 +1296,7 @@ fn main() {
 		Ok(())
 	}
 
-	pub(crate) fn emit_js(&self, emit_args: &EmitArgs, ids: &[u32]) -> crate::Result<()> {
+	pub(crate) fn emit_js(&self, emit_args:&EmitArgs, ids:&[u32]) -> crate::Result<()> {
 		self.eval(&crate::event::emit_js_script(
 			self.manager().listeners().function_name(),
 			emit_args,
@@ -1293,15 +1306,16 @@ fn main() {
 	}
 
 	/// Opens the developer tools window (Web Inspector).
-	/// The devtools is only enabled on debug builds or with the `devtools` feature flag.
+	/// The devtools is only enabled on debug builds or with the `devtools`
+	/// feature flag.
 	///
 	/// ## Platform-specific
 	///
-	/// - **macOS:** Only supported on macOS 10.15+.
-	///   This is a private API on macOS, so you cannot use this if your application will be published on the App Store.
+	/// - **macOS:** Only supported on macOS 10.15+. This is a private API on
+	///   macOS, so you cannot use this if your application will be published on
+	///   the App Store.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -1318,21 +1332,20 @@ tauri::Builder::default()
 	)]
 	#[cfg(any(debug_assertions, feature = "devtools"))]
 	#[cfg_attr(docsrs, doc(cfg(any(debug_assertions, feature = "devtools"))))]
-	pub fn open_devtools(&self) {
-		self.webview.dispatcher.open_devtools();
-	}
+	pub fn open_devtools(&self) { self.webview.dispatcher.open_devtools(); }
 
 	/// Closes the developer tools window (Web Inspector).
-	/// The devtools is only enabled on debug builds or with the `devtools` feature flag.
+	/// The devtools is only enabled on debug builds or with the `devtools`
+	/// feature flag.
 	///
 	/// ## Platform-specific
 	///
-	/// - **macOS:** Only supported on macOS 10.15+.
-	///   This is a private API on macOS, so you cannot use this if your application will be published on the App Store.
+	/// - **macOS:** Only supported on macOS 10.15+. This is a private API on
+	///   macOS, so you cannot use this if your application will be published on
+	///   the App Store.
 	/// - **Windows:** Unsupported.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -1356,21 +1369,20 @@ tauri::Builder::default()
 	)]
 	#[cfg(any(debug_assertions, feature = "devtools"))]
 	#[cfg_attr(docsrs, doc(cfg(any(debug_assertions, feature = "devtools"))))]
-	pub fn close_devtools(&self) {
-		self.webview.dispatcher.close_devtools();
-	}
+	pub fn close_devtools(&self) { self.webview.dispatcher.close_devtools(); }
 
 	/// Checks if the developer tools window (Web Inspector) is opened.
-	/// The devtools is only enabled on debug builds or with the `devtools` feature flag.
+	/// The devtools is only enabled on debug builds or with the `devtools`
+	/// feature flag.
 	///
 	/// ## Platform-specific
 	///
-	/// - **macOS:** Only supported on macOS 10.15+.
-	///   This is a private API on macOS, so you cannot use this if your application will be published on the App Store.
+	/// - **macOS:** Only supported on macOS 10.15+. This is a private API on
+	///   macOS, so you cannot use this if your application will be published on
+	///   the App Store.
 	/// - **Windows:** Unsupported.
 	///
 	/// # Examples
-	///
 	#[cfg_attr(
 		feature = "unstable",
 		doc = r####"
@@ -1403,12 +1415,12 @@ tauri::Builder::default()
 	/// - **Android**: Not supported.
 	/// - **macOS**: available on macOS 11+ only.
 	/// - **iOS**: available on iOS 14+ only.
-	pub fn set_zoom(&self, scale_factor: f64) -> crate::Result<()> {
+	pub fn set_zoom(&self, scale_factor:f64) -> crate::Result<()> {
 		self.webview.dispatcher.set_zoom(scale_factor).map_err(Into::into)
 	}
 }
 
-impl<R: Runtime> Listener<R> for Webview<R> {
+impl<R:Runtime> Listener<R> for Webview<R> {
 	/// Listen to an event on this webview.
 	///
 	/// # Examples
@@ -1430,13 +1442,12 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	fn listen<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn listen<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
-		F: Fn(Event) + Send + 'static,
-	{
+		F: Fn(Event) + Send + 'static, {
 		self.manager.listen(
 			event.into(),
-			EventTarget::Webview { label: self.label().to_string() },
+			EventTarget::Webview { label:self.label().to_string() },
 			handler,
 		)
 	}
@@ -1444,13 +1455,12 @@ tauri::Builder::default()
 	/// Listen to an event on this webview only once.
 	///
 	/// See [`Self::listen`] for more information.
-	fn once<F>(&self, event: impl Into<String>, handler: F) -> EventId
+	fn once<F>(&self, event:impl Into<String>, handler:F) -> EventId
 	where
-		F: FnOnce(Event) + Send + 'static,
-	{
+		F: FnOnce(Event) + Send + 'static, {
 		self.manager.once(
 			event.into(),
-			EventTarget::Webview { label: self.label().to_string() },
+			EventTarget::Webview { label:self.label().to_string() },
 			handler,
 		)
 	}
@@ -1484,12 +1494,10 @@ tauri::Builder::default()
 ```
   "####
 	)]
-	fn unlisten(&self, id: EventId) {
-		self.manager.unlisten(id)
-	}
+	fn unlisten(&self, id:EventId) { self.manager.unlisten(id) }
 }
 
-impl<R: Runtime> Emitter<R> for Webview<R> {
+impl<R:Runtime> Emitter<R> for Webview<R> {
 	/// Emits an event to all [targets](EventTarget).
 	///
 	/// # Examples
@@ -1507,7 +1515,7 @@ fn synchronize(webview: tauri::Webview) {
   ```
   "####
 	)]
-	fn emit<S: Serialize + Clone>(&self, event: &str, payload: S) -> crate::Result<()> {
+	fn emit<S:Serialize + Clone>(&self, event:&str, payload:S) -> crate::Result<()> {
 		self.manager.emit(event, payload)
 	}
 
@@ -1538,11 +1546,10 @@ fn download(webview: tauri::Webview) {
 ```
 "####
 	)]
-	fn emit_to<I, S>(&self, target: I, event: &str, payload: S) -> crate::Result<()>
+	fn emit_to<I, S>(&self, target:I, event:&str, payload:S) -> crate::Result<()>
 	where
 		I: Into<EventTarget>,
-		S: Serialize + Clone,
-	{
+		S: Serialize + Clone, {
 		self.manager.emit_to(target, event, payload)
 	}
 
@@ -1569,42 +1576,33 @@ fn download(webview: tauri::Webview) {
   ```
   "####
 	)]
-	fn emit_filter<S, F>(&self, event: &str, payload: S, filter: F) -> crate::Result<()>
+	fn emit_filter<S, F>(&self, event:&str, payload:S, filter:F) -> crate::Result<()>
 	where
 		S: Serialize + Clone,
-		F: Fn(&EventTarget) -> bool,
-	{
+		F: Fn(&EventTarget) -> bool, {
 		self.manager.emit_filter(event, payload, filter)
 	}
 }
 
-impl<R: Runtime> Manager<R> for Webview<R> {
+impl<R:Runtime> Manager<R> for Webview<R> {
 	fn resources_table(&self) -> MutexGuard<'_, ResourceTable> {
 		self.resources_table.lock().expect("poisoned window resources table")
 	}
 }
 
-impl<R: Runtime> ManagerBase<R> for Webview<R> {
-	fn manager(&self) -> &AppManager<R> {
-		&self.manager
-	}
+impl<R:Runtime> ManagerBase<R> for Webview<R> {
+	fn manager(&self) -> &AppManager<R> { &self.manager }
 
-	fn manager_owned(&self) -> Arc<AppManager<R>> {
-		self.manager.clone()
-	}
+	fn manager_owned(&self) -> Arc<AppManager<R>> { self.manager.clone() }
 
-	fn runtime(&self) -> RuntimeOrDispatch<'_, R> {
-		self.app_handle.runtime()
-	}
+	fn runtime(&self) -> RuntimeOrDispatch<'_, R> { self.app_handle.runtime() }
 
-	fn managed_app_handle(&self) -> &AppHandle<R> {
-		&self.app_handle
-	}
+	fn managed_app_handle(&self) -> &AppHandle<R> { &self.app_handle }
 }
 
-impl<'de, R: Runtime> CommandArg<'de, R> for Webview<R> {
+impl<'de, R:Runtime> CommandArg<'de, R> for Webview<R> {
 	/// Grabs the [`Webview`] from the [`CommandItem`]. This will never fail.
-	fn from_command(command: CommandItem<'de, R>) -> Result<Self, InvokeError> {
+	fn from_command(command:CommandItem<'de, R>) -> Result<Self, InvokeError> {
 		Ok(command.message.webview())
 	}
 }

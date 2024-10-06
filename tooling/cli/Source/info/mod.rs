@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::Result;
+use std::fmt::{self, Display, Formatter};
+
 use clap::Parser;
 use colored::{ColoredString, Colorize};
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use serde::Deserialize;
-use std::fmt::{self, Display, Formatter};
+
+use crate::Result;
 
 mod app;
 mod env_nodejs;
@@ -21,15 +23,15 @@ mod plugins;
 
 #[derive(Deserialize)]
 struct JsCliVersionMetadata {
-	version: String,
-	node: String,
+	version:String,
+	node:String,
 }
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VersionMetadata {
 	#[serde(rename = "cli.js")]
-	js_cli: JsCliVersionMetadata,
+	js_cli:JsCliVersionMetadata,
 }
 
 fn version_metadata() -> Result<VersionMetadata> {
@@ -47,7 +49,7 @@ pub enum Status {
 }
 
 impl Status {
-	fn color<S: AsRef<str>>(&self, s: S) -> ColoredString {
+	fn color<S:AsRef<str>>(&self, s:S) -> ColoredString {
 		let s = s.as_ref();
 		match self {
 			Status::Neutral => s.normal(),
@@ -59,7 +61,7 @@ impl Status {
 }
 
 impl Display for Status {
-	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+	fn fmt(&self, f:&mut Formatter<'_>) -> fmt::Result {
 		write!(
 			f,
 			"{}",
@@ -76,8 +78,8 @@ impl Display for Status {
 #[derive(Default)]
 pub enum ActionResult {
 	Full {
-		description: String,
-		status: Status,
+		description:String,
+		status:Status,
 	},
 	Description(String),
 	#[default]
@@ -85,41 +87,44 @@ pub enum ActionResult {
 }
 
 impl From<String> for ActionResult {
-	fn from(value: String) -> Self {
-		ActionResult::Description(value)
-	}
+	fn from(value:String) -> Self { ActionResult::Description(value) }
 }
 
 impl From<(String, Status)> for ActionResult {
-	fn from(value: (String, Status)) -> Self {
-		ActionResult::Full { description: value.0, status: value.1 }
+	fn from(value:(String, Status)) -> Self {
+		ActionResult::Full { description:value.0, status:value.1 }
 	}
 }
 
 impl From<Option<String>> for ActionResult {
-	fn from(value: Option<String>) -> Self {
+	fn from(value:Option<String>) -> Self {
 		value.map(ActionResult::Description).unwrap_or_default()
 	}
 }
 
 impl From<Option<(String, Status)>> for ActionResult {
-	fn from(value: Option<(String, Status)>) -> Self {
-		value.map(|v| ActionResult::Full { description: v.0, status: v.1 }).unwrap_or_default()
+	fn from(value:Option<(String, Status)>) -> Self {
+		value
+			.map(|v| ActionResult::Full { description:v.0, status:v.1 })
+			.unwrap_or_default()
 	}
 }
 
 pub struct SectionItem {
 	/// If description is none, the item is skipped
-	description: Option<String>,
-	status: Status,
-	action: Option<Box<dyn FnMut() -> ActionResult>>,
-	action_if_err: Option<Box<dyn FnMut() -> ActionResult>>,
+	description:Option<String>,
+	status:Status,
+	action:Option<Box<dyn FnMut() -> ActionResult>>,
+	action_if_err:Option<Box<dyn FnMut() -> ActionResult>>,
 }
 
 impl Display for SectionItem {
-	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-		let desc =
-			self.description.as_ref().map(|s| s.replace('\n', "\n      ")).unwrap_or_default();
+	fn fmt(&self, f:&mut Formatter<'_>) -> fmt::Result {
+		let desc = self
+			.description
+			.as_ref()
+			.map(|s| s.replace('\n', "\n      "))
+			.unwrap_or_default();
 
 		let (first, second) = desc.split_once(':').unwrap();
 		write!(f, "{} {}:{}", self.status, first.bold(), second)
@@ -128,20 +133,20 @@ impl Display for SectionItem {
 
 impl SectionItem {
 	fn new() -> Self {
-		Self { action: None, action_if_err: None, description: None, status: Status::Neutral }
+		Self { action:None, action_if_err:None, description:None, status:Status::Neutral }
 	}
 
-	fn action<F: FnMut() -> ActionResult + 'static>(mut self, action: F) -> Self {
+	fn action<F:FnMut() -> ActionResult + 'static>(mut self, action:F) -> Self {
 		self.action = Some(Box::new(action));
 		self
 	}
 
-	// fn action_if_err<F: FnMut() -> ActionResult + 'static>(mut self, action: F) -> Self {
-	//   self.action_if_err = Some(Box::new(action));
+	// fn action_if_err<F: FnMut() -> ActionResult + 'static>(mut self, action: F)
+	// -> Self {   self.action_if_err = Some(Box::new(action));
 	//   self
 	// }
 
-	fn description<S: AsRef<str>>(mut self, description: S) -> Self {
+	fn description<S:AsRef<str>>(mut self, description:S) -> Self {
 		self.description = Some(description.as_ref().to_string());
 		self
 	}
@@ -162,20 +167,20 @@ impl SectionItem {
 		self.apply_action_result(res);
 	}
 
-	fn apply_action_result(&mut self, result: ActionResult) {
+	fn apply_action_result(&mut self, result:ActionResult) {
 		match result {
 			ActionResult::Full { description, status } => {
 				self.description = Some(description);
 				self.status = status;
-			}
+			},
 			ActionResult::Description(description) => {
 				self.description = Some(description);
-			}
-			ActionResult::None => {}
+			},
+			ActionResult::None => {},
 		}
 	}
 
-	fn run(&mut self, interactive: bool) -> Status {
+	fn run(&mut self, interactive:bool) -> Status {
 		self.run_action();
 
 		if self.status == Status::Error && interactive && self.action_if_err.is_some() {
@@ -198,9 +203,9 @@ impl SectionItem {
 }
 
 struct Section<'a> {
-	label: &'a str,
-	interactive: bool,
-	items: Vec<SectionItem>,
+	label:&'a str,
+	interactive:bool,
+	items:Vec<SectionItem>,
 }
 
 impl Section<'_> {
@@ -230,15 +235,16 @@ impl Section<'_> {
 
 #[derive(Debug, Parser)]
 #[clap(
-	about = "Show a concise list of information about the environment, Rust, Node.js and their versions as well as a few relevant project configurations"
+	about = "Show a concise list of information about the environment, Rust, Node.js and their \
+	         versions as well as a few relevant project configurations"
 )]
 pub struct Options {
 	/// Interactive mode to apply automatic fixes.
 	#[clap(long)]
-	pub interactive: bool,
+	pub interactive:bool,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	let Options { interactive } = options;
 
 	let app_dir = crate::helpers::app_paths::resolve_app_dir();
@@ -256,23 +262,27 @@ pub fn command(options: Options) -> Result<()> {
 
 	let metadata = version_metadata()?;
 
-	let mut environment = Section { label: "Environment", interactive, items: Vec::new() };
+	let mut environment = Section { label:"Environment", interactive, items:Vec::new() };
 	environment.items.extend(env_system::items());
 	environment.items.extend(env_rust::items());
 	let items = env_nodejs::items(&metadata);
 	environment.items.extend(items);
 
-	let mut packages = Section { label: "Packages", interactive, items: Vec::new() };
-	packages.items.extend(packages_rust::items(app_dir.as_ref(), tauri_dir.as_deref()));
-	packages.items.extend(packages_nodejs::items(app_dir.as_ref(), package_manager, &metadata));
+	let mut packages = Section { label:"Packages", interactive, items:Vec::new() };
+	packages
+		.items
+		.extend(packages_rust::items(app_dir.as_ref(), tauri_dir.as_deref()));
+	packages
+		.items
+		.extend(packages_nodejs::items(app_dir.as_ref(), package_manager, &metadata));
 
 	let mut plugins = Section {
-		label: "Plugins",
+		label:"Plugins",
 		interactive,
-		items: plugins::items(app_dir.as_ref(), tauri_dir.as_deref(), package_manager),
+		items:plugins::items(app_dir.as_ref(), tauri_dir.as_deref(), package_manager),
 	};
 
-	let mut app = Section { label: "App", interactive, items: Vec::new() };
+	let mut app = Section { label:"App", interactive, items:Vec::new() };
 	app.items.extend(app::items(app_dir.as_ref(), tauri_dir.as_deref()));
 
 	environment.display();
@@ -285,7 +295,7 @@ pub fn command(options: Options) -> Result<()> {
 	{
 		if let Some(p) = &tauri_dir {
 			if p.join("gen/apple").exists() {
-				let mut ios = Section { label: "iOS", interactive, items: Vec::new() };
+				let mut ios = Section { label:"iOS", interactive, items:Vec::new() };
 				ios.items.extend(ios::items());
 				ios.display();
 			}

@@ -27,26 +27,30 @@ impl TomlOrJson {
 
 	fn platforms(&self) -> Option<Vec<&str>> {
 		match self {
-			TomlOrJson::Toml(t) => t.get("platforms").and_then(|k| {
-				k.as_array().and_then(|array| array.iter().map(|v| v.as_str()).collect())
-			}),
-			TomlOrJson::Json(j) => j.get("platforms").and_then(|k| {
-				if let Some(array) = k.as_array() {
-					let mut items = Vec::new();
-					for item in array {
-						if let Some(s) = item.as_str() {
-							items.push(s);
+			TomlOrJson::Toml(t) => {
+				t.get("platforms").and_then(|k| {
+					k.as_array().and_then(|array| array.iter().map(|v| v.as_str()).collect())
+				})
+			},
+			TomlOrJson::Json(j) => {
+				j.get("platforms").and_then(|k| {
+					if let Some(array) = k.as_array() {
+						let mut items = Vec::new();
+						for item in array {
+							if let Some(s) = item.as_str() {
+								items.push(s);
+							}
 						}
+						Some(items)
+					} else {
+						None
 					}
-					Some(items)
-				} else {
-					None
-				}
-			}),
+				})
+			},
 		}
 	}
 
-	fn insert_permission(&mut self, identifier: String) {
+	fn insert_permission(&mut self, identifier:String) {
 		match self {
 			TomlOrJson::Toml(t) => {
 				let permissions = t.entry("permissions").or_insert_with(|| {
@@ -55,7 +59,7 @@ impl TomlOrJson {
 				if let Some(permissions) = permissions.as_array_mut() {
 					permissions.push(identifier)
 				};
-			}
+			},
 
 			TomlOrJson::Json(j) => {
 				if let Some(o) = j.as_object_mut() {
@@ -66,7 +70,7 @@ impl TomlOrJson {
 						permissions.push(serde_json::Value::String(identifier))
 					};
 				}
-			}
+			},
 		};
 	}
 
@@ -78,16 +82,20 @@ impl TomlOrJson {
 	}
 }
 
-fn capability_from_path<P: AsRef<Path>>(path: P) -> Option<TomlOrJson> {
+fn capability_from_path<P:AsRef<Path>>(path:P) -> Option<TomlOrJson> {
 	match path.as_ref().extension().and_then(|o| o.to_str()) {
-		Some("toml") => std::fs::read_to_string(&path)
-			.ok()
-			.and_then(|c| c.parse::<toml_edit::DocumentMut>().ok())
-			.map(TomlOrJson::Toml),
-		Some("json") => std::fs::read(&path)
-			.ok()
-			.and_then(|c| serde_json::from_slice::<serde_json::Value>(&c).ok())
-			.map(TomlOrJson::Json),
+		Some("toml") => {
+			std::fs::read_to_string(&path)
+				.ok()
+				.and_then(|c| c.parse::<toml_edit::DocumentMut>().ok())
+				.map(TomlOrJson::Toml)
+		},
+		Some("json") => {
+			std::fs::read(&path)
+				.ok()
+				.and_then(|c| serde_json::from_slice::<serde_json::Value>(&c).ok())
+				.map(TomlOrJson::Json)
+		},
 		_ => None,
 	}
 }
@@ -96,12 +104,12 @@ fn capability_from_path<P: AsRef<Path>>(path: P) -> Option<TomlOrJson> {
 #[clap(about = "Add a permission to capabilities")]
 pub struct Options {
 	/// Permission to add.
-	pub identifier: String,
+	pub identifier:String,
 	/// Capability to add the permission to.
-	pub capability: Option<String>,
+	pub capability:Option<String>,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	let dir = match resolve_tauri_dir() {
 		Some(t) => t,
 		None => std::env::current_dir()?,
@@ -126,9 +134,11 @@ pub fn command(options: Options) -> Result<()> {
 		.filter(|e| e.file_type().map(|e| e.is_file()).unwrap_or_default())
 		.filter_map(|e| {
 			let path = e.path();
-			capability_from_path(&path).and_then(|capability| match &options.capability {
-				Some(c) => (c == capability.identifier()).then_some((capability, path)),
-				None => Some((capability, path)),
+			capability_from_path(&path).and_then(|capability| {
+				match &options.capability {
+					Some(c) => (c == capability.identifier()).then_some((capability, path)),
+					None => Some((capability, path)),
+				}
 			})
 		});
 
@@ -158,16 +168,17 @@ pub fn command(options: Options) -> Result<()> {
 
 	let capabilities = if let Some((expected_platforms, target_name)) = expected_capability_config {
 		let mut capabilities = capabilities_iter
-        .filter(|(capability, _path)| {
-          capability.platforms().map_or(
-            false, /* allows any target, so we should skip it since we're adding a target-specific plugin */
-            |platforms| {
-              // all platforms must be in the expected platforms list
-              platforms.iter().all(|p| expected_platforms.contains(&p.to_string()))
-            },
-          )
-        })
-        .collect::<Vec<_>>();
+			.filter(|(capability, _path)| {
+				capability.platforms().map_or(
+					false, /* allows any target, so we should skip it since we're adding a
+					        * target-specific plugin */
+					|platforms| {
+						// all platforms must be in the expected platforms list
+						platforms.iter().all(|p| expected_platforms.contains(&p.to_string()))
+					},
+				)
+			})
+			.collect::<Vec<_>>();
 
 		if capabilities.is_empty() {
 			let identifier = format!("{target_name}-capability");

@@ -11,17 +11,16 @@ use std::{
 };
 
 use ignore::WalkBuilder;
-
 use tauri_utils::{
 	config::parse::{folder_has_configuration_file, is_configuration_file, ConfigFormat},
 	platform::Target,
 };
 
-const TAURI_GITIGNORE: &[u8] = include_bytes!("../../tauri.gitignore");
-static APP_DIR: OnceLock<PathBuf> = OnceLock::new();
-static TAURI_DIR: OnceLock<PathBuf> = OnceLock::new();
+const TAURI_GITIGNORE:&[u8] = include_bytes!("../../tauri.gitignore");
+static APP_DIR:OnceLock<PathBuf> = OnceLock::new();
+static TAURI_DIR:OnceLock<PathBuf> = OnceLock::new();
 
-pub fn walk_builder(path: &Path) -> WalkBuilder {
+pub fn walk_builder(path:&Path) -> WalkBuilder {
 	let mut default_gitignore = std::env::temp_dir();
 	default_gitignore.push(".gitignore");
 	if !default_gitignore.exists() {
@@ -38,7 +37,7 @@ pub fn walk_builder(path: &Path) -> WalkBuilder {
 	builder
 }
 
-fn lookup<F: Fn(&PathBuf) -> bool>(dir: &Path, checker: F) -> Option<PathBuf> {
+fn lookup<F:Fn(&PathBuf) -> bool>(dir:&Path, checker:F) -> Option<PathBuf> {
 	let mut builder = walk_builder(dir);
 	builder
 		.require_git(false)
@@ -53,11 +52,7 @@ fn lookup<F: Fn(&PathBuf) -> bool>(dir: &Path, checker: F) -> Option<PathBuf> {
 				.unwrap_or(3),
 		))
 		.sort_by_file_path(|a, _| {
-			if a.extension().is_some() {
-				Ordering::Less
-			} else {
-				Ordering::Greater
-			}
+			if a.extension().is_some() { Ordering::Less } else { Ordering::Greater }
 		});
 
 	for entry in builder.build().flatten() {
@@ -97,13 +92,17 @@ pub fn resolve_tauri_dir() -> Option<PathBuf> {
 }
 
 pub fn resolve() {
-	TAURI_DIR.set(resolve_tauri_dir().unwrap_or_else(||
-    panic!("Couldn't recognize the current folder as a Tauri project. It must contain a `{}`, `{}` or `{}` file in any subfolder.",
-      ConfigFormat::Json.into_file_name(),
-      ConfigFormat::Json5.into_file_name(),
-      ConfigFormat::Toml.into_file_name()
-    )
-  )).expect("tauri dir already resolved");
+	TAURI_DIR
+		.set(resolve_tauri_dir().unwrap_or_else(|| {
+			panic!(
+				"Couldn't recognize the current folder as a Tauri project. It must contain a \
+				 `{}`, `{}` or `{}` file in any subfolder.",
+				ConfigFormat::Json.into_file_name(),
+				ConfigFormat::Json5.into_file_name(),
+				ConfigFormat::Toml.into_file_name()
+			)
+		}))
+		.expect("tauri dir already resolved");
 	APP_DIR
 		.set(resolve_app_dir().unwrap_or_else(|| tauri_dir().parent().unwrap().to_path_buf()))
 		.expect("app dir already resolved");

@@ -5,27 +5,25 @@
 use crate::{
 	command,
 	plugin::{Builder, TauriPlugin},
-	AppHandle, Manager, ResourceId, Runtime, Webview,
+	AppHandle,
+	Manager,
+	ResourceId,
+	Runtime,
+	Webview,
 };
 
 #[command(root = "crate")]
-pub fn version<R: Runtime>(app: AppHandle<R>) -> String {
-	app.package_info().version.to_string()
-}
+pub fn version<R:Runtime>(app:AppHandle<R>) -> String { app.package_info().version.to_string() }
 
 #[command(root = "crate")]
-pub fn name<R: Runtime>(app: AppHandle<R>) -> String {
-	app.package_info().name.clone()
-}
+pub fn name<R:Runtime>(app:AppHandle<R>) -> String { app.package_info().name.clone() }
 
 #[command(root = "crate")]
-pub fn tauri_version() -> &'static str {
-	crate::VERSION
-}
+pub fn tauri_version() -> &'static str { crate::VERSION }
 
 #[command(root = "crate")]
 #[allow(unused_variables)]
-pub fn app_show<R: Runtime>(app: AppHandle<R>) -> crate::Result<()> {
+pub fn app_show<R:Runtime>(app:AppHandle<R>) -> crate::Result<()> {
 	#[cfg(target_os = "macos")]
 	app.show()?;
 	Ok(())
@@ -33,24 +31,21 @@ pub fn app_show<R: Runtime>(app: AppHandle<R>) -> crate::Result<()> {
 
 #[command(root = "crate")]
 #[allow(unused_variables)]
-pub fn app_hide<R: Runtime>(app: AppHandle<R>) -> crate::Result<()> {
+pub fn app_hide<R:Runtime>(app:AppHandle<R>) -> crate::Result<()> {
 	#[cfg(target_os = "macos")]
 	app.hide()?;
 	Ok(())
 }
 
 #[command(root = "crate")]
-pub fn default_window_icon<R: Runtime>(
-	webview: Webview<R>,
-	app: AppHandle<R>,
-) -> Option<ResourceId> {
+pub fn default_window_icon<R:Runtime>(webview:Webview<R>, app:AppHandle<R>) -> Option<ResourceId> {
 	app.default_window_icon().cloned().map(|icon| {
 		let mut resources_table = webview.resources_table();
 		resources_table.add(icon.to_owned())
 	})
 }
 
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
+pub fn init<R:Runtime>() -> TauriPlugin<R> {
 	Builder::new("app")
 		.invoke_handler(crate::generate_handler![
 			version,

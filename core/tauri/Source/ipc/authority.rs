@@ -10,29 +10,30 @@ use std::{
 
 use serde::{de::DeserializeOwned, Serialize};
 use state::TypeMap;
-
 use tauri_utils::{
 	acl::{
 		capability::{Capability, CapabilityFile, PermissionEntry},
 		manifest::Manifest,
 		resolved::{Resolved, ResolvedCommand, ResolvedScope, ScopeKey},
-		ExecutionContext, Scopes, Value, APP_ACL_KEY,
+		ExecutionContext,
+		Scopes,
+		Value,
+		APP_ACL_KEY,
 	},
 	platform::Target,
 };
-
 use url::Url;
 
+use super::{CommandArg, CommandItem};
 use crate::{ipc::InvokeError, sealed::ManagerBase, AppHandle, Manager, Runtime};
 
-use super::{CommandArg, CommandItem};
-
-/// The runtime authority used to authorize IPC execution based on the Access Control List.
+/// The runtime authority used to authorize IPC execution based on the Access
+/// Control List.
 pub struct RuntimeAuthority {
-	acl: BTreeMap<String, crate::utils::acl::manifest::Manifest>,
-	allowed_commands: BTreeMap<String, Vec<ResolvedCommand>>,
-	denied_commands: BTreeMap<String, Vec<ResolvedCommand>>,
-	pub(crate) scope_manager: ScopeManager,
+	acl:BTreeMap<String, crate::utils::acl::manifest::Manifest>,
+	allowed_commands:BTreeMap<String, Vec<ResolvedCommand>>,
+	denied_commands:BTreeMap<String, Vec<ResolvedCommand>>,
+	pub(crate) scope_manager:ScopeManager,
 }
 
 /// The origin trying to access the IPC.
@@ -42,12 +43,12 @@ pub enum Origin {
 	/// Remote origin.
 	Remote {
 		/// Remote URL.
-		url: Url,
+		url:Url,
 	},
 }
 
 impl Display for Origin {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::Local => write!(f, "local"),
 			Self::Remote { url } => write!(f, "remote: {url}"),
@@ -56,12 +57,12 @@ impl Display for Origin {
 }
 
 impl Origin {
-	fn matches(&self, context: &ExecutionContext) -> bool {
+	fn matches(&self, context:&ExecutionContext) -> bool {
 		match (self, context) {
 			(Self::Local, ExecutionContext::Local) => true,
 			(Self::Remote { url }, ExecutionContext::Remote { url: url_pattern }) => {
 				url_pattern.test(url)
-			}
+			},
 			_ => false,
 		}
 	}
@@ -73,10 +74,8 @@ pub trait RuntimeCapability {
 	fn build(self) -> CapabilityFile;
 }
 
-impl<T: AsRef<str>> RuntimeCapability for T {
-	fn build(self) -> CapabilityFile {
-		self.as_ref().parse().expect("invalid capability")
-	}
+impl<T:AsRef<str>> RuntimeCapability for T {
+	fn build(self) -> CapabilityFile { self.as_ref().parse().expect("invalid capability") }
 }
 
 /// A builder for a [`Capability`].
@@ -84,57 +83,58 @@ pub struct CapabilityBuilder(Capability);
 
 impl CapabilityBuilder {
 	/// Creates a new capability builder with a unique identifier.
-	pub fn new(identifier: impl Into<String>) -> Self {
+	pub fn new(identifier:impl Into<String>) -> Self {
 		Self(Capability {
-			identifier: identifier.into(),
-			description: "".into(),
-			remote: None,
-			local: true,
-			windows: Vec::new(),
-			webviews: Vec::new(),
-			permissions: Vec::new(),
-			platforms: None,
+			identifier:identifier.into(),
+			description:"".into(),
+			remote:None,
+			local:true,
+			windows:Vec::new(),
+			webviews:Vec::new(),
+			permissions:Vec::new(),
+			platforms:None,
 		})
 	}
 
 	/// Allows this capability to be used by a remote URL.
-	pub fn remote(mut self, url: String) -> Self {
+	pub fn remote(mut self, url:String) -> Self {
 		self.0.remote.get_or_insert_with(Default::default).urls.push(url);
 		self
 	}
 
-	/// Whether this capability is applied on local app URLs or not. Defaults to `true`.
-	pub fn local(mut self, local: bool) -> Self {
+	/// Whether this capability is applied on local app URLs or not. Defaults to
+	/// `true`.
+	pub fn local(mut self, local:bool) -> Self {
 		self.0.local = local;
 		self
 	}
 
 	/// Link this capability to the given window label.
-	pub fn window(mut self, window: impl Into<String>) -> Self {
+	pub fn window(mut self, window:impl Into<String>) -> Self {
 		self.0.windows.push(window.into());
 		self
 	}
 
 	/// Link this capability to the a list of window labels.
-	pub fn windows(mut self, windows: impl IntoIterator<Item = impl Into<String>>) -> Self {
+	pub fn windows(mut self, windows:impl IntoIterator<Item = impl Into<String>>) -> Self {
 		self.0.windows.extend(windows.into_iter().map(|w| w.into()));
 		self
 	}
 
 	/// Link this capability to the given webview label.
-	pub fn webview(mut self, webview: impl Into<String>) -> Self {
+	pub fn webview(mut self, webview:impl Into<String>) -> Self {
 		self.0.webviews.push(webview.into());
 		self
 	}
 
 	/// Link this capability to the a list of window labels.
-	pub fn webviews(mut self, webviews: impl IntoIterator<Item = impl Into<String>>) -> Self {
+	pub fn webviews(mut self, webviews:impl IntoIterator<Item = impl Into<String>>) -> Self {
 		self.0.webviews.extend(webviews.into_iter().map(|w| w.into()));
 		self
 	}
 
 	/// Add a new permission to this capability.
-	pub fn permission(mut self, permission: impl Into<String>) -> Self {
+	pub fn permission(mut self, permission:impl Into<String>) -> Self {
 		let permission = permission.into();
 		self.0.permissions.push(PermissionEntry::PermissionRef(
 			permission
@@ -146,11 +146,11 @@ impl CapabilityBuilder {
 	}
 
 	/// Add a new scoped permission to this capability.
-	pub fn permission_scoped<T: Serialize>(
+	pub fn permission_scoped<T:Serialize>(
 		mut self,
-		permission: impl Into<String>,
-		allowed: Vec<T>,
-		denied: Vec<T>,
+		permission:impl Into<String>,
+		allowed:Vec<T>,
+		denied:Vec<T>,
 	) -> Self {
 		let permission = permission.into();
 
@@ -169,16 +169,18 @@ impl CapabilityBuilder {
 			.map(|a| serde_json::to_value(a).expect("failed to serialize scope").into())
 			.collect();
 
-		let scope = Scopes { allow: Some(allowed_scope), deny: Some(denied_scope) };
+		let scope = Scopes { allow:Some(allowed_scope), deny:Some(denied_scope) };
 
-		self.0.permissions.push(PermissionEntry::ExtendedPermission { identifier, scope });
+		self.0
+			.permissions
+			.push(PermissionEntry::ExtendedPermission { identifier, scope });
 		self
 	}
 
 	/// Adds a target platform for this capability.
 	///
 	/// By default all platforms are applied.
-	pub fn platform(mut self, platform: Target) -> Self {
+	pub fn platform(mut self, platform:Target) -> Self {
 		self.0.platforms.get_or_insert_with(Default::default).push(platform);
 		self
 	}
@@ -186,21 +188,19 @@ impl CapabilityBuilder {
 	/// Adds target platforms for this capability.
 	///
 	/// By default all platforms are applied.
-	pub fn platforms(mut self, platforms: impl IntoIterator<Item = Target>) -> Self {
+	pub fn platforms(mut self, platforms:impl IntoIterator<Item = Target>) -> Self {
 		self.0.platforms.get_or_insert_with(Default::default).extend(platforms);
 		self
 	}
 }
 
 impl RuntimeCapability for CapabilityBuilder {
-	fn build(self) -> CapabilityFile {
-		CapabilityFile::Capability(self.0)
-	}
+	fn build(self) -> CapabilityFile { CapabilityFile::Capability(self.0) }
 }
 
 impl RuntimeAuthority {
 	#[doc(hidden)]
-	pub fn new(acl: BTreeMap<String, Manifest>, resolved_acl: Resolved) -> Self {
+	pub fn new(acl:BTreeMap<String, Manifest>, resolved_acl:Resolved) -> Self {
 		let command_cache = resolved_acl
 			.command_scope
 			.keys()
@@ -208,46 +208,44 @@ impl RuntimeAuthority {
 			.collect();
 		Self {
 			acl,
-			allowed_commands: resolved_acl.allowed_commands,
-			denied_commands: resolved_acl.denied_commands,
-			scope_manager: ScopeManager {
-				command_scope: resolved_acl.command_scope,
-				global_scope: resolved_acl.global_scope,
+			allowed_commands:resolved_acl.allowed_commands,
+			denied_commands:resolved_acl.denied_commands,
+			scope_manager:ScopeManager {
+				command_scope:resolved_acl.command_scope,
+				global_scope:resolved_acl.global_scope,
 				command_cache,
-				global_scope_cache: Default::default(),
+				global_scope_cache:Default::default(),
 			},
 		}
 	}
 
-	pub(crate) fn has_app_manifest(&self) -> bool {
-		self.acl.contains_key(APP_ACL_KEY)
-	}
+	pub(crate) fn has_app_manifest(&self) -> bool { self.acl.contains_key(APP_ACL_KEY) }
 
 	#[doc(hidden)]
-	pub fn __allow_command(&mut self, command: String, context: ExecutionContext) {
+	pub fn __allow_command(&mut self, command:String, context:ExecutionContext) {
 		self.allowed_commands.insert(
 			command,
 			vec![ResolvedCommand {
 				context,
-				windows: vec!["*".parse().unwrap()],
+				windows:vec!["*".parse().unwrap()],
 				..Default::default()
 			}],
 		);
 	}
 
 	/// Adds the given capability to the runtime authority.
-	pub fn add_capability(&mut self, capability: impl RuntimeCapability) -> crate::Result<()> {
+	pub fn add_capability(&mut self, capability:impl RuntimeCapability) -> crate::Result<()> {
 		let mut capabilities = BTreeMap::new();
 		match capability.build() {
 			CapabilityFile::Capability(c) => {
 				capabilities.insert(c.identifier.clone(), c);
-			}
+			},
 
 			CapabilityFile::List(capabilities_list)
 			| CapabilityFile::NamedList { capabilities: capabilities_list } => {
 				capabilities
 					.extend(capabilities_list.into_iter().map(|c| (c.identifier.clone(), c)));
-			}
+			},
 		}
 
 		let resolved =
@@ -296,13 +294,13 @@ impl RuntimeAuthority {
 	#[cfg(debug_assertions)]
 	pub(crate) fn resolve_access_message(
 		&self,
-		key: &str,
-		command_name: &str,
-		window: &str,
-		webview: &str,
-		origin: &Origin,
+		key:&str,
+		command_name:&str,
+		window:&str,
+		webview:&str,
+		origin:&Origin,
 	) -> String {
-		fn print_references(resolved: &[ResolvedCommand]) -> String {
+		fn print_references(resolved:&[ResolvedCommand]) -> String {
 			resolved
 				.iter()
 				.map(|r| {
@@ -315,7 +313,7 @@ impl RuntimeAuthority {
 				.join(" || ")
 		}
 
-		fn print_allowed_on(resolved: &[ResolvedCommand]) -> String {
+		fn print_allowed_on(resolved:&[ResolvedCommand]) -> String {
 			if resolved.is_empty() {
 				"command not allowed on any window/webview/URL context".to_string()
 			} else {
@@ -350,7 +348,7 @@ impl RuntimeAuthority {
 						ExecutionContext::Local => s.push_str("URL: local"),
 						ExecutionContext::Remote { url } => {
 							s.push_str(&format!("URL: {}", url.as_str()))
-						}
+						},
 					}
 
 					s.push(']');
@@ -365,9 +363,9 @@ impl RuntimeAuthority {
 		}
 
 		fn has_permissions_allowing_command(
-			manifest: &crate::utils::acl::manifest::Manifest,
-			set: &crate::utils::acl::PermissionSet,
-			command: &str,
+			manifest:&crate::utils::acl::manifest::Manifest,
+			set:&crate::utils::acl::PermissionSet,
+			command:&str,
 		) -> bool {
 			for permission_id in &set.permissions {
 				if permission_id == "default" {
@@ -423,41 +421,43 @@ impl RuntimeAuthority {
 				{
 					"allowed".to_string()
 				} else {
-					format!("{command_pretty_name} not allowed on window \"{window}\", webview \"{webview}\", URL: {}\n\n{}\n\nreferenced by: {}",
-            match origin {
-              Origin::Local => "local",
-              Origin::Remote { url } => url.as_str()
-            },
-            print_allowed_on(resolved),
-            print_references(resolved)
-          )
+					format!(
+						"{command_pretty_name} not allowed on window \"{window}\", webview \
+						 \"{webview}\", URL: {}\n\n{}\n\nreferenced by: {}",
+						match origin {
+							Origin::Local => "local",
+							Origin::Remote { url } => url.as_str(),
+						},
+						print_allowed_on(resolved),
+						print_references(resolved)
+					)
 				}
 			} else {
-				let permission_error_detail =
-					if let Some(manifest) =
-						self.acl.get(key).or_else(|| self.acl.get(&format!("core:{key}")))
-					{
-						let mut permissions_referencing_command = Vec::new();
+				let permission_error_detail = if let Some(manifest) =
+					self.acl.get(key).or_else(|| self.acl.get(&format!("core:{key}")))
+				{
+					let mut permissions_referencing_command = Vec::new();
 
-						if let Some(default) = &manifest.default_permission {
-							if has_permissions_allowing_command(manifest, default, command_name) {
-								permissions_referencing_command.push("default".into());
-							}
+					if let Some(default) = &manifest.default_permission {
+						if has_permissions_allowing_command(manifest, default, command_name) {
+							permissions_referencing_command.push("default".into());
 						}
-						for set in manifest.permission_sets.values() {
-							if has_permissions_allowing_command(manifest, set, command_name) {
-								permissions_referencing_command.push(set.identifier.clone());
-							}
+					}
+					for set in manifest.permission_sets.values() {
+						if has_permissions_allowing_command(manifest, set, command_name) {
+							permissions_referencing_command.push(set.identifier.clone());
 						}
-						for permission in manifest.permissions.values() {
-							if permission.commands.allow.contains(&command_name.into()) {
-								permissions_referencing_command.push(permission.identifier.clone());
-							}
+					}
+					for permission in manifest.permissions.values() {
+						if permission.commands.allow.contains(&command_name.into()) {
+							permissions_referencing_command.push(permission.identifier.clone());
 						}
+					}
 
-						permissions_referencing_command.sort();
+					permissions_referencing_command.sort();
 
-						let associated_permissions = permissions_referencing_command
+					let associated_permissions =
+						permissions_referencing_command
 							.iter()
 							.map(|p| {
 								if key == APP_ACL_KEY {
@@ -469,35 +469,42 @@ impl RuntimeAuthority {
 							.collect::<Vec<_>>()
 							.join(", ");
 
-						if associated_permissions.is_empty() {
-							"Command not found".to_string()
-						} else {
-							format!("Permissions associated with this command: {associated_permissions}")
-						}
+					if associated_permissions.is_empty() {
+						"Command not found".to_string()
 					} else {
-						"Plugin not found".to_string()
-					};
+						format!(
+							"Permissions associated with this command: {associated_permissions}"
+						)
+					}
+				} else {
+					"Plugin not found".to_string()
+				};
 
 				if let Some(resolved_cmds) = command_matches {
 					format!(
-            "{command_pretty_name} not allowed on origin [{}]. Please create a capability that has this origin on the context field.\n\nFound matches for: {}\n\n{permission_error_detail}",
-            origin,
-            resolved_cmds
-              .iter()
-              .map(|resolved| {
-                let context = match &resolved.context {
-                  ExecutionContext::Local => "[local]".to_string(),
-                  ExecutionContext::Remote { url } => format!("[remote: {}]", url.as_str()),
-                };
-                format!(
-                  "- context: {context}, referenced by: capability: {}, permission: {}",
-                  resolved.referenced_by.capability,
-                  resolved.referenced_by.permission
-                )
-              })
-              .collect::<Vec<_>>()
-              .join("\n")
-          )
+						"{command_pretty_name} not allowed on origin [{}]. Please create a \
+						 capability that has this origin on the context field.\n\nFound matches \
+						 for: {}\n\n{permission_error_detail}",
+						origin,
+						resolved_cmds
+							.iter()
+							.map(|resolved| {
+								let context = match &resolved.context {
+									ExecutionContext::Local => "[local]".to_string(),
+									ExecutionContext::Remote { url } => {
+										format!("[remote: {}]", url.as_str())
+									},
+								};
+								format!(
+									"- context: {context}, referenced by: capability: {}, \
+									 permission: {}",
+									resolved.referenced_by.capability,
+									resolved.referenced_by.permission
+								)
+							})
+							.collect::<Vec<_>>()
+							.join("\n")
+					)
 				} else {
 					format!("{command_pretty_name} not allowed. {permission_error_detail}")
 				}
@@ -505,13 +512,14 @@ impl RuntimeAuthority {
 		}
 	}
 
-	/// Checks if the given IPC execution is allowed and returns the [`ResolvedCommand`] if it is.
+	/// Checks if the given IPC execution is allowed and returns the
+	/// [`ResolvedCommand`] if it is.
 	pub fn resolve_access(
 		&self,
-		command: &str,
-		window: &str,
-		webview: &str,
-		origin: &Origin,
+		command:&str,
+		window:&str,
+		webview:&str,
+		origin:&Origin,
 	) -> Option<Vec<ResolvedCommand>> {
 		if self
 			.denied_commands
@@ -531,61 +539,50 @@ impl RuntimeAuthority {
 					})
 					.cloned()
 					.collect::<Vec<_>>();
-				if resolved_cmds.is_empty() {
-					None
-				} else {
-					Some(resolved_cmds)
-				}
+				if resolved_cmds.is_empty() { None } else { Some(resolved_cmds) }
 			})
 		}
 	}
 }
 
-/// List of allowed and denied objects that match either the command-specific or plugin global scope criteria.
+/// List of allowed and denied objects that match either the command-specific or
+/// plugin global scope criteria.
 #[derive(Debug)]
-pub struct ScopeValue<T: ScopeObject> {
-	allow: Arc<Vec<Arc<T>>>,
-	deny: Arc<Vec<Arc<T>>>,
+pub struct ScopeValue<T:ScopeObject> {
+	allow:Arc<Vec<Arc<T>>>,
+	deny:Arc<Vec<Arc<T>>>,
 }
 
-impl<T: ScopeObject> ScopeValue<T> {
-	fn clone(&self) -> Self {
-		Self { allow: self.allow.clone(), deny: self.deny.clone() }
-	}
+impl<T:ScopeObject> ScopeValue<T> {
+	fn clone(&self) -> Self { Self { allow:self.allow.clone(), deny:self.deny.clone() } }
 
 	/// What this access scope allows.
-	pub fn allows(&self) -> &Vec<Arc<T>> {
-		&self.allow
-	}
+	pub fn allows(&self) -> &Vec<Arc<T>> { &self.allow }
 
 	/// What this access scope denies.
-	pub fn denies(&self) -> &Vec<Arc<T>> {
-		&self.deny
-	}
+	pub fn denies(&self) -> &Vec<Arc<T>> { &self.deny }
 }
 
-/// Access scope for a command that can be retrieved directly in the command function.
+/// Access scope for a command that can be retrieved directly in the command
+/// function.
 #[derive(Debug)]
-pub struct CommandScope<T: ScopeObject> {
-	allow: Vec<Arc<T>>,
-	deny: Vec<Arc<T>>,
+pub struct CommandScope<T:ScopeObject> {
+	allow:Vec<Arc<T>>,
+	deny:Vec<Arc<T>>,
 }
 
-impl<T: ScopeObject> CommandScope<T> {
+impl<T:ScopeObject> CommandScope<T> {
 	/// What this access scope allows.
-	pub fn allows(&self) -> &Vec<Arc<T>> {
-		&self.allow
-	}
+	pub fn allows(&self) -> &Vec<Arc<T>> { &self.allow }
 
 	/// What this access scope denies.
-	pub fn denies(&self) -> &Vec<Arc<T>> {
-		&self.deny
-	}
+	pub fn denies(&self) -> &Vec<Arc<T>> { &self.deny }
 }
 
-impl<'a, R: Runtime, T: ScopeObject> CommandArg<'a, R> for CommandScope<T> {
-	/// Grabs the [`ResolvedScope`] from the [`CommandItem`] and returns the associated [`CommandScope`].
-	fn from_command(command: CommandItem<'a, R>) -> Result<Self, InvokeError> {
+impl<'a, R:Runtime, T:ScopeObject> CommandArg<'a, R> for CommandScope<T> {
+	/// Grabs the [`ResolvedScope`] from the [`CommandItem`] and returns the
+	/// associated [`CommandScope`].
+	fn from_command(command:CommandItem<'a, R>) -> Result<Self, InvokeError> {
 		let scope_ids = command
 			.acl
 			.as_ref()
@@ -618,30 +615,27 @@ impl<'a, R: Runtime, T: ScopeObject> CommandArg<'a, R> for CommandScope<T> {
 
 			Ok(CommandScope { allow, deny })
 		} else {
-			Ok(CommandScope { allow: Default::default(), deny: Default::default() })
+			Ok(CommandScope { allow:Default::default(), deny:Default::default() })
 		}
 	}
 }
 
 /// Global access scope that can be retrieved directly in the command function.
 #[derive(Debug)]
-pub struct GlobalScope<T: ScopeObject>(ScopeValue<T>);
+pub struct GlobalScope<T:ScopeObject>(ScopeValue<T>);
 
-impl<T: ScopeObject> GlobalScope<T> {
+impl<T:ScopeObject> GlobalScope<T> {
 	/// What this access scope allows.
-	pub fn allows(&self) -> &Vec<Arc<T>> {
-		&self.0.allow
-	}
+	pub fn allows(&self) -> &Vec<Arc<T>> { &self.0.allow }
 
 	/// What this access scope denies.
-	pub fn denies(&self) -> &Vec<Arc<T>> {
-		&self.0.deny
-	}
+	pub fn denies(&self) -> &Vec<Arc<T>> { &self.0.deny }
 }
 
-impl<'a, R: Runtime, T: ScopeObject> CommandArg<'a, R> for GlobalScope<T> {
-	/// Grabs the [`ResolvedScope`] from the [`CommandItem`] and returns the associated [`GlobalScope`].
-	fn from_command(command: CommandItem<'a, R>) -> Result<Self, InvokeError> {
+impl<'a, R:Runtime, T:ScopeObject> CommandArg<'a, R> for GlobalScope<T> {
+	/// Grabs the [`ResolvedScope`] from the [`CommandItem`] and returns the
+	/// associated [`GlobalScope`].
+	fn from_command(command:CommandItem<'a, R>) -> Result<Self, InvokeError> {
 		command
 			.message
 			.webview
@@ -661,35 +655,37 @@ impl<'a, R: Runtime, T: ScopeObject> CommandArg<'a, R> for GlobalScope<T> {
 
 #[derive(Debug)]
 pub struct ScopeManager {
-	command_scope: BTreeMap<ScopeKey, ResolvedScope>,
-	global_scope: BTreeMap<String, ResolvedScope>,
-	command_cache: BTreeMap<ScopeKey, TypeMap![Send + Sync]>,
-	global_scope_cache: TypeMap![Send + Sync],
+	command_scope:BTreeMap<ScopeKey, ResolvedScope>,
+	global_scope:BTreeMap<String, ResolvedScope>,
+	command_cache:BTreeMap<ScopeKey, TypeMap![Send + Sync]>,
+	global_scope_cache:TypeMap![Send + Sync],
 }
 
 /// Marks a type as a scope object.
 ///
-/// Usually you will just rely on [`serde::de::DeserializeOwned`] instead of implementing it manually,
-/// though this is useful if you need to do some initialization logic on the type itself.
+/// Usually you will just rely on [`serde::de::DeserializeOwned`] instead of
+/// implementing it manually, though this is useful if you need to do some
+/// initialization logic on the type itself.
 pub trait ScopeObject: Sized + Send + Sync + Debug + 'static {
 	/// The error type.
 	type Error: std::error::Error + Send + Sync;
 	/// Deserialize the raw scope value.
-	fn deserialize<R: Runtime>(app: &AppHandle<R>, raw: Value) -> Result<Self, Self::Error>;
+	fn deserialize<R:Runtime>(app:&AppHandle<R>, raw:Value) -> Result<Self, Self::Error>;
 }
 
-impl<T: Send + Sync + Debug + DeserializeOwned + 'static> ScopeObject for T {
+impl<T:Send + Sync + Debug + DeserializeOwned + 'static> ScopeObject for T {
 	type Error = serde_json::Error;
-	fn deserialize<R: Runtime>(_app: &AppHandle<R>, raw: Value) -> Result<Self, Self::Error> {
+
+	fn deserialize<R:Runtime>(_app:&AppHandle<R>, raw:Value) -> Result<Self, Self::Error> {
 		serde_json::from_value(raw.into())
 	}
 }
 
 impl ScopeManager {
-	pub(crate) fn get_global_scope_typed<R: Runtime, T: ScopeObject>(
+	pub(crate) fn get_global_scope_typed<R:Runtime, T:ScopeObject>(
 		&self,
-		app: &AppHandle<R>,
-		key: &str,
+		app:&AppHandle<R>,
+		key:&str,
 	) -> crate::Result<ScopeValue<T>> {
 		match self.global_scope_cache.try_get::<ScopeValue<T>>() {
 			Some(cached) => Ok(cached.clone()),
@@ -712,17 +708,17 @@ impl ScopeManager {
 					}
 				}
 
-				let scope = ScopeValue { allow: Arc::new(allow), deny: Arc::new(deny) };
+				let scope = ScopeValue { allow:Arc::new(allow), deny:Arc::new(deny) };
 				self.global_scope_cache.set(scope.clone());
 				Ok(scope)
-			}
+			},
 		}
 	}
 
-	fn get_command_scope_typed<R: Runtime, T: ScopeObject>(
+	fn get_command_scope_typed<R:Runtime, T:ScopeObject>(
 		&self,
-		app: &AppHandle<R>,
-		key: &ScopeKey,
+		app:&AppHandle<R>,
+		key:&ScopeKey,
 	) -> crate::Result<ScopeValue<T>> {
 		let cache = self.command_cache.get(key).unwrap();
 		match cache.try_get::<ScopeValue<T>>() {
@@ -749,11 +745,11 @@ impl ScopeManager {
 					));
 				}
 
-				let value = ScopeValue { allow: Arc::new(allow), deny: Arc::new(deny) };
+				let value = ScopeValue { allow:Arc::new(allow), deny:Arc::new(deny) };
 
 				let _ = cache.set(value.clone());
 				Ok(value)
-			}
+			},
 		}
 	}
 }
@@ -766,9 +762,8 @@ mod tests {
 		ExecutionContext,
 	};
 
-	use crate::ipc::Origin;
-
 	use super::RuntimeAuthority;
+	use crate::ipc::Origin;
 
 	#[test]
 	fn window_glob_pattern_matches() {
@@ -779,7 +774,7 @@ mod tests {
 		let webview = "other-*";
 
 		let resolved_cmd = vec![ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
+			windows:vec![Pattern::new(window).unwrap()],
 			..Default::default()
 		}];
 
@@ -810,8 +805,8 @@ mod tests {
 		let webview = "main-*";
 
 		let resolved_cmd = vec![ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
-			webviews: vec![Pattern::new(webview).unwrap()],
+			windows:vec![Pattern::new(window).unwrap()],
+			webviews:vec![Pattern::new(webview).unwrap()],
 			..Default::default()
 		}];
 
@@ -844,8 +839,8 @@ mod tests {
 		let webview = "main";
 
 		let resolved_cmd = vec![ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
-			context: ExecutionContext::Remote { url: url.parse().unwrap() },
+			windows:vec![Pattern::new(window).unwrap()],
+			context:ExecutionContext::Remote { url:url.parse().unwrap() },
 			..Default::default()
 		}];
 
@@ -861,7 +856,7 @@ mod tests {
 				command,
 				window,
 				webview,
-				&Origin::Remote { url: url.parse().unwrap() }
+				&Origin::Remote { url:url.parse().unwrap() }
 			),
 			Some(resolved_cmd)
 		);
@@ -878,8 +873,8 @@ mod tests {
 		let webview = "main";
 
 		let resolved_cmd = vec![ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
-			context: ExecutionContext::Remote { url: url.parse().unwrap() },
+			windows:vec![Pattern::new(window).unwrap()],
+			context:ExecutionContext::Remote { url:url.parse().unwrap() },
 			..Default::default()
 		}];
 
@@ -895,7 +890,7 @@ mod tests {
 				command,
 				window,
 				webview,
-				&Origin::Remote { url: url.replace('*', "studio").parse().unwrap() }
+				&Origin::Remote { url:url.replace('*', "studio").parse().unwrap() }
 			),
 			Some(resolved_cmd)
 		);
@@ -910,7 +905,7 @@ mod tests {
 		let webview = "main";
 
 		let resolved_cmd = vec![ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
+			windows:vec![Pattern::new(window).unwrap()],
 			..Default::default()
 		}];
 
@@ -921,14 +916,16 @@ mod tests {
 			Resolved { allowed_commands, ..Default::default() },
 		);
 
-		assert!(authority
-			.resolve_access(
-				command,
-				window,
-				webview,
-				&Origin::Remote { url: "https://tauri.app".parse().unwrap() }
-			)
-			.is_none());
+		assert!(
+			authority
+				.resolve_access(
+					command,
+					window,
+					webview,
+					&Origin::Remote { url:"https://tauri.app".parse().unwrap() }
+				)
+				.is_none()
+		);
 	}
 
 	#[test]
@@ -943,14 +940,14 @@ mod tests {
 
 		let allowed_commands = [(
 			command.to_string(),
-			vec![ResolvedCommand { windows: windows.clone(), ..Default::default() }],
+			vec![ResolvedCommand { windows:windows.clone(), ..Default::default() }],
 		)]
 		.into_iter()
 		.collect();
 
 		let denied_commands = [(
 			command.to_string(),
-			vec![ResolvedCommand { windows: windows.clone(), ..Default::default() }],
+			vec![ResolvedCommand { windows:windows.clone(), ..Default::default() }],
 		)]
 		.into_iter()
 		.collect();
@@ -981,28 +978,28 @@ mod tests {
 		let remote_url = "http://localhost:8080";
 
 		let referenced_by = tauri_utils::acl::resolved::ResolvedCommandReference {
-			capability: "maincap".to_string(),
-			permission: "allow-command".to_string(),
+			capability:"maincap".to_string(),
+			permission:"allow-command".to_string(),
 		};
 
 		let resolved_window_cmd = ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
-			referenced_by: referenced_by.clone(),
+			windows:vec![Pattern::new(window).unwrap()],
+			referenced_by:referenced_by.clone(),
 			..Default::default()
 		};
 
 		let resolved_webview_window_cmd = ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
-			webviews: vec![Pattern::new(webview).unwrap()],
-			referenced_by: referenced_by.clone(),
+			windows:vec![Pattern::new(window).unwrap()],
+			webviews:vec![Pattern::new(webview).unwrap()],
+			referenced_by:referenced_by.clone(),
 			..Default::default()
 		};
 
 		let resolved_webview_window_remote_cmd = ResolvedCommand {
-			windows: vec![Pattern::new(window).unwrap()],
-			webviews: vec![Pattern::new(webview).unwrap()],
-			referenced_by: referenced_by.clone(),
-			context: ExecutionContext::Remote { url: remote_url.parse().unwrap() },
+			windows:vec![Pattern::new(window).unwrap()],
+			webviews:vec![Pattern::new(webview).unwrap()],
+			referenced_by:referenced_by.clone(),
+			context:ExecutionContext::Remote { url:remote_url.parse().unwrap() },
 			..Default::default()
 		};
 
@@ -1023,10 +1020,10 @@ mod tests {
 			[(
 				plugin_name.to_string(),
 				Manifest {
-					default_permission: None,
-					permissions: Default::default(),
-					permission_sets: Default::default(),
-					global_scope_schema: None,
+					default_permission:None,
+					permissions:Default::default(),
+					permission_sets:Default::default(),
+					global_scope_schema:None,
 				},
 			)]
 			.into_iter()
@@ -1060,15 +1057,17 @@ mod tests {
 
 		// window/webview do not match
 		assert_eq!(
-      authority.resolve_access_message(
-        plugin_name,
-        command_allowed_on_window,
-        "other-window",
-        "any-webview",
-        &Origin::Local
-      ),
-      "myplugin.my-command-window not allowed on window \"other-window\", webview \"any-webview\", URL: local\n\nallowed on: [windows: \"main-*\", URL: local]\n\nreferenced by: capability: maincap, permission: allow-command"
-    );
+			authority.resolve_access_message(
+				plugin_name,
+				command_allowed_on_window,
+				"other-window",
+				"any-webview",
+				&Origin::Local
+			),
+			"myplugin.my-command-window not allowed on window \"other-window\", webview \
+			 \"any-webview\", URL: local\n\nallowed on: [windows: \"main-*\", URL: \
+			 local]\n\nreferenced by: capability: maincap, permission: allow-command"
+		);
 
 		// window matches, but not origin
 		assert_eq!(

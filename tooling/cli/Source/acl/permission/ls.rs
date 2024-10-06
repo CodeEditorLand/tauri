@@ -2,25 +2,25 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use clap::Parser;
+use std::{collections::BTreeMap, fs::read_to_string};
 
-use crate::{helpers::app_paths::tauri_dir, Result};
+use clap::Parser;
 use colored::Colorize;
 use tauri_utils::acl::{manifest::Manifest, APP_ACL_KEY};
 
-use std::{collections::BTreeMap, fs::read_to_string};
+use crate::{helpers::app_paths::tauri_dir, Result};
 
 #[derive(Debug, Parser)]
 #[clap(about = "List permissions available to your application")]
 pub struct Options {
 	/// Name of the plugin to list permissions.
-	plugin: Option<String>,
+	plugin:Option<String>,
 	/// Permission identifier filter.
 	#[clap(short, long)]
-	filter: Option<String>,
+	filter:Option<String>,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let tauri_dir = tauri_dir();

@@ -2,23 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{
-	detect_target_ok, ensure_init, env, get_app, get_config, inject_resources, load_pbxproj,
-	log_finished, merge_plist, open_and_wait, project_config, synchronize_project_config,
-	MobileTarget, OptionsHandle,
+use std::{
+	env::{set_current_dir, var, var_os},
+	fs,
+	path::PathBuf,
 };
-use crate::{
-	build::Options as BuildOptions,
-	helpers::{
-		app_paths::tauri_dir,
-		config::{get as get_tauri_config, ConfigHandle},
-		flock,
-	},
-	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
-	mobile::{write_options, CliOptions},
-	ConfigValue, Result,
-};
-use clap::{ArgAction, Parser, ValueEnum};
 
 use anyhow::Context;
 use cargo_mobile2::{
@@ -30,22 +18,49 @@ use cargo_mobile2::{
 	opts::{NoiseLevel, Profile},
 	target::{call_for_targets_with_fallback, TargetInvalid, TargetTrait},
 };
+use clap::{ArgAction, Parser, ValueEnum};
 
-use std::{
-	env::{set_current_dir, var, var_os},
-	fs,
-	path::PathBuf,
+use super::{
+	detect_target_ok,
+	ensure_init,
+	env,
+	get_app,
+	get_config,
+	inject_resources,
+	load_pbxproj,
+	log_finished,
+	merge_plist,
+	open_and_wait,
+	project_config,
+	synchronize_project_config,
+	MobileTarget,
+	OptionsHandle,
+};
+use crate::{
+	build::Options as BuildOptions,
+	helpers::{
+		app_paths::tauri_dir,
+		config::{get as get_tauri_config, ConfigHandle},
+		flock,
+	},
+	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
+	mobile::{write_options, CliOptions},
+	ConfigValue,
+	Result,
 };
 
 #[derive(Debug, Clone, Parser)]
 #[clap(
 	about = "Build your app in release mode for iOS and generate IPAs",
-	long_about = "Build your app in release mode for iOS and generate IPAs. It makes use of the `build.frontendDist` property from your `tauri.conf.json` file. It also runs your `build.beforeBuildCommand` which usually builds your frontend into `build.frontendDist`."
+	long_about = "Build your app in release mode for iOS and generate IPAs. It makes use of the \
+	              `build.frontendDist` property from your `tauri.conf.json` file. It also runs \
+	              your `build.beforeBuildCommand` which usually builds your frontend into \
+	              `build.frontendDist`."
 )]
 pub struct Options {
 	/// Builds with the debug flag
 	#[clap(short, long)]
-	pub debug: bool,
+	pub debug:bool,
 	/// Which targets to build.
 	#[clap(
     short,
@@ -55,27 +70,28 @@ pub struct Options {
     default_value = Target::DEFAULT_KEY,
     value_parser(clap::builder::PossibleValuesParser::new(Target::name_list()))
   )]
-	pub targets: Vec<String>,
+	pub targets:Vec<String>,
 	/// List of cargo features to activate
 	#[clap(short, long, action = ArgAction::Append, num_args(0..))]
-	pub features: Option<Vec<String>>,
+	pub features:Option<Vec<String>>,
 	/// JSON string or path to JSON file to merge with tauri.conf.json
 	#[clap(short, long)]
-	pub config: Option<ConfigValue>,
+	pub config:Option<ConfigValue>,
 	/// Build number to append to the app version.
 	#[clap(long)]
-	pub build_number: Option<u32>,
+	pub build_number:Option<u32>,
 	/// Open Xcode
 	#[clap(short, long)]
-	pub open: bool,
+	pub open:bool,
 	/// Skip prompting for values
 	#[clap(long, env = "CI")]
-	pub ci: bool,
+	pub ci:bool,
 	/// Describes how Xcode should export the archive.
 	///
-	/// Use this to create a package ready for the App Store (app-store-connect option) or TestFlight (release-testing option).
+	/// Use this to create a package ready for the App Store (app-store-connect
+	/// option) or TestFlight (release-testing option).
 	#[clap(long, value_enum)]
-	pub export_method: Option<ExportMethod>,
+	pub export_method:Option<ExportMethod>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -86,7 +102,7 @@ pub enum ExportMethod {
 }
 
 impl std::fmt::Display for ExportMethod {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::AppStoreConnect => write!(f, "app-store-connect"),
 			Self::ReleaseTesting => write!(f, "release-testing"),
@@ -98,7 +114,7 @@ impl std::fmt::Display for ExportMethod {
 impl std::str::FromStr for ExportMethod {
 	type Err = &'static str;
 
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
+	fn from_str(s:&str) -> Result<Self, Self::Err> {
 		match s {
 			"app-store-connect" => Ok(Self::AppStoreConnect),
 			"release-testing" => Ok(Self::ReleaseTesting),
@@ -109,25 +125,25 @@ impl std::str::FromStr for ExportMethod {
 }
 
 impl From<Options> for BuildOptions {
-	fn from(options: Options) -> Self {
+	fn from(options:Options) -> Self {
 		Self {
-			runner: None,
-			debug: options.debug,
-			target: None,
-			features: options.features,
-			bundles: None,
-			no_bundle: false,
-			config: options.config,
-			args: Vec::new(),
-			ci: options.ci,
+			runner:None,
+			debug:options.debug,
+			target:None,
+			features:options.features,
+			bundles:None,
+			no_bundle:false,
+			config:options.config,
+			args:Vec::new(),
+			ci:options.ci,
 		}
 	}
 }
 
-pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
+pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
-	let mut build_options: BuildOptions = options.clone().into();
+	let mut build_options:BuildOptions = options.clone().into();
 	build_options.target = Some(
 		Target::all()
 			.get(options.targets.first().map(|t| t.as_str()).unwrap_or(Target::DEFAULT_KEY))
@@ -226,13 +242,13 @@ pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
 
 #[allow(clippy::too_many_arguments)]
 fn run_build(
-	interface: AppInterface,
-	options: Options,
-	mut build_options: BuildOptions,
-	tauri_config: ConfigHandle,
-	config: &AppleConfig,
-	env: &mut Env,
-	noise_level: NoiseLevel,
+	interface:AppInterface,
+	options:Options,
+	mut build_options:BuildOptions,
+	tauri_config:ConfigHandle,
+	config:&AppleConfig,
+	env:&mut Env,
+	noise_level:NoiseLevel,
 ) -> Result<OptionsHandle> {
 	let profile = if options.debug { Profile::Debug } else { Profile::Release };
 
@@ -240,21 +256,21 @@ fn run_build(
 
 	let app_settings = interface.app_settings();
 	let bin_path = app_settings.app_binary_path(&InterfaceOptions {
-		debug: build_options.debug,
-		target: build_options.target.clone(),
+		debug:build_options.debug,
+		target:build_options.target.clone(),
 		..Default::default()
 	})?;
 	let out_dir = bin_path.parent().unwrap();
 	let _lock = flock::open_rw(out_dir.join("lock").with_extension("ios"), "iOS")?;
 
 	let cli_options = CliOptions {
-		dev: false,
-		features: build_options.features.clone(),
-		args: build_options.args.clone(),
+		dev:false,
+		features:build_options.features.clone(),
+		args:build_options.args.clone(),
 		noise_level,
-		vars: Default::default(),
-		config: build_options.config.clone(),
-		target_device: None,
+		vars:Default::default(),
+		config:build_options.config.clone(),
+		target_device:None,
 	};
 	let handle =
 		write_options(&tauri_config.lock().unwrap().as_ref().unwrap().identifier, cli_options)?;
@@ -265,7 +281,7 @@ fn run_build(
 		options.targets.iter(),
 		&detect_target_ok,
 		env,
-		|target: &Target| -> Result<()> {
+		|target:&Target| -> Result<()> {
 			let mut app_version = config.bundle_version().clone();
 			if let Some(build_number) = options.build_number {
 				app_version.push_extra(build_number);
@@ -324,7 +340,7 @@ fn run_build(
 			Ok(())
 		},
 	)
-	.map_err(|e: TargetInvalid| anyhow::anyhow!(e.to_string()))??;
+	.map_err(|e:TargetInvalid| anyhow::anyhow!(e.to_string()))??;
 
 	log_finished(out_files, "iOS Bundle");
 
@@ -339,10 +355,13 @@ fn auth_credentials_from_env() -> Result<Option<cargo_mobile2::apple::AuthCreden
 	) {
 		(Ok(key_id), Ok(key_issuer_id), Some(key_path)) => {
 			Ok(Some(cargo_mobile2::apple::AuthCredentials { key_path, key_id, key_issuer_id }))
-		}
+		},
 		(Err(_), Err(_), None) => Ok(None),
-		_ => anyhow::bail!(
-      "APPLE_API_KEY, APPLE_API_ISSUER and APPLE_API_KEY_PATH must be provided for code signing"
-    ),
+		_ => {
+			anyhow::bail!(
+				"APPLE_API_KEY, APPLE_API_ISSUER and APPLE_API_KEY_PATH must be provided for code \
+				 signing"
+			)
+		},
 	}
 }

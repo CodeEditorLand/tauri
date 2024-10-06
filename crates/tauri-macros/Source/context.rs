@@ -20,10 +20,7 @@ use syn::{
 	Token,
 };
 use tauri_codegen::{context_codegen, get_config, ContextData};
-use tauri_utils::{
-	config::parse::does_supported_file_name_exist,
-	platform::Target,
-};
+use tauri_utils::{config::parse::does_supported_file_name_exist, platform::Target};
 
 pub(crate) struct ContextItems {
 	config_file:PathBuf,
@@ -91,13 +88,11 @@ impl Parse for ContextItems {
 											} else {
 												Err(syn::Error::new(
 													input.span(),
-													"unexpected expression \
-													 for capability",
+													"unexpected expression for capability",
 												))
 											}
 										})
-										.collect::<Result<Vec<_>, syn::Error>>(
-										)?,
+										.collect::<Result<Vec<_>, syn::Error>>()?,
 								);
 							} else {
 								return Err(syn::Error::new(
@@ -132,10 +127,7 @@ impl Parse for ContextItems {
 					}
 				},
 				Meta::List(_) => {
-					return Err(syn::Error::new(
-						input.span(),
-						"unexpected list input",
-					));
+					return Err(syn::Error::new(input.span(), "unexpected list input"));
 				},
 			}
 
@@ -156,10 +148,7 @@ impl Parse for ContextItems {
 					ident:Ident::new("tauri", Span::call_site()),
 					arguments:PathArguments::None,
 				});
-				syn::Path {
-					leading_colon:Some(Token![::](Span::call_site())),
-					segments,
-				}
+				syn::Path { leading_colon:Some(Token![::](Span::call_site())), segments }
 			}),
 			capabilities,
 			assets,

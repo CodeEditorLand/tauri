@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{fs::read_to_string, path::Path};
+
+use anyhow::Context;
+use toml_edit::{DocumentMut, Item, Table, TableLike, Value};
+
 use crate::{
 	helpers::{
 		app_paths::{app_dir, tauri_dir},
@@ -10,11 +15,6 @@ use crate::{
 	interface::rust::manifest::{read_manifest, serialize_manifest},
 	Result,
 };
-
-use std::{fs::read_to_string, path::Path};
-
-use anyhow::Context;
-use toml_edit::{DocumentMut, Item, Table, TableLike, Value};
 
 pub fn run() -> Result<()> {
 	let app_dir = app_dir();
@@ -34,9 +34,11 @@ pub fn run() -> Result<()> {
 	Ok(())
 }
 
-fn migrate_npm_dependencies(app_dir: &Path) -> Result<()> {
-	let pm =
-		PackageManager::from_project(app_dir).into_iter().next().unwrap_or(PackageManager::Npm);
+fn migrate_npm_dependencies(app_dir:&Path) -> Result<()> {
+	let pm = PackageManager::from_project(app_dir)
+		.into_iter()
+		.next()
+		.unwrap_or(PackageManager::Npm);
 
 	let mut install_deps = Vec::new();
 	for pkg in [
@@ -82,9 +84,18 @@ fn migrate_npm_dependencies(app_dir: &Path) -> Result<()> {
 	Ok(())
 }
 
-fn migrate_permissions(tauri_dir: &Path) -> Result<()> {
-	let core_plugins =
-		["app", "event", "image", "menu", "path", "resources", "tray", "webview", "window"];
+fn migrate_permissions(tauri_dir:&Path) -> Result<()> {
+	let core_plugins = [
+		"app",
+		"event",
+		"image",
+		"menu",
+		"path",
+		"resources",
+		"tray",
+		"webview",
+		"window",
+	];
 
 	for entry in walkdir::WalkDir::new(tauri_dir.join("capabilities")) {
 		let entry = entry?;
@@ -102,7 +113,7 @@ fn migrate_permissions(tauri_dir: &Path) -> Result<()> {
 	Ok(())
 }
 
-fn migrate_manifest(manifest: &mut DocumentMut) -> Result<()> {
+fn migrate_manifest(manifest:&mut DocumentMut) -> Result<()> {
 	let version = "2.0.0-rc.0";
 
 	let dependencies = manifest
@@ -158,12 +169,15 @@ fn migrate_manifest(manifest: &mut DocumentMut) -> Result<()> {
 	Ok(())
 }
 
-fn migrate_dependency(dependencies: &mut Table, name: &str, version: &str) {
+fn migrate_dependency(dependencies:&mut Table, name:&str, version:&str) {
 	let item = dependencies.entry(name).or_insert(Item::None);
 
 	// do not rewrite if dependency uses workspace inheritance
 	if item.get("workspace").and_then(|v| v.as_bool()).unwrap_or_default() {
-		log::info!("`{name}` dependency has workspace inheritance enabled. The features array won't be automatically rewritten.");
+		log::info!(
+			"`{name}` dependency has workspace inheritance enabled. The features array won't be \
+			 automatically rewritten."
+		);
 		return;
 	}
 
@@ -176,6 +190,6 @@ fn migrate_dependency(dependencies: &mut Table, name: &str, version: &str) {
 	}
 }
 
-fn migrate_dependency_table<D: TableLike>(dep: &mut D, version: &str) {
+fn migrate_dependency_table<D:TableLike>(dep:&mut D, version:&str) {
 	*dep.entry("version").or_insert(Item::None) = Item::Value(version.into());
 }

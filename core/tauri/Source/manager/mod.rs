@@ -10,14 +10,13 @@ use std::{
 };
 
 use serde::Serialize;
-use url::Url;
-
 use tauri_macros::default_runtime;
 use tauri_utils::{
 	assets::{AssetKey, CspHash},
 	config::{Csp, CspDirectiveSources},
 	html::{SCRIPT_NONCE_TOKEN, STYLE_NONCE_TOKEN},
 };
+use url::Url;
 
 use crate::{
 	app::{AppHandle, GlobalWebviewEventListener, GlobalWindowEventListener, OnPageLoad},
@@ -26,7 +25,13 @@ use crate::{
 	plugin::PluginStore,
 	resources::ResourceTable,
 	utils::{config::Config, PackageInfo},
-	Assets, Context, Pattern, Runtime, StateManager, Webview, Window,
+	Assets,
+	Context,
+	Pattern,
+	Runtime,
+	StateManager,
+	Webview,
+	Window,
 };
 
 #[cfg(desktop)]
@@ -39,37 +44,41 @@ pub mod window;
 #[derive(Default)]
 /// Spaced and quoted Content-Security-Policy hash values.
 struct CspHashStrings {
-	script: Vec<String>,
-	style: Vec<String>,
+	script:Vec<String>,
+	style:Vec<String>,
 }
 
 /// Sets the CSP value to the asset HTML if needed (on Linux).
-/// Returns the CSP string for access on the response header (on Windows and macOS).
+/// Returns the CSP string for access on the response header (on Windows and
+/// macOS).
 #[allow(clippy::borrowed_box)]
-pub(crate) fn set_csp<R: Runtime>(
-	asset: &mut String,
-	assets: &impl std::borrow::Borrow<dyn Assets<R>>,
-	asset_path: &AssetKey,
-	manager: &AppManager<R>,
-	csp: Csp,
+pub(crate) fn set_csp<R:Runtime>(
+	asset:&mut String,
+	assets:&impl std::borrow::Borrow<dyn Assets<R>>,
+	asset_path:&AssetKey,
+	manager:&AppManager<R>,
+	csp:Csp,
 ) -> HashMap<String, CspDirectiveSources> {
 	let mut csp = csp.into();
 	let hash_strings =
-		assets.borrow().csp_hashes(asset_path).fold(CspHashStrings::default(), |mut acc, hash| {
-			match hash {
-				CspHash::Script(hash) => {
-					acc.script.push(hash.into());
+		assets
+			.borrow()
+			.csp_hashes(asset_path)
+			.fold(CspHashStrings::default(), |mut acc, hash| {
+				match hash {
+					CspHash::Script(hash) => {
+						acc.script.push(hash.into());
+					},
+					CspHash::Style(hash) => {
+						acc.style.push(hash.into());
+					},
+					_csp_hash => {
+						log::debug!("Unknown CspHash variant encountered: {:?}", _csp_hash);
+					},
 				}
-				CspHash::Style(hash) => {
-					acc.style.push(hash.into());
-				}
-				_csp_hash => {
-					log::debug!("Unknown CspHash variant encountered: {:?}", _csp_hash);
-				}
-			}
 
-			acc
-		});
+				acc
+			});
 
 	let dangerous_disable_asset_csp_modification =
 		&manager.config().app.security.dangerous_disable_asset_csp_modification;
@@ -85,10 +94,10 @@ pub(crate) fn set_csp<R: Runtime>(
 }
 
 // inspired by <https://github.com/rust-lang/rust/blob/1be5c8f90912c446ecbdc405cbc4a89f9acd20fd/library/alloc/src/str.rs#L260-L297>
-fn replace_with_callback<F: FnMut() -> String>(
-	original: &str,
-	pattern: &str,
-	mut replacement: F,
+fn replace_with_callback<F:FnMut() -> String>(
+	original:&str,
+	pattern:&str,
+	mut replacement:F,
 ) -> String {
 	let mut result = String::new();
 	let mut last_end = 0;
@@ -102,11 +111,11 @@ fn replace_with_callback<F: FnMut() -> String>(
 }
 
 fn replace_csp_nonce(
-	asset: &mut String,
-	token: &str,
-	csp: &mut HashMap<String, CspDirectiveSources>,
-	directive: &str,
-	hashes: Vec<String>,
+	asset:&mut String,
+	token:&str,
+	csp:&mut HashMap<String, CspDirectiveSources>,
+	directive:&str,
+	hashes:Vec<String>,
 ) {
 	let mut nonces = Vec::new();
 	*asset = replace_with_callback(asset, token, || {
@@ -142,67 +151,61 @@ fn replace_csp_nonce(
 #[non_exhaustive]
 pub struct Asset {
 	/// The asset bytes.
-	pub bytes: Vec<u8>,
+	pub bytes:Vec<u8>,
 	/// The asset's mime type.
-	pub mime_type: String,
+	pub mime_type:String,
 	/// The `Content-Security-Policy` header value.
-	pub csp_header: Option<String>,
+	pub csp_header:Option<String>,
 }
 
 impl Asset {
 	/// The asset bytes.
-	pub fn bytes(&self) -> &[u8] {
-		&self.bytes
-	}
+	pub fn bytes(&self) -> &[u8] { &self.bytes }
 
 	/// The asset's mime type.
-	pub fn mime_type(&self) -> &str {
-		&self.mime_type
-	}
+	pub fn mime_type(&self) -> &str { &self.mime_type }
 
 	/// The `Content-Security-Policy` header value.
-	pub fn csp_header(&self) -> Option<&str> {
-		self.csp_header.as_deref()
-	}
+	pub fn csp_header(&self) -> Option<&str> { self.csp_header.as_deref() }
 }
 
 #[default_runtime(crate::Wry, wry)]
-pub struct AppManager<R: Runtime> {
-	pub runtime_authority: Mutex<RuntimeAuthority>,
-	pub window: window::WindowManager<R>,
-	pub webview: webview::WebviewManager<R>,
+pub struct AppManager<R:Runtime> {
+	pub runtime_authority:Mutex<RuntimeAuthority>,
+	pub window:window::WindowManager<R>,
+	pub webview:webview::WebviewManager<R>,
 	#[cfg(all(desktop, feature = "tray-icon"))]
-	pub tray: tray::TrayManager<R>,
+	pub tray:tray::TrayManager<R>,
 	#[cfg(desktop)]
-	pub menu: menu::MenuManager<R>,
+	pub menu:menu::MenuManager<R>,
 
-	pub(crate) plugins: Mutex<PluginStore<R>>,
-	pub listeners: Listeners,
-	pub state: Arc<StateManager>,
-	pub config: Config,
+	pub(crate) plugins:Mutex<PluginStore<R>>,
+	pub listeners:Listeners,
+	pub state:Arc<StateManager>,
+	pub config:Config,
 	#[cfg(dev)]
-	pub config_parent: Option<std::path::PathBuf>,
-	pub assets: Box<dyn Assets<R>>,
+	pub config_parent:Option<std::path::PathBuf>,
+	pub assets:Box<dyn Assets<R>>,
 
-	pub app_icon: Option<Vec<u8>>,
+	pub app_icon:Option<Vec<u8>>,
 
-	pub package_info: PackageInfo,
+	pub package_info:PackageInfo,
 
 	/// Application pattern.
-	pub pattern: Arc<Pattern>,
+	pub pattern:Arc<Pattern>,
 
 	/// Global API scripts collected from plugins.
-	pub plugin_global_api_scripts: Arc<Option<&'static [&'static str]>>,
+	pub plugin_global_api_scripts:Arc<Option<&'static [&'static str]>>,
 
 	/// Application Resources Table
-	pub(crate) resources_table: Arc<Mutex<ResourceTable>>,
+	pub(crate) resources_table:Arc<Mutex<ResourceTable>>,
 
 	/// Runtime-generated invoke key.
-	pub(crate) invoke_key: String,
+	pub(crate) invoke_key:String,
 }
 
-impl<R: Runtime> fmt::Debug for AppManager<R> {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<R:Runtime> fmt::Debug for AppManager<R> {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		let mut d = f.debug_struct("AppManager");
 
 		d.field("window", &self.window)
@@ -222,23 +225,23 @@ impl<R: Runtime> fmt::Debug for AppManager<R> {
 	}
 }
 
-impl<R: Runtime> AppManager<R> {
+impl<R:Runtime> AppManager<R> {
 	#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 	pub(crate) fn with_handlers(
-		#[allow(unused_mut)] mut context: Context<R>,
-		plugins: PluginStore<R>,
-		invoke_handler: Box<InvokeHandler<R>>,
-		on_page_load: Option<Arc<OnPageLoad<R>>>,
-		uri_scheme_protocols: HashMap<String, Arc<webview::UriSchemeProtocol<R>>>,
-		state: StateManager,
-		window_event_listeners: Vec<GlobalWindowEventListener<R>>,
-		webiew_event_listeners: Vec<GlobalWebviewEventListener<R>>,
-		#[cfg(desktop)] window_menu_event_listeners: HashMap<
+		#[allow(unused_mut)] mut context:Context<R>,
+		plugins:PluginStore<R>,
+		invoke_handler:Box<InvokeHandler<R>>,
+		on_page_load:Option<Arc<OnPageLoad<R>>>,
+		uri_scheme_protocols:HashMap<String, Arc<webview::UriSchemeProtocol<R>>>,
+		state:StateManager,
+		window_event_listeners:Vec<GlobalWindowEventListener<R>>,
+		webiew_event_listeners:Vec<GlobalWebviewEventListener<R>>,
+		#[cfg(desktop)] window_menu_event_listeners:HashMap<
 			String,
 			crate::app::GlobalMenuEventListener<Window<R>>,
 		>,
-		(invoke_responder, invoke_initialization_script): (Option<Arc<InvokeResponder<R>>>, String),
-		invoke_key: String,
+		(invoke_responder, invoke_initialization_script):(Option<Arc<InvokeResponder<R>>>, String),
+		invoke_key:String,
 	) -> Self {
 		// generate a random isolation key at runtime
 		#[cfg(feature = "isolation")]
@@ -247,61 +250,60 @@ impl<R: Runtime> AppManager<R> {
 		}
 
 		Self {
-			runtime_authority: Mutex::new(context.runtime_authority),
-			window: window::WindowManager {
-				windows: Mutex::default(),
-				default_icon: context.default_window_icon,
-				event_listeners: Arc::new(window_event_listeners),
+			runtime_authority:Mutex::new(context.runtime_authority),
+			window:window::WindowManager {
+				windows:Mutex::default(),
+				default_icon:context.default_window_icon,
+				event_listeners:Arc::new(window_event_listeners),
 			},
-			webview: webview::WebviewManager {
-				webviews: Mutex::default(),
+			webview:webview::WebviewManager {
+				webviews:Mutex::default(),
 				invoke_handler,
 				on_page_load,
-				uri_scheme_protocols: Mutex::new(uri_scheme_protocols),
-				event_listeners: Arc::new(webiew_event_listeners),
+				uri_scheme_protocols:Mutex::new(uri_scheme_protocols),
+				event_listeners:Arc::new(webiew_event_listeners),
 				invoke_responder,
 				invoke_initialization_script,
-				invoke_key: invoke_key.clone(),
+				invoke_key:invoke_key.clone(),
 			},
 			#[cfg(all(desktop, feature = "tray-icon"))]
-			tray: tray::TrayManager {
-				icon: context.tray_icon,
-				icons: Default::default(),
-				global_event_listeners: Default::default(),
-				event_listeners: Default::default(),
+			tray:tray::TrayManager {
+				icon:context.tray_icon,
+				icons:Default::default(),
+				global_event_listeners:Default::default(),
+				event_listeners:Default::default(),
 			},
 			#[cfg(desktop)]
-			menu: menu::MenuManager {
-				menus: Default::default(),
-				menu: Default::default(),
-				global_event_listeners: Default::default(),
-				event_listeners: Mutex::new(window_menu_event_listeners),
+			menu:menu::MenuManager {
+				menus:Default::default(),
+				menu:Default::default(),
+				global_event_listeners:Default::default(),
+				event_listeners:Mutex::new(window_menu_event_listeners),
 			},
-			plugins: Mutex::new(plugins),
-			listeners: Listeners::default(),
-			state: Arc::new(state),
-			config: context.config,
+			plugins:Mutex::new(plugins),
+			listeners:Listeners::default(),
+			state:Arc::new(state),
+			config:context.config,
 			#[cfg(dev)]
-			config_parent: context.config_parent,
-			assets: context.assets,
-			app_icon: context.app_icon,
-			package_info: context.package_info,
-			pattern: Arc::new(context.pattern),
-			plugin_global_api_scripts: Arc::new(context.plugin_global_api_scripts),
-			resources_table: Arc::default(),
+			config_parent:context.config_parent,
+			assets:context.assets,
+			app_icon:context.app_icon,
+			package_info:context.package_info,
+			pattern:Arc::new(context.pattern),
+			plugin_global_api_scripts:Arc::new(context.plugin_global_api_scripts),
+			resources_table:Arc::default(),
 			invoke_key,
 		}
 	}
 
 	/// State managed by the application.
-	pub(crate) fn state(&self) -> Arc<StateManager> {
-		self.state.clone()
-	}
+	pub(crate) fn state(&self) -> Arc<StateManager> { self.state.clone() }
 
 	/// Get the base path to serve data from.
 	///
 	/// * In dev mode, this will be based on the `devUrl` configuration value.
-	/// * Otherwise, this will be based on the `frontendDist` configuration value.
+	/// * Otherwise, this will be based on the `frontendDist` configuration
+	///   value.
 	#[cfg(not(dev))]
 	fn base_path(&self) -> Option<&Url> {
 		use crate::utils::config::FrontendDist;
@@ -312,9 +314,7 @@ impl<R: Runtime> AppManager<R> {
 	}
 
 	#[cfg(dev)]
-	fn base_path(&self) -> Option<&Url> {
-		self.config.build.dev_url.as_ref()
-	}
+	fn base_path(&self) -> Option<&Url> { self.config.build.dev_url.as_ref() }
 
 	pub(crate) fn protocol_url(&self) -> Cow<'_, Url> {
 		if cfg!(windows) || cfg!(target_os = "android") {
@@ -347,12 +347,14 @@ impl<R: Runtime> AppManager<R> {
 		}
 	}
 
-	pub fn get_asset(&self, mut path: String) -> Result<Asset, Box<dyn std::error::Error>> {
+	pub fn get_asset(&self, mut path:String) -> Result<Asset, Box<dyn std::error::Error>> {
 		let assets = &self.assets;
 		if path.ends_with('/') {
 			path.pop();
 		}
-		path = percent_encoding::percent_decode(path.as_bytes()).decode_utf8_lossy().to_string();
+		path = percent_encoding::percent_decode(path.as_bytes())
+			.decode_utf8_lossy()
+			.to_string();
 
 		let path = if path.is_empty() {
 			// if the url is `tauri://localhost`, we should load `index.html`
@@ -417,73 +419,63 @@ impl<R: Runtime> AppManager<R> {
 					asset
 				};
 				let mime_type = tauri_utils::mime_type::MimeType::parse(&final_data, &path);
-				Ok(Asset { bytes: final_data.to_vec(), mime_type, csp_header })
-			}
+				Ok(Asset { bytes:final_data.to_vec(), mime_type, csp_header })
+			},
 			Err(e) => {
 				log::error!("{:?}", e);
 				Err(Box::new(e))
-			}
+			},
 		}
 	}
 
-	pub(crate) fn listeners(&self) -> &Listeners {
-		&self.listeners
-	}
+	pub(crate) fn listeners(&self) -> &Listeners { &self.listeners }
 
-	pub fn run_invoke_handler(&self, invoke: Invoke<R>) -> bool {
+	pub fn run_invoke_handler(&self, invoke:Invoke<R>) -> bool {
 		(self.webview.invoke_handler)(invoke)
 	}
 
-	pub fn extend_api(&self, plugin: &str, invoke: Invoke<R>) -> bool {
+	pub fn extend_api(&self, plugin:&str, invoke:Invoke<R>) -> bool {
 		self.plugins.lock().expect("poisoned plugin store").extend_api(plugin, invoke)
 	}
 
-	pub fn initialize_plugins(&self, app: &AppHandle<R>) -> crate::Result<()> {
+	pub fn initialize_plugins(&self, app:&AppHandle<R>) -> crate::Result<()> {
 		self.plugins
 			.lock()
 			.expect("poisoned plugin store")
 			.initialize_all(app, &self.config.plugins)
 	}
 
-	pub fn config(&self) -> &Config {
-		&self.config
-	}
+	pub fn config(&self) -> &Config { &self.config }
 
 	#[cfg(dev)]
-	pub fn config_parent(&self) -> Option<&std::path::PathBuf> {
-		self.config_parent.as_ref()
-	}
+	pub fn config_parent(&self) -> Option<&std::path::PathBuf> { self.config_parent.as_ref() }
 
-	pub fn package_info(&self) -> &PackageInfo {
-		&self.package_info
-	}
+	pub fn package_info(&self) -> &PackageInfo { &self.package_info }
 
-	pub fn listen<F: Fn(Event) + Send + 'static>(
+	pub fn listen<F:Fn(Event) + Send + 'static>(
 		&self,
-		event: String,
-		target: EventTarget,
-		handler: F,
+		event:String,
+		target:EventTarget,
+		handler:F,
 	) -> EventId {
 		assert_event_name_is_valid(&event);
 		self.listeners().listen(event, target, handler)
 	}
 
-	pub fn once<F: FnOnce(Event) + Send + 'static>(
+	pub fn once<F:FnOnce(Event) + Send + 'static>(
 		&self,
-		event: String,
-		target: EventTarget,
-		handler: F,
+		event:String,
+		target:EventTarget,
+		handler:F,
 	) -> EventId {
 		assert_event_name_is_valid(&event);
 		self.listeners().once(event, target, handler)
 	}
 
-	pub fn unlisten(&self, id: EventId) {
-		self.listeners().unlisten(id)
-	}
+	pub fn unlisten(&self, id:EventId) { self.listeners().unlisten(id) }
 
 	#[cfg_attr(feature = "tracing", tracing::instrument("app::emit", skip(self, payload)))]
-	pub fn emit<S: Serialize + Clone>(&self, event: &str, payload: S) -> crate::Result<()> {
+	pub fn emit<S:Serialize + Clone>(&self, event:&str, payload:S) -> crate::Result<()> {
 		assert_event_name_is_valid(event);
 
 		#[cfg(feature = "tracing")]
@@ -503,11 +495,10 @@ impl<R: Runtime> AppManager<R> {
 		feature = "tracing",
 		tracing::instrument("app::emit::filter", skip(self, payload, filter))
 	)]
-	pub fn emit_filter<S, F>(&self, event: &str, payload: S, filter: F) -> crate::Result<()>
+	pub fn emit_filter<S, F>(&self, event:&str, payload:S, filter:F) -> crate::Result<()>
 	where
 		S: Serialize + Clone,
-		F: Fn(&EventTarget) -> bool,
-	{
+		F: Fn(&EventTarget) -> bool, {
 		assert_event_name_is_valid(event);
 
 		#[cfg(feature = "tracing")]
@@ -533,11 +524,10 @@ impl<R: Runtime> AppManager<R> {
 		feature = "tracing",
 		tracing::instrument("app::emit::to", skip(self, target, payload), fields(target))
 	)]
-	pub fn emit_to<I, S>(&self, target: I, event: &str, payload: S) -> crate::Result<()>
+	pub fn emit_to<I, S>(&self, target:I, event:&str, payload:S) -> crate::Result<()>
 	where
 		I: Into<EventTarget>,
-		S: Serialize + Clone,
-	{
+		S: Serialize + Clone, {
 		let target = target.into();
 		#[cfg(feature = "tracing")]
 		tracing::Span::current().record("target", format!("{target:?}"));
@@ -548,20 +538,22 @@ impl<R: Runtime> AppManager<R> {
 
 			// if targeting any label, emit using emit_filter and filter labels
 			EventTarget::AnyLabel { label: target_label } => {
-				self.emit_filter(event, payload, |t| match t {
-					EventTarget::Window { label }
-					| EventTarget::Webview { label }
-					| EventTarget::WebviewWindow { label } => label == &target_label,
-					_ => false,
+				self.emit_filter(event, payload, |t| {
+					match t {
+						EventTarget::Window { label }
+						| EventTarget::Webview { label }
+						| EventTarget::WebviewWindow { label } => label == &target_label,
+						_ => false,
+					}
 				})
-			}
+			},
 
 			// otherwise match same target
 			_ => self.emit_filter(event, payload, |t| t == &target),
 		}
 	}
 
-	pub fn get_window(&self, label: &str) -> Option<Window<R>> {
+	pub fn get_window(&self, label:&str) -> Option<Window<R>> {
 		self.window.windows_lock().get(label).cloned()
 	}
 
@@ -573,7 +565,7 @@ impl<R: Runtime> AppManager<R> {
 			.map(|w| w.1.clone())
 	}
 
-	pub(crate) fn on_window_close(&self, label: &str) {
+	pub(crate) fn on_window_close(&self, label:&str) {
 		let window = self.window.windows_lock().remove(label);
 		if let Some(window) = window {
 			for webview in window.webviews() {
@@ -583,7 +575,7 @@ impl<R: Runtime> AppManager<R> {
 	}
 
 	#[cfg(desktop)]
-	pub(crate) fn on_webview_close(&self, label: &str) {
+	pub(crate) fn on_webview_close(&self, label:&str) {
 		self.webview.webviews_lock().remove(label);
 
 		if let Ok(webview_labels_array) = serde_json::to_string(&self.webview.labels()) {
@@ -593,30 +585,24 @@ impl<R: Runtime> AppManager<R> {
 		}
 	}
 
-	pub fn windows(&self) -> HashMap<String, Window<R>> {
-		self.window.windows_lock().clone()
-	}
+	pub fn windows(&self) -> HashMap<String, Window<R>> { self.window.windows_lock().clone() }
 
-	pub fn get_webview(&self, label: &str) -> Option<Webview<R>> {
+	pub fn get_webview(&self, label:&str) -> Option<Webview<R>> {
 		self.webview.webviews_lock().get(label).cloned()
 	}
 
-	pub fn webviews(&self) -> HashMap<String, Webview<R>> {
-		self.webview.webviews_lock().clone()
-	}
+	pub fn webviews(&self) -> HashMap<String, Webview<R>> { self.webview.webviews_lock().clone() }
 
 	pub(crate) fn resources_table(&self) -> MutexGuard<'_, ResourceTable> {
 		self.resources_table.lock().expect("poisoned window manager")
 	}
 
-	pub(crate) fn invoke_key(&self) -> &str {
-		&self.invoke_key
-	}
+	pub(crate) fn invoke_key(&self) -> &str { &self.invoke_key }
 }
 
 #[cfg(desktop)]
-impl<R: Runtime> AppManager<R> {
-	pub fn remove_menu_from_stash_by_id(&self, id: Option<&crate::menu::MenuId>) {
+impl<R:Runtime> AppManager<R> {
+	pub fn remove_menu_from_stash_by_id(&self, id:Option<&crate::menu::MenuId>) {
 		if let Some(id) = id {
 			let is_used_by_a_window =
 				self.window.windows_lock().values().any(|w| w.is_menu_in_use(id));
@@ -656,6 +642,7 @@ mod test {
 		time::Duration,
 	};
 
+	use super::AppManager;
 	use crate::{
 		event::EventTarget,
 		generate_context,
@@ -663,28 +650,34 @@ mod test {
 		test::{mock_app, MockRuntime},
 		webview::WebviewBuilder,
 		window::WindowBuilder,
-		App, Emitter, Listener, Manager, StateManager, Webview, WebviewWindow,
-		WebviewWindowBuilder, Window, Wry,
+		App,
+		Emitter,
+		Listener,
+		Manager,
+		StateManager,
+		Webview,
+		WebviewWindow,
+		WebviewWindowBuilder,
+		Window,
+		Wry,
 	};
 
-	use super::AppManager;
-
-	const APP_LISTEN_ID: &str = "App::listen";
-	const APP_LISTEN_ANY_ID: &str = "App::listen_any";
-	const WINDOW_LISTEN_ID: &str = "Window::listen";
-	const WINDOW_LISTEN_ANY_ID: &str = "Window::listen_any";
-	const WEBVIEW_LISTEN_ID: &str = "Webview::listen";
-	const WEBVIEW_LISTEN_ANY_ID: &str = "Webview::listen_any";
-	const WEBVIEW_WINDOW_LISTEN_ID: &str = "WebviewWindow::listen";
-	const WEBVIEW_WINDOW_LISTEN_ANY_ID: &str = "WebviewWindow::listen_any";
-	const TEST_EVENT_NAME: &str = "event";
+	const APP_LISTEN_ID:&str = "App::listen";
+	const APP_LISTEN_ANY_ID:&str = "App::listen_any";
+	const WINDOW_LISTEN_ID:&str = "Window::listen";
+	const WINDOW_LISTEN_ANY_ID:&str = "Window::listen_any";
+	const WEBVIEW_LISTEN_ID:&str = "Webview::listen";
+	const WEBVIEW_LISTEN_ANY_ID:&str = "Webview::listen_any";
+	const WEBVIEW_WINDOW_LISTEN_ID:&str = "WebviewWindow::listen";
+	const WEBVIEW_WINDOW_LISTEN_ANY_ID:&str = "WebviewWindow::listen_any";
+	const TEST_EVENT_NAME:&str = "event";
 
 	#[test]
 	fn check_get_url() {
 		let context =
 			generate_context!("test/fixture/src-tauri/tauri.conf.json", crate, test = true);
 
-		let manager: AppManager<Wry> = AppManager::with_handlers(
+		let manager:AppManager<Wry> = AppManager::with_handlers(
 			context,
 			PluginStore::default(),
 			Box::new(|_| false),
@@ -715,15 +708,15 @@ mod test {
 	}
 
 	struct EventSetup {
-		app: App<MockRuntime>,
-		window: Window<MockRuntime>,
-		webview: Webview<MockRuntime>,
-		webview_window: WebviewWindow<MockRuntime>,
-		tx: Sender<(&'static str, String)>,
-		rx: Receiver<(&'static str, String)>,
+		app:App<MockRuntime>,
+		window:Window<MockRuntime>,
+		webview:Webview<MockRuntime>,
+		webview_window:WebviewWindow<MockRuntime>,
+		tx:Sender<(&'static str, String)>,
+		rx:Receiver<(&'static str, String)>,
 	}
 
-	fn setup_events(setup_any: bool) -> EventSetup {
+	fn setup_events(setup_any:bool) -> EventSetup {
 		let app = mock_app();
 
 		let window = WindowBuilder::new(&app, "main-window").build().unwrap();
@@ -769,7 +762,7 @@ mod test {
 		EventSetup { app, window, webview, webview_window, tx, rx }
 	}
 
-	fn assert_events(kind: &str, received: &[&str], expected: &[&str]) {
+	fn assert_events(kind:&str, received:&[&str], expected:&[&str]) {
 		for e in expected {
 			assert!(received.contains(e), "{e} did not receive `{kind}` event");
 		}
@@ -790,10 +783,10 @@ mod test {
 		run_emit_test("emit (webview_window)", webview_window, &rx);
 	}
 
-	fn run_emit_test<M: Manager<MockRuntime> + Emitter<MockRuntime>>(
-		kind: &str,
-		m: M,
-		rx: &Receiver<(&str, String)>,
+	fn run_emit_test<M:Manager<MockRuntime> + Emitter<MockRuntime>>(
+		kind:&str,
+		m:M,
+		rx:&Receiver<(&str, String)>,
 	) {
 		let mut received = Vec::new();
 
@@ -861,14 +854,14 @@ mod test {
 		);
 	}
 
-	fn run_emit_to_test<M: Manager<MockRuntime> + Emitter<MockRuntime>>(
-		kind: &str,
-		m: &M,
-		window: &Window<MockRuntime>,
-		webview: &Webview<MockRuntime>,
-		webview_window: &WebviewWindow<MockRuntime>,
-		tx: Sender<(&'static str, String)>,
-		rx: &Receiver<(&'static str, String)>,
+	fn run_emit_to_test<M:Manager<MockRuntime> + Emitter<MockRuntime>>(
+		kind:&str,
+		m:&M,
+		window:&Window<MockRuntime>,
+		webview:&Webview<MockRuntime>,
+		webview_window:&WebviewWindow<MockRuntime>,
+		tx:Sender<(&'static str, String)>,
+		rx:&Receiver<(&'static str, String)>,
 	) {
 		let mut received = Vec::new();
 

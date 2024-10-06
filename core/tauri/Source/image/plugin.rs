@@ -8,15 +8,18 @@ use crate::{
 	command,
 	image::Image,
 	plugin::{Builder, TauriPlugin},
-	Manager, ResourceId, Runtime, Webview,
+	Manager,
+	ResourceId,
+	Runtime,
+	Webview,
 };
 
 #[command(root = "crate")]
-fn new<R: Runtime>(
-	webview: Webview<R>,
-	rgba: Vec<u8>,
-	width: u32,
-	height: u32,
+fn new<R:Runtime>(
+	webview:Webview<R>,
+	rgba:Vec<u8>,
+	width:u32,
+	height:u32,
 ) -> crate::Result<ResourceId> {
 	let image = Image::new_owned(rgba, width, height);
 	let mut resources_table = webview.resources_table();
@@ -26,7 +29,7 @@ fn new<R: Runtime>(
 
 #[cfg(any(feature = "image-ico", feature = "image-png"))]
 #[command(root = "crate")]
-fn from_bytes<R: Runtime>(webview: Webview<R>, bytes: Vec<u8>) -> crate::Result<ResourceId> {
+fn from_bytes<R:Runtime>(webview:Webview<R>, bytes:Vec<u8>) -> crate::Result<ResourceId> {
 	let image = Image::from_bytes(&bytes)?.to_owned();
 	let mut resources_table = webview.resources_table();
 	let rid = resources_table.add(image);
@@ -41,10 +44,7 @@ fn from_bytes() -> std::result::Result<(), &'static str> {
 
 #[cfg(any(feature = "image-ico", feature = "image-png"))]
 #[command(root = "crate")]
-fn from_path<R: Runtime>(
-	webview: Webview<R>,
-	path: std::path::PathBuf,
-) -> crate::Result<ResourceId> {
+fn from_path<R:Runtime>(webview:Webview<R>, path:std::path::PathBuf) -> crate::Result<ResourceId> {
 	let image = Image::from_path(path)?.to_owned();
 	let mut resources_table = webview.resources_table();
 	let rid = resources_table.add(image);
@@ -58,7 +58,7 @@ fn from_path() -> std::result::Result<(), &'static str> {
 }
 
 #[command(root = "crate")]
-fn rgba<R: Runtime>(webview: Webview<R>, rid: ResourceId) -> crate::Result<Vec<u8>> {
+fn rgba<R:Runtime>(webview:Webview<R>, rid:ResourceId) -> crate::Result<Vec<u8>> {
 	let resources_table = webview.resources_table();
 	let image = resources_table.get::<Image<'_>>(rid)?;
 	Ok(image.rgba().to_vec())
@@ -66,19 +66,19 @@ fn rgba<R: Runtime>(webview: Webview<R>, rid: ResourceId) -> crate::Result<Vec<u
 
 #[derive(Serialize)]
 struct Size {
-	width: u32,
-	height: u32,
+	width:u32,
+	height:u32,
 }
 
 #[command(root = "crate")]
-fn size<R: Runtime>(webview: Webview<R>, rid: ResourceId) -> crate::Result<Size> {
+fn size<R:Runtime>(webview:Webview<R>, rid:ResourceId) -> crate::Result<Size> {
 	let resources_table = webview.resources_table();
 	let image = resources_table.get::<Image<'_>>(rid)?;
-	Ok(Size { width: image.width(), height: image.height() })
+	Ok(Size { width:image.width(), height:image.height() })
 }
 
 /// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
+pub fn init<R:Runtime>() -> TauriPlugin<R> {
 	Builder::new("image")
 		.invoke_handler(crate::generate_handler![new, from_bytes, from_path, rgba, size])
 		.build()

@@ -42,35 +42,23 @@ impl CachedIcon {
 	}
 
 	/// Cache the icon without any manipulation.
-	pub fn new_raw(
-		root:&TokenStream,
-		icon:&Path,
-	) -> EmbeddedAssetsResult<Self> {
+	pub fn new_raw(root:&TokenStream, icon:&Path) -> EmbeddedAssetsResult<Self> {
 		let buf = Self::open(icon);
-		Cached::try_from(buf).map(|cache| {
-			Self { cache, root:root.clone(), format:IconFormat::Raw }
-		})
+		Cached::try_from(buf).map(|cache| Self { cache, root:root.clone(), format:IconFormat::Raw })
 	}
 
 	/// Cache an ICO icon as RGBA data, see [`ImageFormat::Image`].
-	pub fn new_ico(
-		root:&TokenStream,
-		icon:&Path,
-	) -> EmbeddedAssetsResult<Self> {
+	pub fn new_ico(root:&TokenStream, icon:&Path) -> EmbeddedAssetsResult<Self> {
 		let buf = Self::open(icon);
 
-		let icon_dir =
-			ico::IconDir::read(Cursor::new(&buf)).unwrap_or_else(|e| {
-				panic!("failed to parse icon {}: {}", icon.display(), e)
-			});
+		let icon_dir = ico::IconDir::read(Cursor::new(&buf))
+			.unwrap_or_else(|e| panic!("failed to parse icon {}: {}", icon.display(), e));
 
 		let entry = &icon_dir.entries()[0];
 
 		let rgba = entry
 			.decode()
-			.unwrap_or_else(|e| {
-				panic!("failed to decode icon {}: {}", icon.display(), e)
-			})
+			.unwrap_or_else(|e| panic!("failed to decode icon {}: {}", icon.display(), e))
 			.rgba_data()
 			.to_vec();
 
@@ -78,26 +66,20 @@ impl CachedIcon {
 			Self {
 				cache,
 				root:root.clone(),
-				format:IconFormat::Image {
-					width:entry.width(),
-					height:entry.height(),
-				},
+				format:IconFormat::Image { width:entry.width(), height:entry.height() },
 			}
 		})
 	}
 
 	/// Cache a PNG icon as RGBA data, see [`ImageFormat::Image`].
-	pub fn new_png(
-		root:&TokenStream,
-		icon:&Path,
-	) -> EmbeddedAssetsResult<Self> {
+	pub fn new_png(root:&TokenStream, icon:&Path) -> EmbeddedAssetsResult<Self> {
 		let buf = Self::open(icon);
 
 		let decoder = png::Decoder::new(Cursor::new(&buf));
 
-		let mut reader = decoder.read_info().unwrap_or_else(|e| {
-			panic!("failed to read icon {}: {}", icon.display(), e)
-		});
+		let mut reader = decoder
+			.read_info()
+			.unwrap_or_else(|e| panic!("failed to read icon {}: {}", icon.display(), e));
 
 		if reader.output_color_type().0 != png::ColorType::Rgba {
 			panic!("icon {} is not RGBA", icon.display());
@@ -112,18 +94,14 @@ impl CachedIcon {
 			Self {
 				cache,
 				root:root.clone(),
-				format:IconFormat::Image {
-					width:reader.info().width,
-					height:reader.info().height,
-				},
+				format:IconFormat::Image { width:reader.info().width, height:reader.info().height },
 			}
 		})
 	}
 
 	fn open(path:&Path) -> Vec<u8> {
-		std::fs::read(path).unwrap_or_else(|e| {
-			panic!("failed to open icon {}: {}", path.display(), e)
-		})
+		std::fs::read(path)
+			.unwrap_or_else(|e| panic!("failed to open icon {}: {}", path.display(), e))
 	}
 }
 

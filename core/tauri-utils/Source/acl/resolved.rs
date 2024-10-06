@@ -6,18 +6,25 @@
 
 use std::{collections::BTreeMap, fmt};
 
-use crate::platform::Target;
-
 use super::{
 	capability::{Capability, PermissionEntry},
 	manifest::Manifest,
-	Commands, Error, ExecutionContext, Permission, PermissionSet, Scopes, Value, APP_ACL_KEY,
+	Commands,
+	Error,
+	ExecutionContext,
+	Permission,
+	PermissionSet,
+	Scopes,
+	Value,
+	APP_ACL_KEY,
 };
+use crate::platform::Target;
 
-/// A key for a scope, used to link a [`ResolvedCommand#structfield.scope`] to the store [`Resolved#structfield.scopes`].
+/// A key for a scope, used to link a [`ResolvedCommand#structfield.scope`] to
+/// the store [`Resolved#structfield.scopes`].
 pub type ScopeKey = u64;
 
-const CORE_PLUGINS: &[&str] = &[
+const CORE_PLUGINS:&[&str] = &[
 	"core:app",
 	"core:event",
 	"core:image",
@@ -34,29 +41,30 @@ const CORE_PLUGINS: &[&str] = &[
 #[derive(Default, Clone, PartialEq, Eq)]
 pub struct ResolvedCommandReference {
 	/// Identifier of the capability.
-	pub capability: String,
+	pub capability:String,
 	/// Identifier of the permission.
-	pub permission: String,
+	pub permission:String,
 }
 
 /// A resolved command permission.
 #[derive(Default, Clone, PartialEq, Eq)]
 pub struct ResolvedCommand {
 	/// The execution context of this command.
-	pub context: ExecutionContext,
+	pub context:ExecutionContext,
 	/// The capability/permission that referenced this command.
 	#[cfg(debug_assertions)]
-	pub referenced_by: ResolvedCommandReference,
+	pub referenced_by:ResolvedCommandReference,
 	/// The list of window label patterns that was resolved for this command.
-	pub windows: Vec<glob::Pattern>,
+	pub windows:Vec<glob::Pattern>,
 	/// The list of webview label patterns that was resolved for this command.
-	pub webviews: Vec<glob::Pattern>,
-	/// The reference of the scope that is associated with this command. See [`Resolved#structfield.command_scopes`].
-	pub scope_id: Option<ScopeKey>,
+	pub webviews:Vec<glob::Pattern>,
+	/// The reference of the scope that is associated with this command. See
+	/// [`Resolved#structfield.command_scopes`].
+	pub scope_id:Option<ScopeKey>,
 }
 
 impl fmt::Debug for ResolvedCommand {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		f.debug_struct("ResolvedCommand")
 			.field("context", &self.context)
 			.field("windows", &self.windows)
@@ -70,30 +78,32 @@ impl fmt::Debug for ResolvedCommand {
 #[derive(Debug, Default, Clone)]
 pub struct ResolvedScope {
 	/// Allows something on the command.
-	pub allow: Vec<Value>,
+	pub allow:Vec<Value>,
 	/// Denies something on the command.
-	pub deny: Vec<Value>,
+	pub deny:Vec<Value>,
 }
 
 /// Resolved access control list.
 #[derive(Debug, Default)]
 pub struct Resolved {
-	/// The commands that are allowed. Map each command with its context to a [`ResolvedCommand`].
-	pub allowed_commands: BTreeMap<String, Vec<ResolvedCommand>>,
-	/// The commands that are denied. Map each command with its context to a [`ResolvedCommand`].
-	pub denied_commands: BTreeMap<String, Vec<ResolvedCommand>>,
+	/// The commands that are allowed. Map each command with its context to a
+	/// [`ResolvedCommand`].
+	pub allowed_commands:BTreeMap<String, Vec<ResolvedCommand>>,
+	/// The commands that are denied. Map each command with its context to a
+	/// [`ResolvedCommand`].
+	pub denied_commands:BTreeMap<String, Vec<ResolvedCommand>>,
 	/// The store of scopes referenced by a [`ResolvedCommand`].
-	pub command_scope: BTreeMap<ScopeKey, ResolvedScope>,
+	pub command_scope:BTreeMap<ScopeKey, ResolvedScope>,
 	/// The global scope.
-	pub global_scope: BTreeMap<String, ResolvedScope>,
+	pub global_scope:BTreeMap<String, ResolvedScope>,
 }
 
 impl Resolved {
 	/// Resolves the ACL for the given plugin permissions and app capabilities.
 	pub fn resolve(
-		acl: &BTreeMap<String, Manifest>,
-		mut capabilities: BTreeMap<String, Capability>,
-		target: Target,
+		acl:&BTreeMap<String, Manifest>,
+		mut capabilities:BTreeMap<String, Capability>,
+		target:Target,
 	) -> Result<Self, Error> {
 		let mut allowed_commands = BTreeMap::new();
 
@@ -103,7 +113,7 @@ impl Resolved {
 
 		let mut command_scope = BTreeMap::new();
 
-		let mut global_scope: BTreeMap<String, Vec<Scopes>> = BTreeMap::new();
+		let mut global_scope:BTreeMap<String, Vec<Scopes>> = BTreeMap::new();
 
 		// resolve commands
 		for capability in capabilities.values_mut() {
@@ -144,8 +154,8 @@ impl Resolved {
 							command_scope.insert(
 								current_scope_id,
 								ResolvedScope {
-									allow: scope.allow.unwrap_or_default(),
-									deny: scope.deny.unwrap_or_default(),
+									allow:scope.allow.unwrap_or_default(),
+									deny:scope.deny.unwrap_or_default(),
 								},
 							);
 							Some(current_scope_id)
@@ -196,7 +206,7 @@ impl Resolved {
 		let global_scope = global_scope
 			.into_iter()
 			.map(|(key, scopes)| {
-				let mut resolved_scope = ResolvedScope { allow: Vec::new(), deny: Vec::new() };
+				let mut resolved_scope = ResolvedScope { allow:Vec::new(), deny:Vec::new() };
 				for scope in scopes {
 					if let Some(allow) = scope.allow {
 						resolved_scope.allow.extend(allow);
@@ -215,7 +225,7 @@ impl Resolved {
 	}
 }
 
-fn parse_glob_patterns(mut raw: Vec<String>) -> Result<Vec<glob::Pattern>, Error> {
+fn parse_glob_patterns(mut raw:Vec<String>) -> Result<Vec<glob::Pattern>, Error> {
 	raw.sort();
 
 	let mut patterns = Vec::new();
@@ -227,17 +237,17 @@ fn parse_glob_patterns(mut raw: Vec<String>) -> Result<Vec<glob::Pattern>, Error
 }
 
 struct ResolvedPermission<'a> {
-	key: &'a str,
-	permission_name: &'a str,
-	commands: Commands,
-	scope: Scopes,
+	key:&'a str,
+	permission_name:&'a str,
+	commands:Commands,
+	scope:Scopes,
 }
 
-fn with_resolved_permissions<F: FnMut(ResolvedPermission<'_>) -> Result<(), Error>>(
-	capability: &Capability,
-	acl: &BTreeMap<String, Manifest>,
-	target: Target,
-	mut f: F,
+fn with_resolved_permissions<F:FnMut(ResolvedPermission<'_>) -> Result<(), Error>>(
+	capability:&Capability,
+	acl:&BTreeMap<String, Manifest>,
+	target:Target,
+	mut f:F,
 ) -> Result<(), Error> {
 	for permission_entry in &capability.permissions {
 		let permission_id = permission_entry.identifier();
@@ -249,7 +259,10 @@ fn with_resolved_permissions<F: FnMut(ResolvedPermission<'_>) -> Result<(), Erro
 		let permissions = get_permissions(key, permission_name, acl)?
 			.into_iter()
 			.filter(|p| {
-				p.platforms.as_ref().map(|platforms| platforms.contains(&target)).unwrap_or(true)
+				p.platforms
+					.as_ref()
+					.map(|platforms| platforms.contains(&target))
+					.unwrap_or(true)
 			})
 			.collect::<Vec<_>>();
 
@@ -278,18 +291,18 @@ fn with_resolved_permissions<F: FnMut(ResolvedPermission<'_>) -> Result<(), Erro
 			commands.deny.extend(permission.commands.deny.clone());
 		}
 
-		f(ResolvedPermission { key, permission_name, commands, scope: resolved_scope })?;
+		f(ResolvedPermission { key, permission_name, commands, scope:resolved_scope })?;
 	}
 
 	Ok(())
 }
 
 fn resolve_command(
-	commands: &mut BTreeMap<String, Vec<ResolvedCommand>>,
-	command: String,
-	capability: &Capability,
-	scope_id: Option<ScopeKey>,
-	#[cfg(debug_assertions)] referenced_by_permission_identifier: String,
+	commands:&mut BTreeMap<String, Vec<ResolvedCommand>>,
+	command:String,
+	capability:&Capability,
+	scope_id:Option<ScopeKey>,
+	#[cfg(debug_assertions)] referenced_by_permission_identifier:String,
 ) -> Result<(), Error> {
 	let mut contexts = Vec::new();
 	if capability.local {
@@ -298,7 +311,7 @@ fn resolve_command(
 	if let Some(remote) = &capability.remote {
 		contexts.extend(remote.urls.iter().map(|url| {
 			ExecutionContext::Remote {
-				url: url
+				url:url
 					.parse()
 					.unwrap_or_else(|e| panic!("invalid URL pattern for remote URL {url}: {e}")),
 			}
@@ -311,12 +324,12 @@ fn resolve_command(
 		resolved_list.push(ResolvedCommand {
 			context,
 			#[cfg(debug_assertions)]
-			referenced_by: ResolvedCommandReference {
-				capability: capability.identifier.clone(),
-				permission: referenced_by_permission_identifier.clone(),
+			referenced_by:ResolvedCommandReference {
+				capability:capability.identifier.clone(),
+				permission:referenced_by_permission_identifier.clone(),
 			},
-			windows: parse_glob_patterns(capability.windows.clone())?,
-			webviews: parse_glob_patterns(capability.webviews.clone())?,
+			windows:parse_glob_patterns(capability.windows.clone())?,
+			webviews:parse_glob_patterns(capability.webviews.clone())?,
 			scope_id,
 		});
 	}
@@ -326,8 +339,8 @@ fn resolve_command(
 
 // get the permissions from a permission set
 fn get_permission_set_permissions<'a>(
-	manifest: &'a Manifest,
-	set: &'a PermissionSet,
+	manifest:&'a Manifest,
+	set:&'a PermissionSet,
 ) -> Result<Vec<&'a Permission>, Error> {
 	let mut permissions = Vec::new();
 
@@ -338,8 +351,8 @@ fn get_permission_set_permissions<'a>(
 			permissions.extend(get_permission_set_permissions(manifest, permission_set)?);
 		} else {
 			return Err(Error::SetPermissionNotFound {
-				permission: p.to_string(),
-				set: set.identifier.clone(),
+				permission:p.to_string(),
+				set:set.identifier.clone(),
 			});
 		}
 	}
@@ -348,13 +361,15 @@ fn get_permission_set_permissions<'a>(
 }
 
 fn get_permissions<'a>(
-	key: &'a str,
-	permission_name: &'a str,
-	acl: &'a BTreeMap<String, Manifest>,
+	key:&'a str,
+	permission_name:&'a str,
+	acl:&'a BTreeMap<String, Manifest>,
 ) -> Result<Vec<&'a Permission>, Error> {
-	let manifest = acl.get(key).ok_or_else(|| Error::UnknownManifest {
-		key: if key == APP_ACL_KEY { "app manifest".to_string() } else { key.to_string() },
-		available: acl.keys().cloned().collect::<Vec<_>>().join(", "),
+	let manifest = acl.get(key).ok_or_else(|| {
+		Error::UnknownManifest {
+			key:if key == APP_ACL_KEY { "app manifest".to_string() } else { key.to_string() },
+			available:acl.keys().cloned().collect::<Vec<_>>().join(", "),
+		}
 	})?;
 
 	if permission_name == "default" {
@@ -369,24 +384,25 @@ fn get_permissions<'a>(
 		Ok(vec![permission])
 	} else {
 		Err(Error::UnknownPermission {
-			key: if key == APP_ACL_KEY { "app manifest".to_string() } else { key.to_string() },
-			permission: permission_name.to_string(),
+			key:if key == APP_ACL_KEY { "app manifest".to_string() } else { key.to_string() },
+			permission:permission_name.to_string(),
 		})
 	}
 }
 
 #[cfg(feature = "build")]
 mod build {
+	use std::convert::identity;
+
 	use proc_macro2::TokenStream;
 	use quote::{quote, ToTokens, TokenStreamExt};
-	use std::convert::identity;
 
 	use super::*;
 	use crate::{literal_struct, tokens::*};
 
 	#[cfg(debug_assertions)]
 	impl ToTokens for ResolvedCommandReference {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let capability = str_lit(&self.capability);
 			let permission = str_lit(&self.permission);
 			literal_struct!(
@@ -399,7 +415,7 @@ mod build {
 	}
 
 	impl ToTokens for ResolvedCommand {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			#[cfg(debug_assertions)]
 			let referenced_by = &self.referenced_by;
 
@@ -440,7 +456,7 @@ mod build {
 	}
 
 	impl ToTokens for ResolvedScope {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let allow = vec_lit(&self.allow, identity);
 			let deny = vec_lit(&self.deny, identity);
 			literal_struct!(tokens, ::tauri::utils::acl::resolved::ResolvedScope, allow, deny)
@@ -448,7 +464,7 @@ mod build {
 	}
 
 	impl ToTokens for Resolved {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let allowed_commands = map_lit(
 				quote! { ::std::collections::BTreeMap },
 				&self.allowed_commands,

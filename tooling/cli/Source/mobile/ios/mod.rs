@@ -2,10 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{
+	env::{set_var, var_os},
+	fs::create_dir_all,
+	path::PathBuf,
+	thread::sleep,
+	time::Duration,
+};
+
 use cargo_mobile2::{
 	apple::{
 		config::{
-			Config as AppleConfig, Metadata as AppleMetadata, Platform as ApplePlatform,
+			Config as AppleConfig,
+			Metadata as AppleMetadata,
+			Platform as ApplePlatform,
 			Raw as RawAppleConfig,
 		},
 		device::{self, Device},
@@ -23,8 +33,16 @@ use sublime_fuzzy::best_match;
 use tauri_utils::resources::ResourcePaths;
 
 use super::{
-	ensure_init, env, get_app, init::command as init_command, log_finished, read_options,
-	CliOptions, OptionsHandle, Target as MobileTarget, MIN_DEVICE_MATCH_SCORE,
+	ensure_init,
+	env,
+	get_app,
+	init::command as init_command,
+	log_finished,
+	read_options,
+	CliOptions,
+	OptionsHandle,
+	Target as MobileTarget,
+	MIN_DEVICE_MATCH_SCORE,
 };
 use crate::{
 	helpers::{
@@ -35,21 +53,13 @@ use crate::{
 	Result,
 };
 
-use std::{
-	env::{set_var, var_os},
-	fs::create_dir_all,
-	path::PathBuf,
-	thread::sleep,
-	time::Duration,
-};
-
 mod build;
 mod dev;
 pub(crate) mod project;
 mod xcode_script;
 
-pub const APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME: &str = "APPLE_DEVELOPMENT_TEAM";
-pub const LIB_OUTPUT_FILE_NAME: &str = "libapp.a";
+pub const APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME:&str = "APPLE_DEVELOPMENT_TEAM";
+pub const LIB_OUTPUT_FILE_NAME:&str = "libapp.a";
 
 #[derive(Parser)]
 #[clap(
@@ -61,7 +71,7 @@ pub const LIB_OUTPUT_FILE_NAME: &str = "libapp.a";
 )]
 pub struct Cli {
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Debug, Parser)]
@@ -69,13 +79,13 @@ pub struct Cli {
 pub struct InitOptions {
 	/// Skip prompting for values
 	#[clap(long, env = "CI")]
-	ci: bool,
+	ci:bool,
 	/// Reinstall dependencies
 	#[clap(short, long)]
-	reinstall_deps: bool,
+	reinstall_deps:bool,
 	/// Skips installing rust toolchains via rustup
 	#[clap(long)]
-	skip_targets_install: bool,
+	skip_targets_install:bool,
 }
 
 #[derive(Subcommand)]
@@ -87,7 +97,7 @@ enum Commands {
 	XcodeScript(xcode_script::Options),
 }
 
-pub fn command(cli: Cli, verbosity: u8) -> Result<()> {
+pub fn command(cli:Cli, verbosity:u8) -> Result<()> {
 	let noise_level = NoiseLevel::from_occurrences(verbosity as u64);
 	match cli.command {
 		Commands::Init(options) => {
@@ -98,7 +108,7 @@ pub fn command(cli: Cli, verbosity: u8) -> Result<()> {
 				options.reinstall_deps,
 				options.skip_targets_install,
 			)?
-		}
+		},
 		Commands::Dev(options) => dev::command(options, noise_level)?,
 		Commands::Build(options) => build::command(options, noise_level)?,
 		Commands::XcodeScript(options) => xcode_script::command(options)?,
@@ -108,10 +118,10 @@ pub fn command(cli: Cli, verbosity: u8) -> Result<()> {
 }
 
 pub fn get_config(
-	app: &App,
-	tauri_config: &TauriConfig,
-	features: Option<&Vec<String>>,
-	cli_options: &CliOptions,
+	app:&App,
+	tauri_config:&TauriConfig,
+	features:Option<&Vec<String>>,
+	cli_options:&CliOptions,
 ) -> (AppleConfig, AppleMetadata) {
 	let mut ios_options = cli_options.clone();
 	if let Some(features) = features {
@@ -119,29 +129,45 @@ pub fn get_config(
 	}
 
 	let raw = RawAppleConfig {
-    development_team: std::env::var(APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME)
-        .ok()
-        .or_else(|| tauri_config.bundle.ios.development_team.clone())
-        .or_else(|| {
-          let teams = find_development_teams().unwrap_or_default();
-          match teams.len() {
-            0 => {
-              log::warn!("No code signing certificates found. You must add one and set the certificate development team ID on the `bundle > iOS > developmentTeam` config value or the `{APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME}` environment variable. To list the available certificates, run `tauri info`.");
-              None
-            }
-            1 =>None,
-            _ => {
-              log::warn!("You must set the code signing certificate development team ID on  the `bundle > iOS > developmentTeam` config value or the `{APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME}` environment variable. Available certificates: {}", teams.iter().map(|t| format!("{} (ID: {})", t.name, t.id)).collect::<Vec<String>>().join(", "));
-              None
-            }
-          }
-        }),
-    ios_features: ios_options.features.clone(),
-    bundle_version: tauri_config.version.clone(),
-    bundle_version_short: tauri_config.version.clone(),
-    ios_version: Some(tauri_config.bundle.ios.minimum_system_version.clone()),
-    ..Default::default()
-  };
+		development_team:std::env::var(APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME)
+			.ok()
+			.or_else(|| tauri_config.bundle.ios.development_team.clone())
+			.or_else(|| {
+				let teams = find_development_teams().unwrap_or_default();
+				match teams.len() {
+					0 => {
+						log::warn!(
+							"No code signing certificates found. You must add one and set the \
+							 certificate development team ID on the `bundle > iOS > \
+							 developmentTeam` config value or the \
+							 `{APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME}` environment variable. To \
+							 list the available certificates, run `tauri info`."
+						);
+						None
+					},
+					1 => None,
+					_ => {
+						log::warn!(
+							"You must set the code signing certificate development team ID on  \
+							 the `bundle > iOS > developmentTeam` config value or the \
+							 `{APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME}` environment variable. \
+							 Available certificates: {}",
+							teams
+								.iter()
+								.map(|t| format!("{} (ID: {})", t.name, t.id))
+								.collect::<Vec<String>>()
+								.join(", ")
+						);
+						None
+					},
+				}
+			}),
+		ios_features:ios_options.features.clone(),
+		bundle_version:tauri_config.version.clone(),
+		bundle_version_short:tauri_config.version.clone(),
+		ios_version:Some(tauri_config.bundle.ios.minimum_system_version.clone()),
+		..Default::default()
+	};
 	let config = AppleConfig::from_raw(app.clone(), Some(raw)).unwrap();
 
 	let tauri_dir = tauri_dir();
@@ -166,15 +192,15 @@ pub fn get_config(
 	}
 
 	let metadata = AppleMetadata {
-		supported: true,
-		ios: ApplePlatform {
-			cargo_args: Some(ios_options.args),
-			features: ios_options.features,
-			frameworks: Some(frameworks),
-			vendor_frameworks: Some(vendor_frameworks),
+		supported:true,
+		ios:ApplePlatform {
+			cargo_args:Some(ios_options.args),
+			features:ios_options.features,
+			frameworks:Some(frameworks),
+			vendor_frameworks:Some(vendor_frameworks),
 			..Default::default()
 		},
-		macos: Default::default(),
+		macos:Default::default(),
 	};
 
 	set_var("TAURI_IOS_PROJECT_PATH", config.project_dir());
@@ -183,7 +209,7 @@ pub fn get_config(
 	(config, metadata)
 }
 
-fn connected_device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
+fn connected_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 	let device_list = device::list_devices(env)
 		.map_err(|cause| anyhow::anyhow!("Failed to detect connected iOS devices: {cause}"))?;
 	if !device_list.is_empty() {
@@ -225,7 +251,7 @@ fn connected_device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Dev
 	}
 }
 
-fn simulator_prompt(env: &'_ Env, target: Option<&str>) -> Result<device::Simulator> {
+fn simulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<device::Simulator> {
 	let simulator_list = device::list_simulators(env).map_err(|cause| {
 		anyhow::anyhow!("Failed to detect connected iOS Simulator devices: {cause}")
 	})?;
@@ -267,7 +293,7 @@ fn simulator_prompt(env: &'_ Env, target: Option<&str>) -> Result<device::Simula
 	}
 }
 
-fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
+fn device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 	if let Ok(device) = connected_device_prompt(env, target) {
 		Ok(device)
 	} else {
@@ -278,11 +304,11 @@ fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
 	}
 }
 
-fn detect_target_ok<'a>(env: &Env) -> Option<&'a Target<'a>> {
+fn detect_target_ok<'a>(env:&Env) -> Option<&'a Target<'a>> {
 	device_prompt(env, None).map(|device| device.target()).ok()
 }
 
-fn open_and_wait(config: &AppleConfig, env: &Env) -> ! {
+fn open_and_wait(config:&AppleConfig, env:&Env) -> ! {
 	log::info!("Opening Xcode");
 	if let Err(e) = os::open_file_with("Xcode", config.project_dir(), env) {
 		log::error!("{}", e);
@@ -292,7 +318,7 @@ fn open_and_wait(config: &AppleConfig, env: &Env) -> ! {
 	}
 }
 
-fn inject_resources(config: &AppleConfig, tauri_config: &TauriConfig) -> Result<()> {
+fn inject_resources(config:&AppleConfig, tauri_config:&TauriConfig) -> Result<()> {
 	let asset_dir = config.project_dir().join(DEFAULT_ASSET_DIR);
 	create_dir_all(&asset_dir)?;
 
@@ -318,17 +344,13 @@ enum PlistKind {
 }
 
 impl From<PathBuf> for PlistKind {
-	fn from(p: PathBuf) -> Self {
-		Self::Path(p)
-	}
+	fn from(p:PathBuf) -> Self { Self::Path(p) }
 }
 impl From<plist::Value> for PlistKind {
-	fn from(p: plist::Value) -> Self {
-		Self::Plist(p)
-	}
+	fn from(p:plist::Value) -> Self { Self::Plist(p) }
 }
 
-fn merge_plist(src: Vec<PlistKind>) -> Result<plist::Value> {
+fn merge_plist(src:Vec<PlistKind>) -> Result<plist::Value> {
 	let mut merged_plist = plist::Dictionary::new();
 
 	for plist_kind in src {
@@ -348,18 +370,23 @@ fn merge_plist(src: Vec<PlistKind>) -> Result<plist::Value> {
 	Ok(plist::Value::Dictionary(merged_plist))
 }
 
-pub fn signing_from_env(
-) -> Result<(Option<tauri_macos_sign::Keychain>, Option<tauri_macos_sign::ProvisioningProfile>)> {
+pub fn signing_from_env() -> Result<(
+	Option<tauri_macos_sign::Keychain>,
+	Option<tauri_macos_sign::ProvisioningProfile>,
+)> {
 	let keychain = match (var_os("IOS_CERTIFICATE"), var_os("IOS_CERTIFICATE_PASSWORD")) {
 		(Some(certificate), Some(certificate_password)) => {
 			log::info!("Reading iOS certificates from ");
 			tauri_macos_sign::Keychain::with_certificate(&certificate, &certificate_password)
 				.map(Some)?
-		}
+		},
 		(Some(_), None) => {
-			log::warn!("The IOS_CERTIFICATE environment variable is set but not IOS_CERTIFICATE_PASSWORD. Ignoring the certificate...");
+			log::warn!(
+				"The IOS_CERTIFICATE environment variable is set but not \
+				 IOS_CERTIFICATE_PASSWORD. Ignoring the certificate..."
+			);
 			None
-		}
+		},
 		_ => None,
 	};
 
@@ -367,7 +394,11 @@ pub fn signing_from_env(
 		tauri_macos_sign::ProvisioningProfile::from_base64(&provisioning_profile).map(Some)?
 	} else {
 		if keychain.is_some() {
-			log::warn!("You have provided an iOS certificate via environment variables but the IOS_MOBILE_PROVISION environment variable is not set. This will fail when signing unless the profile is set in your Xcode project.");
+			log::warn!(
+				"You have provided an iOS certificate via environment variables but the \
+				 IOS_MOBILE_PROVISION environment variable is not set. This will fail when \
+				 signing unless the profile is set in your Xcode project."
+			);
 		}
 		None
 	};
@@ -376,23 +407,23 @@ pub fn signing_from_env(
 }
 
 pub struct ProjectConfig {
-	pub code_sign_identity: Option<String>,
-	pub team_id: Option<String>,
-	pub provisioning_profile_uuid: Option<String>,
+	pub code_sign_identity:Option<String>,
+	pub team_id:Option<String>,
+	pub provisioning_profile_uuid:Option<String>,
 }
 
 pub fn project_config(
-	keychain: Option<&tauri_macos_sign::Keychain>,
-	provisioning_profile: Option<&tauri_macos_sign::ProvisioningProfile>,
+	keychain:Option<&tauri_macos_sign::Keychain>,
+	provisioning_profile:Option<&tauri_macos_sign::ProvisioningProfile>,
 ) -> Result<ProjectConfig> {
 	Ok(ProjectConfig {
-		code_sign_identity: keychain.map(|k| k.signing_identity()),
-		team_id: keychain.and_then(|k| k.team_id().map(ToString::to_string)),
-		provisioning_profile_uuid: provisioning_profile.and_then(|p| p.uuid().ok()),
+		code_sign_identity:keychain.map(|k| k.signing_identity()),
+		team_id:keychain.and_then(|k| k.team_id().map(ToString::to_string)),
+		provisioning_profile_uuid:provisioning_profile.and_then(|p| p.uuid().ok()),
 	})
 }
 
-pub fn load_pbxproj(config: &AppleConfig) -> Result<pbxproj::Pbxproj> {
+pub fn load_pbxproj(config:&AppleConfig) -> Result<pbxproj::Pbxproj> {
 	pbxproj::parse(
 		config
 			.project_dir()
@@ -402,20 +433,23 @@ pub fn load_pbxproj(config: &AppleConfig) -> Result<pbxproj::Pbxproj> {
 }
 
 pub fn synchronize_project_config(
-	config: &AppleConfig,
-	tauri_config: &ConfigHandle,
-	pbxproj: &mut pbxproj::Pbxproj,
-	export_options_list: &mut plist::Dictionary,
-	project_config: &ProjectConfig,
-	debug: bool,
+	config:&AppleConfig,
+	tauri_config:&ConfigHandle,
+	pbxproj:&mut pbxproj::Pbxproj,
+	export_options_list:&mut plist::Dictionary,
+	project_config:&ProjectConfig,
+	debug:bool,
 ) -> Result<()> {
 	let identifier = tauri_config.lock().unwrap().as_ref().unwrap().identifier.clone();
 
 	let manual_signing = project_config.code_sign_identity.is_some()
 		|| project_config.provisioning_profile_uuid.is_some();
 
-	if let Some(xc_configuration_list) =
-		pbxproj.xc_configuration_list.clone().into_values().find(|l| l.comment.contains("_iOS"))
+	if let Some(xc_configuration_list) = pbxproj
+		.xc_configuration_list
+		.clone()
+		.into_values()
+		.find(|l| l.comment.contains("_iOS"))
 	{
 		for build_configuration_ref in xc_configuration_list.build_configurations {
 			pbxproj.set_build_settings(
@@ -474,8 +508,11 @@ pub fn synchronize_project_config(
 	}
 
 	let build_configuration = {
-		if let Some(xc_configuration_list) =
-			pbxproj.xc_configuration_list.clone().into_values().find(|l| l.comment.contains("_iOS"))
+		if let Some(xc_configuration_list) = pbxproj
+			.xc_configuration_list
+			.clone()
+			.into_values()
+			.find(|l| l.comment.contains("_iOS"))
 		{
 			let mut configuration = None;
 			let target = if debug { "debug" } else { "release" };

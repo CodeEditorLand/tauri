@@ -2,21 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{
-	interface::rust::manifest::{read_manifest, serialize_manifest},
-	Result,
-};
+use std::path::Path;
 
 use anyhow::Context;
 use itertools::Itertools;
 use tauri_utils_v1::config::Allowlist;
 use toml_edit::{Document, Entry, Item, Table, TableLike, Value};
 
-use std::path::Path;
+use crate::{
+	interface::rust::manifest::{read_manifest, serialize_manifest},
+	Result,
+};
 
-const CRATE_TYPES: [&str; 3] = ["lib", "staticlib", "cdylib"];
+const CRATE_TYPES:[&str; 3] = ["lib", "staticlib", "cdylib"];
 
-pub fn migrate(tauri_dir: &Path) -> Result<()> {
+pub fn migrate(tauri_dir:&Path) -> Result<()> {
 	let manifest_path = tauri_dir.join("Cargo.toml");
 	let (mut manifest, _) = read_manifest(&manifest_path)?;
 	migrate_manifest(&mut manifest)?;
@@ -27,7 +27,7 @@ pub fn migrate(tauri_dir: &Path) -> Result<()> {
 	Ok(())
 }
 
-fn migrate_manifest(manifest: &mut Document) -> Result<()> {
+fn migrate_manifest(manifest:&mut Document) -> Result<()> {
 	let version = dependency_version();
 
 	let dependencies = manifest
@@ -65,12 +65,12 @@ fn migrate_manifest(manifest: &mut Document) -> Result<()> {
 						types.push(t);
 					}
 				}
-			}
+			},
 			Entry::Vacant(e) => {
 				let mut arr = toml_edit::Array::new();
 				arr.extend(CRATE_TYPES.to_vec());
 				e.insert(Item::Value(arr.into()));
-			}
+			},
 		}
 	}
 
@@ -109,12 +109,16 @@ fn dependency_version() -> String {
 	}
 }
 
-fn migrate_dependency(dependencies: &mut Table, name: &str, version: &str, remove: &[&str]) {
+fn migrate_dependency(dependencies:&mut Table, name:&str, version:&str, remove:&[&str]) {
 	let item = dependencies.entry(name).or_insert(Item::None);
 
 	// do not rewrite if dependency uses workspace inheritance
 	if item.get("workspace").and_then(|v| v.as_bool()).unwrap_or_default() {
-		log::info!("`{name}` dependency has workspace inheritance enabled. The features array won't be automatically rewritten. Remove features: [{}]", remove.iter().join(", "));
+		log::info!(
+			"`{name}` dependency has workspace inheritance enabled. The features array won't be \
+			 automatically rewritten. Remove features: [{}]",
+			remove.iter().join(", ")
+		);
 		return;
 	}
 
@@ -127,7 +131,7 @@ fn migrate_dependency(dependencies: &mut Table, name: &str, version: &str, remov
 	}
 }
 
-fn migrate_dependency_table<D: TableLike>(dep: &mut D, version: &str, remove: &[&str]) {
+fn migrate_dependency_table<D:TableLike>(dep:&mut D, version:&str, remove:&[&str]) {
 	*dep.entry("version").or_insert(Item::None) = Item::Value(version.into());
 	let manifest_features = dep.entry("features").or_insert(Item::None);
 	if let Some(features_array) = manifest_features.as_array_mut() {
@@ -160,7 +164,7 @@ fn migrate_dependency_table<D: TableLike>(dep: &mut D, version: &str, remove: &[
 mod tests {
 	use itertools::Itertools;
 
-	fn migrate_deps<F: FnOnce(&[&str]) -> String>(get_toml: F) {
+	fn migrate_deps<F:FnOnce(&[&str]) -> String>(get_toml:F) {
 		let keep_features = vec!["isolation", "protocol-asset"];
 
 		let mut features = super::features_to_remove();
@@ -215,9 +219,9 @@ mod tests {
 
 		if toml.contains("reqwest-native-tls-vendored") {
 			assert!(
-				features
-					.iter()
-					.any(|f| f.as_str().expect("feature must be a string") == "native-tls-vendored"),
+				features.iter().any(|f| {
+					f.as_str().expect("feature must be a string") == "native-tls-vendored"
+				}),
 				"reqwest-native-tls-vendored was not replaced with native-tls-vendored"
 			);
 		}

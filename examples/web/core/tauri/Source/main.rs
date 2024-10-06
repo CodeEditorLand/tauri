@@ -7,7 +7,7 @@
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder};
 
 #[tauri::command]
-async fn greet(window: tauri::Window, name: String) -> bool {
+async fn greet(window:tauri::Window, name:String) -> bool {
 	MessageDialogBuilder::new(window.dialog().to_owned(), "Tauri Example", format!("Hello {name}"))
 		.parent(&window)
 		.blocking_show()

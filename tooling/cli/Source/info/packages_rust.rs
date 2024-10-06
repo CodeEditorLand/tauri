@@ -2,31 +2,37 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{ActionResult, SectionItem};
-use crate::{
-	helpers::cargo_manifest::{
-		crate_latest_version, crate_version, CargoLock, CargoManifest, CrateVersion,
-	},
-	interface::rust::get_workspace_dir,
-};
-use colored::Colorize;
 use std::{
 	fs::read_to_string,
 	path::{Path, PathBuf},
 };
 
-pub fn items(app_dir: Option<&PathBuf>, tauri_dir: Option<&Path>) -> Vec<SectionItem> {
+use colored::Colorize;
+
+use super::{ActionResult, SectionItem};
+use crate::{
+	helpers::cargo_manifest::{
+		crate_latest_version,
+		crate_version,
+		CargoLock,
+		CargoManifest,
+		CrateVersion,
+	},
+	interface::rust::get_workspace_dir,
+};
+
+pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionItem> {
 	let mut items = Vec::new();
 
 	if tauri_dir.is_some() || app_dir.is_some() {
 		if let Some(tauri_dir) = tauri_dir {
-			let manifest: Option<CargoManifest> =
+			let manifest:Option<CargoManifest> =
 				if let Ok(manifest_contents) = read_to_string(tauri_dir.join("Cargo.toml")) {
 					toml::from_str(&manifest_contents).ok()
 				} else {
 					None
 				};
-			let lock: Option<CargoLock> = get_workspace_dir()
+			let lock:Option<CargoLock> = get_workspace_dir()
 				.ok()
 				.and_then(|p| read_to_string(p.join("Cargo.lock")).ok())
 				.and_then(|s| toml::from_str(&s).ok());
@@ -85,7 +91,7 @@ pub fn items(app_dir: Option<&PathBuf>, tauri_dir: Option<&Path>) -> Vec<Section
 	items
 }
 
-pub fn rust_section_item(dep: &str, crate_version: CrateVersion) -> SectionItem {
+pub fn rust_section_item(dep:&str, crate_version:CrateVersion) -> SectionItem {
 	let version = crate_version.version.as_ref().and_then(|v| semver::Version::parse(v).ok());
 
 	let version_suffix = match (version, crate_latest_version(dep)) {
@@ -100,7 +106,7 @@ pub fn rust_section_item(dep: &str, crate_version: CrateVersion) -> SectionItem 
 			} else {
 				None
 			}
-		}
+		},
 		_ => None,
 	};
 

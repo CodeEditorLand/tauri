@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{env_nodejs::manager_version, SectionItem, VersionMetadata};
-use colored::Colorize;
-use serde::Deserialize;
 use std::path::PathBuf;
 
+use colored::Colorize;
+use serde::Deserialize;
+
+use super::{env_nodejs::manager_version, SectionItem, VersionMetadata};
 use crate::helpers::{cross_command, npm::PackageManager};
 
 #[derive(Deserialize)]
 struct YarnVersionInfo {
-	data: Vec<String>,
+	data:Vec<String>,
 }
 
-pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Option<String>> {
+pub fn npm_latest_version(pm:&PackageManager, name:&str) -> crate::Result<Option<String>> {
 	match pm {
 		PackageManager::Yarn => {
 			let mut cmd = cross_command("yarn");
@@ -22,12 +23,12 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
 			let output = cmd.arg("info").arg(name).args(["version", "--json"]).output()?;
 			if output.status.success() {
 				let stdout = String::from_utf8_lossy(&output.stdout);
-				let info: YarnVersionInfo = serde_json::from_str(&stdout)?;
+				let info:YarnVersionInfo = serde_json::from_str(&stdout)?;
 				Ok(Some(info.data.last().unwrap().to_string()))
 			} else {
 				Ok(None)
 			}
-		}
+		},
 		PackageManager::YarnBerry => {
 			let mut cmd = cross_command("yarn");
 
@@ -38,13 +39,13 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
 				.args(["--fields", "version", "--json"])
 				.output()?;
 			if output.status.success() {
-				let info: crate::PackageJson =
+				let info:crate::PackageJson =
 					serde_json::from_reader(std::io::Cursor::new(output.stdout)).unwrap();
 				Ok(info.version)
 			} else {
 				Ok(None)
 			}
-		}
+		},
 		PackageManager::Npm => {
 			let mut cmd = cross_command("npm");
 
@@ -55,7 +56,7 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
 			} else {
 				Ok(None)
 			}
-		}
+		},
 		PackageManager::Pnpm => {
 			let mut cmd = cross_command("pnpm");
 
@@ -66,7 +67,7 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
 			} else {
 				Ok(None)
 			}
-		}
+		},
 		// Bun doesn't support `info` command
 		PackageManager::Bun => {
 			let mut cmd = cross_command("npm");
@@ -78,11 +79,11 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
 			} else {
 				Ok(None)
 			}
-		}
+		},
 	}
 }
 
-pub fn package_manager(app_dir: &PathBuf) -> PackageManager {
+pub fn package_manager(app_dir:&PathBuf) -> PackageManager {
 	let mut use_npm = false;
 	let mut use_pnpm = false;
 	let mut use_yarn = false;
@@ -97,7 +98,7 @@ pub fn package_manager(app_dir: &PathBuf) -> PackageManager {
 			"package-lock.json" => use_npm = true,
 			"yarn.lock" => use_yarn = true,
 			"bun.lockb" => use_bun = true,
-			_ => {}
+			_ => {},
 		}
 	}
 
@@ -124,11 +125,12 @@ pub fn package_manager(app_dir: &PathBuf) -> PackageManager {
 	if found.len() > 1 {
 		let pkg_manger = found[0];
 		println!(
-          "{}: Only one package manager should be used, but found {}.\n         Please remove unused package manager lock files, will use {} for now!",
-          "WARNING".yellow(),
-          found.iter().map(ToString::to_string).collect::<Vec<_>>().join(" and "),
-          pkg_manger
-        );
+			"{}: Only one package manager should be used, but found {}.\n         Please remove \
+			 unused package manager lock files, will use {} for now!",
+			"WARNING".yellow(),
+			found.iter().map(ToString::to_string).collect::<Vec<_>>().join(" and "),
+			pkg_manger
+		);
 		return pkg_manger;
 	}
 
@@ -149,15 +151,16 @@ pub fn package_manager(app_dir: &PathBuf) -> PackageManager {
 }
 
 pub fn items(
-	app_dir: Option<&PathBuf>,
-	package_manager: PackageManager,
-	metadata: &VersionMetadata,
+	app_dir:Option<&PathBuf>,
+	package_manager:PackageManager,
+	metadata:&VersionMetadata,
 ) -> Vec<SectionItem> {
 	let mut items = Vec::new();
 	if let Some(app_dir) = app_dir {
-		for (package, version) in
-			[("@tauri-apps/api", None), ("@tauri-apps/cli", Some(metadata.js_cli.version.clone()))]
-		{
+		for (package, version) in [
+			("@tauri-apps/api", None),
+			("@tauri-apps/cli", Some(metadata.js_cli.version.clone())),
+		] {
 			let app_dir = app_dir.clone();
 			let item = nodejs_section_item(package.into(), version, app_dir, package_manager);
 			items.push(item);
@@ -168,10 +171,10 @@ pub fn items(
 }
 
 pub fn nodejs_section_item(
-	package: String,
-	version: Option<String>,
-	app_dir: PathBuf,
-	package_manager: PackageManager,
+	package:String,
+	version:Option<String>,
+	app_dir:PathBuf,
+	package_manager:PackageManager,
 ) -> SectionItem {
 	SectionItem::new().action(move || {
 		let version = version.clone().unwrap_or_else(|| {

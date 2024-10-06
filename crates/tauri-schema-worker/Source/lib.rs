@@ -18,8 +18,6 @@ async fn main(
 	Ok(router().call(req).await?)
 }
 
-fn router() -> Router {
-	Router::new().route("/", get(root)).merge(config::router())
-}
+fn router() -> Router { Router::new().route("/", get(root)).merge(config::router()) }
 
 async fn root() -> &'static str { "tauri schema worker" }

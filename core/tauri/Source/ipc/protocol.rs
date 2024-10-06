@@ -4,38 +4,43 @@
 
 use std::{borrow::Cow, sync::Arc};
 
+use http::{
+	header::{
+		ACCESS_CONTROL_ALLOW_HEADERS,
+		ACCESS_CONTROL_ALLOW_ORIGIN,
+		ACCESS_CONTROL_EXPOSE_HEADERS,
+		CONTENT_TYPE,
+	},
+	HeaderValue,
+	Method,
+	Request,
+	StatusCode,
+};
+use url::Url;
+
+use super::{CallbackFn, InvokeResponse};
 use crate::{
 	ipc::InvokeResponseBody,
 	manager::AppManager,
 	webview::{InvokeRequest, UriSchemeProtocolHandler},
 	Runtime,
 };
-use http::{
-	header::{
-		ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_ORIGIN, ACCESS_CONTROL_EXPOSE_HEADERS,
-		CONTENT_TYPE,
-	},
-	HeaderValue, Method, Request, StatusCode,
-};
-use url::Url;
 
-use super::{CallbackFn, InvokeResponse};
+const TAURI_CALLBACK_HEADER_NAME:&str = "Tauri-Callback";
+const TAURI_ERROR_HEADER_NAME:&str = "Tauri-Error";
+const TAURI_INVOKE_KEY_HEADER_NAME:&str = "Tauri-Invoke-Key";
 
-const TAURI_CALLBACK_HEADER_NAME: &str = "Tauri-Callback";
-const TAURI_ERROR_HEADER_NAME: &str = "Tauri-Error";
-const TAURI_INVOKE_KEY_HEADER_NAME: &str = "Tauri-Invoke-Key";
+const TAURI_RESPONSE_HEADER_NAME:&str = "Tauri-Response";
+const TAURI_RESPONSE_HEADER_ERROR:&str = "error";
+const TAURI_RESPONSE_HEADER_OK:&str = "ok";
 
-const TAURI_RESPONSE_HEADER_NAME: &str = "Tauri-Response";
-const TAURI_RESPONSE_HEADER_ERROR: &str = "error";
-const TAURI_RESPONSE_HEADER_OK: &str = "ok";
-
-pub fn message_handler<R: Runtime>(
-	manager: Arc<AppManager<R>>,
+pub fn message_handler<R:Runtime>(
+	manager:Arc<AppManager<R>>,
 ) -> crate::runtime::webview::WebviewIpcHandler<crate::EventLoopMessage, R> {
 	Box::new(move |webview, request| handle_ipc_message(request, &manager, &webview.label))
 }
 
-pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeProtocolHandler {
+pub fn get<R:Runtime>(manager:Arc<AppManager<R>>, label:String) -> UriSchemeProtocolHandler {
 	Box::new(move |request, responder| {
 		#[cfg(feature = "tracing")]
 		let span = tracing::trace_span!(
@@ -49,7 +54,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 
 		let label = label.clone();
 
-		let respond = move |mut response: http::Response<Cow<'static, [u8]>>| {
+		let respond = move |mut response:http::Response<Cow<'static, [u8]>>| {
 			response
 				.headers_mut()
 				.insert(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"));
@@ -95,7 +100,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 												mime_type = tracing::field::Empty
 											)
 											.entered()
-										}
+										},
 										InvokeResponse::Ok(InvokeResponseBody::Raw(v)) => {
 											tracing::trace_span!(
 												"ipc::request::response",
@@ -103,13 +108,15 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 												mime_type = tracing::field::Empty
 											)
 											.entered()
-										}
-										InvokeResponse::Err(e) => tracing::trace_span!(
-											"ipc::request::response",
-											error = format!("{e:?}"),
-											mime_type = tracing::field::Empty
-										)
-										.entered(),
+										},
+										InvokeResponse::Err(e) => {
+											tracing::trace_span!(
+												"ipc::request::response",
+												error = format!("{e:?}"),
+												mime_type = tracing::field::Empty
+											)
+											.entered()
+										},
 									};
 
 									let response_header = match &response {
@@ -118,20 +125,26 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 									};
 
 									let (mut response, mime_type) = match response {
-										InvokeResponse::Ok(InvokeResponseBody::Json(v)) => (
-											http::Response::new(v.as_bytes().to_vec().into()),
-											mime::APPLICATION_JSON,
-										),
-										InvokeResponse::Ok(InvokeResponseBody::Raw(v)) => (
-											http::Response::new(v.into()),
-											mime::APPLICATION_OCTET_STREAM,
-										),
-										InvokeResponse::Err(e) => (
-											http::Response::new(
-												serde_json::to_vec(&e.0).unwrap().into(),
-											),
-											mime::APPLICATION_JSON,
-										),
+										InvokeResponse::Ok(InvokeResponseBody::Json(v)) => {
+											(
+												http::Response::new(v.as_bytes().to_vec().into()),
+												mime::APPLICATION_JSON,
+											)
+										},
+										InvokeResponse::Ok(InvokeResponseBody::Raw(v)) => {
+											(
+												http::Response::new(v.into()),
+												mime::APPLICATION_OCTET_STREAM,
+											)
+										},
+										InvokeResponse::Err(e) => {
+											(
+												http::Response::new(
+													serde_json::to_vec(&e.0).unwrap().into(),
+												),
+												mime::APPLICATION_JSON,
+											)
+										},
 									};
 
 									response.headers_mut().insert(
@@ -150,7 +163,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 									respond(response);
 								}),
 							);
-						}
+						},
 						Err(e) => {
 							respond(
 								http::Response::builder()
@@ -159,7 +172,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 									.body(e.as_bytes().to_vec().into())
 									.unwrap(),
 							);
-						}
+						},
 					}
 				} else {
 					respond(
@@ -170,14 +183,15 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 							.unwrap(),
 					);
 				}
-			}
+			},
 
 			Method::OPTIONS => {
 				let mut r = http::Response::new(Vec::new().into());
-				r.headers_mut().insert(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"));
+				r.headers_mut()
+					.insert(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"));
 
 				respond(r);
-			}
+			},
 
 			_ => {
 				let mut r = http::Response::new(
@@ -189,12 +203,12 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
 					HeaderValue::from_str(mime::TEXT_PLAIN.essence_str()).unwrap(),
 				);
 				respond(r);
-			}
+			},
 		}
 	})
 }
 
-fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager<R>, label: &str) {
+fn handle_ipc_message<R:Runtime>(request:Request<String>, manager:&AppManager<R>, label:&str) {
 	if let Some(webview) = manager.get_webview(label) {
 		#[cfg(feature = "tracing")]
 		let _span = tracing::trace_span!(
@@ -211,10 +225,9 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 		pub(crate) struct HeaderMap(http::HeaderMap);
 
 		impl<'de> Deserialize<'de> for HeaderMap {
-			fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+			fn deserialize<D>(deserializer:D) -> std::result::Result<Self, D::Error>
 			where
-				D: Deserializer<'de>,
-			{
+				D: Deserializer<'de>, {
 				let map = std::collections::HashMap::<String, String>::deserialize(deserializer)?;
 				let mut headers = http::HeaderMap::default();
 				for (key, value) in map {
@@ -237,36 +250,36 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 		#[serde(rename_all = "camelCase")]
 		struct RequestOptions {
 			#[serde(default)]
-			headers: HeaderMap,
+			headers:HeaderMap,
 			#[serde(default)]
-			custom_protocol_ipc_blocked: bool,
+			custom_protocol_ipc_blocked:bool,
 		}
 
 		#[derive(Deserialize)]
 		struct Message {
-			cmd: String,
-			callback: CallbackFn,
-			error: CallbackFn,
-			payload: serde_json::Value,
-			options: Option<RequestOptions>,
+			cmd:String,
+			callback:CallbackFn,
+			error:CallbackFn,
+			payload:serde_json::Value,
+			options:Option<RequestOptions>,
 			#[serde(rename = "__TAURI_INVOKE_KEY__")]
-			invoke_key: String,
+			invoke_key:String,
 		}
 
 		#[allow(unused_mut)]
-		let mut invoke_message: Option<crate::Result<Message>> = None;
+		let mut invoke_message:Option<crate::Result<Message>> = None;
 
 		#[cfg(feature = "isolation")]
 		{
 			#[derive(serde::Deserialize)]
 			struct IsolationMessage<'a> {
-				cmd: String,
-				callback: CallbackFn,
-				error: CallbackFn,
-				payload: crate::utils::pattern::isolation::RawIsolationPayload<'a>,
-				options: Option<RequestOptions>,
+				cmd:String,
+				callback:CallbackFn,
+				error:CallbackFn,
+				payload:crate::utils::pattern::isolation::RawIsolationPayload<'a>,
+				options:Option<RequestOptions>,
 				#[serde(rename = "__TAURI_INVOKE_KEY__")]
-				invoke_key: String,
+				invoke_key:String,
 			}
 
 			if let crate::Pattern::Isolation { crypto_keys, .. } = &*manager.pattern {
@@ -281,16 +294,16 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 								== &mime::APPLICATION_OCTET_STREAM.to_string();
 							let payload = crypto_keys.decrypt(message.payload)?;
 							Ok(Message {
-								cmd: message.cmd,
-								callback: message.callback,
-								error: message.error,
-								payload: if is_raw {
+								cmd:message.cmd,
+								callback:message.callback,
+								error:message.error,
+								payload:if is_raw {
 									payload.into()
 								} else {
 									serde_json::from_slice(&payload)?
 								},
-								options: message.options,
-								invoke_key: message.invoke_key,
+								options:message.options,
+								invoke_key:message.invoke_key,
 							})
 						}),
 				);
@@ -308,13 +321,13 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 				let options = message.options.unwrap_or_default();
 
 				let request = InvokeRequest {
-					cmd: message.cmd,
-					callback: message.callback,
-					error: message.error,
-					url: Url::parse(&request.uri().to_string()).expect("invalid IPC request URL"),
-					body: message.payload.into(),
-					headers: options.headers.0,
-					invoke_key: message.invoke_key,
+					cmd:message.cmd,
+					callback:message.callback,
+					error:message.error,
+					url:Url::parse(&request.uri().to_string()).expect("invalid IPC request URL"),
+					body:message.payload.into(),
+					headers:options.headers.0,
+					invoke_key:message.invoke_key,
 				};
 
 				#[cfg(feature = "tracing")]
@@ -332,12 +345,13 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 						)
 						.entered();
 
-						// the channel data command is the only command that uses a custom protocol on Linux
+						// the channel data command is the only command that uses a custom protocol
+						// on Linux
 						if webview.manager().webview.invoke_responder.is_none() {
-							fn responder_eval<R: Runtime>(
-								webview: &crate::Webview<R>,
-								js: crate::Result<String>,
-								error: CallbackFn,
+							fn responder_eval<R:Runtime>(
+								webview:&crate::Webview<R>,
+								js:crate::Result<String>,
+								error:CallbackFn,
 							) {
 								let eval_js = match js {
 									Ok(js) => js,
@@ -346,7 +360,7 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 											.expect(
 												"unable to serialize response error string to json",
 											)
-									}
+									},
 								};
 
 								let _ = webview.eval(&eval_js);
@@ -360,10 +374,10 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 							let mime_type = match &response {
 								InvokeResponse::Ok(InvokeResponseBody::Json(_)) => {
 									mime::APPLICATION_JSON
-								}
+								},
 								InvokeResponse::Ok(InvokeResponseBody::Raw(_)) => {
 									mime::APPLICATION_OCTET_STREAM
-								}
+								},
 								InvokeResponse::Err(_) => mime::APPLICATION_JSON,
 							};
 
@@ -376,7 +390,7 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 										mime_type = mime_type.essence_str()
 									)
 									.entered()
-								}
+								},
 								InvokeResponse::Ok(InvokeResponseBody::Raw(v)) => {
 									tracing::trace_span!(
 										"ipc::request::response",
@@ -384,13 +398,15 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 										mime_type = mime_type.essence_str()
 									)
 									.entered()
-								}
-								InvokeResponse::Err(e) => tracing::trace_span!(
-									"ipc::request::response",
-									response = format!("{e:?}"),
-									mime_type = mime_type.essence_str()
-								)
-								.entered(),
+								},
+								InvokeResponse::Err(e) => {
+									tracing::trace_span!(
+										"ipc::request::response",
+										response = format!("{e:?}"),
+										mime_type = mime_type.essence_str()
+									)
+									.entered()
+								},
 							};
 
 							match response {
@@ -412,7 +428,7 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 											error,
 										)
 									}
-								}
+								},
 								InvokeResponse::Ok(InvokeResponseBody::Raw(v)) => {
 									if cfg!(target_os = "macos")
 										|| cfg!(target_os = "ios") || !can_use_channel_for_response
@@ -430,21 +446,23 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 										let _ = Channel::from_callback_fn(webview, callback)
 											.send(InvokeResponseBody::Raw(v.clone()));
 									}
-								}
-								InvokeResponse::Err(e) => responder_eval(
-									&webview,
-									crate::ipc::format_callback::format_result(
-										Result::<(), _>::Err(&e.0),
-										callback,
+								},
+								InvokeResponse::Err(e) => {
+									responder_eval(
+										&webview,
+										crate::ipc::format_callback::format_result(
+											Result::<(), _>::Err(&e.0),
+											callback,
+											error,
+										),
 										error,
-									),
-									error,
-								),
+									)
+								},
 							}
 						}
 					}),
 				);
-			}
+			},
 			Err(e) => {
 				#[cfg(feature = "tracing")]
 				tracing::trace!("ipc.request.error {}", e);
@@ -453,14 +471,14 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
 					r#"console.error({})"#,
 					serde_json::Value::String(e.to_string())
 				));
-			}
+			},
 		}
 	}
 }
 
-fn parse_invoke_request<R: Runtime>(
-	#[allow(unused_variables)] manager: &AppManager<R>,
-	request: http::Request<Vec<u8>>,
+fn parse_invoke_request<R:Runtime>(
+	#[allow(unused_variables)] manager:&AppManager<R>,
+	request:http::Request<Vec<u8>>,
 ) -> std::result::Result<InvokeRequest, String> {
 	#[allow(unused_mut)]
 	let (parts, mut body) = request.into_parts();
@@ -552,7 +570,9 @@ fn parse_invoke_request<R: Runtime>(
 	} else if content_type == mime::APPLICATION_JSON {
 		// if the platform does not support request body, we ignore it
 		if has_payload {
-			serde_json::from_slice::<serde_json::Value>(&body).map_err(|e| e.to_string())?.into()
+			serde_json::from_slice::<serde_json::Value>(&body)
+				.map_err(|e| e.to_string())?
+				.into()
 		} else {
 			serde_json::Value::Object(Default::default()).into()
 		}
@@ -564,7 +584,7 @@ fn parse_invoke_request<R: Runtime>(
 	drop(span);
 
 	let payload =
-		InvokeRequest { cmd, callback, error, url, body, headers: parts.headers, invoke_key };
+		InvokeRequest { cmd, callback, error, url, body, headers:parts.headers, invoke_key };
 
 	Ok(payload)
 }
@@ -573,18 +593,19 @@ fn parse_invoke_request<R: Runtime>(
 mod tests {
 	use std::str::FromStr;
 
-	use super::*;
-	use crate::{ipc::InvokeBody, manager::AppManager, plugin::PluginStore, StateManager, Wry};
 	use http::header::*;
 	use serde_json::json;
 	use tauri_macros::generate_context;
+
+	use super::*;
+	use crate::{ipc::InvokeBody, manager::AppManager, plugin::PluginStore, StateManager, Wry};
 
 	#[test]
 	fn parse_invoke_request() {
 		let context =
 			generate_context!("test/fixture/src-tauri/tauri.conf.json", crate, test = true);
 
-		let manager: AppManager<Wry> = AppManager::with_handlers(
+		let manager:AppManager<Wry> = AppManager::with_handlers(
 			context,
 			PluginStore::default(),
 			Box::new(|_| false),
@@ -609,7 +630,10 @@ mod tests {
 		let error = 6243;
 
 		let headers = HeaderMap::from_iter(vec![
-			(CONTENT_TYPE, HeaderValue::from_str(mime::APPLICATION_OCTET_STREAM.as_ref()).unwrap()),
+			(
+				CONTENT_TYPE,
+				HeaderValue::from_str(mime::APPLICATION_OCTET_STREAM.as_ref()).unwrap(),
+			),
 			(
 				HeaderName::from_str(TAURI_INVOKE_KEY_HEADER_NAME).unwrap(),
 				HeaderValue::from_str(invoke_key).unwrap(),
@@ -704,7 +728,7 @@ mod tests {
 		  "contentType":  mime::APPLICATION_JSON.to_string(),
 		});
 
-		let manager: AppManager<Wry> = AppManager::with_handlers(
+		let manager:AppManager<Wry> = AppManager::with_handlers(
 			context,
 			PluginStore::default(),
 			Box::new(|_| false),

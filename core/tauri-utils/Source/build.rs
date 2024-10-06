@@ -23,13 +23,9 @@ fn link_swift_library(name:&str, source:impl AsRef<std::path::Path>) {
 	std::env::remove_var("SDKROOT");
 
 	swift_rs::SwiftLinker::new(
-		&std::env::var("MACOSX_DEPLOYMENT_TARGET")
-			.unwrap_or_else(|_| "10.13".into()),
+		&std::env::var("MACOSX_DEPLOYMENT_TARGET").unwrap_or_else(|_| "10.13".into()),
 	)
-	.with_ios(
-		&std::env::var("IPHONEOS_DEPLOYMENT_TARGET")
-			.unwrap_or_else(|_| "13.0".into()),
-	)
+	.with_ios(&std::env::var("IPHONEOS_DEPLOYMENT_TARGET").unwrap_or_else(|_| "13.0".into()))
 	.with_package(name, source)
 	.link();
 
@@ -44,12 +40,11 @@ fn link_xcode_library(name:&str, source:impl AsRef<std::path::Path>) {
 	use std::{path::PathBuf, process::Command};
 
 	let source = source.as_ref();
-	let configuration =
-		if std::env::var("DEBUG").map(|v| v == "true").unwrap_or_default() {
-			"Debug"
-		} else {
-			"Release"
-		};
+	let configuration = if std::env::var("DEBUG").map(|v| v == "true").unwrap_or_default() {
+		"Debug"
+	} else {
+		"Release"
+	};
 
 	let (sdk, arch) = match std::env::var("TARGET").unwrap().as_str() {
 		"aarch64-apple-ios" => ("iphoneos", "arm64"),

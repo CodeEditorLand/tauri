@@ -10,12 +10,15 @@ use super::{BaseDirectory, Error, PathResolver, Result};
 use crate::{
 	command,
 	plugin::{Builder, TauriPlugin},
-	AppHandle, Manager, Runtime, State,
+	AppHandle,
+	Manager,
+	Runtime,
+	State,
 };
 
-/// Normalize a path, removing things like `.` and `..`, this snippet is taken from cargo's paths util.
-/// <https://github.com/rust-lang/cargo/blob/46fa867ff7043e3a0545bf3def7be904e1497afd/crates/cargo-util/src/paths.rs#L73-L106>
-fn normalize_path(path: &Path) -> PathBuf {
+/// Normalize a path, removing things like `.` and `..`, this snippet is taken
+/// from cargo's paths util. <https://github.com/rust-lang/cargo/blob/46fa867ff7043e3a0545bf3def7be904e1497afd/crates/cargo-util/src/paths.rs#L73-L106>
+fn normalize_path(path:&Path) -> PathBuf {
 	let mut components = path.components().peekable();
 	let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
 		components.next();
@@ -29,23 +32,23 @@ fn normalize_path(path: &Path) -> PathBuf {
 			Component::Prefix(..) => unreachable!(),
 			Component::RootDir => {
 				ret.push(component.as_os_str());
-			}
-			Component::CurDir => {}
+			},
+			Component::CurDir => {},
 			Component::ParentDir => {
 				ret.pop();
-			}
+			},
 			Component::Normal(c) => {
 				ret.push(c);
-			}
+			},
 		}
 	}
 	ret
 }
 
-/// Normalize a path, removing things like `.` and `..`, this snippet is taken from cargo's paths util but
-/// slightly modified to not resolve absolute paths.
+/// Normalize a path, removing things like `.` and `..`, this snippet is taken
+/// from cargo's paths util but slightly modified to not resolve absolute paths.
 /// <https://github.com/rust-lang/cargo/blob/46fa867ff7043e3a0545bf3def7be904e1497afd/crates/cargo-util/src/paths.rs#L73-L106>
-fn normalize_path_no_absolute(path: &Path) -> PathBuf {
+fn normalize_path_no_absolute(path:&Path) -> PathBuf {
 	let mut components = path.components().peekable();
 	let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
 		components.next();
@@ -59,19 +62,20 @@ fn normalize_path_no_absolute(path: &Path) -> PathBuf {
 			Component::Prefix(..) => unreachable!(),
 			Component::RootDir => {
 				ret.push(component.as_os_str());
-			}
-			Component::CurDir => {}
+			},
+			Component::CurDir => {},
 			Component::ParentDir => {
 				ret.pop();
-			}
+			},
 			Component::Normal(c) => {
-				// Using PathBuf::push here will replace the whole path if an absolute path is encountered
-				// which is not the intended behavior, so instead of that, convert the current resolved path
-				// to a string and do simple string concatenation with the current component then convert it
+				// Using PathBuf::push here will replace the whole path if an absolute path is
+				// encountered which is not the intended behavior, so instead of that,
+				// convert the current resolved path to a string and do simple string
+				// concatenation with the current component then convert it
 				// back to a PathBuf
 				let mut p = ret.to_string_lossy().to_string();
-				// Only add a separator if it doesn't have one already or if current normalized path is empty,
-				// this ensures it won't have an unwanted leading separator
+				// Only add a separator if it doesn't have one already or if current normalized
+				// path is empty, this ensures it won't have an unwanted leading separator
 				if !p.is_empty() && !p.ends_with('/') && !p.ends_with('\\') {
 					p.push(MAIN_SEPARATOR);
 				}
@@ -79,30 +83,32 @@ fn normalize_path_no_absolute(path: &Path) -> PathBuf {
 					p.push_str(c);
 				}
 				ret = PathBuf::from(p);
-			}
+			},
 		}
 	}
 	ret
 }
 
 #[command(root = "crate")]
-pub fn resolve_directory<R: Runtime>(
-	_app: AppHandle<R>,
-	resolver: State<'_, PathResolver<R>>,
-	directory: BaseDirectory,
-	path: Option<PathBuf>,
+pub fn resolve_directory<R:Runtime>(
+	_app:AppHandle<R>,
+	resolver:State<'_, PathResolver<R>>,
+	directory:BaseDirectory,
+	path:Option<PathBuf>,
 ) -> Result<PathBuf> {
 	super::resolve_path(&resolver, directory, path).map(|p| dunce::simplified(&p).to_path_buf())
 }
 
 #[command(root = "crate")]
-pub fn resolve(paths: Vec<String>) -> Result<PathBuf> {
-	// Start with current directory then start adding paths from the vector one by one using `PathBuf.push()` which
-	// will ensure that if an absolute path is encountered in the iteration, it will be used as the current full path.
+pub fn resolve(paths:Vec<String>) -> Result<PathBuf> {
+	// Start with current directory then start adding paths from the vector one by
+	// one using `PathBuf.push()` which will ensure that if an absolute path is
+	// encountered in the iteration, it will be used as the current full path.
 	//
 	// examples:
 	// 1. `vec!["."]` or `vec![]` will be equal to `std::env::current_dir()`
-	// 2. `vec!["/foo/bar", "/tmp/file", "baz"]` will be equal to `PathBuf::from("/tmp/file/baz")`
+	// 2. `vec!["/foo/bar", "/tmp/file", "baz"]` will be equal to
+	//    `PathBuf::from("/tmp/file/baz")`
 	let mut path = std::env::current_dir().map_err(Error::CurrentDir)?;
 	for p in paths {
 		path.push(p);
@@ -111,7 +117,7 @@ pub fn resolve(paths: Vec<String>) -> Result<PathBuf> {
 }
 
 #[command(root = "crate")]
-pub fn normalize(path: String) -> String {
+pub fn normalize(path:String) -> String {
 	let mut p = dunce::simplified(&normalize_path_no_absolute(Path::new(&path)))
 		.to_string_lossy()
 		.to_string();
@@ -123,7 +129,8 @@ pub fn normalize(path: String) -> String {
 	} else if p.is_empty() && path == "." {
 		".".into()
 	} else {
-		// Add a trailing separator if the path passed to this functions had a trailing separator. That's how Node.js behaves.
+		// Add a trailing separator if the path passed to this functions had a trailing
+		// separator. That's how Node.js behaves.
 		if (path.ends_with('/') || path.ends_with('\\'))
 			&& (!p.ends_with('/') || !p.ends_with('\\'))
 		{
@@ -134,7 +141,7 @@ pub fn normalize(path: String) -> String {
 }
 
 #[command(root = "crate")]
-pub fn join(mut paths: Vec<String>) -> String {
+pub fn join(mut paths:Vec<String>) -> String {
 	let path = PathBuf::from(
 		paths
 			.iter_mut()
@@ -151,17 +158,15 @@ pub fn join(mut paths: Vec<String>) -> String {
 			.collect::<String>(),
 	);
 
-	let p = dunce::simplified(&normalize_path_no_absolute(&path)).to_string_lossy().to_string();
+	let p = dunce::simplified(&normalize_path_no_absolute(&path))
+		.to_string_lossy()
+		.to_string();
 
-	if p.is_empty() {
-		".".into()
-	} else {
-		p
-	}
+	if p.is_empty() { ".".into() } else { p }
 }
 
 #[command(root = "crate")]
-pub fn dirname(path: String) -> Result<PathBuf> {
+pub fn dirname(path:String) -> Result<PathBuf> {
 	match Path::new(&path).parent() {
 		Some(p) => Ok(dunce::simplified(p).to_path_buf()),
 		None => Err(Error::NoParent),
@@ -169,7 +174,7 @@ pub fn dirname(path: String) -> Result<PathBuf> {
 }
 
 #[command(root = "crate")]
-pub fn extname(path: String) -> Result<String> {
+pub fn extname(path:String) -> Result<String> {
 	match Path::new(&path).extension().and_then(std::ffi::OsStr::to_str) {
 		Some(p) => Ok(p.to_string()),
 		None => Err(Error::NoExtension),
@@ -177,7 +182,7 @@ pub fn extname(path: String) -> Result<String> {
 }
 
 #[command(root = "crate")]
-pub fn basename(path: &str, ext: Option<&str>) -> Result<String> {
+pub fn basename(path:&str, ext:Option<&str>) -> Result<String> {
 	let file_name = Path::new(path).file_name().map(|f| f.to_string_lossy());
 	match file_name {
 		Some(p) => {
@@ -187,25 +192,23 @@ pub fn basename(path: &str, ext: Option<&str>) -> Result<String> {
 				p.to_string()
 			};
 			Ok(maybe_stripped)
-		}
+		},
 		None => Err(Error::NoBasename),
 	}
 }
 
 #[command(root = "crate")]
-pub fn is_absolute(path: String) -> bool {
-	Path::new(&path).is_absolute()
-}
+pub fn is_absolute(path:String) -> bool { Path::new(&path).is_absolute() }
 
 #[derive(Template)]
 #[default_template("./init.js")]
 struct InitJavascript {
-	sep: &'static str,
-	delimiter: &'static str,
+	sep:&'static str,
+	delimiter:&'static str,
 }
 
 /// Initializes the plugin.
-pub(crate) fn init<R: Runtime>() -> TauriPlugin<R> {
+pub(crate) fn init<R:Runtime>() -> TauriPlugin<R> {
 	#[cfg(windows)]
 	let (sep, delimiter) = ("\\", ";");
 	#[cfg(not(windows))]

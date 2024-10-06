@@ -42,10 +42,7 @@ pub fn command(attributes:TokenStream, item:TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn mobile_entry_point(
-	attributes:TokenStream,
-	item:TokenStream,
-) -> TokenStream {
+pub fn mobile_entry_point(attributes:TokenStream, item:TokenStream) -> TokenStream {
 	mobile::entry_point(attributes, item)
 }
 
@@ -99,10 +96,7 @@ pub fn generate_context(items:TokenStream) -> TokenStream {
 /// generic, so make sure the last generic is the runtime when using this macro.
 #[doc(hidden)]
 #[proc_macro_attribute]
-pub fn default_runtime(
-	attributes:TokenStream,
-	input:TokenStream,
-) -> TokenStream {
+pub fn default_runtime(attributes:TokenStream, input:TokenStream) -> TokenStream {
 	let attributes = parse_macro_input!(attributes as runtime::Attributes);
 	let input = parse_macro_input!(input as runtime::Input);
 	runtime::default_runtime(attributes, input).into()
@@ -203,30 +197,21 @@ pub fn include_image(tokens:TokenStream) -> TokenStream {
 	};
 	let path = PathBuf::from(path.value());
 	let resolved_path = if path.is_relative() {
-		if let Ok(base_dir) =
-			std::env::var("CARGO_MANIFEST_DIR").map(PathBuf::from)
-		{
+		if let Ok(base_dir) = std::env::var("CARGO_MANIFEST_DIR").map(PathBuf::from) {
 			base_dir.join(path)
 		} else {
-			return quote!(compile_error!(
-				"$CARGO_MANIFEST_DIR is not defined"
-			))
-			.into();
+			return quote!(compile_error!("$CARGO_MANIFEST_DIR is not defined")).into();
 		}
 	} else {
 		path
 	};
 	if !resolved_path.exists() {
-		let error_string = format!(
-			"Provided Image path \"{}\" doesn't exists",
-			resolved_path.display()
-		);
+		let error_string =
+			format!("Provided Image path \"{}\" doesn't exists", resolved_path.display());
 		return quote!(compile_error!(#error_string)).into();
 	}
 
-	match CachedIcon::new(&quote!(::tauri), &resolved_path)
-		.map_err(|error| error.to_string())
-	{
+	match CachedIcon::new(&quote!(::tauri), &resolved_path).map_err(|error| error.to_string()) {
 		Ok(icon) => icon.into_token_stream(),
 		Err(error) => quote!(compile_error!(#error)),
 	}

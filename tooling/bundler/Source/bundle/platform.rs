@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::common::CommandExt;
 use std::process::Command;
+
+use super::common::CommandExt;
 
 // Copyright 2019-2024 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
@@ -12,10 +13,10 @@ use std::process::Command;
 
 #[derive(Debug, PartialEq, Eq)]
 struct RustCfg {
-	target_arch: Option<String>,
+	target_arch:Option<String>,
 }
 
-fn parse_rust_cfg(cfg: String) -> RustCfg {
+fn parse_rust_cfg(cfg:String) -> RustCfg {
 	let target_line = "target_arch=\"";
 	let mut target_arch = None;
 	for line in cfg.split('\n') {
@@ -30,9 +31,9 @@ fn parse_rust_cfg(cfg: String) -> RustCfg {
 
 /// Try to determine the current target triple.
 ///
-/// Returns a target triple (e.g. `x86_64-unknown-linux-gnu` or `i686-pc-windows-msvc`) or an
-/// `Error::Config` if the current config cannot be determined or is not some combination of the
-/// following values:
+/// Returns a target triple (e.g. `x86_64-unknown-linux-gnu` or
+/// `i686-pc-windows-msvc`) or an `Error::Config` if the current config cannot
+/// be determined or is not some combination of the following values:
 /// `linux, mac, windows` -- `i686, x86, armv7` -- `gnu, musl, msvc`
 ///
 /// * Errors:
@@ -41,14 +42,17 @@ pub fn target_triple() -> Result<String, crate::Error> {
 	let arch_res = Command::new("rustc").args(["--print", "cfg"]).output_ok();
 
 	let arch = match arch_res {
-		Ok(output) => parse_rust_cfg(String::from_utf8_lossy(&output.stdout).into())
-			.target_arch
-			.expect("could not find `target_arch` when running `rustc --print cfg`."),
+		Ok(output) => {
+			parse_rust_cfg(String::from_utf8_lossy(&output.stdout).into())
+				.target_arch
+				.expect("could not find `target_arch` when running `rustc --print cfg`.")
+		},
 		Err(err) => {
 			log::warn!(
-      "failed to determine target arch using rustc, error: `{}`. The fallback is the architecture of the machine that compiled this crate.",
-      err,
-    );
+				"failed to determine target arch using rustc, error: `{}`. The fallback is the \
+				 architecture of the machine that compiled this crate.",
+				err,
+			);
 			if cfg!(target_arch = "x86") {
 				"i686".into()
 			} else if cfg!(target_arch = "x86_64") {
@@ -62,7 +66,7 @@ pub fn target_triple() -> Result<String, crate::Error> {
 					"Unable to determine target-architecture",
 				)));
 			}
-		}
+		},
 	};
 
 	let os = if cfg!(target_os = "linux") {
@@ -104,7 +108,7 @@ mod tests {
 
 	#[test]
 	fn parse_rust_cfg() {
-		assert_eq!(super::parse_rust_cfg("target_arch".into()), RustCfg { target_arch: None });
+		assert_eq!(super::parse_rust_cfg("target_arch".into()), RustCfg { target_arch:None });
 
 		assert_eq!(
 			super::parse_rust_cfg(
@@ -119,7 +123,7 @@ target_vendor="apple"
 unix"#
 					.into()
 			),
-			RustCfg { target_arch: Some("aarch64".into()) }
+			RustCfg { target_arch:Some("aarch64".into()) }
 		);
 	}
 }

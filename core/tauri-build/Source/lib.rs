@@ -77,9 +77,8 @@ fn copy_binaries(
 
 		if package_name.map_or(false, |n| n == &file_name) {
 			return Err(anyhow::anyhow!(
-				"Cannot define a sidecar with the same name as the Cargo \
-				 package name `{}`. Please change the sidecar name in the \
-				 filesystem and the Tauri configuration.",
+				"Cannot define a sidecar with the same name as the Cargo package name `{}`. \
+				 Please change the sidecar name in the filesystem and the Tauri configuration.",
 				file_name
 			));
 		}
@@ -113,9 +112,7 @@ fn copy_resources(resources:ResourcePaths<'_>, path:&Path) -> Result<()> {
 }
 
 #[cfg(unix)]
-fn symlink_dir(src:&Path, dst:&Path) -> std::io::Result<()> {
-	std::os::unix::fs::symlink(src, dst)
-}
+fn symlink_dir(src:&Path, dst:&Path) -> std::io::Result<()> { std::os::unix::fs::symlink(src, dst) }
 
 /// Makes a symbolic link to a directory.
 #[cfg(windows)]
@@ -161,11 +158,7 @@ fn copy_dir(from:&Path, to:&Path) -> Result<()> {
 
 // Copies the framework under `{src_dir}/{framework}.framework` to
 // `{dest_dir}/{framework}.framework`.
-fn copy_framework_from(
-	src_dir:&Path,
-	framework:&str,
-	dest_dir:&Path,
-) -> Result<bool> {
+fn copy_framework_from(src_dir:&Path, framework:&str, dest_dir:&Path) -> Result<bool> {
 	let src_name = format!("{framework}.framework");
 	let src_path = src_dir.join(&src_name);
 	if src_path.exists() {
@@ -178,27 +171,21 @@ fn copy_framework_from(
 
 // Copies the macOS application bundle frameworks to the target folder
 fn copy_frameworks(dest_dir:&Path, frameworks:&[String]) -> Result<()> {
-	std::fs::create_dir_all(dest_dir).with_context(|| {
-		format!("Failed to create frameworks output directory at {dest_dir:?}")
-	})?;
+	std::fs::create_dir_all(dest_dir)
+		.with_context(|| format!("Failed to create frameworks output directory at {dest_dir:?}"))?;
 	for framework in frameworks.iter() {
 		if framework.ends_with(".framework") {
 			let src_path = PathBuf::from(framework);
-			let src_name =
-				src_path.file_name().expect("Couldn't get framework filename");
+			let src_name = src_path.file_name().expect("Couldn't get framework filename");
 			let dest_path = dest_dir.join(src_name);
 			copy_dir(&src_path, &dest_path)?;
 			continue;
 		} else if framework.ends_with(".dylib") {
 			let src_path = PathBuf::from(framework);
 			if !src_path.exists() {
-				return Err(anyhow::anyhow!(
-					"Library not found: {}",
-					framework
-				));
+				return Err(anyhow::anyhow!("Library not found: {}", framework));
 			}
-			let src_name =
-				src_path.file_name().expect("Couldn't get library filename");
+			let src_name = src_path.file_name().expect("Couldn't get library filename");
 			let dest_path = dest_dir.join(src_name);
 			copy_file(&src_path, &dest_path)?;
 			continue;
@@ -209,23 +196,16 @@ fn copy_frameworks(dest_dir:&Path, frameworks:&[String]) -> Result<()> {
 			));
 		}
 		if let Some(home_dir) = dirs::home_dir() {
-			if copy_framework_from(
-				&home_dir.join("Library/Frameworks/"),
-				framework,
-				dest_dir,
-			)? {
+			if copy_framework_from(&home_dir.join("Library/Frameworks/"), framework, dest_dir)? {
 				continue;
 			}
 		}
-		if copy_framework_from(
-			&PathBuf::from("/Library/Frameworks/"),
-			framework,
-			dest_dir,
-		)? || copy_framework_from(
-			&PathBuf::from("/Network/Library/Frameworks/"),
-			framework,
-			dest_dir,
-		)? {
+		if copy_framework_from(&PathBuf::from("/Library/Frameworks/"), framework, dest_dir)?
+			|| copy_framework_from(
+				&PathBuf::from("/Network/Library/Frameworks/"),
+				framework,
+				dest_dir,
+			)? {
 			continue;
 		}
 	}
@@ -298,10 +278,7 @@ impl WindowsAttributes {
 	/// Sets the icon to use on the window. Currently only used on Windows.
 	/// It must be in `ico` format. Defaults to `icons/icon.ico`.
 	#[must_use]
-	pub fn window_icon_path<P:AsRef<Path>>(
-		mut self,
-		window_icon_path:P,
-	) -> Self {
+	pub fn window_icon_path<P:AsRef<Path>>(mut self, window_icon_path:P) -> Self {
 		self.window_icon_path.replace(window_icon_path.as_ref().into());
 		self
 	}
@@ -382,10 +359,7 @@ impl Attributes {
 
 	/// Sets the icon to use on the window. Currently only used on Windows.
 	#[must_use]
-	pub fn windows_attributes(
-		mut self,
-		windows_attributes:WindowsAttributes,
-	) -> Self {
+	pub fn windows_attributes(mut self, windows_attributes:WindowsAttributes) -> Self {
 		self.windows_attributes = windows_attributes;
 		self
 	}
@@ -440,9 +414,9 @@ impl Attributes {
 }
 
 pub fn is_dev() -> bool {
-	std::env::var("DEP_TAURI_DEV").expect(
-		"missing `cargo:dev` instruction, please update tauri to latest",
-	) == "true"
+	std::env::var("DEP_TAURI_DEV")
+		.expect("missing `cargo:dev` instruction, please update tauri to latest")
+		== "true"
 }
 
 /// Run all build time helpers for your Tauri Application.
@@ -474,13 +448,12 @@ pub fn build() {
 		println!("{error}");
 		if error.starts_with("unknown field") {
 			print!(
-				"found an unknown configuration field. This usually means \
-				 that you are using a CLI version that is newer than \
-				 `tauri-build` and is incompatible. "
+				"found an unknown configuration field. This usually means that you are using a \
+				 CLI version that is newer than `tauri-build` and is incompatible. "
 			);
 			println!(
-				"Please try updating the Rust crates by running `cargo \
-				 update` in the Tauri app folder."
+				"Please try updating the Rust crates by running `cargo update` in the Tauri app \
+				 folder."
 			);
 		}
 		std::process::exit(1);
@@ -508,11 +481,10 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 	let target_triple = std::env::var("TARGET").unwrap();
 	let target = tauri_utils::platform::Target::from_triple(&target_triple);
 
-	let mut config =
-		serde_json::from_value(tauri_utils::config::parse::read_from(
-			target,
-			std::env::current_dir().unwrap(),
-		)?)?;
+	let mut config = serde_json::from_value(tauri_utils::config::parse::read_from(
+		target,
+		std::env::current_dir().unwrap(),
+	)?)?;
 	if let Ok(env) = std::env::var("TAURI_CONFIG") {
 		let merge_config:serde_json::Value = serde_json::from_str(&env)?;
 		json_patch::merge(&mut config, &merge_config);
@@ -524,10 +496,7 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 	let mut android_package_prefix = String::new();
 	for (i, w) in s.enumerate() {
 		if i == last {
-			println!(
-				"cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_APP_NAME={}",
-				w.replace('-', "_")
-			);
+			println!("cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_APP_NAME={}", w.replace('-', "_"));
 		} else {
 			android_package_prefix.push_str(&w.replace(['_', '-'], "_1"));
 			android_package_prefix.push('_');
@@ -536,18 +505,15 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 	android_package_prefix.pop();
 	println!("cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_PREFIX={android_package_prefix}");
 
-	if let Some(project_dir) =
-		var_os("TAURI_ANDROID_PROJECT_PATH").map(PathBuf::from)
-	{
+	if let Some(project_dir) = var_os("TAURI_ANDROID_PROJECT_PATH").map(PathBuf::from) {
 		mobile::generate_gradle_files(project_dir, &config)?;
 	}
 
 	cfg_alias("dev", is_dev());
 
 	let ws_path = get_workspace_dir()?;
-	let mut manifest = Manifest::<cargo_toml::Value>::from_slice_with_metadata(
-		&std::fs::read("Cargo.toml")?,
-	)?;
+	let mut manifest =
+		Manifest::<cargo_toml::Value>::from_slice_with_metadata(&std::fs::read("Cargo.toml")?)?;
 
 	if let Ok(ws_manifest) = Manifest::from_path(ws_path.join("Cargo.toml")) {
 		Manifest::complete_from_path_and_workspace(
@@ -575,21 +541,16 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 	{
 		acl_manifests.insert(APP_ACL_KEY.into(), app_manifest);
 	}
-	acl_manifests
-		.extend(acl::inline_plugins(&out_dir, attributes.inlined_plugins)?);
+	acl_manifests.extend(acl::inline_plugins(&out_dir, attributes.inlined_plugins)?);
 
-	std::fs::write(
-		out_dir.join(ACL_MANIFESTS_FILE_NAME),
-		serde_json::to_string(&acl_manifests)?,
-	)?;
+	std::fs::write(out_dir.join(ACL_MANIFESTS_FILE_NAME), serde_json::to_string(&acl_manifests)?)?;
 
-	let capabilities =
-		if let Some(pattern) = attributes.capabilities_path_pattern {
-			parse_capabilities(pattern)?
-		} else {
-			println!("cargo:rerun-if-changed=capabilities");
-			parse_capabilities("./capabilities/**/*")?
-		};
+	let capabilities = if let Some(pattern) = attributes.capabilities_path_pattern {
+		parse_capabilities(pattern)?
+	} else {
+		println!("cargo:rerun-if-changed=capabilities");
+		parse_capabilities("./capabilities/**/*")?
+	};
 	acl::generate_schema(&acl_manifests, target)?;
 	acl::validate_capabilities(&acl_manifests, &capabilities)?;
 
@@ -606,15 +567,11 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 	std::env::set_var("TAURI_ENV_TARGET_TRIPLE", &target_triple);
 
 	// TODO: far from ideal, but there's no other way to get the target dir, see <https://github.com/rust-lang/cargo/issues/5457>
-	let target_dir =
-		out_dir.parent().unwrap().parent().unwrap().parent().unwrap();
+	let target_dir = out_dir.parent().unwrap().parent().unwrap().parent().unwrap();
 
 	if let Some(paths) = &config.bundle.external_bin {
 		copy_binaries(
-			ResourcePaths::new(
-				external_binaries(paths, &target_triple).as_slice(),
-				true,
-			),
+			ResourcePaths::new(external_binaries(paths, &target_triple).as_slice(), true),
 			&target_triple,
 			target_dir,
 			manifest.package.as_ref().map(|p| &p.name),
@@ -628,20 +585,17 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 		.clone()
 		.unwrap_or_else(|| BundleResources::List(Vec::new()));
 	if target_triple.contains("windows") {
-		if let Some(fixed_webview2_runtime_path) =
-			match &config.bundle.windows.webview_install_mode {
-				WebviewInstallMode::FixedRuntime { path } => Some(path),
-				_ => None,
-			} {
+		if let Some(fixed_webview2_runtime_path) = match &config.bundle.windows.webview_install_mode
+		{
+			WebviewInstallMode::FixedRuntime { path } => Some(path),
+			_ => None,
+		} {
 			resources.push(fixed_webview2_runtime_path.display().to_string());
 		}
 	}
 	match resources {
 		BundleResources::List(res) => {
-			copy_resources(
-				ResourcePaths::new(res.as_slice(), true),
-				target_dir,
-			)?
+			copy_resources(ResourcePaths::new(res.as_slice(), true), target_dir)?
 		},
 		BundleResources::Map(map) => {
 			copy_resources(ResourcePaths::from_map(&map, true), target_dir)?
@@ -651,8 +605,7 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 	if target_triple.contains("darwin") {
 		if let Some(frameworks) = &config.bundle.macos.frameworks {
 			if !frameworks.is_empty() {
-				let frameworks_dir =
-					target_dir.parent().unwrap().join("Frameworks");
+				let frameworks_dir = target_dir.parent().unwrap().join("Frameworks");
 				let _ = std::fs::remove_dir_all(&frameworks_dir);
 				// copy frameworks to the root `target` folder (instead of
 				// `target/debug` for instance) because the rpath is set to
@@ -661,10 +614,7 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 
 				// If we have frameworks, we need to set the @rpath
 				// https://github.com/tauri-apps/tauri/issues/7710
-				println!(
-					"cargo:rustc-link-arg=-Wl,-rpath,@executable_path/../\
-					 Frameworks"
-				);
+				println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/../Frameworks");
 			}
 		}
 
@@ -684,11 +634,7 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 		use semver::Version;
 		use tauri_winres::{VersionInfo, WindowsResource};
 
-		fn find_icon<F:Fn(&&String) -> bool>(
-			config:&Config,
-			predicate:F,
-			default:&str,
-		) -> PathBuf {
+		fn find_icon<F:Fn(&&String) -> bool>(config:&Config, predicate:F, default:&str) -> PathBuf {
 			let icon_path = config
 				.bundle
 				.icon
@@ -702,9 +648,7 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 		let window_icon_path = attributes
 			.windows_attributes
 			.window_icon_path
-			.unwrap_or_else(|| {
-				find_icon(&config, |i| i.ends_with(".ico"), "icons/icon.ico")
-			});
+			.unwrap_or_else(|| find_icon(&config, |i| i.ends_with(".ico"), "icons/icon.ico"));
 
 		let mut res = WindowsResource::new();
 
@@ -733,22 +677,18 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 		}
 
 		if window_icon_path.exists() {
-			res.set_icon_with_id(
-				&window_icon_path.display().to_string(),
-				"32512",
-			);
+			res.set_icon_with_id(&window_icon_path.display().to_string(), "32512");
 		} else {
 			return Err(anyhow!(format!(
-				"`{}` not found; required for generating a Windows Resource \
-				 file during tauri-build",
+				"`{}` not found; required for generating a Windows Resource file during \
+				 tauri-build",
 				window_icon_path.display()
 			)));
 		}
 
 		res.compile().with_context(|| {
 			format!(
-				"failed to compile `{}` into a Windows Resource file during \
-				 tauri-build",
+				"failed to compile `{}` into a Windows Resource file during tauri-build",
 				window_icon_path.display()
 			)
 		})?;
@@ -756,10 +696,7 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 		let target_env = std::env::var("CARGO_CFG_TARGET_ENV").unwrap();
 		match target_env.as_str() {
 			"gnu" => {
-				let target_arch = match std::env::var("CARGO_CFG_TARGET_ARCH")
-					.unwrap()
-					.as_str()
-				{
+				let target_arch = match std::env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
 					"x86_64" => Some("x64"),
 					"x86" => Some("x86"),
 					"aarch64" => Some("arm64"),
@@ -768,10 +705,8 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 				if let Some(target_arch) = target_arch {
 					for entry in std::fs::read_dir(target_dir.join("build"))? {
 						let path = entry?.path();
-						let webview2_loader_path = path
-							.join("out")
-							.join(target_arch)
-							.join("WebView2Loader.dll");
+						let webview2_loader_path =
+							path.join("out").join(target_arch).join("WebView2Loader.dll");
 						if path.to_string_lossy().contains("webview2-com-sys")
 							&& webview2_loader_path.exists()
 						{
@@ -785,9 +720,7 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 				}
 			},
 			"msvc" => {
-				if std::env::var("STATIC_VCRUNTIME")
-					.map_or(false, |v| v == "true")
-				{
+				if std::env::var("STATIC_VCRUNTIME").map_or(false, |v| v == "true") {
 					static_vcruntime::build();
 				}
 			},

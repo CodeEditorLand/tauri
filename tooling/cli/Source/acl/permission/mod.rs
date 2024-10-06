@@ -15,7 +15,7 @@ mod rm;
 #[clap(about = "Manage or create permissions for your app or plugin")]
 pub struct Cli {
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Subcommand, Debug)]
@@ -29,7 +29,7 @@ enum Commands {
 	Ls(ls::Options),
 }
 
-pub fn command(cli: Cli) -> Result<()> {
+pub fn command(cli:Cli) -> Result<()> {
 	match cli.command {
 		Commands::New(options) => new::command(options),
 		Commands::Add(options) => add::command(options),

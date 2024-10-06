@@ -2,34 +2,40 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{path::SafePathBuf, scope, webview::UriSchemeProtocolHandler};
+use std::{borrow::Cow, io::SeekFrom};
+
 use http::{header::*, status::StatusCode, Request, Response};
 use http_range::HttpRange;
-use std::{borrow::Cow, io::SeekFrom};
 use tauri_utils::mime_type::MimeType;
 use tokio::{
 	fs::File,
 	io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt},
 };
 
-pub fn get(scope: scope::fs::Scope, window_origin: String) -> UriSchemeProtocolHandler {
-	Box::new(move |request, responder| match get_response(request, &scope, &window_origin) {
-		Ok(response) => responder.respond(response),
-		Err(e) => responder.respond(
-			http::Response::builder()
-				.status(http::StatusCode::INTERNAL_SERVER_ERROR)
-				.header(CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
-				.header("Access-Control-Allow-Origin", &window_origin)
-				.body(e.to_string().as_bytes().to_vec())
-				.unwrap(),
-		),
+use crate::{path::SafePathBuf, scope, webview::UriSchemeProtocolHandler};
+
+pub fn get(scope:scope::fs::Scope, window_origin:String) -> UriSchemeProtocolHandler {
+	Box::new(move |request, responder| {
+		match get_response(request, &scope, &window_origin) {
+			Ok(response) => responder.respond(response),
+			Err(e) => {
+				responder.respond(
+					http::Response::builder()
+						.status(http::StatusCode::INTERNAL_SERVER_ERROR)
+						.header(CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
+						.header("Access-Control-Allow-Origin", &window_origin)
+						.body(e.to_string().as_bytes().to_vec())
+						.unwrap(),
+				)
+			},
+		}
 	})
 }
 
 fn get_response(
-	request: Request<Vec<u8>>,
-	scope: &scope::fs::Scope,
-	window_origin: &str,
+	request:Request<Vec<u8>>,
+	scope:&scope::fs::Scope,
+	window_origin:&str,
 ) -> Result<Response<Cow<'static, [u8]>>, Box<dyn std::error::Error>> {
 	// skip leading `/`
 	let path = percent_encoding::percent_decode(request.uri().path()[1..].as_bytes())
@@ -82,8 +88,10 @@ fn get_response(
 	resp = resp.header(CONTENT_TYPE, &mime_type);
 
 	// handle 206 (partial range) http requests
-	let response = if let Some(range_header) =
-		request.headers().get("range").and_then(|r| r.to_str().map(|r| r.to_string()).ok())
+	let response = if let Some(range_header) = request
+		.headers()
+		.get("range")
+		.and_then(|r| r.to_str().map(|r| r.to_string()).ok())
 	{
 		resp = resp.header(ACCEPT_RANGES, "bytes");
 
@@ -107,7 +115,7 @@ fn get_response(
 		};
 
 		/// The Maximum bytes we send in one range
-		const MAX_LEN: u64 = 1000 * 1024;
+		const MAX_LEN:u64 = 1000 * 1024;
 
 		// single-part range header
 		if ranges.len() == 1 {

@@ -42,21 +42,16 @@ pub fn main() -> Result<(), Box<dyn Error>> {
 	// write config schema file
 	{
 		let metadata = include_str!("../tauri-cli/metadata-v2.json");
-		let tauri_ver =
-			serde_json::from_str::<VersionMetadata>(metadata)?.tauri;
+		let tauri_ver = serde_json::from_str::<VersionMetadata>(metadata)?.tauri;
 
 		// set id for generated schema
 		let (filename, mut config_schema) = schema!("config", Config);
 		let schema_metadata = config_schema.schema.metadata.as_mut().unwrap();
-		schema_metadata.id =
-			Some(format!("https://schema.tauri.app/config/{tauri_ver}"));
+		schema_metadata.id = Some(format!("https://schema.tauri.app/config/{tauri_ver}"));
 
 		let config_schema = serde_json::to_string_pretty(&config_schema)?;
 		write_if_changed(schemas_dir.join(filename), &config_schema)?;
-		write_if_changed(
-			out.join("../tauri-cli/config.schema.json"),
-			config_schema,
-		)?;
+		write_if_changed(out.join("../tauri-cli/config.schema.json"), config_schema)?;
 	}
 
 	Ok(())

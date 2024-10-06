@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{
-	helpers::{app_paths::walk_builder, cargo, npm::PackageManager},
-	Result,
-};
+use std::{fs, path::Path};
+
 use anyhow::Context;
 use itertools::Itertools;
 use magic_string::MagicString;
@@ -14,13 +12,16 @@ use oxc_ast::ast::*;
 use oxc_parser::Parser;
 use oxc_span::SourceType;
 
-use std::{fs, path::Path};
+use crate::{
+	helpers::{app_paths::walk_builder, cargo, npm::PackageManager},
+	Result,
+};
 
-const RENAMED_MODULES: phf::Map<&str, &str> = phf::phf_map! {
+const RENAMED_MODULES:phf::Map<&str, &str> = phf::phf_map! {
   "tauri" => "core",
   "window" => "webviewWindow"
 };
-const PLUGINIFIED_MODULES: [&str; 11] = [
+const PLUGINIFIED_MODULES:[&str; 11] = [
 	"cli",
 	"clipboard",
 	"dialog",
@@ -34,7 +35,7 @@ const PLUGINIFIED_MODULES: [&str; 11] = [
 	"updater",
 ];
 // (from, to)
-const MODULES_MAP: phf::Map<&str, &str> = phf::phf_map! {
+const MODULES_MAP:phf::Map<&str, &str> = phf::phf_map! {
   // renamed
   "@tauri-apps/api/tauri" => "@tauri-apps/api/core",
   "@tauri-apps/api/window" => "@tauri-apps/api/webviewWindow",
@@ -51,10 +52,10 @@ const MODULES_MAP: phf::Map<&str, &str> = phf::phf_map! {
   "@tauri-apps/api/shell" => "@tauri-apps/plugin-shell",
   "@tauri-apps/api/updater" => "@tauri-apps/plugin-updater",
 };
-const JS_EXTENSIONS: &[&str] = &["js", "mjs", "jsx", "ts", "mts", "tsx"];
+const JS_EXTENSIONS:&[&str] = &["js", "mjs", "jsx", "ts", "mts", "tsx"];
 
 /// Returns a list of paths that could not be migrated
-pub fn migrate(app_dir: &Path, tauri_dir: &Path) -> Result<()> {
+pub fn migrate(app_dir:&Path, tauri_dir:&Path) -> Result<()> {
 	let mut new_npm_packages = Vec::new();
 	let mut new_cargo_packages = Vec::new();
 
@@ -71,8 +72,10 @@ pub fn migrate(app_dir: &Path, tauri_dir: &Path) -> Result<()> {
 		)
 	};
 
-	let pm =
-		PackageManager::from_project(app_dir).into_iter().next().unwrap_or(PackageManager::Npm);
+	let pm = PackageManager::from_project(app_dir)
+		.into_iter()
+		.next()
+		.unwrap_or(PackageManager::Npm);
 
 	for pkg in ["@tauri-apps/cli", "@tauri-apps/api"] {
 		let version =
@@ -105,7 +108,8 @@ pub fn migrate(app_dir: &Path, tauri_dir: &Path) -> Result<()> {
 	new_npm_packages.sort();
 	new_npm_packages.dedup();
 	if !new_npm_packages.is_empty() {
-		pm.install(&new_npm_packages, app_dir).context("Error installing new npm packages")?;
+		pm.install(&new_npm_packages, app_dir)
+			.context("Error installing new npm packages")?;
 	}
 
 	new_cargo_packages.sort();
@@ -119,10 +123,10 @@ pub fn migrate(app_dir: &Path, tauri_dir: &Path) -> Result<()> {
 }
 
 fn migrate_imports<'a>(
-	path: &'a Path,
-	js_source: &'a str,
-	new_cargo_packages: &mut Vec<String>,
-	new_npm_packages: &mut Vec<String>,
+	path:&'a Path,
+	js_source:&'a str,
+	new_cargo_packages:&mut Vec<String>,
+	new_npm_packages:&mut Vec<String>,
 ) -> crate::Result<String> {
 	let mut magic_js_source = MagicString::new(js_source);
 
@@ -148,8 +152,9 @@ fn migrate_imports<'a>(
 			}
 
 			// convert module to its pluginfied module or renamed one
-			// import { ... } from "@tauri-apps/api/window" -> import { ... } from "@tauri-apps/api/webviewWindow"
-			// import { ... } from "@tauri-apps/api/cli" -> import { ... } from "@tauri-apps/plugin-cli"
+			// import { ... } from "@tauri-apps/api/window" -> import { ... } from
+			// "@tauri-apps/api/webviewWindow" import { ... } from "@tauri-apps/api/cli"
+			// -> import { ... } from "@tauri-apps/plugin-cli"
 			if let Some(&module) = MODULES_MAP.get(module) {
 				// +1 and -1, to skip modifying the import quotes
 				magic_js_source
@@ -191,7 +196,7 @@ fn migrate_imports<'a>(
 						"appWindow" if module == "@tauri-apps/api/window" => {
 							stmts_to_add.push("\nconst appWindow = getCurrentWebviewWindow()");
 							Some("getCurrentWebviewWindow")
-						}
+						},
 
 						// migrate pluginified modules from:
 						// ```
@@ -206,7 +211,7 @@ fn migrate_imports<'a>(
 							if PLUGINIFIED_MODULES.contains(&import)
 								&& module == "@tauri-apps/api" =>
 						{
-							let js_plugin: &str = MODULES_MAP[&format!("@tauri-apps/api/{import}")];
+							let js_plugin:&str = MODULES_MAP[&format!("@tauri-apps/api/{import}")];
 							let (_, plugin_name) = js_plugin.split_once("plugin-").unwrap();
 							let cargo_crate = format!("tauri-plugin-{plugin_name}");
 							new_npm_packages.push(js_plugin.to_string());
@@ -222,14 +227,14 @@ fn migrate_imports<'a>(
 									.push(format!("\nimport {import} from \"{js_plugin}\""));
 							};
 							None
-						}
+						},
 
 						import if module == "@tauri-apps/api" => {
 							match RENAMED_MODULES.get(import) {
 								Some(m) => Some(*m),
 								None => continue,
 							}
-						}
+						},
 
 						// nothing to do, go to next specifier
 						_ => continue,
@@ -237,7 +242,8 @@ fn migrate_imports<'a>(
 
 					// if identifier was renamed, it will be Some()
 					// and so we convert the import
-					// import { appWindow } from "@tauri-apps/api/window" -> import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
+					// import { appWindow } from "@tauri-apps/api/window" -> import {
+					// getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
 					if let Some(new_identifier) = new_identifier {
 						magic_js_source
 							.overwrite(
@@ -280,9 +286,11 @@ fn migrate_imports<'a>(
 		.iter()
 		.rev()
 		.find(|s| matches!(s, Statement::ImportDeclaration(_)))
-		.map(|s| match s {
-			Statement::ImportDeclaration(s) => s.span.end,
-			_ => unreachable!(),
+		.map(|s| {
+			match s {
+				Statement::ImportDeclaration(s) => s.span.end,
+				_ => unreachable!(),
+			}
 		})
 		.unwrap_or(program.span.start);
 

@@ -5,15 +5,16 @@
 
 use std::{fmt, str::FromStr};
 
-const CONFIDENCE_THRESHOLD: f64 = 0.8;
+const CONFIDENCE_THRESHOLD:f64 = 0.8;
 
-const MACOS_APP_CATEGORY_PREFIX: &str = "public.app-category.";
+const MACOS_APP_CATEGORY_PREFIX:&str = "public.app-category.";
 
 // TODO: RIght now, these categories correspond to LSApplicationCategoryType
 // values for OS X.  There are also some additional GNOME registered categories
 // that don't fit these; we should add those here too.
 /// The possible app categories.
-/// Corresponds to `LSApplicationCategoryType` on macOS and the GNOME desktop categories on Debian.
+/// Corresponds to `LSApplicationCategoryType` on macOS and the GNOME desktop
+/// categories on Debian.
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
@@ -65,7 +66,7 @@ impl FromStr for AppCategory {
 
 	/// Given a string, returns the `AppCategory` it refers to, or the closest
 	/// string that the user might have intended (if any).
-	fn from_str(input: &str) -> Result<AppCategory, Self::Err> {
+	fn from_str(input:&str) -> Result<AppCategory, Self::Err> {
 		// Canonicalize input:
 		let mut input = input.to_ascii_lowercase();
 		if input.starts_with(MACOS_APP_CATEGORY_PREFIX) {
@@ -77,7 +78,7 @@ impl FromStr for AppCategory {
 		// Find best match:
 		let mut best_confidence = 0.0;
 
-		let mut best_category: Option<AppCategory> = None;
+		let mut best_category:Option<AppCategory> = None;
 		for &(string, category) in CATEGORY_STRINGS.iter() {
 			if input == string {
 				return Ok(category);
@@ -238,40 +239,40 @@ impl AppCategory {
 }
 
 impl<'d> serde::Deserialize<'d> for AppCategory {
-	fn deserialize<D: serde::Deserializer<'d>>(deserializer: D) -> Result<AppCategory, D::Error> {
-		deserializer.deserialize_str(AppCategoryVisitor { did_you_mean: None })
+	fn deserialize<D:serde::Deserializer<'d>>(deserializer:D) -> Result<AppCategory, D::Error> {
+		deserializer.deserialize_str(AppCategoryVisitor { did_you_mean:None })
 	}
 }
 
 struct AppCategoryVisitor {
-	did_you_mean: Option<&'static str>,
+	did_you_mean:Option<&'static str>,
 }
 
 impl<'d> serde::de::Visitor<'d> for AppCategoryVisitor {
 	type Value = AppCategory;
 
-	fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+	fn expecting(&self, formatter:&mut fmt::Formatter<'_>) -> fmt::Result {
 		match self.did_you_mean {
 			Some(string) => {
 				write!(formatter, "a valid app category string (did you mean \"{string}\"?)")
-			}
+			},
 			None => write!(formatter, "a valid app category string"),
 		}
 	}
 
-	fn visit_str<E: serde::de::Error>(mut self, value: &str) -> Result<AppCategory, E> {
+	fn visit_str<E:serde::de::Error>(mut self, value:&str) -> Result<AppCategory, E> {
 		match AppCategory::from_str(value) {
 			Ok(category) => Ok(category),
 			Err(did_you_mean) => {
 				self.did_you_mean = did_you_mean;
 				let unexp = serde::de::Unexpected::Str(value);
 				Err(serde::de::Error::invalid_value(unexp, &self))
-			}
+			},
 		}
 	}
 }
 
-const CATEGORY_STRINGS: &[(&str, AppCategory)] = &[
+const CATEGORY_STRINGS:&[(&str, AppCategory)] = &[
 	("actiongame", AppCategory::ActionGame),
 	("actiongames", AppCategory::ActionGame),
 	("adventuregame", AppCategory::AdventureGame),
@@ -349,8 +350,9 @@ const CATEGORY_STRINGS: &[(&str, AppCategory)] = &[
 
 #[cfg(test)]
 mod tests {
-	use super::AppCategory;
 	use std::str::FromStr;
+
+	use super::AppCategory;
 
 	#[test]
 	fn category_from_string_ok() {

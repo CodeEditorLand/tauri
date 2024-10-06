@@ -57,9 +57,7 @@ async fn async_stateful_command(
 // ------------------------ Raw future commands ------------------------
 
 #[command(async)]
-fn future_simple_command(
-	the_argument:String,
-) -> impl std::future::Future<Output = ()> {
+fn future_simple_command(the_argument:String) -> impl std::future::Future<Output = ()> {
 	println!("{the_argument}");
 	std::future::ready(())
 }
@@ -92,9 +90,7 @@ fn force_async_with_result(the_argument:&str) -> Result<&str, MyError> {
 // ------------------------
 
 #[command(async, rename_all = "snake_case")]
-fn future_simple_command_snake(
-	the_argument:String,
-) -> impl std::future::Future<Output = ()> {
+fn future_simple_command_snake(the_argument:String) -> impl std::future::Future<Output = ()> {
 	println!("{the_argument}");
 	std::future::ready(())
 }
@@ -144,9 +140,7 @@ fn stateful_command_with_result(
 // ------------------------
 
 #[command(rename_all = "snake_case")]
-fn simple_command_with_result_snake(
-	the_argument:String,
-) -> Result<String, MyError> {
+fn simple_command_with_result_snake(the_argument:String) -> Result<String, MyError> {
 	println!("{the_argument}");
 	(!the_argument.is_empty()).then_some(the_argument).ok_or(MyError::FooError)
 }
@@ -163,9 +157,7 @@ fn stateful_command_with_result_snake(
 // Async commands
 
 #[command]
-async fn async_simple_command_with_result(
-	the_argument:String,
-) -> Result<String, MyError> {
+async fn async_simple_command_with_result(the_argument:String) -> Result<String, MyError> {
 	println!("{the_argument}");
 	Ok(the_argument)
 }
@@ -252,8 +244,6 @@ fn main() {
 			future_simple_command_with_result,
 			async_stateful_command_with_result,
 		])
-		.run(tauri::generate_context!(
-			"../../examples/commands/tauri.conf.json"
-		))
+		.run(tauri::generate_context!("../../examples/commands/tauri.conf.json"))
 		.expect("error while running tauri application");
 }

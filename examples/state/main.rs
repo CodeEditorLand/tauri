@@ -37,9 +37,7 @@ fn get(counter:State<'_, Counter>) -> usize { *counter.0.lock().unwrap() }
 fn main() {
 	tauri::Builder::default()
 		.manage(Counter(Mutex::new(0)))
-		.invoke_handler(tauri::generate_handler![
-			increment, decrement, reset, get
-		])
+		.invoke_handler(tauri::generate_handler![increment, decrement, reset, get])
 		.run(tauri::generate_context!("../../examples/state/tauri.conf.json"))
 		.expect("error while running tauri application");
 }

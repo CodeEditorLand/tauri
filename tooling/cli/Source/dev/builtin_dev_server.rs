@@ -2,6 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{
+	net::{IpAddr, SocketAddr},
+	path::{Path, PathBuf},
+	thread,
+	time::Duration,
+};
+
 use axum::{
 	extract::{ws, State, WebSocketUpgrade},
 	http::{header, StatusCode, Uri},
@@ -9,25 +16,19 @@ use axum::{
 };
 use html5ever::{namespace_url, ns, LocalName, QualName};
 use kuchiki::{traits::TendrilSink, NodeRef};
-use std::{
-	net::{IpAddr, SocketAddr},
-	path::{Path, PathBuf},
-	thread,
-	time::Duration,
-};
 use tauri_utils::mime_type::MimeType;
 use tokio::sync::broadcast::{channel, Sender};
 
-const RELOAD_SCRIPT: &str = include_str!("./auto-reload.js");
+const RELOAD_SCRIPT:&str = include_str!("./auto-reload.js");
 
 #[derive(Clone)]
 struct ServerState {
-	dir: PathBuf,
-	address: SocketAddr,
-	tx: Sender<()>,
+	dir:PathBuf,
+	address:SocketAddr,
+	tx:Sender<()>,
 }
 
-pub fn start<P: AsRef<Path>>(dir: P, ip: IpAddr, port: Option<u16>) -> crate::Result<SocketAddr> {
+pub fn start<P:AsRef<Path>>(dir:P, ip:IpAddr, port:Option<u16>) -> crate::Result<SocketAddr> {
 	let dir = dir.as_ref();
 	let dir = dunce::canonicalize(dir)?;
 
@@ -78,8 +79,9 @@ pub fn start<P: AsRef<Path>>(dir: P, ip: IpAddr, port: Option<u16>) -> crate::Re
 	Ok(address)
 }
 
-async fn handler(uri: Uri, state: State<ServerState>) -> impl IntoResponse {
-	// Frontend files should not contain query parameters. This seems to be how vite handles it.
+async fn handler(uri:Uri, state:State<ServerState>) -> impl IntoResponse {
+	// Frontend files should not contain query parameters. This seems to be how vite
+	// handles it.
 	let uri = uri.path();
 
 	let uri = if uri == "/" { uri } else { uri.strip_prefix('/').unwrap_or(uri) };
@@ -96,28 +98,30 @@ async fn handler(uri: Uri, state: State<ServerState>) -> impl IntoResponse {
 				bytes = inject_address(bytes, &state.address);
 			}
 			(StatusCode::OK, [(header::CONTENT_TYPE, mime_type)], bytes)
-		}
+		},
 		Err(_) => (StatusCode::NOT_FOUND, [(header::CONTENT_TYPE, "text/plain".into())], vec![]),
 	}
 }
 
-async fn ws_handler(ws: WebSocketUpgrade, state: State<ServerState>) -> Response {
-	ws.on_upgrade(move |mut ws| async move {
-		let mut rx = state.tx.subscribe();
-		while tokio::select! {
-			_ = ws.recv() => return,
-			fs_reload_event = rx.recv() => fs_reload_event.is_ok(),
-		} {
-			let msg = ws::Message::Text(r#"{"reload": true}"#.to_owned());
-			if ws.send(msg).await.is_err() {
-				break;
+async fn ws_handler(ws:WebSocketUpgrade, state:State<ServerState>) -> Response {
+	ws.on_upgrade(move |mut ws| {
+		async move {
+			let mut rx = state.tx.subscribe();
+			while tokio::select! {
+				_ = ws.recv() => return,
+				fs_reload_event = rx.recv() => fs_reload_event.is_ok(),
+			} {
+				let msg = ws::Message::Text(r#"{"reload": true}"#.to_owned());
+				if ws.send(msg).await.is_err() {
+					break;
+				}
 			}
 		}
 	})
 }
 
-fn inject_address(html_bytes: Vec<u8>, address: &SocketAddr) -> Vec<u8> {
-	fn with_html_head<F: FnOnce(&NodeRef)>(document: &mut NodeRef, f: F) {
+fn inject_address(html_bytes:Vec<u8>, address:&SocketAddr) -> Vec<u8> {
+	fn with_html_head<F:FnOnce(&NodeRef)>(document:&mut NodeRef, f:F) {
 		if let Ok(ref node) = document.select_first("head") {
 			f(node.as_node())
 		} else {
@@ -141,7 +145,7 @@ fn inject_address(html_bytes: Vec<u8>, address: &SocketAddr) -> Vec<u8> {
 	tauri_utils::html::serialize_node(&document)
 }
 
-fn fs_read_scoped(path: PathBuf, scope: &Path) -> crate::Result<Vec<u8>> {
+fn fs_read_scoped(path:PathBuf, scope:&Path) -> crate::Result<Vec<u8>> {
 	let path = dunce::canonicalize(path)?;
 	if path.starts_with(scope) {
 		std::fs::read(path).map_err(Into::into)
@@ -150,7 +154,7 @@ fn fs_read_scoped(path: PathBuf, scope: &Path) -> crate::Result<Vec<u8>> {
 	}
 }
 
-fn watch<F: Fn() + Send + 'static>(dir: PathBuf, handler: F) {
+fn watch<F:Fn() + Send + 'static>(dir:PathBuf, handler:F) {
 	thread::spawn(move || {
 		let (tx, rx) = std::sync::mpsc::channel();
 

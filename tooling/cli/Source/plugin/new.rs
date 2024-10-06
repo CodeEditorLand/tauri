@@ -2,64 +2,66 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::path::PathBuf;
+
+use clap::Parser;
+
 use super::PluginIosFramework;
 use crate::Result;
-use clap::Parser;
-use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 #[clap(about = "Initializes a new Tauri plugin project")]
 pub struct Options {
 	/// Name of your Tauri plugin
-	plugin_name: String,
+	plugin_name:String,
 	/// Initializes a Tauri plugin without the TypeScript API
 	#[clap(long)]
-	no_api: bool,
+	no_api:bool,
 	/// Initializes a Tauri core plugin (internal usage)
 	#[clap(long, hide(true))]
-	tauri: bool,
+	tauri:bool,
 	/// Set target directory for init
 	#[clap(short, long)]
-	directory: Option<String>,
+	directory:Option<String>,
 	/// Path of the Tauri project to use (relative to the cwd)
 	#[clap(short, long)]
-	tauri_path: Option<PathBuf>,
+	tauri_path:Option<PathBuf>,
 	/// Author name
 	#[clap(short, long)]
-	author: Option<String>,
+	author:Option<String>,
 	/// Whether to initialize an Android project for the plugin.
 	#[clap(long)]
-	android: bool,
+	android:bool,
 	/// Whether to initialize an iOS project for the plugin.
 	#[clap(long)]
-	ios: bool,
+	ios:bool,
 	/// Whether to initialize Android and iOS projects for the plugin.
 	#[clap(long)]
-	mobile: bool,
+	mobile:bool,
 	/// Type of framework to use for the iOS project.
 	#[clap(long)]
 	#[clap(default_value_t = PluginIosFramework::default())]
-	pub(crate) ios_framework: PluginIosFramework,
+	pub(crate) ios_framework:PluginIosFramework,
 }
 
 impl From<Options> for super::init::Options {
-	fn from(o: Options) -> Self {
+	fn from(o:Options) -> Self {
 		Self {
-			plugin_name: Some(o.plugin_name),
-			no_api: o.no_api,
-			tauri: o.tauri,
-			directory: o.directory.unwrap(),
-			tauri_path: o.tauri_path,
-			author: o.author,
-			android: o.android,
-			ios: o.ios,
-			mobile: o.mobile,
-			ios_framework: o.ios_framework,
+			plugin_name:Some(o.plugin_name),
+			no_api:o.no_api,
+			tauri:o.tauri,
+			directory:o.directory.unwrap(),
+			tauri_path:o.tauri_path,
+			author:o.author,
+			android:o.android,
+			ios:o.ios,
+			mobile:o.mobile,
+			ios_framework:o.ios_framework,
 		}
 	}
 }
 
-pub fn command(mut options: Options) -> Result<()> {
+pub fn command(mut options:Options) -> Result<()> {
 	let cwd = std::env::current_dir()?;
 	if let Some(dir) = &options.directory {
 		std::fs::create_dir_all(cwd.join(dir))?;

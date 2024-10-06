@@ -96,13 +96,10 @@ impl Source {
 					tiny_skia::Transform::from_scale(scale, scale),
 					&mut pixmap.as_mut(),
 				);
-				let img_buffer =
-					ImageBuffer::from_raw(size, size, pixmap.take()).unwrap();
+				let img_buffer = ImageBuffer::from_raw(size, size, pixmap.take()).unwrap();
 				Ok(DynamicImage::ImageRgba8(img_buffer))
 			},
-			Self::DynamicImage(i) => {
-				Ok(i.resize_exact(size, size, FilterType::Lanczos3))
-			},
+			Self::DynamicImage(i) => Ok(i.resize_exact(size, size, FilterType::Lanczos3)),
 		}
 	}
 }
@@ -149,9 +146,7 @@ pub fn command(options:Options) -> Result<()> {
 			Source::Svg(rtree)
 		} else {
 			Source::DynamicImage(DynamicImage::ImageRgba8(
-				open(&input)
-					.context("Can't read and decode source image")?
-					.into_rgba8(),
+				open(&input).context("Can't read and decode source image")?.into_rgba8(),
 			))
 		}
 	} else {
@@ -167,8 +162,7 @@ pub fn command(options:Options) -> Result<()> {
 		icns(&source, &out_dir).context("Failed to generate .icns file")?;
 		ico(&source, &out_dir).context("Failed to generate .ico file")?;
 
-		png(&source, &out_dir, ios_color)
-			.context("Failed to generate png icons")?;
+		png(&source, &out_dir, ios_color).context("Failed to generate png icons")?;
 	} else {
 		for target in png_icon_sizes
 			.into_iter()
@@ -250,19 +244,9 @@ fn ico(source:&Source, out_dir:&Path) -> Result<()> {
 
 			write_png(image.as_bytes(), &mut buf, size)?;
 
-			frames.push(IcoFrame::with_encoded(
-				buf,
-				size,
-				size,
-				ExtendedColorType::Rgba8,
-			)?)
+			frames.push(IcoFrame::with_encoded(buf, size, size, ExtendedColorType::Rgba8)?)
 		} else {
-			frames.push(IcoFrame::as_png(
-				image.as_bytes(),
-				size,
-				size,
-				ExtendedColorType::Rgba8,
-			)?);
+			frames.push(IcoFrame::as_png(image.as_bytes(), size, size, ExtendedColorType::Rgba8)?);
 		}
 	}
 
@@ -287,11 +271,7 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 				_ => format!("{size}x{size}.png"),
 			};
 
-			entries.push(PngEntry {
-				out_path:out_dir.join(&file_name),
-				name:file_name,
-				size,
-			});
+			entries.push(PngEntry { out_path:out_dir.join(&file_name), name:file_name, size });
 		}
 
 		entries
@@ -318,14 +298,10 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 			let folder_name = format!("mipmap-{}", target.name);
 			let out_folder = out_dir.join(&folder_name);
 
-			create_dir_all(&out_folder)
-				.context("Can't create Android mipmap output directory")?;
+			create_dir_all(&out_folder).context("Can't create Android mipmap output directory")?;
 
 			entries.push(PngEntry {
-				name:format!(
-					"{}/{}",
-					folder_name, "ic_launcher_foreground.png"
-				),
+				name:format!("{}/{}", folder_name, "ic_launcher_foreground.png"),
 				out_path:out_folder.join("ic_launcher_foreground.png"),
 				size:target.foreground_size,
 			});
@@ -392,22 +368,17 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 
 	let mut entries = desktop_entries(out_dir);
 
-	let android_out =
-		out_dir.parent().unwrap().join("gen/android/app/src/main/res/");
+	let android_out = out_dir.parent().unwrap().join("gen/android/app/src/main/res/");
 	let out = if android_out.exists() {
 		android_out
 	} else {
 		let out = out_dir.join("android");
-		create_dir_all(&out)
-			.context("Can't create Android output directory")?;
+		create_dir_all(&out).context("Can't create Android output directory")?;
 		out
 	};
 	entries.extend(android_entries(&out)?);
 
-	let ios_out = out_dir
-		.parent()
-		.unwrap()
-		.join("gen/apple/Assets.xcassets/AppIcon.appiconset");
+	let ios_out = out_dir.parent().unwrap().join("gen/apple/Assets.xcassets/AppIcon.appiconset");
 	let out = if ios_out.exists() {
 		ios_out
 	} else {
@@ -423,12 +394,7 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 
 	for entry in ios_entries(&out)? {
 		log::info!(action = "iOS"; "Creating {}", entry.name);
-		resize_and_save_png(
-			source,
-			entry.size,
-			&entry.out_path,
-			Some(ios_color),
-		)?;
+		resize_and_save_png(source, entry.size, &entry.out_path, Some(ios_color))?;
 	}
 
 	Ok(())
@@ -456,11 +422,7 @@ fn resize_and_save_png(
 
 // Encode image data as png with compression.
 fn write_png<W:Write>(image_data:&[u8], w:W, size:u32) -> Result<()> {
-	let encoder = PngEncoder::new_with_quality(
-		w,
-		CompressionType::Best,
-		PngFilterType::Adaptive,
-	);
+	let encoder = PngEncoder::new_with_quality(w, CompressionType::Best, PngFilterType::Adaptive);
 	encoder.write_image(image_data, size, size, ExtendedColorType::Rgba8)?;
 	Ok(())
 }

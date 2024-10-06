@@ -31,10 +31,7 @@ pub struct Keychain {
 impl Drop for Keychain {
 	fn drop(&mut self) {
 		if let Some(path) = &self.path {
-			let _ = Command::new("security")
-				.arg("delete-keychain")
-				.arg(path)
-				.piped();
+			let _ = Command::new("security").arg("delete-keychain").arg(path).piped();
 		}
 	}
 }
@@ -42,10 +39,7 @@ impl Drop for Keychain {
 impl Keychain {
 	/// Use a certificate in the default keychain.
 	pub fn with_signing_identity(identity:impl Into<String>) -> Self {
-		Self {
-			path:None,
-			signing_identity:SigningIdentity::Identifier(identity.into()),
-		}
+		Self { path:None, signing_identity:SigningIdentity::Identifier(identity.into()) }
 	}
 
 	/// Import certificate from base64 string.
@@ -64,23 +58,17 @@ impl Keychain {
 		Self::with_certificate_file(&cert_path, certificate_password)
 	}
 
-	pub fn with_certificate_file(
-		cert_path:&Path,
-		certificate_password:&OsString,
-	) -> Result<Self> {
-		let home_dir = dirs_next::home_dir()
-			.ok_or_else(|| anyhow::anyhow!("failed to resolve home dir"))?;
-		let keychain_path =
-			home_dir.join("Library").join("Keychains").join(format!(
-				"{}.keychain-db",
-				Alphanumeric.sample_string(&mut rand::thread_rng(), 16)
-			));
-		let keychain_password =
-			Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
+	pub fn with_certificate_file(cert_path:&Path, certificate_password:&OsString) -> Result<Self> {
+		let home_dir =
+			dirs_next::home_dir().ok_or_else(|| anyhow::anyhow!("failed to resolve home dir"))?;
+		let keychain_path = home_dir.join("Library").join("Keychains").join(format!(
+			"{}.keychain-db",
+			Alphanumeric.sample_string(&mut rand::thread_rng(), 16)
+		));
+		let keychain_password = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
 
-		let keychain_list_output = Command::new("security")
-			.args(["list-keychain", "-d", "user"])
-			.output()?;
+		let keychain_list_output =
+			Command::new("security").args(["list-keychain", "-d", "user"]).output()?;
 
 		assert_command(
 			Command::new("security")
@@ -141,15 +129,11 @@ impl Keychain {
 			"failed to set keychain settings",
 		)?;
 
-		let current_keychains =
-			String::from_utf8_lossy(&keychain_list_output.stdout)
-				.split('\n')
-				.map(|line| {
-					line.trim_matches(|c:char| c.is_whitespace() || c == '"')
-						.to_string()
-				})
-				.filter(|l| !l.is_empty())
-				.collect::<Vec<String>>();
+		let current_keychains = String::from_utf8_lossy(&keychain_list_output.stdout)
+			.split('\n')
+			.map(|line| line.trim_matches(|c:char| c.is_whitespace() || c == '"').to_string())
+			.filter(|l| !l.is_empty())
+			.collect::<Vec<String>>();
 
 		assert_command(
 			Command::new("security")
@@ -162,9 +146,7 @@ impl Keychain {
 
 		let signing_identity = identity::list(&keychain_path)
 			.map(|l| l.first().cloned())?
-			.ok_or_else(|| {
-				anyhow::anyhow!("failed to resolve signing identity")
-			})?;
+			.ok_or_else(|| anyhow::anyhow!("failed to resolve signing identity"))?;
 
 		Ok(Self {
 			path:Some(keychain_path),

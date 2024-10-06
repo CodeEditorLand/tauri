@@ -31,23 +31,23 @@
 
 use core::{cmp::min, convert::TryInto};
 
-const OUT_LEN: usize = 32;
-const BLOCK_LEN: usize = 64;
-const CHUNK_LEN: usize = 1024;
+const OUT_LEN:usize = 32;
+const BLOCK_LEN:usize = 64;
+const CHUNK_LEN:usize = 1024;
 
-const CHUNK_START: u32 = 1 << 0;
-const CHUNK_END: u32 = 1 << 1;
-const PARENT: u32 = 1 << 2;
-const ROOT: u32 = 1 << 3;
+const CHUNK_START:u32 = 1 << 0;
+const CHUNK_END:u32 = 1 << 1;
+const PARENT:u32 = 1 << 2;
+const ROOT:u32 = 1 << 3;
 
-const IV: [u32; 8] = [
+const IV:[u32; 8] = [
 	0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19,
 ];
 
-const MSG_PERMUTATION: [usize; 16] = [2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8];
+const MSG_PERMUTATION:[usize; 16] = [2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8];
 
 // The mixing function, G, which mixes either a column or a diagonal.
-fn g(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, mx: u32, my: u32) {
+fn g(state:&mut [u32; 16], a:usize, b:usize, c:usize, d:usize, mx:u32, my:u32) {
 	state[a] = state[a].wrapping_add(state[b]).wrapping_add(mx);
 	state[d] = (state[d] ^ state[a]).rotate_right(16);
 	state[c] = state[c].wrapping_add(state[d]);
@@ -58,7 +58,7 @@ fn g(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, mx: u32, my:
 	state[b] = (state[b] ^ state[c]).rotate_right(7);
 }
 
-fn round(state: &mut [u32; 16], m: &[u32; 16]) {
+fn round(state:&mut [u32; 16], m:&[u32; 16]) {
 	// Mix the columns.
 	g(state, 0, 4, 8, 12, m[0], m[1]);
 	g(state, 1, 5, 9, 13, m[2], m[3]);
@@ -71,7 +71,7 @@ fn round(state: &mut [u32; 16], m: &[u32; 16]) {
 	g(state, 3, 4, 9, 14, m[14], m[15]);
 }
 
-fn permute(m: &mut [u32; 16]) {
+fn permute(m:&mut [u32; 16]) {
 	let mut permuted = [0; 16];
 	for i in 0..16 {
 		permuted[i] = m[MSG_PERMUTATION[i]];
@@ -80,11 +80,11 @@ fn permute(m: &mut [u32; 16]) {
 }
 
 fn compress(
-	chaining_value: &[u32; 8],
-	block_words: &[u32; 16],
-	counter: u64,
-	block_len: u32,
-	flags: u32,
+	chaining_value:&[u32; 8],
+	block_words:&[u32; 16],
+	counter:u64,
+	block_len:u32,
+	flags:u32,
 ) -> [u32; 16] {
 	let mut state = [
 		chaining_value[0],
@@ -127,11 +127,11 @@ fn compress(
 	state
 }
 
-fn first_8_words(compression_output: [u32; 16]) -> [u32; 8] {
+fn first_8_words(compression_output:[u32; 16]) -> [u32; 8] {
 	compression_output[0..8].try_into().unwrap()
 }
 
-fn words_from_little_endian_bytes(bytes: &[u8], words: &mut [u32]) {
+fn words_from_little_endian_bytes(bytes:&[u8], words:&mut [u32]) {
 	debug_assert_eq!(bytes.len(), 4 * words.len());
 	for (four_bytes, word) in bytes.chunks_exact(4).zip(words) {
 		*word = u32::from_le_bytes(four_bytes.try_into().unwrap());
@@ -142,11 +142,11 @@ fn words_from_little_endian_bytes(bytes: &[u8], words: &mut [u32]) {
 // setting the ROOT flag, any number of final output bytes. The Output struct
 // captures the state just prior to choosing between those two possibilities.
 struct Output {
-	input_chaining_value: [u32; 8],
-	block_words: [u32; 16],
-	counter: u64,
-	block_len: u32,
-	flags: u32,
+	input_chaining_value:[u32; 8],
+	block_words:[u32; 16],
+	counter:u64,
+	block_len:u32,
+	flags:u32,
 }
 
 impl Output {
@@ -160,7 +160,7 @@ impl Output {
 		))
 	}
 
-	fn root_output_bytes(&self, out_slice: &mut [u8]) {
+	fn root_output_bytes(&self, out_slice:&mut [u8]) {
 		for (output_block_counter, out_block) in (0u64..).zip(out_slice.chunks_mut(2 * OUT_LEN)) {
 			let words = compress(
 				&self.input_chaining_value,
@@ -178,39 +178,31 @@ impl Output {
 }
 
 struct ChunkState {
-	chaining_value: [u32; 8],
-	chunk_counter: u64,
-	block: [u8; BLOCK_LEN],
-	block_len: u8,
-	blocks_compressed: u8,
-	flags: u32,
+	chaining_value:[u32; 8],
+	chunk_counter:u64,
+	block:[u8; BLOCK_LEN],
+	block_len:u8,
+	blocks_compressed:u8,
+	flags:u32,
 }
 
 impl ChunkState {
-	fn new(key_words: [u32; 8], chunk_counter: u64, flags: u32) -> Self {
+	fn new(key_words:[u32; 8], chunk_counter:u64, flags:u32) -> Self {
 		Self {
-			chaining_value: key_words,
+			chaining_value:key_words,
 			chunk_counter,
-			block: [0; BLOCK_LEN],
-			block_len: 0,
-			blocks_compressed: 0,
+			block:[0; BLOCK_LEN],
+			block_len:0,
+			blocks_compressed:0,
 			flags,
 		}
 	}
 
-	fn len(&self) -> usize {
-		BLOCK_LEN * self.blocks_compressed as usize + self.block_len as usize
-	}
+	fn len(&self) -> usize { BLOCK_LEN * self.blocks_compressed as usize + self.block_len as usize }
 
-	fn start_flag(&self) -> u32 {
-		if self.blocks_compressed == 0 {
-			CHUNK_START
-		} else {
-			0
-		}
-	}
+	fn start_flag(&self) -> u32 { if self.blocks_compressed == 0 { CHUNK_START } else { 0 } }
 
-	fn update(&mut self, mut input: &[u8]) {
+	fn update(&mut self, mut input:&[u8]) {
 		while !input.is_empty() {
 			// If the block buffer is full, compress it and clear it. More
 			// input is coming, so this compression is not CHUNK_END.
@@ -242,68 +234,66 @@ impl ChunkState {
 		let mut block_words = [0; 16];
 		words_from_little_endian_bytes(&self.block, &mut block_words);
 		Output {
-			input_chaining_value: self.chaining_value,
+			input_chaining_value:self.chaining_value,
 			block_words,
-			counter: self.chunk_counter,
-			block_len: self.block_len as u32,
-			flags: self.flags | self.start_flag() | CHUNK_END,
+			counter:self.chunk_counter,
+			block_len:self.block_len as u32,
+			flags:self.flags | self.start_flag() | CHUNK_END,
 		}
 	}
 }
 
 fn parent_output(
-	left_child_cv: [u32; 8],
-	right_child_cv: [u32; 8],
-	key_words: [u32; 8],
-	flags: u32,
+	left_child_cv:[u32; 8],
+	right_child_cv:[u32; 8],
+	key_words:[u32; 8],
+	flags:u32,
 ) -> Output {
 	let mut block_words = [0; 16];
 	block_words[..8].copy_from_slice(&left_child_cv);
 	block_words[8..].copy_from_slice(&right_child_cv);
 	Output {
-		input_chaining_value: key_words,
+		input_chaining_value:key_words,
 		block_words,
-		counter: 0,                  // Always 0 for parent nodes.
-		block_len: BLOCK_LEN as u32, // Always BLOCK_LEN (64) for parent nodes.
-		flags: PARENT | flags,
+		counter:0,                  // Always 0 for parent nodes.
+		block_len:BLOCK_LEN as u32, // Always BLOCK_LEN (64) for parent nodes.
+		flags:PARENT | flags,
 	}
 }
 
 fn parent_cv(
-	left_child_cv: [u32; 8],
-	right_child_cv: [u32; 8],
-	key_words: [u32; 8],
-	flags: u32,
+	left_child_cv:[u32; 8],
+	right_child_cv:[u32; 8],
+	key_words:[u32; 8],
+	flags:u32,
 ) -> [u32; 8] {
 	parent_output(left_child_cv, right_child_cv, key_words, flags).chaining_value()
 }
 
 /// An incremental hasher that can accept any number of writes.
 pub struct Hasher {
-	chunk_state: ChunkState,
-	key_words: [u32; 8],
-	cv_stack: [[u32; 8]; 54], // Space for 54 subtree chaining values:
-	cv_stack_len: u8,         // 2^54 * CHUNK_LEN = 2^64
-	flags: u32,
+	chunk_state:ChunkState,
+	key_words:[u32; 8],
+	cv_stack:[[u32; 8]; 54], // Space for 54 subtree chaining values:
+	cv_stack_len:u8,         // 2^54 * CHUNK_LEN = 2^64
+	flags:u32,
 }
 
 impl Hasher {
-	fn new_internal(key_words: [u32; 8], flags: u32) -> Self {
+	fn new_internal(key_words:[u32; 8], flags:u32) -> Self {
 		Self {
-			chunk_state: ChunkState::new(key_words, 0, flags),
+			chunk_state:ChunkState::new(key_words, 0, flags),
 			key_words,
-			cv_stack: [[0; 8]; 54],
-			cv_stack_len: 0,
+			cv_stack:[[0; 8]; 54],
+			cv_stack_len:0,
 			flags,
 		}
 	}
 
 	/// Construct a new `Hasher` for the regular hash function.
-	pub fn new() -> Self {
-		Self::new_internal(IV, 0)
-	}
+	pub fn new() -> Self { Self::new_internal(IV, 0) }
 
-	fn push_stack(&mut self, cv: [u32; 8]) {
+	fn push_stack(&mut self, cv:[u32; 8]) {
 		self.cv_stack[self.cv_stack_len as usize] = cv;
 		self.cv_stack_len += 1;
 	}
@@ -314,7 +304,7 @@ impl Hasher {
 	}
 
 	// Section 5.1.2 of the BLAKE3 spec explains this algorithm in more detail.
-	fn add_chunk_chaining_value(&mut self, mut new_cv: [u32; 8], mut total_chunks: u64) {
+	fn add_chunk_chaining_value(&mut self, mut new_cv:[u32; 8], mut total_chunks:u64) {
 		// This chunk might complete some subtrees. For each completed subtree,
 		// its left child will be the current top entry in the CV stack, and
 		// its right child will be the current value of `new_cv`. Pop each left
@@ -330,7 +320,7 @@ impl Hasher {
 	}
 
 	/// Add input to the hash state. This can be called any number of times.
-	pub fn update(&mut self, mut input: &[u8]) {
+	pub fn update(&mut self, mut input:&[u8]) {
 		while !input.is_empty() {
 			// If the current chunk is complete, finalize it and reset the
 			// chunk state. More input is coming, so this chunk is not ROOT.
@@ -350,7 +340,7 @@ impl Hasher {
 	}
 
 	/// Finalize the hash and write any number of output bytes.
-	pub fn finalize(&self, out_slice: &mut [u8]) {
+	pub fn finalize(&self, out_slice:&mut [u8]) {
 		// Starting with the Output from the current chunk, compute all the
 		// parent chaining values along the right edge of the tree, until we
 		// have the root Output.
@@ -370,7 +360,5 @@ impl Hasher {
 }
 
 impl Default for Hasher {
-	fn default() -> Self {
-		Self::new()
-	}
+	fn default() -> Self { Self::new() }
 }

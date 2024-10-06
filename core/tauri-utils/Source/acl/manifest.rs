@@ -6,8 +6,9 @@
 
 use std::{collections::BTreeMap, num::NonZeroU64};
 
-use super::{Permission, PermissionSet};
 use serde::{Deserialize, Serialize};
+
+use super::{Permission, PermissionSet};
 
 /// The default permission set of the plugin.
 ///
@@ -16,67 +17,69 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DefaultPermission {
 	/// The version of the permission.
-	pub version: Option<NonZeroU64>,
+	pub version:Option<NonZeroU64>,
 
 	/// Human-readable description of what the permission does.
 	/// Tauri convention is to use <h4> headings in markdown content
 	/// for Tauri documentation generation purposes.
-	pub description: Option<String>,
+	pub description:Option<String>,
 
 	/// All permissions this set contains.
-	pub permissions: Vec<String>,
+	pub permissions:Vec<String>,
 }
 
-/// Permission file that can define a default permission, a set of permissions or a list of inlined permissions.
+/// Permission file that can define a default permission, a set of permissions
+/// or a list of inlined permissions.
 #[derive(Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PermissionFile {
 	/// The default permission set for the plugin
-	pub default: Option<DefaultPermission>,
+	pub default:Option<DefaultPermission>,
 
 	/// A list of permissions sets defined
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
-	pub set: Vec<PermissionSet>,
+	pub set:Vec<PermissionSet>,
 
 	/// A list of inlined permissions
 	#[serde(default)]
-	pub permission: Vec<Permission>,
+	pub permission:Vec<Permission>,
 }
 
 /// Plugin manifest.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Manifest {
 	/// Default permission.
-	pub default_permission: Option<PermissionSet>,
+	pub default_permission:Option<PermissionSet>,
 	/// Plugin permissions.
-	pub permissions: BTreeMap<String, Permission>,
+	pub permissions:BTreeMap<String, Permission>,
 	/// Plugin permission sets.
-	pub permission_sets: BTreeMap<String, PermissionSet>,
+	pub permission_sets:BTreeMap<String, PermissionSet>,
 	/// The global scope schema.
-	pub global_scope_schema: Option<serde_json::Value>,
+	pub global_scope_schema:Option<serde_json::Value>,
 }
 
 impl Manifest {
-	/// Creates a new manifest from the given plugin permission files and global scope schema.
+	/// Creates a new manifest from the given plugin permission files and global
+	/// scope schema.
 	pub fn new(
-		permission_files: Vec<PermissionFile>,
-		global_scope_schema: Option<serde_json::Value>,
+		permission_files:Vec<PermissionFile>,
+		global_scope_schema:Option<serde_json::Value>,
 	) -> Self {
 		let mut manifest = Self {
-			default_permission: None,
-			permissions: BTreeMap::new(),
-			permission_sets: BTreeMap::new(),
+			default_permission:None,
+			permissions:BTreeMap::new(),
+			permission_sets:BTreeMap::new(),
 			global_scope_schema,
 		};
 
 		for permission_file in permission_files {
 			if let Some(default) = permission_file.default {
 				manifest.default_permission.replace(PermissionSet {
-					identifier: "default".into(),
-					description: default
+					identifier:"default".into(),
+					description:default
 						.description
 						.unwrap_or_else(|| "Default plugin permissions.".to_string()),
-					permissions: default.permissions,
+					permissions:default.permissions,
 				});
 			}
 
@@ -96,9 +99,9 @@ impl Manifest {
 						(
 							set.identifier.clone(),
 							PermissionSet {
-								identifier: set.identifier,
-								description: set.description,
-								permissions: set.permissions,
+								identifier:set.identifier,
+								description:set.description,
+								permissions:set.permissions,
 							},
 						)
 					})
@@ -112,15 +115,16 @@ impl Manifest {
 
 #[cfg(feature = "build")]
 mod build {
+	use std::convert::identity;
+
 	use proc_macro2::TokenStream;
 	use quote::{quote, ToTokens, TokenStreamExt};
-	use std::convert::identity;
 
 	use super::*;
 	use crate::{literal_struct, tokens::*};
 
 	impl ToTokens for DefaultPermission {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let version = opt_lit_owned(self.version.as_ref().map(|v| {
 				let v = v.get();
 				quote!(::core::num::NonZeroU64::new(#v).unwrap())
@@ -138,7 +142,7 @@ mod build {
 	}
 
 	impl ToTokens for Manifest {
-		fn to_tokens(&self, tokens: &mut TokenStream) {
+		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let default_permission = opt_lit(self.default_permission.as_ref());
 
 			let permissions = map_lit(

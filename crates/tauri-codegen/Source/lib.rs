@@ -63,8 +63,7 @@ pub enum CodegenConfigError {
 /// directory of the compiling crate.
 pub fn get_config(path:&Path) -> Result<(Config, PathBuf), CodegenConfigError> {
 	let path = if path.is_relative() {
-		let cwd =
-			std::env::current_dir().map_err(CodegenConfigError::CurrentDir)?;
+		let cwd = std::env::current_dir().map_err(CodegenConfigError::CurrentDir)?;
 		Cow::Owned(cwd.join(path))
 	} else {
 		Cow::Borrowed(path)
@@ -87,28 +86,24 @@ pub fn get_config(path:&Path) -> Result<(Config, PathBuf), CodegenConfigError> {
 	// get mixed up. The chances are already unlikely unless the developer goes
 	// out of their way to run the cli on a different project than the target
 	// crate.
-	let mut config = serde_json::from_value(
-		tauri_utils::config::parse::read_from(target, parent.clone())?.0,
-	)?;
+	let mut config =
+		serde_json::from_value(tauri_utils::config::parse::read_from(target, parent.clone())?.0)?;
 
 	if let Ok(env) = std::env::var("TAURI_CONFIG") {
-		let merge_config:serde_json::Value = serde_json::from_str(&env)
-			.map_err(CodegenConfigError::FormatInline)?;
+		let merge_config:serde_json::Value =
+			serde_json::from_str(&env).map_err(CodegenConfigError::FormatInline)?;
 		json_patch::merge(&mut config, &merge_config);
 	}
 
 	// Set working directory to where `tauri.config.json` is, so that relative
 	// paths in it are parsed correctly.
-	let old_cwd =
-		std::env::current_dir().map_err(CodegenConfigError::CurrentDir)?;
-	std::env::set_current_dir(parent.clone())
-		.map_err(CodegenConfigError::CurrentDir)?;
+	let old_cwd = std::env::current_dir().map_err(CodegenConfigError::CurrentDir)?;
+	std::env::set_current_dir(parent.clone()).map_err(CodegenConfigError::CurrentDir)?;
 
 	let config = serde_json::from_value(config)?;
 
 	// Reset working directory.
-	std::env::set_current_dir(old_cwd)
-		.map_err(CodegenConfigError::CurrentDir)?;
+	std::env::set_current_dir(old_cwd).map_err(CodegenConfigError::CurrentDir)?;
 
 	Ok((config, parent))
 }
@@ -139,17 +134,14 @@ struct Cached {
 impl TryFrom<String> for Cached {
 	type Error = EmbeddedAssetsError;
 
-	fn try_from(value:String) -> Result<Self, Self::Error> {
-		Self::try_from(Vec::from(value))
-	}
+	fn try_from(value:String) -> Result<Self, Self::Error> { Self::try_from(Vec::from(value)) }
 }
 
 impl TryFrom<Vec<u8>> for Cached {
 	type Error = EmbeddedAssetsError;
 
 	fn try_from(content:Vec<u8>) -> Result<Self, Self::Error> {
-		let checksum =
-			checksum(content.as_ref()).map_err(EmbeddedAssetsError::Hex)?;
+		let checksum = checksum(content.as_ref()).map_err(EmbeddedAssetsError::Hex)?;
 		let path = ensure_out_dir()?.join(&checksum);
 
 		write_if_changed(&path, &content)
@@ -161,8 +153,6 @@ impl TryFrom<Vec<u8>> for Cached {
 impl ToTokens for Cached {
 	fn to_tokens(&self, tokens:&mut TokenStream) {
 		let path = &self.checksum;
-		tokens.append_all(quote!(
-			::std::concat!(::std::env!("OUT_DIR"), "/", #path)
-		))
+		tokens.append_all(quote!(::std::concat!(::std::env!("OUT_DIR"), "/", #path)))
 	}
 }

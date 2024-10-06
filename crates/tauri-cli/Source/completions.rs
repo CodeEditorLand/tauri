@@ -13,8 +13,7 @@ use crate::Result;
 const PKG_MANAGERS:&[&str] = &["cargo", "pnpm", "npm", "yarn", "bun"];
 
 #[derive(Debug, Clone, Parser)]
-#[clap(about = "Generate Tauri CLI shell completions for Bash, Zsh, \
-                PowerShell or Fish")]
+#[clap(about = "Generate Tauri CLI shell completions for Bash, Zsh, PowerShell or Fish")]
 pub struct Options {
 	/// Shell to generate a completion script for.
 	#[clap(short, long, verbatim_doc_comment)]
@@ -43,8 +42,7 @@ fn completions_for(shell:Shell, manager:&'static str, cmd:Command) -> Vec<u8> {
 fn get_completions(shell:Shell, cmd:Command) -> Result<String> {
 	let completions = if shell == Shell::Bash {
 		let mut completions =
-			String::from_utf8_lossy(&completions_for(shell, "cargo", cmd))
-				.into_owned();
+			String::from_utf8_lossy(&completions_for(shell, "cargo", cmd)).into_owned();
 		for manager in PKG_MANAGERS {
 			completions.push_str(&format!(
 				"complete -F _cargo -o bashdefault -o default {} tauri\n",
@@ -62,26 +60,15 @@ fn get_completions(shell:Shell, cmd:Command) -> Result<String> {
 		let mut buffer = String::new();
 
 		for (i, manager) in PKG_MANAGERS.iter().enumerate() {
-			let buf = String::from_utf8_lossy(&completions_for(
-				shell,
-				manager,
-				cmd.clone(),
-			))
-			.into_owned();
+			let buf =
+				String::from_utf8_lossy(&completions_for(shell, manager, cmd.clone())).into_owned();
 
 			let completions = match shell {
 				Shell::PowerShell => {
 					if i != 0 {
 						// namespaces have already been imported
-						buf.replace(
-							"using namespace \
-							 System.Management.Automation.Language",
-							"",
-						)
-						.replace(
-							"using namespace System.Management.Automation",
-							"",
-						)
+						buf.replace("using namespace System.Management.Automation.Language", "")
+							.replace("using namespace System.Management.Automation", "")
 					} else {
 						buf
 					}

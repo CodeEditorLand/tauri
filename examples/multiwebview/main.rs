@@ -17,11 +17,8 @@ fn main() {
 				.build()?;
 
 			let _webview1 = window.add_child(
-				tauri::webview::WebviewBuilder::new(
-					"main1",
-					WebviewUrl::App(Default::default()),
-				)
-				.auto_resize(),
+				tauri::webview::WebviewBuilder::new("main1", WebviewUrl::App(Default::default()))
+					.auto_resize(),
 				LogicalPosition::new(0., 0.),
 				LogicalSize::new(width / 2., height / 2.),
 			)?;
@@ -29,9 +26,7 @@ fn main() {
 			let _webview2 = window.add_child(
 				tauri::webview::WebviewBuilder::new(
 					"main2",
-					WebviewUrl::External(
-						"https://github.com/tauri-apps/tauri".parse().unwrap(),
-					),
+					WebviewUrl::External("https://github.com/tauri-apps/tauri".parse().unwrap()),
 				)
 				.auto_resize(),
 				LogicalPosition::new(width / 2., 0.),
@@ -51,9 +46,7 @@ fn main() {
 			let _webview4 = window.add_child(
 				tauri::webview::WebviewBuilder::new(
 					"main4",
-					WebviewUrl::External(
-						"https://twitter.com/TauriApps".parse().unwrap(),
-					),
+					WebviewUrl::External("https://twitter.com/TauriApps".parse().unwrap()),
 				)
 				.auto_resize(),
 				LogicalPosition::new(width / 2., height / 2.),
@@ -62,8 +55,6 @@ fn main() {
 
 			Ok(())
 		})
-		.run(tauri::generate_context!(
-			"../../examples/multiwebview/tauri.conf.json"
-		))
+		.run(tauri::generate_context!("../../examples/multiwebview/tauri.conf.json"))
 		.expect("error while running tauri application");
 }

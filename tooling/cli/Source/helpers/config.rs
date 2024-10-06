@@ -2,11 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use json_patch::merge;
-use serde_json::Value as JsonValue;
-
-pub use tauri_utils::{config::*, platform::Target};
-
 use std::{
 	collections::HashMap,
 	env::{current_dir, set_current_dir, set_var, var_os},
@@ -15,25 +10,27 @@ use std::{
 	sync::{Arc, Mutex, OnceLock},
 };
 
-pub const MERGE_CONFIG_EXTENSION_NAME: &str = "--config";
+use json_patch::merge;
+use serde_json::Value as JsonValue;
+pub use tauri_utils::{config::*, platform::Target};
+
+pub const MERGE_CONFIG_EXTENSION_NAME:&str = "--config";
 
 pub struct ConfigMetadata {
 	/// The current target.
-	target: Target,
+	target:Target,
 	/// The actual configuration, merged with any extension.
-	inner: Config,
-	/// The config extensions (platform-specific config files or the config CLI argument).
-	/// Maps the extension name to its value.
-	extensions: HashMap<String, JsonValue>,
+	inner:Config,
+	/// The config extensions (platform-specific config files or the config CLI
+	/// argument). Maps the extension name to its value.
+	extensions:HashMap<String, JsonValue>,
 }
 
 impl std::ops::Deref for ConfigMetadata {
 	type Target = Config;
 
 	#[inline(always)]
-	fn deref(&self) -> &Config {
-		&self.inner
-	}
+	fn deref(&self) -> &Config { &self.inner }
 }
 
 impl ConfigMetadata {
@@ -60,83 +57,85 @@ impl ConfigMetadata {
 
 pub type ConfigHandle = Arc<Mutex<Option<ConfigMetadata>>>;
 
-pub fn wix_settings(config: WixConfig) -> tauri_bundler::WixSettings {
+pub fn wix_settings(config:WixConfig) -> tauri_bundler::WixSettings {
 	tauri_bundler::WixSettings {
-		language: tauri_bundler::WixLanguage(match config.language {
+		language:tauri_bundler::WixLanguage(match config.language {
 			WixLanguage::One(lang) => vec![(lang, Default::default())],
 			WixLanguage::List(languages) => {
 				languages.into_iter().map(|lang| (lang, Default::default())).collect()
-			}
-			WixLanguage::Localized(languages) => languages
-				.into_iter()
-				.map(|(lang, config)| {
-					(
-						lang,
-						tauri_bundler::WixLanguageConfig {
-							locale_path: config.locale_path.map(Into::into),
-						},
-					)
-				})
-				.collect(),
+			},
+			WixLanguage::Localized(languages) => {
+				languages
+					.into_iter()
+					.map(|(lang, config)| {
+						(
+							lang,
+							tauri_bundler::WixLanguageConfig {
+								locale_path:config.locale_path.map(Into::into),
+							},
+						)
+					})
+					.collect()
+			},
 		}),
-		template: config.template,
-		fragment_paths: config.fragment_paths,
-		component_group_refs: config.component_group_refs,
-		component_refs: config.component_refs,
-		feature_group_refs: config.feature_group_refs,
-		feature_refs: config.feature_refs,
-		merge_refs: config.merge_refs,
-		enable_elevated_update_task: config.enable_elevated_update_task,
-		banner_path: config.banner_path,
-		dialog_image_path: config.dialog_image_path,
-		fips_compliant: var_os("TAURI_BUNDLER_WIX_FIPS_COMPLIANT").map_or(false, |v| v == "true"),
+		template:config.template,
+		fragment_paths:config.fragment_paths,
+		component_group_refs:config.component_group_refs,
+		component_refs:config.component_refs,
+		feature_group_refs:config.feature_group_refs,
+		feature_refs:config.feature_refs,
+		merge_refs:config.merge_refs,
+		enable_elevated_update_task:config.enable_elevated_update_task,
+		banner_path:config.banner_path,
+		dialog_image_path:config.dialog_image_path,
+		fips_compliant:var_os("TAURI_BUNDLER_WIX_FIPS_COMPLIANT").map_or(false, |v| v == "true"),
 	}
 }
 
-pub fn nsis_settings(config: NsisConfig) -> tauri_bundler::NsisSettings {
+pub fn nsis_settings(config:NsisConfig) -> tauri_bundler::NsisSettings {
 	tauri_bundler::NsisSettings {
-		template: config.template,
-		header_image: config.header_image,
-		sidebar_image: config.sidebar_image,
-		installer_icon: config.installer_icon,
-		install_mode: config.install_mode,
-		languages: config.languages,
-		custom_language_files: config.custom_language_files,
-		display_language_selector: config.display_language_selector,
-		compression: config.compression,
-		start_menu_folder: config.start_menu_folder,
-		installer_hooks: config.installer_hooks,
-		minimum_webview2_version: config.minimum_webview2_version,
+		template:config.template,
+		header_image:config.header_image,
+		sidebar_image:config.sidebar_image,
+		installer_icon:config.installer_icon,
+		install_mode:config.install_mode,
+		languages:config.languages,
+		custom_language_files:config.custom_language_files,
+		display_language_selector:config.display_language_selector,
+		compression:config.compression,
+		start_menu_folder:config.start_menu_folder,
+		installer_hooks:config.installer_hooks,
+		minimum_webview2_version:config.minimum_webview2_version,
 	}
 }
 
 pub fn custom_sign_settings(
-	config: CustomSignCommandConfig,
+	config:CustomSignCommandConfig,
 ) -> tauri_bundler::CustomSignCommandSettings {
 	match config {
 		CustomSignCommandConfig::Command(command) => {
 			let mut tokens = command.split(' ');
 			tauri_bundler::CustomSignCommandSettings {
-				cmd: tokens.next().unwrap().to_string(), // split always has at least one element
-				args: tokens.map(String::from).collect(),
+				cmd:tokens.next().unwrap().to_string(), // split always has at least one element
+				args:tokens.map(String::from).collect(),
 			}
-		}
+		},
 		CustomSignCommandConfig::CommandWithOptions { cmd, args } => {
 			tauri_bundler::CustomSignCommandSettings { cmd, args }
-		}
+		},
 	}
 }
 
 fn config_handle() -> &'static ConfigHandle {
-	static CONFIG_HANDLE: OnceLock<ConfigHandle> = OnceLock::new();
+	static CONFIG_HANDLE:OnceLock<ConfigHandle> = OnceLock::new();
 	CONFIG_HANDLE.get_or_init(Default::default)
 }
 
 /// Gets the static parsed config from `tauri.conf.json`.
 fn get_internal(
-	merge_config: Option<&serde_json::Value>,
-	reload: bool,
-	target: Target,
+	merge_config:Option<&serde_json::Value>,
+	reload:bool,
+	target:Target,
 ) -> crate::Result<ConfigHandle> {
 	if !reload && config_handle().lock().unwrap().is_some() {
 		return Ok(config_handle().clone());
@@ -166,7 +165,7 @@ fn get_internal(
 	if config_path.extension() == Some(OsStr::new("json"))
 		|| config_path.extension() == Some(OsStr::new("json5"))
 	{
-		let schema: JsonValue = serde_json::from_str(include_str!("../../config.schema.json"))?;
+		let schema:JsonValue = serde_json::from_str(include_str!("../../config.schema.json"))?;
 
 		let schema = jsonschema::JSONSchema::compile(&schema).unwrap();
 
@@ -186,11 +185,12 @@ fn get_internal(
 		}
 	}
 
-	// the `Config` deserializer for `package > version` can resolve the version from a path relative to the config path
-	// so we actually need to change the current working directory here
+	// the `Config` deserializer for `package > version` can resolve the version
+	// from a path relative to the config path so we actually need to change the
+	// current working directory here
 	let current_dir = current_dir()?;
 	set_current_dir(config_path.parent().unwrap())?;
-	let config: Config = serde_json::from_value(config)?;
+	let config:Config = serde_json::from_value(config)?;
 	// revert to previous working directory
 	set_current_dir(current_dir)?;
 
@@ -201,19 +201,16 @@ fn get_internal(
 		);
 	}
 
-	*config_handle().lock().unwrap() = Some(ConfigMetadata { target, inner: config, extensions });
+	*config_handle().lock().unwrap() = Some(ConfigMetadata { target, inner:config, extensions });
 
 	Ok(config_handle().clone())
 }
 
-pub fn get(
-	target: Target,
-	merge_config: Option<&serde_json::Value>,
-) -> crate::Result<ConfigHandle> {
+pub fn get(target:Target, merge_config:Option<&serde_json::Value>) -> crate::Result<ConfigHandle> {
 	get_internal(merge_config, false, target)
 }
 
-pub fn reload(merge_config: Option<&serde_json::Value>) -> crate::Result<ConfigHandle> {
+pub fn reload(merge_config:Option<&serde_json::Value>) -> crate::Result<ConfigHandle> {
 	let target = config_handle().lock().unwrap().as_ref().map(|conf| conf.target);
 	if let Some(target) = target {
 		get_internal(merge_config, true, target)
@@ -223,7 +220,7 @@ pub fn reload(merge_config: Option<&serde_json::Value>) -> crate::Result<ConfigH
 }
 
 /// merges the loaded config with the given value
-pub fn merge_with(merge_config: &serde_json::Value) -> crate::Result<ConfigHandle> {
+pub fn merge_with(merge_config:&serde_json::Value) -> crate::Result<ConfigHandle> {
 	let handle = config_handle();
 	if let Some(config_metadata) = &mut *handle.lock().unwrap() {
 		let merge_config_str = serde_json::to_string(merge_config).unwrap();

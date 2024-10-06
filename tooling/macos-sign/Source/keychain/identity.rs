@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{collections::BTreeSet, path::Path, process::Command};
+
 use anyhow::Context;
 use once_cell_regex::regex;
-use std::{collections::BTreeSet, path::Path, process::Command};
 use x509_certificate::certificate::X509Certificate;
 
 use crate::Result;
 
-fn get_pem_list(keychain_path: &Path, name_substr: &str) -> std::io::Result<std::process::Output> {
+fn get_pem_list(keychain_path:&Path, name_substr:&str) -> std::io::Result<std::process::Output> {
 	Command::new("security")
 		.arg("find-certificate")
 		.args(["-p", "-a"])
@@ -23,14 +24,14 @@ fn get_pem_list(keychain_path: &Path, name_substr: &str) -> std::io::Result<std:
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Team {
-	pub name: String,
-	pub certificate_name: String,
-	pub id: String,
-	pub cert_prefix: &'static str,
+	pub name:String,
+	pub certificate_name:String,
+	pub id:String,
+	pub cert_prefix:&'static str,
 }
 
 impl Team {
-	fn from_x509(cert_prefix: &'static str, cert: X509Certificate) -> Result<Self> {
+	fn from_x509(cert_prefix:&'static str, cert:X509Certificate) -> Result<Self> {
 		let common_name = cert
 			.subject_common_name()
 			.ok_or_else(|| anyhow::anyhow!("skipping cert, missing common name"))?;
@@ -43,16 +44,21 @@ impl Team {
 			organization
 		} else {
 			println!(
-        "found cert {:?} but failed to get organization; falling back to displaying common name",
-        common_name
-      );
+				"found cert {:?} but failed to get organization; falling back to displaying \
+				 common name",
+				common_name
+			);
 			regex!(r"Apple Develop\w+: (.*) \(.+\)")
-                .captures(&common_name)
-                .map(|caps| caps[1].to_owned())
-                .unwrap_or_else(|| {
-                    println!("regex failed to capture nice part of name in cert {:?}; falling back to displaying full name", common_name);
-                    common_name.clone()
-                })
+				.captures(&common_name)
+				.map(|caps| caps[1].to_owned())
+				.unwrap_or_else(|| {
+					println!(
+						"regex failed to capture nice part of name in cert {:?}; falling back to \
+						 displaying full name",
+						common_name
+					);
+					common_name.clone()
+				})
 		};
 
 		let id = cert
@@ -64,15 +70,13 @@ impl Team {
 				anyhow::anyhow!("skipping cert {common_name}: missing Organization Unit")
 			})?;
 
-		Ok(Self { name, certificate_name: common_name, id, cert_prefix })
+		Ok(Self { name, certificate_name:common_name, id, cert_prefix })
 	}
 
-	pub fn certificate_name(&self) -> String {
-		self.certificate_name.clone()
-	}
+	pub fn certificate_name(&self) -> String { self.certificate_name.clone() }
 }
 
-pub fn list(keychain_path: &Path) -> Result<Vec<Team>> {
+pub fn list(keychain_path:&Path) -> Result<Vec<Team>> {
 	let certs = {
 		let mut certs = Vec::new();
 		for cert_prefix in [

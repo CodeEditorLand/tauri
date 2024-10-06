@@ -76,51 +76,34 @@ struct InitDefaults {
 
 impl Options {
 	fn load(mut self) -> Result<Self> {
-		let package_json_path =
-			PathBuf::from(&self.directory).join("package.json");
+		let package_json_path = PathBuf::from(&self.directory).join("package.json");
 
 		let init_defaults = if package_json_path.exists() {
 			let package_json_text = read_to_string(package_json_path)?;
-			let package_json:crate::PackageJson =
-				serde_json::from_str(&package_json_text)?;
+			let package_json:crate::PackageJson = serde_json::from_str(&package_json_text)?;
 			let (framework, _) = infer_framework(&package_json_text);
-			InitDefaults {
-				app_name:package_json.product_name.or(package_json.name),
-				framework,
-			}
+			InitDefaults { app_name:package_json.product_name.or(package_json.name), framework }
 		} else {
 			Default::default()
 		};
 
-		self.app_name =
-			self.app_name.map(|s| Ok(Some(s))).unwrap_or_else(|| {
-				prompts::input(
-					"What is your app name?",
-					Some(
-						init_defaults
-							.app_name
-							.clone()
-							.unwrap_or_else(|| "Tauri App".to_string()),
-					),
-					self.ci,
-					true,
-				)
-			})?;
+		self.app_name = self.app_name.map(|s| Ok(Some(s))).unwrap_or_else(|| {
+			prompts::input(
+				"What is your app name?",
+				Some(init_defaults.app_name.clone().unwrap_or_else(|| "Tauri App".to_string())),
+				self.ci,
+				true,
+			)
+		})?;
 
-		self.window_title =
-			self.window_title.map(|s| Ok(Some(s))).unwrap_or_else(|| {
-				prompts::input(
-					"What should the window title be?",
-					Some(
-						init_defaults
-							.app_name
-							.clone()
-							.unwrap_or_else(|| "Tauri".to_string()),
-					),
-					self.ci,
-					true,
-				)
-			})?;
+		self.window_title = self.window_title.map(|s| Ok(Some(s))).unwrap_or_else(|| {
+			prompts::input(
+				"What should the window title be?",
+				Some(init_defaults.app_name.clone().unwrap_or_else(|| "Tauri".to_string())),
+				self.ci,
+				true,
+			)
+		})?;
 
 		self.frontend_dist = self.frontend_dist.map(|s| Ok(Some(s))).unwrap_or_else(|| prompts::input(
       r#"Where are your web assets (HTML/CSS/JS) located, relative to the "<current dir>/src-tauri/tauri.conf.json" file that will be created?"#,
@@ -129,26 +112,22 @@ impl Options {
       false,
     ))?;
 
-		self.dev_url =
-			self.dev_url.map(|s| Ok(Some(s))).unwrap_or_else(|| {
-				prompts::input(
-					"What is the url of your dev server?",
-					init_defaults.framework.map(|f| f.dev_url()),
-					self.ci,
-					true,
-				)
-			})?;
+		self.dev_url = self.dev_url.map(|s| Ok(Some(s))).unwrap_or_else(|| {
+			prompts::input(
+				"What is the url of your dev server?",
+				init_defaults.framework.map(|f| f.dev_url()),
+				self.ci,
+				true,
+			)
+		})?;
 
-		let detected_package_manager =
-			match PackageManager::from_project(&self.directory).first() {
-				Some(&package_manager) => package_manager,
-				None => PackageManager::Npm,
-			};
+		let detected_package_manager = match PackageManager::from_project(&self.directory).first() {
+			Some(&package_manager) => package_manager,
+			None => PackageManager::Npm,
+		};
 
-		self.before_dev_command = self
-			.before_dev_command
-			.map(|s| Ok(Some(s)))
-			.unwrap_or_else(|| {
+		self.before_dev_command =
+			self.before_dev_command.map(|s| Ok(Some(s))).unwrap_or_else(|| {
 				prompts::input(
 					"What is your frontend dev command?",
 					Some(default_dev_command(detected_package_manager).into()),
@@ -157,15 +136,11 @@ impl Options {
 				)
 			})?;
 
-		self.before_build_command = self
-			.before_build_command
-			.map(|s| Ok(Some(s)))
-			.unwrap_or_else(|| {
+		self.before_build_command =
+			self.before_build_command.map(|s| Ok(Some(s))).unwrap_or_else(|| {
 				prompts::input(
 					"What is your frontend build command?",
-					Some(
-						default_build_command(detected_package_manager).into(),
-					),
+					Some(default_build_command(detected_package_manager).into()),
 					self.ci,
 					true,
 				)
@@ -198,11 +173,8 @@ fn default_build_command(pm:PackageManager) -> &'static str {
 pub fn command(mut options:Options) -> Result<()> {
 	options = options.load()?;
 
-	let template_target_path =
-		PathBuf::from(&options.directory).join("src-tauri");
-	let metadata = serde_json::from_str::<VersionMetadata>(include_str!(
-		"../metadata-v2.json"
-	))?;
+	let template_target_path = PathBuf::from(&options.directory).join("src-tauri");
+	let metadata = serde_json::from_str::<VersionMetadata>(include_str!("../metadata-v2.json"))?;
 
 	if template_target_path.exists() && !options.force {
 		log::warn!(
@@ -210,24 +182,20 @@ pub fn command(mut options:Options) -> Result<()> {
 			template_target_path
 		);
 	} else {
-		let (tauri_dep, tauri_build_dep) =
-			if let Some(tauri_path) = options.tauri_path {
-				(
-					format!(
-						r#"{{  path = {:?} }}"#,
-						resolve_tauri_path(&tauri_path, "crates/tauri")
-					),
-					format!(
-						"{{  path = {:?} }}",
-						resolve_tauri_path(&tauri_path, "crates/tauri-build")
-					),
-				)
-			} else {
-				(
-					format!(r#"{{ version = "{}" }}"#, metadata.tauri),
-					format!(r#"{{ version = "{}" }}"#, metadata.tauri_build),
-				)
-			};
+		let (tauri_dep, tauri_build_dep) = if let Some(tauri_path) = options.tauri_path {
+			(
+				format!(r#"{{  path = {:?} }}"#, resolve_tauri_path(&tauri_path, "crates/tauri")),
+				format!(
+					"{{  path = {:?} }}",
+					resolve_tauri_path(&tauri_path, "crates/tauri-build")
+				),
+			)
+		} else {
+			(
+				format!(r#"{{ version = "{}" }}"#, metadata.tauri),
+				format!(r#"{{ version = "{}" }}"#, metadata.tauri_build),
+			)
+		};
 
 		let _ = remove_dir_all(&template_target_path);
 
@@ -242,19 +210,10 @@ pub fn command(mut options:Options) -> Result<()> {
 			to_json(options.frontend_dist.as_deref().unwrap_or("../dist")),
 		);
 		data.insert("dev_url", to_json(options.dev_url));
-		data.insert(
-			"app_name",
-			to_json(options.app_name.as_deref().unwrap_or("Tauri App")),
-		);
-		data.insert(
-			"window_title",
-			to_json(options.window_title.as_deref().unwrap_or("Tauri")),
-		);
+		data.insert("app_name", to_json(options.app_name.as_deref().unwrap_or("Tauri App")));
+		data.insert("window_title", to_json(options.window_title.as_deref().unwrap_or("Tauri")));
 		data.insert("before_dev_command", to_json(options.before_dev_command));
-		data.insert(
-			"before_build_command",
-			to_json(options.before_build_command),
-		);
+		data.insert("before_build_command", to_json(options.before_build_command));
 
 		let mut config = serde_json::from_str(
 			&handlebars
@@ -295,10 +254,7 @@ pub fn command(mut options:Options) -> Result<()> {
 				map.insert(
 					"$schema".into(),
 					serde_json::Value::String(
-						cli_node_module_path
-							.display()
-							.to_string()
-							.replace('\\', "/"),
+						cli_node_module_path.display().to_string().replace('\\', "/"),
 					),
 				);
 				let merge_config = serde_json::Value::Object(map);
@@ -306,10 +262,7 @@ pub fn command(mut options:Options) -> Result<()> {
 			}
 		}
 
-		data.insert(
-			"tauri_config",
-			to_json(serde_json::to_string_pretty(&config).unwrap()),
-		);
+		data.insert("tauri_config", to_json(serde_json::to_string_pretty(&config).unwrap()));
 
 		template::render(&handlebars, &data, &TEMPLATE_DIR, &options.directory)
 			.with_context(|| "failed to render Tauri template")?;

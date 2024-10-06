@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{
-	helpers::{config::Config as TauriConfig, template},
-	mobile::ios::LIB_OUTPUT_FILE_NAME,
-	Result,
+use std::{
+	ffi::OsString,
+	fs::{create_dir_all, OpenOptions},
+	path::{Component, PathBuf},
 };
+
 use anyhow::Context;
 use cargo_mobile2::{
 	apple::{
 		config::{Config, Metadata},
-		deps, rust_version_check,
+		deps,
+		rust_version_check,
 		target::Target,
 	},
 	config::app::DEFAULT_ASSET_DIR,
@@ -20,26 +22,27 @@ use cargo_mobile2::{
 };
 use handlebars::Handlebars;
 use include_dir::{include_dir, Dir};
-use std::{
-	ffi::OsString,
-	fs::{create_dir_all, OpenOptions},
-	path::{Component, PathBuf},
+
+use crate::{
+	helpers::{config::Config as TauriConfig, template},
+	mobile::ios::LIB_OUTPUT_FILE_NAME,
+	Result,
 };
 
-const TEMPLATE_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/mobile/ios");
+const TEMPLATE_DIR:Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/mobile/ios");
 
 // unprefixed app_root seems pretty dangerous!!
 // TODO: figure out what cargo-mobile meant by that
 #[allow(clippy::too_many_arguments)]
 pub fn gen(
-	tauri_config: &TauriConfig,
-	config: &Config,
-	metadata: &Metadata,
-	(handlebars, mut map): (Handlebars, template::JsonMap),
-	wrapper: &TextWrapper,
-	non_interactive: bool,
-	reinstall_deps: bool,
-	skip_targets_install: bool,
+	tauri_config:&TauriConfig,
+	config:&Config,
+	metadata:&Metadata,
+	(handlebars, mut map):(Handlebars, template::JsonMap),
+	wrapper:&TextWrapper,
+	non_interactive:bool,
+	reinstall_deps:bool,
+	skip_targets_install:bool,
 ) -> Result<()> {
 	if !skip_targets_install {
 		let installed_targets =
@@ -102,7 +105,7 @@ pub fn gen(
 
 	let mut created_dirs = Vec::new();
 	template::render_with_generator(&handlebars, map.inner(), &TEMPLATE_DIR, &dest, &mut |path| {
-		let mut components: Vec<_> = path.components().collect();
+		let mut components:Vec<_> = path.components().collect();
 
 		let mut new_component = None;
 		for component in &mut components {

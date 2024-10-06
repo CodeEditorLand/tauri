@@ -17,7 +17,7 @@ use std::{
 /// "@2x" (a convention specified by the [Apple developer docs](
 /// <https://developer.apple.com/library/mac/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Optimizing/Optimizing.html>)).
 #[allow(dead_code)]
-pub fn is_retina<P: AsRef<Path>>(path: P) -> bool {
+pub fn is_retina<P:AsRef<Path>>(path:P) -> bool {
 	path.as_ref()
 		.file_stem()
 		.and_then(OsStr::to_str)
@@ -27,7 +27,7 @@ pub fn is_retina<P: AsRef<Path>>(path: P) -> bool {
 
 /// Creates a new file at the given path, creating any parent directories as
 /// needed.
-pub fn create_file(path: &Path) -> crate::Result<BufWriter<File>> {
+pub fn create_file(path:&Path) -> crate::Result<BufWriter<File>> {
 	if let Some(parent) = path.parent() {
 		fs::create_dir_all(parent)?;
 	}
@@ -38,33 +38,29 @@ pub fn create_file(path: &Path) -> crate::Result<BufWriter<File>> {
 /// Makes a symbolic link to a directory.
 #[cfg(unix)]
 #[allow(dead_code)]
-fn symlink_dir(src: &Path, dst: &Path) -> io::Result<()> {
-	std::os::unix::fs::symlink(src, dst)
-}
+fn symlink_dir(src:&Path, dst:&Path) -> io::Result<()> { std::os::unix::fs::symlink(src, dst) }
 
 /// Makes a symbolic link to a directory.
 #[cfg(windows)]
-fn symlink_dir(src: &Path, dst: &Path) -> io::Result<()> {
+fn symlink_dir(src:&Path, dst:&Path) -> io::Result<()> {
 	std::os::windows::fs::symlink_dir(src, dst)
 }
 
 /// Makes a symbolic link to a file.
 #[cfg(unix)]
 #[allow(dead_code)]
-fn symlink_file(src: &Path, dst: &Path) -> io::Result<()> {
-	std::os::unix::fs::symlink(src, dst)
-}
+fn symlink_file(src:&Path, dst:&Path) -> io::Result<()> { std::os::unix::fs::symlink(src, dst) }
 
 /// Makes a symbolic link to a file.
 #[cfg(windows)]
-fn symlink_file(src: &Path, dst: &Path) -> io::Result<()> {
+fn symlink_file(src:&Path, dst:&Path) -> io::Result<()> {
 	std::os::windows::fs::symlink_file(src, dst)
 }
 
 /// Copies a regular file from one path to another, creating any parent
 /// directories of the destination path as necessary.  Fails if the source path
 /// is a directory or doesn't exist.
-pub fn copy_file(from: impl AsRef<Path>, to: impl AsRef<Path>) -> crate::Result<()> {
+pub fn copy_file(from:impl AsRef<Path>, to:impl AsRef<Path>) -> crate::Result<()> {
 	let from = from.as_ref();
 	let to = to.as_ref();
 	if !from.exists() {
@@ -84,7 +80,7 @@ pub fn copy_file(from: impl AsRef<Path>, to: impl AsRef<Path>) -> crate::Result<
 /// source path is not a directory or doesn't exist, or if the destination path
 /// already exists.
 #[allow(dead_code)]
-pub fn copy_dir(from: &Path, to: &Path) -> crate::Result<()> {
+pub fn copy_dir(from:&Path, to:&Path) -> crate::Result<()> {
 	if !from.exists() {
 		return Err(crate::Error::GenericError(format!("{from:?} does not exist")));
 	}
@@ -119,13 +115,15 @@ pub fn copy_dir(from: &Path, to: &Path) -> crate::Result<()> {
 	Ok(())
 }
 
-/// Copies user-defined files specified in the configuration file to the package.
+/// Copies user-defined files specified in the configuration file to the
+/// package.
 ///
-/// The configuration object maps the path in the package to the path of the file on the filesystem,
-/// relative to the tauri.conf.json file.
+/// The configuration object maps the path in the package to the path of the
+/// file on the filesystem, relative to the tauri.conf.json file.
 ///
-/// Expects a HashMap of PathBuf entries, representing destination and source paths,
-/// and also a path of a directory. The files will be stored with respect to this directory.
+/// Expects a HashMap of PathBuf entries, representing destination and source
+/// paths, and also a path of a directory. The files will be stored with respect
+/// to this directory.
 #[cfg(any(
 	target_os = "linux",
 	target_os = "dragonfly",
@@ -134,12 +132,15 @@ pub fn copy_dir(from: &Path, to: &Path) -> crate::Result<()> {
 	target_os = "openbsd"
 ))]
 pub fn copy_custom_files(
-	files_map: &std::collections::HashMap<std::path::PathBuf, std::path::PathBuf>,
-	data_dir: &Path,
+	files_map:&std::collections::HashMap<std::path::PathBuf, std::path::PathBuf>,
+	data_dir:&Path,
 ) -> crate::Result<()> {
 	for (pkg_path, path) in files_map.iter() {
-		let pkg_path =
-			if pkg_path.is_absolute() { pkg_path.strip_prefix("/").unwrap() } else { pkg_path };
+		let pkg_path = if pkg_path.is_absolute() {
+			pkg_path.strip_prefix("/").unwrap()
+		} else {
+			pkg_path
+		};
 		if path.is_file() {
 			copy_file(path, data_dir.join(pkg_path))?;
 		} else {
@@ -192,7 +193,7 @@ impl CommandExt for Command {
 					Ok(_) => {
 						log::debug!(action = "stdout"; "{}", line.trim_end());
 						lines.extend(line.as_bytes().to_vec());
-					}
+					},
 					Err(_) => (),
 				}
 			}
@@ -213,7 +214,7 @@ impl CommandExt for Command {
 					Ok(_) => {
 						log::debug!(action = "stderr"; "{}", line.trim_end());
 						lines.extend(line.as_bytes().to_vec());
-					}
+					},
 					Err(_) => (),
 				}
 			}
@@ -223,8 +224,8 @@ impl CommandExt for Command {
 
 		let output = Output {
 			status,
-			stdout: std::mem::take(&mut *stdout_lines.lock().unwrap()),
-			stderr: std::mem::take(&mut *stderr_lines.lock().unwrap()),
+			stdout:std::mem::take(&mut *stdout_lines.lock().unwrap()),
+			stderr:std::mem::take(&mut *stderr_lines.lock().unwrap()),
 		};
 
 		if output.status.success() {
@@ -237,9 +238,11 @@ impl CommandExt for Command {
 
 #[cfg(test)]
 mod tests {
-	use super::{create_file, is_retina};
 	use std::{io::Write, path::PathBuf};
+
 	use tauri_utils::resources::resource_relpath;
+
+	use super::{create_file, is_retina};
 
 	#[test]
 	fn create_file_with_parent_dirs() {
@@ -271,7 +274,9 @@ mod tests {
 		super::symlink_file(&PathBuf::from("sub/file.txt"), &tmp.path().join("orig/link"))
 			.expect("Failed to create symlink");
 		assert_eq!(
-			std::fs::read(tmp.path().join("orig/link")).expect("Failed to read file").as_slice(),
+			std::fs::read(tmp.path().join("orig/link"))
+				.expect("Failed to read file")
+				.as_slice(),
 			b"Hello, world!\n"
 		);
 		// Copy ${TMP}/orig to ${TMP}/parent/copy, and make sure that the

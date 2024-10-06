@@ -2,25 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::bundle::windows::sign::{sign_command, try_sign};
-
-use crate::{
-	bundle::{
-		common::CommandExt,
-		windows::util::{
-			download_and_verify, download_webview2_bootstrapper,
-			download_webview2_offline_installer, verify_file_hash, HashAlgorithm,
-			NSIS_OUTPUT_FOLDER_NAME, NSIS_UPDATER_OUTPUT_FOLDER_NAME,
-		},
-	},
-	Settings,
-};
-use tauri_utils::display_path;
-
-use anyhow::Context;
-use handlebars::{to_json, Handlebars};
-use tauri_utils::config::{NSISInstallerMode, NsisCompression, WebviewInstallMode};
-
 use std::{
 	collections::BTreeMap,
 	fs,
@@ -28,18 +9,44 @@ use std::{
 	process::Command,
 };
 
+use anyhow::Context;
+use handlebars::{to_json, Handlebars};
+use tauri_utils::{
+	config::{NSISInstallerMode, NsisCompression, WebviewInstallMode},
+	display_path,
+};
+
+use crate::{
+	bundle::{
+		common::CommandExt,
+		windows::{
+			sign::{sign_command, try_sign},
+			util::{
+				download_and_verify,
+				download_webview2_bootstrapper,
+				download_webview2_offline_installer,
+				verify_file_hash,
+				HashAlgorithm,
+				NSIS_OUTPUT_FOLDER_NAME,
+				NSIS_UPDATER_OUTPUT_FOLDER_NAME,
+			},
+		},
+	},
+	Settings,
+};
+
 // URLS for the NSIS toolchain.
 #[cfg(target_os = "windows")]
-const NSIS_URL: &str =
+const NSIS_URL:&str =
 	"https://github.com/tauri-apps/binary-releases/releases/download/nsis-3/nsis-3.zip";
 #[cfg(target_os = "windows")]
-const NSIS_SHA1: &str = "057e83c7d82462ec394af76c87d06733605543d4";
+const NSIS_SHA1:&str = "057e83c7d82462ec394af76c87d06733605543d4";
 const NSIS_TAURI_UTILS_URL: &str =
   "https://github.com/tauri-apps/nsis-tauri-utils/releases/download/nsis_tauri_utils-v0.4.1/nsis_tauri_utils.dll";
-const NSIS_TAURI_UTILS_SHA1: &str = "F99A50209A345185A84D34D0E5F66D04C75FF52F";
+const NSIS_TAURI_UTILS_SHA1:&str = "F99A50209A345185A84D34D0E5F66D04C75FF52F";
 
 #[cfg(target_os = "windows")]
-const NSIS_REQUIRED_FILES: &[&str] = &[
+const NSIS_REQUIRED_FILES:&[&str] = &[
 	"makensis.exe",
 	"Bin/makensis.exe",
 	"Stubs/lzma-x86-unicode",
@@ -52,9 +59,9 @@ const NSIS_REQUIRED_FILES: &[&str] = &[
 	"Include/WinMessages.nsh",
 ];
 #[cfg(not(target_os = "windows"))]
-const NSIS_REQUIRED_FILES: &[&str] = &["Plugins/x86-unicode/nsis_tauri_utils.dll"];
+const NSIS_REQUIRED_FILES:&[&str] = &["Plugins/x86-unicode/nsis_tauri_utils.dll"];
 
-const NSIS_REQUIRED_FILES_HASH: &[(&str, &str, &str, HashAlgorithm)] = &[(
+const NSIS_REQUIRED_FILES_HASH:&[(&str, &str, &str, HashAlgorithm)] = &[(
 	"Plugins/x86-unicode/nsis_tauri_utils.dll",
 	NSIS_TAURI_UTILS_URL,
 	NSIS_TAURI_UTILS_SHA1,
@@ -63,7 +70,7 @@ const NSIS_REQUIRED_FILES_HASH: &[(&str, &str, &str, HashAlgorithm)] = &[(
 
 /// Runs all of the commands to build the NSIS installer.
 /// Returns a vector of PathBuf that shows where the NSIS installer was created.
-pub fn bundle_project(settings: &Settings, updater: bool) -> crate::Result<Vec<PathBuf>> {
+pub fn bundle_project(settings:&Settings, updater:bool) -> crate::Result<Vec<PathBuf>> {
 	let tauri_tools_path = settings
 		.local_tools_directory()
 		.map(|d| d.join(".tauri"))
@@ -98,7 +105,7 @@ pub fn bundle_project(settings: &Settings, updater: bool) -> crate::Result<Vec<P
 }
 
 // Gets NSIS and verifies the download via Sha1
-fn get_and_extract_nsis(nsis_toolset_path: &Path, _tauri_tools_path: &Path) -> crate::Result<()> {
+fn get_and_extract_nsis(nsis_toolset_path:&Path, _tauri_tools_path:&Path) -> crate::Result<()> {
 	log::info!("Verifying NSIS package");
 
 	#[cfg(target_os = "windows")]
@@ -121,7 +128,7 @@ fn get_and_extract_nsis(nsis_toolset_path: &Path, _tauri_tools_path: &Path) -> c
 	Ok(())
 }
 
-fn add_build_number_if_needed(version_str: &str) -> anyhow::Result<String> {
+fn add_build_number_if_needed(version_str:&str) -> anyhow::Result<String> {
 	let version = semver::Version::parse(version_str).context("invalid app version")?;
 	if !version.build.is_empty() {
 		let build = version.build.parse::<u64>();
@@ -138,10 +145,10 @@ fn add_build_number_if_needed(version_str: &str) -> anyhow::Result<String> {
 	Ok(format!("{}.{}.{}.0", version.major, version.minor, version.patch,))
 }
 fn build_nsis_app_installer(
-	settings: &Settings,
-	_nsis_toolset_path: &Path,
-	tauri_tools_path: &Path,
-	updater: bool,
+	settings:&Settings,
+	_nsis_toolset_path:&Path,
+	tauri_tools_path:&Path,
+	updater:bool,
 ) -> crate::Result<Vec<PathBuf>> {
 	let arch = match settings.binary_arch() {
 		"x86_64" => "x64",
@@ -161,8 +168,9 @@ fn build_nsis_app_installer(
 	let mut data = BTreeMap::new();
 
 	let bundle_id = settings.bundle_identifier();
-	let manufacturer =
-		settings.publisher().unwrap_or_else(|| bundle_id.split('.').nth(1).unwrap_or(bundle_id));
+	let manufacturer = settings
+		.publisher()
+		.unwrap_or_else(|| bundle_id.split('.').nth(1).unwrap_or(bundle_id));
 
 	#[cfg(not(target_os = "windows"))]
 	{
@@ -254,14 +262,16 @@ fn build_nsis_app_installer(
 		}),
 	);
 
-	let languages =
-		nsis.and_then(|nsis| nsis.languages.clone()).unwrap_or_else(|| vec!["English".into()]);
+	let languages = nsis
+		.and_then(|nsis| nsis.languages.clone())
+		.unwrap_or_else(|| vec!["English".into()]);
 	data.insert("languages", to_json(languages.clone()));
 
 	data.insert(
 		"display_language_selector",
 		to_json(
-			nsis.map(|nsis| nsis.display_language_selector && languages.len() > 1).unwrap_or(false),
+			nsis.map(|nsis| nsis.display_language_selector && languages.len() > 1)
+				.unwrap_or(false),
 		),
 	);
 
@@ -314,7 +324,7 @@ fn build_nsis_app_installer(
 
 	// We need to convert / to \ for nsis to move the files into the correct dirs
 	#[cfg(not(target_os = "windows"))]
-	let resources: ResourcesMap = resources
+	let resources:ResourcesMap = resources
 		.into_iter()
 		.map(|(r, p)| {
 			(
@@ -327,12 +337,12 @@ fn build_nsis_app_installer(
 		})
 		.collect();
 	#[cfg(not(target_os = "windows"))]
-	let resources_ancestors: Vec<PathBuf> = resources_ancestors
+	let resources_ancestors:Vec<PathBuf> = resources_ancestors
 		.into_iter()
 		.map(|p| p.display().to_string().replace('/', "\\").into())
 		.collect();
 	#[cfg(not(target_os = "windows"))]
-	let resources_dirs: Vec<PathBuf> = resources_dirs
+	let resources_dirs:Vec<PathBuf> = resources_dirs
 		.into_iter()
 		.map(|p| p.display().to_string().replace('/', "\\").into())
 		.collect();
@@ -367,7 +377,7 @@ fn build_nsis_app_installer(
 	};
 
 	let webview2_install_mode = if updater {
-		WebviewInstallMode::DownloadBootstrapper { silent: silent_webview2_install }
+		WebviewInstallMode::DownloadBootstrapper { silent:silent_webview2_install }
 	} else {
 		settings.windows().webview_install_mode.clone()
 	};
@@ -389,13 +399,13 @@ fn build_nsis_app_installer(
 		WebviewInstallMode::EmbedBootstrapper { silent: _ } => {
 			let webview2_bootstrapper_path = download_webview2_bootstrapper(tauri_tools_path)?;
 			data.insert("webview2_bootstrapper_path", to_json(webview2_bootstrapper_path));
-		}
+		},
 		WebviewInstallMode::OfflineInstaller { silent: _ } => {
 			let webview2_installer_path =
 				download_webview2_offline_installer(&tauri_tools_path.join(arch), arch)?;
 			data.insert("webview2_installer_path", to_json(webview2_installer_path));
-		}
-		_ => {}
+		},
+		_ => {},
 	}
 
 	let mut handlebars = Handlebars::new();
@@ -476,18 +486,22 @@ fn build_nsis_app_installer(
 		try_sign(&nsis_installer_path, settings)?;
 	} else {
 		#[cfg(not(target_os = "windows"))]
-		log::warn!("Signing, by default, is only supported on Windows hosts, but you can specify a custom signing command in `bundler > windows > sign_command`, for now, skipping signing the installer...");
+		log::warn!(
+			"Signing, by default, is only supported on Windows hosts, but you can specify a \
+			 custom signing command in `bundler > windows > sign_command`, for now, skipping \
+			 signing the installer..."
+		);
 	}
 
 	Ok(vec![nsis_installer_path])
 }
 
 fn handlebars_or(
-	h: &handlebars::Helper<'_>,
-	_: &Handlebars<'_>,
-	_: &handlebars::Context,
-	_: &mut handlebars::RenderContext<'_, '_>,
-	out: &mut dyn handlebars::Output,
+	h:&handlebars::Helper<'_>,
+	_:&Handlebars<'_>,
+	_:&handlebars::Context,
+	_:&mut handlebars::RenderContext<'_, '_>,
+	out:&mut dyn handlebars::Output,
 ) -> handlebars::HelperResult {
 	let param1 = h.param(0).unwrap().render();
 	let param2 = h.param(1).unwrap();
@@ -497,11 +511,11 @@ fn handlebars_or(
 }
 
 fn association_description(
-	h: &handlebars::Helper<'_>,
-	_: &Handlebars<'_>,
-	_: &handlebars::Context,
-	_: &mut handlebars::RenderContext<'_, '_>,
-	out: &mut dyn handlebars::Output,
+	h:&handlebars::Helper<'_>,
+	_:&Handlebars<'_>,
+	_:&handlebars::Context,
+	_:&mut handlebars::RenderContext<'_, '_>,
+	out:&mut dyn handlebars::Output,
 ) -> handlebars::HelperResult {
 	let description = h.param(0).unwrap().render();
 	let ext = h.param(1).unwrap();
@@ -516,7 +530,7 @@ fn association_description(
 
 /// BTreeMap<OriginalPath, (ParentOfTargetPath, TargetPath)>
 type ResourcesMap = BTreeMap<PathBuf, (PathBuf, PathBuf)>;
-fn generate_resource_data(settings: &Settings) -> crate::Result<ResourcesMap> {
+fn generate_resource_data(settings:&Settings) -> crate::Result<ResourcesMap> {
 	let mut resources = ResourcesMap::new();
 	let cwd = std::env::current_dir()?;
 
@@ -530,8 +544,9 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourcesMap> {
 		let resource_path = dunce::simplified(&src).to_path_buf();
 
 		// In some glob resource paths like `assets/**/*` a file might appear twice
-		// because the `tauri_utils::resources::ResourcePaths` iterator also reads a directory
-		// when it finds one. So we must check it before processing the file.
+		// because the `tauri_utils::resources::ResourcePaths` iterator also reads a
+		// directory when it finds one. So we must check it before processing the
+		// file.
 		if added_resources.contains(&resource_path) {
 			continue;
 		}
@@ -552,7 +567,7 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourcesMap> {
 
 /// BTreeMap<OriginalPath, TargetFileName>
 type BinariesMap = BTreeMap<PathBuf, String>;
-fn generate_binaries_data(settings: &Settings) -> crate::Result<BinariesMap> {
+fn generate_binaries_data(settings:&Settings) -> crate::Result<BinariesMap> {
 	let mut binaries = BinariesMap::new();
 	let cwd = std::env::current_dir()?;
 
@@ -587,9 +602,9 @@ fn generate_binaries_data(settings: &Settings) -> crate::Result<BinariesMap> {
 }
 
 fn generate_estimated_size(
-	main: &PathBuf,
-	binaries: &BinariesMap,
-	resources: &ResourcesMap,
+	main:&PathBuf,
+	binaries:&BinariesMap,
+	resources:&ResourcesMap,
 ) -> crate::Result<u64> {
 	let mut size = 0;
 	for k in std::iter::once(main).chain(binaries.keys()).chain(resources.keys()) {
@@ -600,9 +615,9 @@ fn generate_estimated_size(
 	Ok(size / 1024)
 }
 
-fn get_lang_data(lang: &str) -> Option<(String, &[u8])> {
+fn get_lang_data(lang:&str) -> Option<(String, &[u8])> {
 	let path = format!("{lang}.nsh");
-	let content: &[u8] = match lang.to_lowercase().as_str() {
+	let content:&[u8] = match lang.to_lowercase().as_str() {
 		"arabic" => include_bytes!("./templates/nsis-languages/Arabic.nsh"),
 		"bulgarian" => include_bytes!("./templates/nsis-languages/Bulgarian.nsh"),
 		"dutch" => include_bytes!("./templates/nsis-languages/Dutch.nsh"),
@@ -618,7 +633,7 @@ fn get_lang_data(lang: &str) -> Option<(String, &[u8])> {
 		"spanish" => include_bytes!("./templates/nsis-languages/Spanish.nsh"),
 		"spanishinternational" => {
 			include_bytes!("./templates/nsis-languages/SpanishInternational.nsh")
-		}
+		},
 		"persian" => include_bytes!("./templates/nsis-languages/Persian.nsh"),
 		"turkish" => include_bytes!("./templates/nsis-languages/Turkish.nsh"),
 		"swedish" => include_bytes!("./templates/nsis-languages/Swedish.nsh"),
@@ -627,7 +642,7 @@ fn get_lang_data(lang: &str) -> Option<(String, &[u8])> {
 	Some((path, content))
 }
 
-fn write_utf8_with_bom<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, content: C) -> crate::Result<()> {
+fn write_utf8_with_bom<P:AsRef<Path>, C:AsRef<[u8]>>(path:P, content:C) -> crate::Result<()> {
 	use std::{
 		fs::File,
 		io::{BufWriter, Write},

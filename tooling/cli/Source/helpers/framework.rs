@@ -59,7 +59,7 @@ impl Framework {
 }
 
 impl fmt::Display for Framework {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
 			Self::SolidJS => write!(f, "SolidJS"),
 			Self::SolidStart => write!(f, "SolidStart"),
@@ -85,7 +85,7 @@ pub enum Bundler {
 }
 
 impl fmt::Display for Bundler {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
 			Self::Webpack => write!(f, "Webpack"),
 			Self::Rollup => write!(f, "Rollup"),
@@ -94,7 +94,7 @@ impl fmt::Display for Bundler {
 	}
 }
 
-pub fn infer_from_package_json(package_json: &str) -> (Option<Framework>, Option<Bundler>) {
+pub fn infer_from_package_json(package_json:&str) -> (Option<Framework>, Option<Bundler>) {
 	let framework_map = [
 		("solid-start", Framework::SolidStart, Some(Bundler::Vite)),
 		("solid-js", Framework::SolidJS, Some(Bundler::Vite)),
@@ -109,12 +109,15 @@ pub fn infer_from_package_json(package_json: &str) -> (Option<Framework>, Option
 		("@vue/cli", Framework::VueCli, Some(Bundler::Webpack)),
 		("vue", Framework::Vue, Some(Bundler::Vite)),
 	];
-	let bundler_map =
-		[("webpack", Bundler::Webpack), ("rollup", Bundler::Rollup), ("vite", Bundler::Vite)];
+	let bundler_map = [
+		("webpack", Bundler::Webpack),
+		("rollup", Bundler::Rollup),
+		("vite", Bundler::Vite),
+	];
 
 	let (framework, framework_bundler) = framework_map
 		.iter()
-		.find(|(keyword, _, _)| package_json.contains(keyword))
+		.find(|(keyword, ..)| package_json.contains(keyword))
 		.map(|(_, framework, bundler)| (Some(framework.clone()), bundler.clone()))
 		.unwrap_or((None, None));
 

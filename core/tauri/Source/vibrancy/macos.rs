@@ -4,14 +4,15 @@
 
 #![allow(deprecated)]
 
+use raw_window_handle::HasWindowHandle;
+use window_vibrancy::{NSVisualEffectMaterial, NSVisualEffectState};
+
 use crate::{
 	utils::config::WindowEffectsConfig,
 	window::{Effect, EffectState},
 };
-use raw_window_handle::HasWindowHandle;
-use window_vibrancy::{NSVisualEffectMaterial, NSVisualEffectState};
 
-pub fn apply_effects(window: impl HasWindowHandle, effects: WindowEffectsConfig) {
+pub fn apply_effects(window:impl HasWindowHandle, effects:WindowEffectsConfig) {
 	let WindowEffectsConfig { effects, radius, state, .. } = effects;
 	let effect =
 		if let Some(effect) =
@@ -62,10 +63,14 @@ pub fn apply_effects(window: impl HasWindowHandle, effects: WindowEffectsConfig)
 			Effect::UnderPageBackground => NSVisualEffectMaterial::UnderPageBackground,
 			_ => unreachable!(),
 		},
-		state.map(|s| match s {
-			EffectState::FollowsWindowActiveState => NSVisualEffectState::FollowsWindowActiveState,
-			EffectState::Active => NSVisualEffectState::Active,
-			EffectState::Inactive => NSVisualEffectState::Inactive,
+		state.map(|s| {
+			match s {
+				EffectState::FollowsWindowActiveState => {
+					NSVisualEffectState::FollowsWindowActiveState
+				},
+				EffectState::Active => NSVisualEffectState::Active,
+				EffectState::Inactive => NSVisualEffectState::Inactive,
+			}
 		}),
 		radius,
 	);

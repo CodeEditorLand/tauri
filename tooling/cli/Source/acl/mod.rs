@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use serde::Serialize;
 use std::fmt::Display;
+
+use serde::Serialize;
 
 pub mod capability;
 pub mod permission;
@@ -15,7 +16,7 @@ enum FileFormat {
 }
 
 impl Display for FileFormat {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::Json => write!(f, "json"),
 			Self::Toml => write!(f, "toml"),
@@ -31,7 +32,7 @@ impl FileFormat {
 		}
 	}
 
-	pub fn serialize<S: Serialize>(&self, s: &S) -> crate::Result<String> {
+	pub fn serialize<S:Serialize>(&self, s:&S) -> crate::Result<String> {
 		let contents = match self {
 			Self::Json => serde_json::to_string_pretty(s)?,
 			Self::Toml => toml_edit::ser::to_string_pretty(s)?,

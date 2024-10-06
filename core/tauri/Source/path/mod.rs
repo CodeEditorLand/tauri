@@ -7,10 +7,10 @@ use std::{
 	str::FromStr,
 };
 
-use crate::Runtime;
-
 use serde::{de::Error as DeError, Deserialize, Deserializer, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+
+use crate::Runtime;
 
 pub(crate) mod plugin;
 
@@ -31,8 +31,9 @@ pub use desktop::PathResolver;
 pub struct SafePathBuf(PathBuf);
 
 impl SafePathBuf {
-	/// Validates the path for directory traversal vulnerabilities and returns a new [`SafePathBuf`] instance if it is safe.
-	pub fn new(path: PathBuf) -> std::result::Result<Self, &'static str> {
+	/// Validates the path for directory traversal vulnerabilities and returns a
+	/// new [`SafePathBuf`] instance if it is safe.
+	pub fn new(path:PathBuf) -> std::result::Result<Self, &'static str> {
 		if path.components().any(|x| matches!(x, Component::ParentDir)) {
 			Err("cannot traverse directory, rewrite the path without the use of `../`")
 		} else {
@@ -40,33 +41,27 @@ impl SafePathBuf {
 		}
 	}
 
-	/// Returns an object that implements [`std::fmt::Display`] for safely printing paths.
+	/// Returns an object that implements [`std::fmt::Display`] for safely
+	/// printing paths.
 	///
 	/// See [`PathBuf#method.display`] for more information.
-	pub fn display(&self) -> Display<'_> {
-		self.0.display()
-	}
+	pub fn display(&self) -> Display<'_> { self.0.display() }
 }
 
 impl AsRef<Path> for SafePathBuf {
-	fn as_ref(&self) -> &Path {
-		self.0.as_ref()
-	}
+	fn as_ref(&self) -> &Path { self.0.as_ref() }
 }
 
 impl FromStr for SafePathBuf {
 	type Err = &'static str;
 
-	fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-		Self::new(s.into())
-	}
+	fn from_str(s:&str) -> std::result::Result<Self, Self::Err> { Self::new(s.into()) }
 }
 
 impl<'de> Deserialize<'de> for SafePathBuf {
-	fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+	fn deserialize<D>(deserializer:D) -> std::result::Result<Self, D::Error>
 	where
-		D: Deserializer<'de>,
-	{
+		D: Deserializer<'de>, {
 		let path = PathBuf::deserialize(deserializer)?;
 		SafePathBuf::new(path).map_err(DeError::custom)
 	}
@@ -75,7 +70,8 @@ impl<'de> Deserialize<'de> for SafePathBuf {
 /// A base directory for a path.
 ///
 /// The base directory is the optional root of a file system operation.
-/// If informed by the API call, all paths will be relative to the path of the given directory.
+/// If informed by the API call, all paths will be relative to the path of the
+/// given directory.
 ///
 /// For more information, check the [`dirs` documentation](https://docs.rs/dirs/).
 #[derive(Serialize_repr, Deserialize_repr, Clone, Copy, Debug)]
@@ -119,8 +115,9 @@ pub enum BaseDirectory {
 	/// Resolves to [`BaseDirectory::Cache`]`/{bundle_identifier}`.
 	AppCache,
 	/// The default app log directory.
-	/// Resolves to [`BaseDirectory::Home`]`/Library/Logs/{bundle_identifier}` on macOS
-	/// and [`BaseDirectory::Config`]`/{bundle_identifier}/logs` on linux and Windows.
+	/// Resolves to [`BaseDirectory::Home`]`/Library/Logs/{bundle_identifier}`
+	/// on macOS and [`BaseDirectory::Config`]`/{bundle_identifier}/logs` on
+	/// linux and Windows.
 	AppLog,
 
 	/// The Desktop directory.
@@ -144,7 +141,8 @@ pub enum BaseDirectory {
 }
 
 impl BaseDirectory {
-	/// Gets the variable that represents this [`BaseDirectory`] for string paths.
+	/// Gets the variable that represents this [`BaseDirectory`] for string
+	/// paths.
 	pub fn variable(self) -> &'static str {
 		match self {
 			Self::Audio => "$AUDIO",
@@ -180,8 +178,9 @@ impl BaseDirectory {
 		}
 	}
 
-	/// Gets the [`BaseDirectory`] associated with the given variable, or [`None`] if the variable doesn't match any.
-	pub fn from_variable(variable: &str) -> Option<Self> {
+	/// Gets the [`BaseDirectory`] associated with the given variable, or
+	/// [`None`] if the variable doesn't match any.
+	pub fn from_variable(variable:&str) -> Option<Self> {
 		let res = match variable {
 			"$AUDIO" => Self::Audio,
 			"$CACHE" => Self::Cache,
@@ -221,42 +220,37 @@ impl BaseDirectory {
 	}
 }
 
-impl<R: Runtime> PathResolver<R> {
+impl<R:Runtime> PathResolver<R> {
 	/// Resolves the path with the base directory.
 	///
 	/// # Examples
 	///
 	/// ```rust,no_run
 	/// use tauri::{path::BaseDirectory, Manager};
-	/// tauri::Builder::default()
-	///   .setup(|app| {
-	///     let path = app.path().resolve("path/to/something", BaseDirectory::Config)?;
-	///     assert_eq!(path.to_str().unwrap(), "/home/${whoami}/.config/path/to/something");
-	///     Ok(())
-	///   });
+	/// tauri::Builder::default().setup(|app| {
+	/// 	let path = app.path().resolve("path/to/something", BaseDirectory::Config)?;
+	/// 	assert_eq!(path.to_str().unwrap(), "/home/${whoami}/.config/path/to/something");
+	/// 	Ok(())
+	/// });
 	/// ```
-	pub fn resolve<P: AsRef<Path>>(
-		&self,
-		path: P,
-		base_directory: BaseDirectory,
-	) -> Result<PathBuf> {
+	pub fn resolve<P:AsRef<Path>>(&self, path:P, base_directory:BaseDirectory) -> Result<PathBuf> {
 		resolve_path::<R>(self, base_directory, Some(path.as_ref().to_path_buf()))
 	}
 
-	/// Parse the given path, resolving a [`BaseDirectory`] variable if the path starts with one.
+	/// Parse the given path, resolving a [`BaseDirectory`] variable if the path
+	/// starts with one.
 	///
 	/// # Examples
 	///
 	/// ```rust,no_run
 	/// use tauri::Manager;
-	/// tauri::Builder::default()
-	///   .setup(|app| {
-	///     let path = app.path().parse("$HOME/.bashrc")?;
-	///     assert_eq!(path.to_str().unwrap(), "/home/${whoami}/.bashrc");
-	///     Ok(())
-	///   });
+	/// tauri::Builder::default().setup(|app| {
+	/// 	let path = app.path().parse("$HOME/.bashrc")?;
+	/// 	assert_eq!(path.to_str().unwrap(), "/home/${whoami}/.bashrc");
+	/// 	Ok(())
+	/// });
 	/// ```
-	pub fn parse<P: AsRef<Path>>(&self, path: P) -> Result<PathBuf> {
+	pub fn parse<P:AsRef<Path>>(&self, path:P) -> Result<PathBuf> {
 		let mut p = PathBuf::new();
 
 		let mut components = path.as_ref().components();
@@ -267,7 +261,7 @@ impl<R: Runtime> PathResolver<R> {
 				} else {
 					p.push(str);
 				}
-			}
+			},
 			Some(component) => p.push(component),
 			None => (),
 		}
@@ -283,10 +277,10 @@ impl<R: Runtime> PathResolver<R> {
 	}
 }
 
-fn resolve_path<R: Runtime>(
-	resolver: &PathResolver<R>,
-	directory: BaseDirectory,
-	path: Option<PathBuf>,
+fn resolve_path<R:Runtime>(
+	resolver:&PathResolver<R>,
+	directory:BaseDirectory,
+	path:Option<PathBuf>,
 ) -> Result<PathBuf> {
 	let resolve_resource = matches!(directory, BaseDirectory::Resource);
 	let mut base_dir_path = match directory {
@@ -322,14 +316,15 @@ fn resolve_path<R: Runtime>(
 	}?;
 
 	if let Some(path) = path {
-		// use the same path resolution mechanism as the bundler's resource injection algorithm
+		// use the same path resolution mechanism as the bundler's resource injection
+		// algorithm
 		if resolve_resource {
 			let mut resource_path = PathBuf::new();
 			for component in path.components() {
 				match component {
-					Component::Prefix(_) => {}
+					Component::Prefix(_) => {},
 					Component::RootDir => resource_path.push("_root_"),
-					Component::CurDir => {}
+					Component::CurDir => {},
 					Component::ParentDir => resource_path.push("_up_"),
 					Component::Normal(p) => resource_path.push(p),
 				}
@@ -345,15 +340,14 @@ fn resolve_path<R: Runtime>(
 
 #[cfg(test)]
 mod test {
-	use super::SafePathBuf;
-	use quickcheck::{Arbitrary, Gen};
-
 	use std::path::PathBuf;
 
+	use quickcheck::{Arbitrary, Gen};
+
+	use super::SafePathBuf;
+
 	impl Arbitrary for SafePathBuf {
-		fn arbitrary(g: &mut Gen) -> Self {
-			Self(PathBuf::arbitrary(g))
-		}
+		fn arbitrary(g:&mut Gen) -> Self { Self(PathBuf::arbitrary(g)) }
 
 		fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
 			Box::new(self.0.shrink().map(SafePathBuf))

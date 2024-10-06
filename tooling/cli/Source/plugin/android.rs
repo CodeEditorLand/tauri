@@ -2,18 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{
-	helpers::{prompts, template},
-	Result,
-};
-use clap::{Parser, Subcommand};
-use handlebars::Handlebars;
-
 use std::{
 	collections::BTreeMap,
 	env::current_dir,
 	ffi::OsStr,
 	path::{Component, PathBuf},
+};
+
+use clap::{Parser, Subcommand};
+use handlebars::Handlebars;
+
+use crate::{
+	helpers::{prompts, template},
+	Result,
 };
 
 #[derive(Parser)]
@@ -26,7 +27,7 @@ use std::{
 )]
 pub struct Cli {
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Subcommand)]
@@ -39,14 +40,14 @@ enum Commands {
 pub struct InitOptions {
 	/// Name of your Tauri plugin. Must match the current plugin's name.
 	/// If not specified, it will be inferred from the current directory.
-	plugin_name: Option<String>,
+	plugin_name:Option<String>,
 	/// The output directory.
 	#[clap(short, long)]
 	#[clap(default_value_t = current_dir().expect("failed to read cwd").to_string_lossy().into_owned())]
-	out_dir: String,
+	out_dir:String,
 }
 
-pub fn command(cli: Cli) -> Result<()> {
+pub fn command(cli:Cli) -> Result<()> {
 	match cli.command {
 		Commands::Init(options) => {
 			let plugin_name = match options.plugin_name {
@@ -127,8 +128,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {{
 			log::info!("Android project added");
 			println!("You must add the following to the Cargo.toml file:\n{cargo_toml_addition}",);
 			println!("You must add the following code to the build.rs file:\n\n{build_file}",);
-			println!("Your plugin's init function under src/lib.rs must initialize the Android plugin:\n{init_fn}");
-		}
+			println!(
+				"Your plugin's init function under src/lib.rs must initialize the Android \
+				 plugin:\n{init_fn}"
+			);
+		},
 	}
 
 	Ok(())

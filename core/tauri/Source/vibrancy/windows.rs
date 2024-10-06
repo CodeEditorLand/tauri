@@ -8,14 +8,15 @@
 
 use std::ffi::c_void;
 
+use raw_window_handle::HasWindowHandle;
+use windows::Win32::Foundation::HWND;
+
 use crate::{
 	utils::config::WindowEffectsConfig,
 	window::{Color, Effect},
 };
-use raw_window_handle::HasWindowHandle;
-use windows::Win32::Foundation::HWND;
 
-pub fn apply_effects(window: impl HasWindowHandle, effects: WindowEffectsConfig) {
+pub fn apply_effects(window:impl HasWindowHandle, effects:WindowEffectsConfig) {
 	let WindowEffectsConfig { effects, color, .. } = effects;
 	let effect =
 		if let Some(effect) =
@@ -47,7 +48,7 @@ pub fn apply_effects(window: impl HasWindowHandle, effects: WindowEffectsConfig)
 	};
 }
 
-pub fn clear_effects(window: impl HasWindowHandle) {
+pub fn clear_effects(window:impl HasWindowHandle) {
 	window_vibrancy::clear_blur(&window);
 	window_vibrancy::clear_acrylic(&window);
 	window_vibrancy::clear_mica(&window);

@@ -8,9 +8,7 @@ use tauri::Manager;
 
 fn main() {
 	let mut app = tauri::Builder::default()
-		.build(tauri::generate_context!(
-			"../../examples/run-iteration/tauri.conf.json"
-		))
+		.build(tauri::generate_context!("../../examples/run-iteration/tauri.conf.json"))
 		.expect("error while building tauri application");
 
 	loop {

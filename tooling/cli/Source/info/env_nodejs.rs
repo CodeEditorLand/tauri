@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{ActionResult, SectionItem, VersionMetadata};
 use colored::Colorize;
 
+use super::{ActionResult, SectionItem, VersionMetadata};
 use crate::helpers::cross_command;
 
-pub fn manager_version(package_manager: &str) -> Option<String> {
+pub fn manager_version(package_manager:&str) -> Option<String> {
 	cross_command(package_manager)
 		.arg("-v")
 		.output()
@@ -23,7 +23,7 @@ pub fn manager_version(package_manager: &str) -> Option<String> {
 		.unwrap_or_default()
 }
 
-pub fn items(metadata: &VersionMetadata) -> Vec<SectionItem> {
+pub fn items(metadata:&VersionMetadata) -> Vec<SectionItem> {
 	let node_target_ver = metadata.js_cli.node.replace(">= ", "");
 
 	vec![
@@ -51,7 +51,7 @@ pub fn items(metadata: &VersionMetadata) -> Vec<SectionItem> {
 										"outdated".red(),
 										target_version.to_string().green()
 									)
-								}
+								},
 								_ => "".into(),
 							}
 						}))

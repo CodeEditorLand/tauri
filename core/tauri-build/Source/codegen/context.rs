@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use anyhow::{Context, Result};
 use std::{
 	env::var,
 	fs::{create_dir_all, File},
 	io::{BufWriter, Write},
 	path::{Path, PathBuf},
 };
+
+use anyhow::{Context, Result};
 use tauri_codegen::{context_codegen, ContextData};
 use tauri_utils::config::FrontendDist;
 
@@ -17,34 +18,35 @@ use tauri_utils::config::FrontendDist;
 #[cfg_attr(docsrs, doc(cfg(feature = "codegen")))]
 #[derive(Debug)]
 pub struct CodegenContext {
-	config_path: PathBuf,
-	out_file: PathBuf,
-	capabilities: Option<Vec<PathBuf>>,
+	config_path:PathBuf,
+	out_file:PathBuf,
+	capabilities:Option<Vec<PathBuf>>,
 }
 
 impl Default for CodegenContext {
 	fn default() -> Self {
 		Self {
-			config_path: PathBuf::from("tauri.conf.json"),
-			out_file: PathBuf::from("tauri-build-context.rs"),
-			capabilities: None,
+			config_path:PathBuf::from("tauri.conf.json"),
+			out_file:PathBuf::from("tauri-build-context.rs"),
+			capabilities:None,
 		}
 	}
 }
 
 impl CodegenContext {
-	/// Create a new [`CodegenContext`] builder that is already filled with the default options.
-	pub fn new() -> Self {
-		Self::default()
-	}
+	/// Create a new [`CodegenContext`] builder that is already filled with the
+	/// default options.
+	pub fn new() -> Self { Self::default() }
 
-	/// Set the path to the `tauri.conf.json` (relative to the package's directory).
+	/// Set the path to the `tauri.conf.json` (relative to the package's
+	/// directory).
 	///
-	/// This defaults to a file called `tauri.conf.json` inside of the current working directory of
-	/// the package compiling; does not need to be set manually if that config file is in the same
-	/// directory as your `Cargo.toml`.
+	/// This defaults to a file called `tauri.conf.json` inside of the current
+	/// working directory of the package compiling; does not need to be set
+	/// manually if that config file is in the same directory as your
+	/// `Cargo.toml`.
 	#[must_use]
-	pub fn config_path(mut self, config_path: impl Into<PathBuf>) -> Self {
+	pub fn config_path(mut self, config_path:impl Into<PathBuf>) -> Self {
 		self.config_path = config_path.into();
 		self
 	}
@@ -53,30 +55,34 @@ impl CodegenContext {
 	///
 	/// **Note:** This path should be relative to the `OUT_DIR`.
 	///
-	/// Don't set this if you are using [`tauri::tauri_build_context!`] as that helper macro
-	/// expects the default value. This option can be useful if you are not using the helper and
-	/// instead using [`std::include!`] on the generated code yourself.
+	/// Don't set this if you are using [`tauri::tauri_build_context!`] as that
+	/// helper macro expects the default value. This option can be useful if
+	/// you are not using the helper and instead using [`std::include!`] on the
+	/// generated code yourself.
 	///
 	/// Defaults to `tauri-build-context.rs`.
 	///
 	/// [`tauri::tauri_build_context!`]: https://docs.rs/tauri/latest/tauri/macro.tauri_build_context.html
 	#[must_use]
-	pub fn out_file(mut self, filename: PathBuf) -> Self {
+	pub fn out_file(mut self, filename:PathBuf) -> Self {
 		self.out_file = filename;
 		self
 	}
 
 	/// Adds a capability file to the generated context.
 	#[must_use]
-	pub fn capability<P: AsRef<Path>>(mut self, path: P) -> Self {
-		self.capabilities.get_or_insert_with(Default::default).push(path.as_ref().to_path_buf());
+	pub fn capability<P:AsRef<Path>>(mut self, path:P) -> Self {
+		self.capabilities
+			.get_or_insert_with(Default::default)
+			.push(path.as_ref().to_path_buf());
 		self
 	}
 
-	/// Generate the code and write it to the output file - returning the path it was saved to.
+	/// Generate the code and write it to the output file - returning the path
+	/// it was saved to.
 	///
-	/// Unless you are doing something special with this builder, you don't need to do anything with
-	/// the returned output path.
+	/// Unless you are doing something special with this builder, you don't need
+	/// to do anything with the returned output path.
 	pub(crate) fn try_build(self) -> Result<PathBuf> {
 		let (config, config_parent) = tauri_codegen::get_config(&self.config_path)?;
 
@@ -87,12 +93,12 @@ impl CodegenContext {
 				if dist_path.exists() {
 					println!("cargo:rerun-if-changed={}", dist_path.display());
 				}
-			}
+			},
 			Some(FrontendDist::Files(files)) => {
 				for path in files {
 					println!("cargo:rerun-if-changed={}", config_parent.join(path).display());
 				}
-			}
+			},
 			_ => (),
 		}
 		for icon in &config.bundle.icon {
@@ -111,15 +117,15 @@ impl CodegenContext {
 		}
 
 		let code = context_codegen(ContextData {
-			dev: crate::is_dev(),
+			dev:crate::is_dev(),
 			config,
 			config_parent,
-			// it's very hard to have a build script for unit tests, so assume this is always called from
-			// outside the tauri crate, making the ::tauri root valid.
-			root: quote::quote!(::tauri),
-			capabilities: self.capabilities,
-			assets: None,
-			test: false,
+			// it's very hard to have a build script for unit tests, so assume this is always called
+			// from outside the tauri crate, making the ::tauri root valid.
+			root:quote::quote!(::tauri),
+			capabilities:self.capabilities,
+			assets:None,
+			test:false,
 		})?;
 
 		// get the full output file path

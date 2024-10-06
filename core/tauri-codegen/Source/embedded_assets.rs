@@ -44,10 +44,7 @@ pub enum EmbeddedAssetsError {
 	#[error("invalid prefix {prefix} used while including path {path}")]
 	PrefixInvalid { prefix:PathBuf, path:PathBuf },
 
-	#[error(
-		"invalid extension `{extension}` used for image {path}, must be `ico` \
-		 or `png`"
-	)]
+	#[error("invalid extension `{extension}` used for image {path}, must be `ico` or `png`")]
 	InvalidImageExtension { extension:PathBuf, path:PathBuf },
 
 	#[error("failed to walk directory {path} because {error}")]
@@ -96,10 +93,7 @@ struct RawEmbeddedAssets {
 
 impl RawEmbeddedAssets {
 	/// Creates a new list of (prefix, entry) from a collection of inputs.
-	fn new(
-		input:EmbeddedAssetsInput,
-		options:&AssetOptions,
-	) -> Result<Self, EmbeddedAssetsError> {
+	fn new(input:EmbeddedAssetsInput, options:&AssetOptions) -> Result<Self, EmbeddedAssetsError> {
 		let mut csp_hashes = CspHashes::default();
 
 		input
@@ -109,9 +103,7 @@ impl RawEmbeddedAssets {
 				let prefix = if path.is_dir() {
 					path.clone()
 				} else {
-					path.parent()
-						.expect("embedded file asset has no parent")
-						.to_path_buf()
+					path.parent().expect("embedded file asset has no parent").to_path_buf()
 				};
 
 				WalkDir::new(&path)
@@ -139,12 +131,7 @@ impl RawEmbeddedAssets {
 
 					// pass down error through filter to fail when encountering
 					// any error
-					Err(error) => {
-						Some(Err(EmbeddedAssetsError::Walkdir {
-							path:prefix,
-							error,
-						}))
-					},
+					Err(error) => Some(Err(EmbeddedAssetsError::Walkdir { path:prefix, error })),
 				}
 			})
 			.collect::<Result<Vec<(PathBuf, DirEntry)>, _>>()
@@ -180,17 +167,11 @@ impl CspHashes {
 
 		// we only hash JavaScript files for now, may expand to other CSP
 		// hashable types in the future
-		if let Some("js") | Some("mjs") =
-			path.extension().and_then(|os| os.to_str())
-		{
-			if dangerous_disable_asset_csp_modification.can_modify("script-src")
-			{
+		if let Some("js") | Some("mjs") = path.extension().and_then(|os| os.to_str()) {
+			if dangerous_disable_asset_csp_modification.can_modify("script-src") {
 				let mut hasher = Sha256::new();
 				hasher.update(&std::fs::read(path).map_err(|error| {
-					EmbeddedAssetsError::AssetRead {
-						path:path.to_path_buf(),
-						error,
-					}
+					EmbeddedAssetsError::AssetRead { path:path.to_path_buf(), error }
 				})?);
 				let hash = hasher.finalize();
 				self.scripts.push(format!(
@@ -210,8 +191,7 @@ pub struct AssetOptions {
 	pub(crate) csp:bool,
 	pub(crate) pattern:PatternKind,
 	pub(crate) freeze_prototype:bool,
-	pub(crate) dangerous_disable_asset_csp_modification:
-		DisabledCspModificationKind,
+	pub(crate) dangerous_disable_asset_csp_modification:DisabledCspModificationKind,
 	#[cfg(feature = "isolation")]
 	pub(crate) isolation_schema:String,
 }
@@ -223,8 +203,7 @@ impl AssetOptions {
 			csp:false,
 			pattern,
 			freeze_prototype:false,
-			dangerous_disable_asset_csp_modification:
-				DisabledCspModificationKind::Flag(false),
+			dangerous_disable_asset_csp_modification:DisabledCspModificationKind::Flag(false),
 			#[cfg(feature = "isolation")]
 			isolation_schema:format!("isolation-{}", uuid::Uuid::new_v4()),
 		}
@@ -252,8 +231,7 @@ impl AssetOptions {
 		mut self,
 		dangerous_disable_asset_csp_modification:DisabledCspModificationKind,
 	) -> Self {
-		self.dangerous_disable_asset_csp_modification =
-			dangerous_disable_asset_csp_modification;
+		self.dangerous_disable_asset_csp_modification = dangerous_disable_asset_csp_modification;
 		self
 	}
 }
@@ -286,12 +264,8 @@ impl EmbeddedAssets {
 		let CompressState { assets, csp_hashes } = paths.into_iter().try_fold(
 			CompressState { csp_hashes, assets:HashMap::new() },
 			move |mut state, (prefix, entry)| {
-				let (key, asset) = Self::compress_file(
-					&prefix,
-					entry.path(),
-					&mut map,
-					&mut state.csp_hashes,
-				)?;
+				let (key, asset) =
+					Self::compress_file(&prefix, entry.path(), &mut map, &mut state.csp_hashes)?;
 				state.assets.insert(key, asset);
 				Result::<_, EmbeddedAssetsError>::Ok(state)
 			},
@@ -331,9 +305,8 @@ impl EmbeddedAssets {
 		) -> Result<(), EmbeddedAssetsError>,
 		csp_hashes:&mut CspHashes,
 	) -> Result<Asset, EmbeddedAssetsError> {
-		let mut input = std::fs::read(path).map_err(|error| {
-			EmbeddedAssetsError::AssetRead { path:path.to_owned(), error }
-		})?;
+		let mut input = std::fs::read(path)
+			.map_err(|error| EmbeddedAssetsError::AssetRead { path:path.to_owned(), error })?;
 
 		// get a key to the asset path without the asset directory prefix
 		let key = path
@@ -352,26 +325,22 @@ impl EmbeddedAssets {
 		let out_dir = std::env::var("OUT_DIR")
 			.map_err(|_| EmbeddedAssetsError::OutDir)
 			.map(PathBuf::from)
-			.and_then(|p| {
-				p.canonicalize().map_err(|_| EmbeddedAssetsError::OutDir)
-			})
+			.and_then(|p| p.canonicalize().map_err(|_| EmbeddedAssetsError::OutDir))
 			.map(|p| p.join(TARGET_PATH))?;
 
 		// make sure that our output directory is created
-		std::fs::create_dir_all(&out_dir)
-			.map_err(|_| EmbeddedAssetsError::OutDir)?;
+		std::fs::create_dir_all(&out_dir).map_err(|_| EmbeddedAssetsError::OutDir)?;
 
 		// get a hash of the input - allows for caching existing files
 		let hash = crate::checksum(&input).map_err(EmbeddedAssetsError::Hex)?;
 
 		// use the content hash to determine filename, keep extensions that
 		// exist
-		let out_path =
-			if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-				out_dir.join(format!("{hash}.{ext}"))
-			} else {
-				out_dir.join(hash)
-			};
+		let out_path = if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+			out_dir.join(format!("{hash}.{ext}"))
+		} else {
+			out_dir.join(hash)
+		};
 
 		// only compress and write to the file if it doesn't already exist.
 		if !out_path.exists() {
@@ -384,10 +353,7 @@ impl EmbeddedAssets {
 			{
 				use std::io::Write;
 				out_file.write_all(&input).map_err(|error| {
-					EmbeddedAssetsError::AssetWrite {
-						path:path.to_owned(),
-						error,
-					}
+					EmbeddedAssetsError::AssetWrite { path:path.to_owned(), error }
 				})?;
 			}
 
@@ -395,17 +361,10 @@ impl EmbeddedAssets {
 			{
 				let mut input = std::io::Cursor::new(input);
 				// entirely write input to the output file path with compression
-				brotli::BrotliCompress(
-					&mut input,
-					&mut out_file,
-					&Self::compression_settings(),
-				)
-				.map_err(|error| {
-					EmbeddedAssetsError::AssetWrite {
-						path:path.to_owned(),
-						error,
-					}
-				})?;
+				brotli::BrotliCompress(&mut input, &mut out_file, &Self::compression_settings())
+					.map_err(|error| {
+						EmbeddedAssetsError::AssetWrite { path:path.to_owned(), error }
+					})?;
 			}
 		}
 
@@ -465,12 +424,9 @@ pub(crate) fn ensure_out_dir() -> EmbeddedAssetsResult<PathBuf> {
 	let out_dir = std::env::var("OUT_DIR")
 		.map_err(|_| EmbeddedAssetsError::OutDir)
 		.map(PathBuf::from)
-		.and_then(|p| {
-			p.canonicalize().map_err(|_| EmbeddedAssetsError::OutDir)
-		})?;
+		.and_then(|p| p.canonicalize().map_err(|_| EmbeddedAssetsError::OutDir))?;
 
 	// make sure that our output directory is created
-	std::fs::create_dir_all(&out_dir)
-		.map_err(|_| EmbeddedAssetsError::OutDir)?;
+	std::fs::create_dir_all(&out_dir).map_err(|_| EmbeddedAssetsError::OutDir)?;
 	Ok(out_dir)
 }

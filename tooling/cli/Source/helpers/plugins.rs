@@ -6,16 +6,16 @@ use std::collections::HashMap;
 
 #[derive(Default)]
 pub struct PluginMetadata {
-	pub desktop_only: bool,
-	pub mobile_only: bool,
-	pub rust_only: bool,
-	pub builder: bool,
-	pub version_req: Option<String>,
+	pub desktop_only:bool,
+	pub mobile_only:bool,
+	pub rust_only:bool,
+	pub builder:bool,
+	pub version_req:Option<String>,
 }
 
 // known plugins with particular cases
 pub fn known_plugins() -> HashMap<&'static str, PluginMetadata> {
-	let mut plugins: HashMap<&'static str, PluginMetadata> = HashMap::new();
+	let mut plugins:HashMap<&'static str, PluginMetadata> = HashMap::new();
 
 	// desktop-only
 	for p in [

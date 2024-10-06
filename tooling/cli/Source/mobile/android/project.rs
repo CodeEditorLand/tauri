@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{helpers::template, Result};
+use std::{
+	ffi::OsStr,
+	fs,
+	path::{Path, PathBuf},
+};
+
 use anyhow::Context;
 use cargo_mobile2::{
 	android::{
@@ -21,20 +26,16 @@ use cargo_mobile2::{
 use handlebars::Handlebars;
 use include_dir::{include_dir, Dir};
 
-use std::{
-	ffi::OsStr,
-	fs,
-	path::{Path, PathBuf},
-};
+use crate::{helpers::template, Result};
 
-const TEMPLATE_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/mobile/android");
+const TEMPLATE_DIR:Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/mobile/android");
 
 pub fn gen(
-	config: &Config,
-	metadata: &Metadata,
-	(handlebars, mut map): (Handlebars, template::JsonMap),
-	wrapper: &TextWrapper,
-	skip_targets_install: bool,
+	config:&Config,
+	metadata:&Metadata,
+	(handlebars, mut map):(Handlebars, template::JsonMap),
+	wrapper:&TextWrapper,
+	skip_targets_install:bool,
 ) -> Result<()> {
 	if !skip_targets_install {
 		let installed_targets =
@@ -69,7 +70,10 @@ pub fn gen(
 	map.insert("root-dir", config.app().root_dir());
 	map.insert("abi-list", Target::all().values().map(|target| target.abi).collect::<Vec<_>>());
 	map.insert("target-list", Target::all().keys().collect::<Vec<_>>());
-	map.insert("arch-list", Target::all().values().map(|target| target.arch).collect::<Vec<_>>());
+	map.insert(
+		"arch-list",
+		Target::all().values().map(|target| target.arch).collect::<Vec<_>>(),
+	);
 	map.insert("android-app-plugins", metadata.app_plugins());
 	map.insert("android-project-dependencies", metadata.project_dependencies());
 	map.insert("android-app-dependencies", metadata.app_dependencies());
@@ -97,9 +101,12 @@ pub fn gen(
 
 	if !asset_packs.is_empty() {
 		Report::action_request(
-      "When running from Android Studio, you must first set your deployment option to \"APK from app bundle\".",
-      "Android Studio will not be able to find your asset packs otherwise. The option can be found under \"Run > Edit Configurations > Deploy\"."
-    ).print(wrapper);
+			"When running from Android Studio, you must first set your deployment option to \"APK \
+			 from app bundle\".",
+			"Android Studio will not be able to find your asset packs otherwise. The option can \
+			 be found under \"Run > Edit Configurations > Deploy\".",
+		)
+		.print(wrapper);
 	}
 
 	let source_dest = dest.join("app");
@@ -138,14 +145,14 @@ pub fn gen(
 }
 
 fn generate_out_file(
-	path: &Path,
-	dest: &Path,
-	package_path: &str,
-	created_dirs: &mut Vec<PathBuf>,
+	path:&Path,
+	dest:&Path,
+	package_path:&str,
+	created_dirs:&mut Vec<PathBuf>,
 ) -> std::io::Result<Option<fs::File>> {
 	let mut iter = path.iter();
 	let root = iter.next().unwrap().to_str().unwrap();
-	let path_without_root: std::path::PathBuf = iter.collect();
+	let path_without_root:std::path::PathBuf = iter.collect();
 	let path = match (
 		root,
 		path.extension().and_then(|o| o.to_str()),
@@ -156,7 +163,7 @@ fn generate_out_file(
 			let file_name = path.file_name().unwrap();
 			let out_dir = dest.join(root).join("src/main").join(package_path).join(parent);
 			out_dir.join(file_name)
-		}
+		},
 		_ => dest.join(path),
 	};
 

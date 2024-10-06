@@ -2,13 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::{detect_target_ok, ensure_init, env, get_app, get_config, read_options, MobileTarget};
-use crate::{
-	helpers::config::get as get_tauri_config,
-	interface::{AppInterface, Interface},
-	Result,
-};
-use clap::{ArgAction, Parser};
+use std::path::Path;
 
 use anyhow::Context;
 use cargo_mobile2::{
@@ -16,8 +10,14 @@ use cargo_mobile2::{
 	opts::Profile,
 	target::{call_for_targets_with_fallback, TargetTrait},
 };
+use clap::{ArgAction, Parser};
 
-use std::path::Path;
+use super::{detect_target_ok, ensure_init, env, get_app, get_config, read_options, MobileTarget};
+use crate::{
+	helpers::config::get as get_tauri_config,
+	interface::{AppInterface, Interface},
+	Result,
+};
 
 #[derive(Debug, Parser)]
 pub struct Options {
@@ -30,13 +30,13 @@ pub struct Options {
     default_value = Target::DEFAULT_KEY,
     value_parser(clap::builder::PossibleValuesParser::new(Target::name_list()))
   )]
-	targets: Option<Vec<String>>,
+	targets:Option<Vec<String>>,
 	/// Builds with the release flag
 	#[clap(short, long)]
-	release: bool,
+	release:bool,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let profile = if options.release { Profile::Release } else { Profile::Debug };
@@ -106,8 +106,11 @@ pub fn command(options: Options) -> Result<()> {
 					},
 				)?;
 			} else if devices.len() > 1 {
-				anyhow::bail!("Multiple Android devices are connected ({}), please disconnect devices you do not intend to use so Tauri can determine which to use",
-      devices.iter().map(|d| d.name()).collect::<Vec<_>>().join(", "));
+				anyhow::bail!(
+					"Multiple Android devices are connected ({}), please disconnect devices you \
+					 do not intend to use so Tauri can determine which to use",
+					devices.iter().map(|d| d.name()).collect::<Vec<_>>().join(", ")
+				);
 			}
 		}
 	}
@@ -118,7 +121,7 @@ pub fn command(options: Options) -> Result<()> {
 		options.targets.unwrap_or_default().iter(),
 		&detect_target_ok,
 		&env,
-		|target: &Target| {
+		|target:&Target| {
 			target.build(&config, &metadata, &env, cli_options.noise_level, true, profile)?;
 
 			if !validated_lib {
@@ -136,7 +139,7 @@ pub fn command(options: Options) -> Result<()> {
 	.map_err(|e| anyhow::anyhow!(e.to_string()))?
 }
 
-fn validate_lib(path: &Path) -> Result<()> {
+fn validate_lib(path:&Path) -> Result<()> {
 	let so_bytes = std::fs::read(path)?;
 	let elf = elf::ElfBytes::<elf::endian::AnyEndian>::minimal_parse(&so_bytes)
 		.context("failed to parse ELF")?;
@@ -163,10 +166,10 @@ fn validate_lib(path: &Path) -> Result<()> {
 }
 
 fn run_adb_reverse(
-	env: &cargo_mobile2::android::env::Env,
-	device_serial_no: &str,
-	remote: &str,
-	local: &str,
+	env:&cargo_mobile2::android::env::Env,
+	device_serial_no:&str,
+	remote:&str,
+	local:&str,
 ) -> std::io::Result<std::process::Output> {
 	adb::adb(env, ["-s", device_serial_no, "reverse", remote, local])
 		.stdin_file(os_pipe::dup_stdin().unwrap())
@@ -175,11 +178,7 @@ fn run_adb_reverse(
 		.run()
 }
 
-fn remove_adb_reverse(
-	env: &cargo_mobile2::android::env::Env,
-	device_serial_no: &str,
-	remote: &str,
-) {
+fn remove_adb_reverse(env:&cargo_mobile2::android::env::Env, device_serial_no:&str, remote:&str) {
 	// ignore errors in case the port is not forwarded
 	let _ = adb::adb(env, ["-s", device_serial_no, "reverse", "--remove", remote])
 		.stdin_file(os_pipe::dup_stdin().unwrap())

@@ -15,10 +15,11 @@ use anyhow::{Context, Result};
 use super::{build_var, cfg_alias};
 
 #[cfg(target_os = "macos")]
-pub fn update_entitlements<F: FnOnce(&mut plist::Dictionary)>(f: F) -> Result<()> {
-	if let (Some(project_path), Ok(app_name)) =
-		(var_os("TAURI_IOS_PROJECT_PATH").map(PathBuf::from), std::env::var("TAURI_IOS_APP_NAME"))
-	{
+pub fn update_entitlements<F:FnOnce(&mut plist::Dictionary)>(f:F) -> Result<()> {
+	if let (Some(project_path), Ok(app_name)) = (
+		var_os("TAURI_IOS_PROJECT_PATH").map(PathBuf::from),
+		std::env::var("TAURI_IOS_APP_NAME"),
+	) {
 		update_plist_file(
 			project_path
 				.join(format!("{app_name}_iOS"))
@@ -30,7 +31,7 @@ pub fn update_entitlements<F: FnOnce(&mut plist::Dictionary)>(f: F) -> Result<()
 	Ok(())
 }
 
-pub fn update_android_manifest(block_identifier: &str, parent: &str, insert: String) -> Result<()> {
+pub fn update_android_manifest(block_identifier:&str, parent:&str, insert:String) -> Result<()> {
 	if let Some(project_path) = var_os("TAURI_ANDROID_PROJECT_PATH").map(PathBuf::from) {
 		let manifest_path = project_path.join("app/src/main/AndroidManifest.xml");
 
@@ -45,8 +46,8 @@ pub fn update_android_manifest(block_identifier: &str, parent: &str, insert: Str
 }
 
 pub(crate) fn setup(
-	android_path: Option<PathBuf>,
-	#[allow(unused_variables)] ios_path: Option<PathBuf>,
+	android_path:Option<PathBuf>,
+	#[allow(unused_variables)] ios_path:Option<PathBuf>,
 ) -> Result<()> {
 	let target_os = build_var("CARGO_CFG_TARGET_OS")?;
 	let mobile = target_os == "android" || target_os == "ios";
@@ -59,8 +60,10 @@ pub(crate) fn setup(
 				let manifest_dir = build_var("CARGO_MANIFEST_DIR").map(PathBuf::from)?;
 				let source = manifest_dir.join(path);
 
-				let tauri_library_path = std::env::var("DEP_TAURI_ANDROID_LIBRARY_PATH")
-            .expect("missing `DEP_TAURI_ANDROID_LIBRARY_PATH` environment variable. Make sure `tauri` is a dependency of the plugin.");
+				let tauri_library_path = std::env::var("DEP_TAURI_ANDROID_LIBRARY_PATH").expect(
+					"missing `DEP_TAURI_ANDROID_LIBRARY_PATH` environment variable. Make sure \
+					 `tauri` is a dependency of the plugin.",
+				);
 				println!("cargo:rerun-if-env-changed=DEP_TAURI_ANDROID_LIBRARY_PATH");
 
 				create_dir_all(source.join(".tauri"))
@@ -74,13 +77,15 @@ pub(crate) fn setup(
 
 				println!("cargo:android_library_path={}", source.display());
 			}
-		}
+		},
 		#[cfg(target_os = "macos")]
 		"ios" => {
 			if let Some(path) = ios_path {
 				let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").map(PathBuf::from).unwrap();
-				let tauri_library_path = std::env::var("DEP_TAURI_IOS_LIBRARY_PATH")
-            .expect("missing `DEP_TAURI_IOS_LIBRARY_PATH` environment variable. Make sure `tauri` is a dependency of the plugin.");
+				let tauri_library_path = std::env::var("DEP_TAURI_IOS_LIBRARY_PATH").expect(
+					"missing `DEP_TAURI_IOS_LIBRARY_PATH` environment variable. Make sure `tauri` \
+					 is a dependency of the plugin.",
+				);
 
 				let tauri_dep_path = path.parent().unwrap().join(".tauri");
 				create_dir_all(&tauri_dep_path).context("failed to create .tauri directory")?;
@@ -95,14 +100,14 @@ pub(crate) fn setup(
 					manifest_dir.join(path),
 				);
 			}
-		}
+		},
 		_ => (),
 	}
 
 	Ok(())
 }
 
-fn copy_folder(source: &Path, target: &Path, ignore_paths: &[&str]) -> Result<()> {
+fn copy_folder(source:&Path, target:&Path, ignore_paths:&[&str]) -> Result<()> {
 	let _ = remove_dir_all(target);
 
 	for entry in walkdir::WalkDir::new(source) {
@@ -131,10 +136,7 @@ fn copy_folder(source: &Path, target: &Path, ignore_paths: &[&str]) -> Result<()
 }
 
 #[cfg(target_os = "macos")]
-fn update_plist_file<P: AsRef<Path>, F: FnOnce(&mut plist::Dictionary)>(
-	path: P,
-	f: F,
-) -> Result<()> {
+fn update_plist_file<P:AsRef<Path>, F:FnOnce(&mut plist::Dictionary)>(path:P, f:F) -> Result<()> {
 	use std::io::Cursor;
 
 	let path = path.as_ref();
@@ -157,11 +159,9 @@ fn update_plist_file<P: AsRef<Path>, F: FnOnce(&mut plist::Dictionary)>(
 	Ok(())
 }
 
-fn xml_block_comment(id: &str) -> String {
-	format!("<!-- {id}. AUTO-GENERATED. DO NOT REMOVE. -->")
-}
+fn xml_block_comment(id:&str) -> String { format!("<!-- {id}. AUTO-GENERATED. DO NOT REMOVE. -->") }
 
-fn insert_into_xml(xml: &str, block_identifier: &str, parent_tag: &str, contents: &str) -> String {
+fn insert_into_xml(xml:&str, block_identifier:&str, parent_tag:&str, contents:&str) -> String {
 	let block_comment = xml_block_comment(block_identifier);
 
 	let mut rewritten = Vec::new();

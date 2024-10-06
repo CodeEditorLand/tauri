@@ -10,13 +10,11 @@ use oxc_span::SourceType;
 use super::{find_script_closing_angle, JavaScriptSource, SCRIPT_END, SCRIPT_START};
 
 pub struct SveltePartialLoader<'a> {
-	source_text: &'a str,
+	source_text:&'a str,
 }
 
 impl<'a> SveltePartialLoader<'a> {
-	pub fn new(source_text: &'a str) -> Self {
-		Self { source_text }
-	}
+	pub fn new(source_text:&'a str) -> Self { Self { source_text } }
 
 	pub fn parse(self) -> Vec<JavaScriptSource<'a>> {
 		self.parse_script().map_or_else(Vec::new, |source| vec![source])
@@ -61,7 +59,7 @@ impl<'a> SveltePartialLoader<'a> {
 mod test {
 	use super::{JavaScriptSource, SveltePartialLoader};
 
-	fn parse_svelte(source_text: &str) -> JavaScriptSource<'_> {
+	fn parse_svelte(source_text:&str) -> JavaScriptSource<'_> {
 		let sources = SveltePartialLoader::new(source_text).parse();
 		*sources.first().unwrap()
 	}

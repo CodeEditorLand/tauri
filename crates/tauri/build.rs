@@ -30,12 +30,7 @@ const PLUGINS:&[(&str, &[(&str, bool)])] = &[
 	),
 	(
 		"core:event",
-		&[
-			("listen", true),
-			("unlisten", true),
-			("emit", true),
-			("emit_to", true),
-		],
+		&[("listen", true), ("unlisten", true), ("emit", true), ("emit_to", true)],
 	),
 	(
 		"core:window",
@@ -255,24 +250,18 @@ fn main() {
 	// workaround needed to prevent `STATUS_ENTRYPOINT_NOT_FOUND` error in tests
 	// see https://github.com/tauri-apps/tauri/pull/4383#issuecomment-1212221864
 	let target_env = std::env::var("CARGO_CFG_TARGET_ENV");
-	let is_tauri_workspace =
-		std::env::var("__TAURI_WORKSPACE__").map_or(false, |v| v == "true");
-	if is_tauri_workspace
-		&& target_os == "windows"
-		&& Ok("msvc") == target_env.as_deref()
-	{
+	let is_tauri_workspace = std::env::var("__TAURI_WORKSPACE__").map_or(false, |v| v == "true");
+	if is_tauri_workspace && target_os == "windows" && Ok("msvc") == target_env.as_deref() {
 		embed_manifest_for_tests();
 	}
 
 	if target_os == "android" {
-		if let Ok(kotlin_out_dir) =
-			std::env::var("WRY_ANDROID_KOTLIN_FILES_OUT_DIR")
-		{
+		if let Ok(kotlin_out_dir) = std::env::var("WRY_ANDROID_KOTLIN_FILES_OUT_DIR") {
 			fn env_var(var:&str) -> String {
 				std::env::var(var).unwrap_or_else(|_| {
 					panic!(
-						"`{var}` is not set, which is needed to generate the \
-						 kotlin files for android."
+						"`{var}` is not set, which is needed to generate the kotlin files for \
+						 android."
 					)
 				})
 			}
@@ -280,22 +269,19 @@ fn main() {
 			let package = env_var("WRY_ANDROID_PACKAGE");
 			let library = env_var("WRY_ANDROID_LIBRARY");
 
-			let kotlin_out_dir = PathBuf::from(&kotlin_out_dir)
-				.canonicalize()
-				.unwrap_or_else(move |_| {
+			let kotlin_out_dir =
+				PathBuf::from(&kotlin_out_dir).canonicalize().unwrap_or_else(move |_| {
 					panic!(
-						"Failed to canonicalize \
-						 `WRY_ANDROID_KOTLIN_FILES_OUT_DIR` path \
+						"Failed to canonicalize `WRY_ANDROID_KOTLIN_FILES_OUT_DIR` path \
 						 {kotlin_out_dir}"
 					)
 				});
 
 			let kotlin_files_path =
-				PathBuf::from(env_var("CARGO_MANIFEST_DIR"))
-					.join("mobile/android-codegen");
+				PathBuf::from(env_var("CARGO_MANIFEST_DIR")).join("mobile/android-codegen");
 			println!("cargo:rerun-if-changed={}", kotlin_files_path.display());
-			let kotlin_files = fs::read_dir(kotlin_files_path)
-				.expect("failed to read Android codegen directory");
+			let kotlin_files =
+				fs::read_dir(kotlin_files_path).expect("failed to read Android codegen directory");
 
 			for file in kotlin_files {
 				let file = file.unwrap();
@@ -307,42 +293,32 @@ fn main() {
 
 				let out_path = kotlin_out_dir.join(file.file_name());
 				// Overwrite only if changed to not trigger rebuilds
-				write_if_changed(&out_path, &content)
-					.expect("Failed to write kotlin file");
+				write_if_changed(&out_path, &content).expect("Failed to write kotlin file");
 
 				println!("cargo:rerun-if-changed={}", out_path.display());
 			}
 		}
 
-		if let Some(project_dir) =
-			env::var_os("TAURI_ANDROID_PROJECT_PATH").map(PathBuf::from)
-		{
-			let tauri_proguard = include_str!("./mobile/proguard-tauri.pro")
-				.replace(
-					"$PACKAGE",
-					&env::var("WRY_ANDROID_PACKAGE").expect(
-						"missing `WRY_ANDROID_PACKAGE` environment variable",
-					),
-				);
-			std::fs::write(
-				project_dir.join("app").join("proguard-tauri.pro"),
-				tauri_proguard,
-			)
-			.expect("failed to write proguard-tauri.pro");
+		if let Some(project_dir) = env::var_os("TAURI_ANDROID_PROJECT_PATH").map(PathBuf::from) {
+			let tauri_proguard = include_str!("./mobile/proguard-tauri.pro").replace(
+				"$PACKAGE",
+				&env::var("WRY_ANDROID_PACKAGE")
+					.expect("missing `WRY_ANDROID_PACKAGE` environment variable"),
+			);
+			std::fs::write(project_dir.join("app").join("proguard-tauri.pro"), tauri_proguard)
+				.expect("failed to write proguard-tauri.pro");
 		}
 
 		let lib_path =
-			PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
-				.join("mobile/android");
+			PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("mobile/android");
 		println!("cargo:android_library_path={}", lib_path.display());
 	}
 
 	#[cfg(target_os = "macos")]
 	{
 		if target_os == "ios" {
-			let lib_path =
-				PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
-					.join("mobile/ios-api");
+			let lib_path = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
+				.join("mobile/ios-api");
 			tauri_utils::build::link_apple_library("Tauri", &lib_path);
 			println!("cargo:ios_library_path={}", lib_path.display());
 		}
@@ -358,12 +334,10 @@ const LICENSE_HEADER:&str = r"# Copyright 2019-2024 Tauri Programme within The C
 
 fn define_permissions(out_dir:&Path) {
 	for (plugin, commands) in PLUGINS {
-		let plugin_directory_name =
-			plugin.strip_prefix("core:").unwrap_or(plugin);
-		let permissions_out_dir =
-			out_dir.join("permissions").join(plugin_directory_name);
-		let autogenerated = permissions_out_dir
-			.join(tauri_utils::acl::build::AUTOGENERATED_FOLDER_NAME);
+		let plugin_directory_name = plugin.strip_prefix("core:").unwrap_or(plugin);
+		let permissions_out_dir = out_dir.join("permissions").join(plugin_directory_name);
+		let autogenerated =
+			permissions_out_dir.join(tauri_utils::acl::build::AUTOGENERATED_FOLDER_NAME);
 		let commands_dir = autogenerated.join("commands");
 
 		tauri_utils::acl::build::autogenerate_command_permissions(
@@ -392,9 +366,8 @@ permissions = [{default_permissions}]
 		);
 
 		let out_path = autogenerated.join("default.toml");
-		write_if_changed(out_path, default_toml).unwrap_or_else(|_| {
-			panic!("unable to autogenerate default permissions")
-		});
+		write_if_changed(out_path, default_toml)
+			.unwrap_or_else(|_| panic!("unable to autogenerate default permissions"));
 
 		let permissions = tauri_utils::acl::build::define_permissions(
 			&permissions_out_dir.join("**").join("*.toml").to_string_lossy(),
@@ -402,15 +375,11 @@ permissions = [{default_permissions}]
 			out_dir,
 			|_| true,
 		)
-		.unwrap_or_else(|e| {
-			panic!("failed to define permissions for {plugin}: {e}")
-		});
+		.unwrap_or_else(|e| panic!("failed to define permissions for {plugin}: {e}"));
 
-		let docs_out_dir = Path::new("permissions")
-			.join(plugin_directory_name)
-			.join("autogenerated");
-		fs::create_dir_all(&docs_out_dir)
-			.expect("failed to create plugin documentation directory");
+		let docs_out_dir =
+			Path::new("permissions").join(plugin_directory_name).join("autogenerated");
+		fs::create_dir_all(&docs_out_dir).expect("failed to create plugin documentation directory");
 		tauri_utils::acl::build::generate_docs(
 			&permissions,
 			&docs_out_dir,
@@ -458,9 +427,7 @@ permissions = [{}]
 		out_dir,
 		|_| true,
 	)
-	.unwrap_or_else(|e| {
-		panic!("failed to define permissions for `core:default` : {e}")
-	});
+	.unwrap_or_else(|e| panic!("failed to define permissions for `core:default` : {e}"));
 }
 
 fn embed_manifest_for_tests() {
@@ -474,10 +441,7 @@ fn embed_manifest_for_tests() {
 	println!("cargo:rerun-if-changed={}", manifest.display());
 	// Embed the Windows application manifest file.
 	println!("cargo:rustc-link-arg=/MANIFEST:EMBED");
-	println!(
-		"cargo:rustc-link-arg=/MANIFESTINPUT:{}",
-		manifest.to_str().unwrap()
-	);
+	println!("cargo:rustc-link-arg=/MANIFESTINPUT:{}", manifest.to_str().unwrap());
 	// Turn linker warnings into errors.
 	println!("cargo:rustc-link-arg=/WX");
 }

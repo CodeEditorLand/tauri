@@ -17,10 +17,10 @@ use std::sync::Arc;
 
 pub use builders::*;
 pub use menu::{HELP_SUBMENU_ID, WINDOW_SUBMENU_ID};
+pub use muda::MenuId;
 use serde::{Deserialize, Serialize};
 
 use crate::{image::Image, AppHandle, Runtime};
-pub use muda::MenuId;
 
 macro_rules! run_item_main_thread {
 	($self:ident, $ex:expr) => {{
@@ -47,20 +47,16 @@ pub(crate) use run_item_main_thread;
 #[derive(Debug, Clone, Serialize)]
 pub struct MenuEvent {
 	/// Id of the menu item which triggered this event
-	pub id: MenuId,
+	pub id:MenuId,
 }
 
 impl MenuEvent {
 	/// Returns the id of the menu item which triggered this event
-	pub fn id(&self) -> &MenuId {
-		&self.id
-	}
+	pub fn id(&self) -> &MenuId { &self.id }
 }
 
 impl From<muda::MenuEvent> for MenuEvent {
-	fn from(value: muda::MenuEvent) -> Self {
-		Self { id: value.id }
-	}
+	fn from(value:muda::MenuEvent) -> Self { Self { id:value.id } }
 }
 
 macro_rules! gen_wrappers {
@@ -170,59 +166,59 @@ gen_wrappers!(
 #[derive(Debug, Clone, Default)]
 pub struct AboutMetadata<'a> {
 	/// Sets the application name.
-	pub name: Option<String>,
+	pub name:Option<String>,
 	/// The application version.
-	pub version: Option<String>,
+	pub version:Option<String>,
 	/// The short version, e.g. "1.0".
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows / Linux:** Appended to the end of `version` in parentheses.
-	pub short_version: Option<String>,
+	pub short_version:Option<String>,
 	/// The authors of the application.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub authors: Option<Vec<String>>,
+	pub authors:Option<Vec<String>>,
 	/// Application comments.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub comments: Option<String>,
+	pub comments:Option<String>,
 	/// The copyright of the application.
-	pub copyright: Option<String>,
+	pub copyright:Option<String>,
 	/// The license of the application.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub license: Option<String>,
+	pub license:Option<String>,
 	/// The application website.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub website: Option<String>,
+	pub website:Option<String>,
 	/// The website label.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub website_label: Option<String>,
+	pub website_label:Option<String>,
 	/// The credits.
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows / Linux:** Unsupported.
-	pub credits: Option<String>,
+	pub credits:Option<String>,
 	/// The application icon.
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows:** Unsupported.
-	pub icon: Option<Image<'a>>,
+	pub icon:Option<Image<'a>>,
 }
 
 /// A builder type for [`AboutMetadata`].
@@ -231,124 +227,130 @@ pub struct AboutMetadataBuilder<'a>(AboutMetadata<'a>);
 
 impl<'a> AboutMetadataBuilder<'a> {
 	/// Create a new about metadata builder.
-	pub fn new() -> Self {
-		Default::default()
-	}
+	pub fn new() -> Self { Default::default() }
 
 	/// Sets the application name.
-	pub fn name<S: Into<String>>(mut self, name: Option<S>) -> Self {
+	pub fn name<S:Into<String>>(mut self, name:Option<S>) -> Self {
 		self.0.name = name.map(|s| s.into());
 		self
 	}
+
 	/// Sets the application version.
-	pub fn version<S: Into<String>>(mut self, version: Option<S>) -> Self {
+	pub fn version<S:Into<String>>(mut self, version:Option<S>) -> Self {
 		self.0.version = version.map(|s| s.into());
 		self
 	}
+
 	/// Sets the short version, e.g. "1.0".
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows / Linux:** Appended to the end of `version` in parentheses.
-	pub fn short_version<S: Into<String>>(mut self, short_version: Option<S>) -> Self {
+	pub fn short_version<S:Into<String>>(mut self, short_version:Option<S>) -> Self {
 		self.0.short_version = short_version.map(|s| s.into());
 		self
 	}
+
 	/// Sets the authors of the application.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub fn authors(mut self, authors: Option<Vec<String>>) -> Self {
+	pub fn authors(mut self, authors:Option<Vec<String>>) -> Self {
 		self.0.authors = authors;
 		self
 	}
+
 	/// Application comments.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub fn comments<S: Into<String>>(mut self, comments: Option<S>) -> Self {
+	pub fn comments<S:Into<String>>(mut self, comments:Option<S>) -> Self {
 		self.0.comments = comments.map(|s| s.into());
 		self
 	}
+
 	/// Sets the copyright of the application.
-	pub fn copyright<S: Into<String>>(mut self, copyright: Option<S>) -> Self {
+	pub fn copyright<S:Into<String>>(mut self, copyright:Option<S>) -> Self {
 		self.0.copyright = copyright.map(|s| s.into());
 		self
 	}
+
 	/// Sets the license of the application.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub fn license<S: Into<String>>(mut self, license: Option<S>) -> Self {
+	pub fn license<S:Into<String>>(mut self, license:Option<S>) -> Self {
 		self.0.license = license.map(|s| s.into());
 		self
 	}
+
 	/// Sets the application website.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub fn website<S: Into<String>>(mut self, website: Option<S>) -> Self {
+	pub fn website<S:Into<String>>(mut self, website:Option<S>) -> Self {
 		self.0.website = website.map(|s| s.into());
 		self
 	}
+
 	/// Sets the website label.
 	///
 	/// ## Platform-specific
 	///
 	/// - **macOS:** Unsupported.
-	pub fn website_label<S: Into<String>>(mut self, website_label: Option<S>) -> Self {
+	pub fn website_label<S:Into<String>>(mut self, website_label:Option<S>) -> Self {
 		self.0.website_label = website_label.map(|s| s.into());
 		self
 	}
+
 	/// Sets the credits.
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows / Linux:** Unsupported.
-	pub fn credits<S: Into<String>>(mut self, credits: Option<S>) -> Self {
+	pub fn credits<S:Into<String>>(mut self, credits:Option<S>) -> Self {
 		self.0.credits = credits.map(|s| s.into());
 		self
 	}
+
 	/// Sets the application icon.
 	///
 	/// ## Platform-specific
 	///
 	/// - **Windows:** Unsupported.
-	pub fn icon(mut self, icon: Option<Image<'a>>) -> Self {
+	pub fn icon(mut self, icon:Option<Image<'a>>) -> Self {
 		self.0.icon = icon;
 		self
 	}
 
 	/// Construct the final [`AboutMetadata`]
-	pub fn build(self) -> AboutMetadata<'a> {
-		self.0
-	}
+	pub fn build(self) -> AboutMetadata<'a> { self.0 }
 }
 
 impl TryFrom<AboutMetadata<'_>> for muda::AboutMetadata {
 	type Error = crate::Error;
 
-	fn try_from(value: AboutMetadata<'_>) -> Result<Self, Self::Error> {
+	fn try_from(value:AboutMetadata<'_>) -> Result<Self, Self::Error> {
 		let icon = match value.icon {
 			Some(i) => Some(i.try_into()?),
 			None => None,
 		};
 
 		Ok(Self {
-			authors: value.authors,
-			name: value.name,
-			version: value.version,
-			short_version: value.short_version,
-			comments: value.comments,
-			copyright: value.copyright,
-			license: value.license,
-			website: value.website,
-			website_label: value.website_label,
-			credits: value.credits,
+			authors:value.authors,
+			name:value.name,
+			version:value.version,
+			short_version:value.short_version,
+			comments:value.comments,
+			copyright:value.copyright,
+			license:value.license,
+			website:value.website,
+			website_label:value.website_label,
+			credits:value.credits,
 			icon,
 		})
 	}
@@ -476,7 +478,7 @@ pub enum NativeIcon {
 }
 
 impl From<NativeIcon> for muda::NativeIcon {
-	fn from(value: NativeIcon) -> Self {
+	fn from(value:NativeIcon) -> Self {
 		match value {
 			NativeIcon::Add => muda::NativeIcon::Add,
 			NativeIcon::Advanced => muda::NativeIcon::Advanced,
@@ -540,7 +542,7 @@ impl From<NativeIcon> for muda::NativeIcon {
 
 /// An enumeration of all menu item kinds that could be added to
 /// a [`Menu`] or [`Submenu`]
-pub enum MenuItemKind<R: Runtime> {
+pub enum MenuItemKind<R:Runtime> {
 	/// Normal menu item
 	MenuItem(MenuItem<R>),
 	/// Submenu menu item
@@ -553,7 +555,7 @@ pub enum MenuItemKind<R: Runtime> {
 	Icon(IconMenuItem<R>),
 }
 
-impl<R: Runtime> MenuItemKind<R> {
+impl<R:Runtime> MenuItemKind<R> {
 	/// Returns a unique identifier associated with this menu item.
 	pub fn id(&self) -> &MenuId {
 		match self {
@@ -575,37 +577,43 @@ impl<R: Runtime> MenuItemKind<R> {
 		}
 	}
 
-	pub(crate) fn from_muda(app_handle: AppHandle<R>, i: muda::MenuItemKind) -> Self {
+	pub(crate) fn from_muda(app_handle:AppHandle<R>, i:muda::MenuItemKind) -> Self {
 		match i {
-			muda::MenuItemKind::MenuItem(i) => Self::MenuItem(MenuItem(Arc::new(MenuItemInner {
-				id: i.id().clone(),
-				inner: i.into(),
-				app_handle,
-			}))),
-			muda::MenuItemKind::Submenu(i) => Self::Submenu(Submenu(Arc::new(SubmenuInner {
-				id: i.id().clone(),
-				inner: i.into(),
-				app_handle,
-			}))),
+			muda::MenuItemKind::MenuItem(i) => {
+				Self::MenuItem(MenuItem(Arc::new(MenuItemInner {
+					id:i.id().clone(),
+					inner:i.into(),
+					app_handle,
+				})))
+			},
+			muda::MenuItemKind::Submenu(i) => {
+				Self::Submenu(Submenu(Arc::new(SubmenuInner {
+					id:i.id().clone(),
+					inner:i.into(),
+					app_handle,
+				})))
+			},
 			muda::MenuItemKind::Predefined(i) => {
 				Self::Predefined(PredefinedMenuItem(Arc::new(PredefinedMenuItemInner {
-					id: i.id().clone(),
-					inner: i.into(),
+					id:i.id().clone(),
+					inner:i.into(),
 					app_handle,
 				})))
-			}
+			},
 			muda::MenuItemKind::Check(i) => {
 				Self::Check(CheckMenuItem(Arc::new(CheckMenuItemInner {
-					id: i.id().clone(),
-					inner: i.into(),
+					id:i.id().clone(),
+					inner:i.into(),
 					app_handle,
 				})))
-			}
-			muda::MenuItemKind::Icon(i) => Self::Icon(IconMenuItem(Arc::new(IconMenuItemInner {
-				id: i.id().clone(),
-				inner: i.into(),
-				app_handle,
-			}))),
+			},
+			muda::MenuItemKind::Icon(i) => {
+				Self::Icon(IconMenuItem(Arc::new(IconMenuItemInner {
+					id:i.id().clone(),
+					inner:i.into(),
+					app_handle,
+				})))
+			},
 		}
 	}
 
@@ -641,7 +649,8 @@ impl<R: Runtime> MenuItemKind<R> {
 		}
 	}
 
-	/// Casts this item to a [`PredefinedMenuItem`], and returns `None` if it wasn't.
+	/// Casts this item to a [`PredefinedMenuItem`], and returns `None` if it
+	/// wasn't.
 	pub fn as_predefined_menuitem(&self) -> Option<&PredefinedMenuItem<R>> {
 		match self {
 			MenuItemKind::Predefined(i) => Some(i),
@@ -690,7 +699,7 @@ impl<R: Runtime> MenuItemKind<R> {
 	}
 }
 
-impl<R: Runtime> Clone for MenuItemKind<R> {
+impl<R:Runtime> Clone for MenuItemKind<R> {
 	fn clone(&self) -> Self {
 		match self {
 			Self::MenuItem(i) => Self::MenuItem(i.clone()),
@@ -702,28 +711,23 @@ impl<R: Runtime> Clone for MenuItemKind<R> {
 	}
 }
 
-impl<R: Runtime> sealed::IsMenuItemBase for MenuItemKind<R> {
-	fn inner_muda(&self) -> &dyn muda::IsMenuItem {
-		self.inner().inner_muda()
-	}
+impl<R:Runtime> sealed::IsMenuItemBase for MenuItemKind<R> {
+	fn inner_muda(&self) -> &dyn muda::IsMenuItem { self.inner().inner_muda() }
 }
 
-impl<R: Runtime> IsMenuItem<R> for MenuItemKind<R> {
-	fn kind(&self) -> MenuItemKind<R> {
-		self.clone()
-	}
+impl<R:Runtime> IsMenuItem<R> for MenuItemKind<R> {
+	fn kind(&self) -> MenuItemKind<R> { self.clone() }
 
-	fn id(&self) -> &MenuId {
-		self.id()
-	}
+	fn id(&self) -> &MenuId { self.id() }
 }
 
-/// A trait that defines a generic item in a menu, which may be one of [`MenuItemKind`]
+/// A trait that defines a generic item in a menu, which may be one of
+/// [`MenuItemKind`]
 ///
 /// # Safety
 ///
 /// This trait is ONLY meant to be implemented internally by the crate.
-pub trait IsMenuItem<R: Runtime>: sealed::IsMenuItemBase {
+pub trait IsMenuItem<R:Runtime>: sealed::IsMenuItemBase {
 	/// Returns the kind of this menu item.
 	fn kind(&self) -> MenuItemKind<R>;
 
@@ -737,16 +741,18 @@ pub trait IsMenuItem<R: Runtime>: sealed::IsMenuItemBase {
 ///
 /// This trait is ONLY meant to be implemented internally by the crate.
 pub trait ContextMenu: sealed::ContextMenuBase + Send + Sync {
-	/// Popup this menu as a context menu on the specified window at the cursor position.
-	fn popup<R: crate::Runtime>(&self, window: crate::Window<R>) -> crate::Result<()>;
+	/// Popup this menu as a context menu on the specified window at the cursor
+	/// position.
+	fn popup<R:crate::Runtime>(&self, window:crate::Window<R>) -> crate::Result<()>;
 
-	/// Popup this menu as a context menu on the specified window at the specified position.
+	/// Popup this menu as a context menu on the specified window at the
+	/// specified position.
 	///
 	/// The position is relative to the window's top-left corner.
-	fn popup_at<R: crate::Runtime, P: Into<crate::Position>>(
+	fn popup_at<R:crate::Runtime, P:Into<crate::Position>>(
 		&self,
-		window: crate::Window<R>,
-		position: P,
+		window:crate::Window<R>,
+		position:P,
 	) -> crate::Result<()>;
 }
 
@@ -759,16 +765,16 @@ pub(crate) mod sealed {
 	pub trait ContextMenuBase {
 		fn inner_context(&self) -> &dyn muda::ContextMenu;
 		fn inner_context_owned(&self) -> Box<dyn muda::ContextMenu>;
-		fn popup_inner<R: crate::Runtime, P: Into<crate::Position>>(
+		fn popup_inner<R:crate::Runtime, P:Into<crate::Position>>(
 			&self,
-			window: crate::Window<R>,
-			position: Option<P>,
+			window:crate::Window<R>,
+			position:Option<P>,
 		) -> crate::Result<()>;
 	}
 }
 
 #[cfg(windows)]
-pub(crate) fn map_to_menu_theme(theme: tauri_utils::Theme) -> muda::MenuTheme {
+pub(crate) fn map_to_menu_theme(theme:tauri_utils::Theme) -> muda::MenuTheme {
 	match theme {
 		tauri_utils::Theme::Light => muda::MenuTheme::Light,
 		tauri_utils::Theme::Dark => muda::MenuTheme::Dark,

@@ -37,11 +37,7 @@ struct GlobalRuntime {
 
 impl GlobalRuntime {
 	fn handle(&self) -> RuntimeHandle {
-		if let Some(r) = &self.runtime {
-			r.handle()
-		} else {
-			self.handle.clone()
-		}
+		if let Some(r) = &self.runtime { r.handle() } else { self.handle.clone() }
 	}
 
 	fn spawn<F>(&self, task:F) -> JoinHandle<F::Output>
@@ -241,10 +237,7 @@ fn default_runtime() -> GlobalRuntime {
 /// Panics if the runtime is already set.
 pub fn set(handle:TokioHandle) {
 	RUNTIME
-		.set(GlobalRuntime {
-			runtime:None,
-			handle:RuntimeHandle::Tokio(handle),
-		})
+		.set(GlobalRuntime { runtime:None, handle:RuntimeHandle::Tokio(handle) })
 		.unwrap_or_else(|_| panic!("runtime already initialized"))
 }
 

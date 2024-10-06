@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use super::SectionItem;
-
 use colored::Colorize;
+
+use super::SectionItem;
 
 pub fn items() -> Vec<SectionItem> {
 	vec![SectionItem::new().action(|| {

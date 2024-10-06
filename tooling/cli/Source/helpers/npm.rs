@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{fmt::Display, path::Path, process::Command};
+
 use anyhow::Context;
 
 use crate::helpers::cross_command;
-use std::{fmt::Display, path::Path, process::Command};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum PackageManager {
@@ -17,7 +18,7 @@ pub enum PackageManager {
 }
 
 impl Display for PackageManager {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(
 			f,
 			"{}",
@@ -33,7 +34,7 @@ impl Display for PackageManager {
 }
 
 impl PackageManager {
-	pub fn from_project<P: AsRef<Path>>(path: P) -> Vec<Self> {
+	pub fn from_project<P:AsRef<Path>>(path:P) -> Vec<Self> {
 		let mut use_npm = false;
 
 		let mut use_pnpm = false;
@@ -90,11 +91,7 @@ impl PackageManager {
 		}
 	}
 
-	pub fn install<P: AsRef<Path>>(
-		&self,
-		dependencies: &[String],
-		app_dir: P,
-	) -> crate::Result<()> {
+	pub fn install<P:AsRef<Path>>(&self, dependencies:&[String], app_dir:P) -> crate::Result<()> {
 		let dependencies_str = if dependencies.len() > 1 { "dependencies" } else { "dependency" };
 		log::info!(
 			"Installing NPM {dependencies_str} {}...",
@@ -116,7 +113,7 @@ impl PackageManager {
 		Ok(())
 	}
 
-	pub fn remove<P: AsRef<Path>>(&self, dependencies: &[String], app_dir: P) -> crate::Result<()> {
+	pub fn remove<P:AsRef<Path>>(&self, dependencies:&[String], app_dir:P) -> crate::Result<()> {
 		let dependencies_str = if dependencies.len() > 1 { "dependencies" } else { "dependency" };
 		log::info!(
 			"Removing NPM {dependencies_str} {}...",
@@ -138,58 +135,68 @@ impl PackageManager {
 		Ok(())
 	}
 
-	pub fn current_package_version<P: AsRef<Path>>(
+	pub fn current_package_version<P:AsRef<Path>>(
 		&self,
-		name: &str,
-		app_dir: P,
+		name:&str,
+		app_dir:P,
 	) -> crate::Result<Option<String>> {
 		let (output, regex) = match self {
-			PackageManager::Yarn => (
-				cross_command("yarn")
-					.args(["list", "--pattern"])
-					.arg(name)
-					.args(["--depth", "0"])
-					.current_dir(app_dir)
-					.output()?,
-				None,
-			),
-			PackageManager::YarnBerry => (
-				cross_command("yarn")
-					.arg("info")
-					.arg(name)
-					.arg("--json")
-					.current_dir(app_dir)
-					.output()?,
-				Some(regex::Regex::new("\"Version\":\"([\\da-zA-Z\\-\\.]+)\"").unwrap()),
-			),
-			PackageManager::Npm => (
-				cross_command("npm")
-					.arg("list")
-					.arg(name)
-					.args(["version", "--depth", "0"])
-					.current_dir(app_dir)
-					.output()?,
-				None,
-			),
-			PackageManager::Pnpm => (
-				cross_command("pnpm")
-					.arg("list")
-					.arg(name)
-					.args(["--parseable", "--depth", "0"])
-					.current_dir(app_dir)
-					.output()?,
-				None,
-			),
+			PackageManager::Yarn => {
+				(
+					cross_command("yarn")
+						.args(["list", "--pattern"])
+						.arg(name)
+						.args(["--depth", "0"])
+						.current_dir(app_dir)
+						.output()?,
+					None,
+				)
+			},
+			PackageManager::YarnBerry => {
+				(
+					cross_command("yarn")
+						.arg("info")
+						.arg(name)
+						.arg("--json")
+						.current_dir(app_dir)
+						.output()?,
+					Some(regex::Regex::new("\"Version\":\"([\\da-zA-Z\\-\\.]+)\"").unwrap()),
+				)
+			},
+			PackageManager::Npm => {
+				(
+					cross_command("npm")
+						.arg("list")
+						.arg(name)
+						.args(["version", "--depth", "0"])
+						.current_dir(app_dir)
+						.output()?,
+					None,
+				)
+			},
+			PackageManager::Pnpm => {
+				(
+					cross_command("pnpm")
+						.arg("list")
+						.arg(name)
+						.args(["--parseable", "--depth", "0"])
+						.current_dir(app_dir)
+						.output()?,
+					None,
+				)
+			},
 			// Bun doesn't support `list` command
-			PackageManager::Bun => (
-				cross_command("npm")
-					.arg("list")
-					.arg(name)
-					.args(["version", "--depth", "0"])
-					.current_dir(app_dir)
-					.output()?,
-				None,
-			),
+			PackageManager::Bun => {
+				(
+					cross_command("npm")
+						.arg("list")
+						.arg(name)
+						.args(["version", "--depth", "0"])
+						.current_dir(app_dir)
+						.output()?,
+					None,
+				)
+			},
 		};
 		if output.status.success() {
 			let stdout = String::from_utf8_lossy(&output.stdout);

@@ -35,8 +35,8 @@ impl Parse for Input {
 			.map_err(|_| {
 				Error::new(
 					input.span(),
-					"default_runtime only supports `struct`, `enum`, `type`, \
-					 or `trait` definitions",
+					"default_runtime only supports `struct`, `enum`, `type`, or `trait` \
+					 definitions",
 				)
 			})
 	}
@@ -76,31 +76,22 @@ impl Parse for Attributes {
 	}
 }
 
-pub(crate) fn default_runtime(
-	attributes:Attributes,
-	input:Input,
-) -> TokenStream {
+pub(crate) fn default_runtime(attributes:Attributes, input:Input) -> TokenStream {
 	// create a new copy to manipulate for the wry feature flag
 	let mut wry = input.clone();
-	let wry_runtime = wry.last_param_mut().expect(
-		"default_runtime requires the item to have at least 1 generic \
-		 parameter",
-	);
+	let wry_runtime = wry
+		.last_param_mut()
+		.expect("default_runtime requires the item to have at least 1 generic parameter");
 
 	// set the default value of the last generic parameter to the provided
 	// runtime type
 	match wry_runtime {
-		GenericParam::Type(
-			param @ TypeParam { eq_token: None, default: None, .. },
-		) => {
+		GenericParam::Type(param @ TypeParam { eq_token: None, default: None, .. }) => {
 			param.eq_token = Some(parse_quote!(=));
 			param.default = Some(attributes.default_type);
 		},
 		_ => {
-			panic!(
-				"DefaultRuntime requires the last parameter to not have a \
-				 default value"
-			)
+			panic!("DefaultRuntime requires the last parameter to not have a default value")
 		},
 	};
 

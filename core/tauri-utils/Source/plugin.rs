@@ -37,9 +37,7 @@ mod build {
 		for (key, value) in vars_os() {
 			let key = key.to_string_lossy();
 
-			if key.starts_with("DEP_")
-				&& key.ends_with(GLOBAL_API_SCRIPT_PATH_KEY)
-			{
+			if key.starts_with("DEP_") && key.ends_with(GLOBAL_API_SCRIPT_PATH_KEY) {
 				let script_path = PathBuf::from(value);
 				scripts.push(script_path);
 			}
@@ -47,8 +45,7 @@ mod build {
 
 		std::fs::write(
 			out_dir.join(GLOBAL_API_SCRIPT_FILE_LIST_PATH),
-			serde_json::to_string(&scripts)
-				.expect("failed to serialize global API script paths"),
+			serde_json::to_string(&scripts).expect("failed to serialize global API script paths"),
 		)
 		.expect("failed to write global API script");
 	}

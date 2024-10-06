@@ -21,10 +21,25 @@ use notify::RecursiveMode;
 use notify_debouncer_mini::new_debouncer;
 use serde::{Deserialize, Deserializer};
 use tauri_bundler::{
-	AppCategory, AppImageSettings, BundleBinary, BundleSettings, DebianSettings, DmgSettings,
-	MacOsSettings, PackageSettings, Position, RpmSettings, Size, UpdaterSettings, WindowsSettings,
+	AppCategory,
+	AppImageSettings,
+	BundleBinary,
+	BundleSettings,
+	DebianSettings,
+	DmgSettings,
+	MacOsSettings,
+	PackageSettings,
+	Position,
+	RpmSettings,
+	Size,
+	UpdaterSettings,
+	WindowsSettings,
 };
-use tauri_utils::config::{parse::is_configuration_file, DeepLinkProtocol, Updater};
+use tauri_utils::{
+	config::{parse::is_configuration_file, DeepLinkProtocol, Updater},
+	display_path,
+	platform::Target,
+};
 
 use super::{AppSettings, DevProcess, ExitReason, Interface};
 use crate::{
@@ -34,93 +49,93 @@ use crate::{
 	},
 	ConfigValue,
 };
-use tauri_utils::{display_path, platform::Target};
 
 mod cargo_config;
 mod desktop;
 pub mod installation;
 pub mod manifest;
-use crate::helpers::config::custom_sign_settings;
 use cargo_config::Config as CargoConfig;
 use manifest::{rewrite_manifest, Manifest};
 
+use crate::helpers::config::custom_sign_settings;
+
 #[derive(Debug, Default, Clone)]
 pub struct Options {
-	pub runner: Option<String>,
-	pub debug: bool,
-	pub target: Option<String>,
-	pub features: Option<Vec<String>>,
-	pub args: Vec<String>,
-	pub config: Option<ConfigValue>,
-	pub no_watch: bool,
+	pub runner:Option<String>,
+	pub debug:bool,
+	pub target:Option<String>,
+	pub features:Option<Vec<String>>,
+	pub args:Vec<String>,
+	pub config:Option<ConfigValue>,
+	pub no_watch:bool,
 }
 
 impl From<crate::build::Options> for Options {
-	fn from(options: crate::build::Options) -> Self {
+	fn from(options:crate::build::Options) -> Self {
 		Self {
-			runner: options.runner,
-			debug: options.debug,
-			target: options.target,
-			features: options.features,
-			args: options.args,
-			config: options.config,
-			no_watch: true,
+			runner:options.runner,
+			debug:options.debug,
+			target:options.target,
+			features:options.features,
+			args:options.args,
+			config:options.config,
+			no_watch:true,
 		}
 	}
 }
 
 impl From<crate::bundle::Options> for Options {
-	fn from(options: crate::bundle::Options) -> Self {
+	fn from(options:crate::bundle::Options) -> Self {
 		Self {
-			debug: options.debug,
-			config: options.config,
-			target: options.target,
-			features: options.features,
-			no_watch: true,
+			debug:options.debug,
+			config:options.config,
+			target:options.target,
+			features:options.features,
+			no_watch:true,
 			..Default::default()
 		}
 	}
 }
 
 impl From<crate::dev::Options> for Options {
-	fn from(options: crate::dev::Options) -> Self {
+	fn from(options:crate::dev::Options) -> Self {
 		Self {
-			runner: options.runner,
-			debug: !options.release_mode,
-			target: options.target,
-			features: options.features,
-			args: options.args,
-			config: options.config,
-			no_watch: options.no_watch,
+			runner:options.runner,
+			debug:!options.release_mode,
+			target:options.target,
+			features:options.features,
+			args:options.args,
+			config:options.config,
+			no_watch:options.no_watch,
 		}
 	}
 }
 
 #[derive(Debug, Clone)]
 pub struct MobileOptions {
-	pub debug: bool,
-	pub features: Option<Vec<String>>,
-	pub args: Vec<String>,
-	pub config: Option<ConfigValue>,
-	pub no_watch: bool,
+	pub debug:bool,
+	pub features:Option<Vec<String>>,
+	pub args:Vec<String>,
+	pub config:Option<ConfigValue>,
+	pub no_watch:bool,
 }
 
 #[derive(Debug)]
 pub struct RustupTarget {
-	name: String,
-	installed: bool,
+	name:String,
+	installed:bool,
 }
 
 pub struct Rust {
-	app_settings: Arc<RustAppSettings>,
-	config_features: Vec<String>,
-	available_targets: Option<Vec<RustupTarget>>,
+	app_settings:Arc<RustAppSettings>,
+	config_features:Vec<String>,
+	available_targets:Option<Vec<RustupTarget>>,
 }
 
 impl Interface for Rust {
 	type AppSettings = RustAppSettings;
 
-	fn new(config: &Config, target: Option<String>) -> crate::Result<Self> {
+	fn new(config:&Config, target:Option<String>) -> crate::Result<Self> {
 		let manifest = {
 			let (tx, rx) = sync_channel(1);
 			let mut watcher = new_debouncer(Duration::from_secs(1), move |r| {
@@ -129,7 +144,9 @@ impl Interface for Rust {
 				}
 			})
 			.unwrap();
-			watcher.watcher().watch(&tauri_dir().join("Cargo.toml"), RecursiveMode::Recursive)?;
+			watcher
+				.watcher()
+				.watch(&tauri_dir().join("Cargo.toml"), RecursiveMode::Recursive)?;
 			let (manifest, _modified) = rewrite_manifest(config)?;
 			let now = Instant::now();
 			let timeout = Duration::from_secs(2);
@@ -153,17 +170,15 @@ impl Interface for Rust {
 		let app_settings = RustAppSettings::new(config, manifest, target)?;
 
 		Ok(Self {
-			app_settings: Arc::new(app_settings),
-			config_features: config.build.features.clone().unwrap_or_default(),
-			available_targets: None,
+			app_settings:Arc::new(app_settings),
+			config_features:config.build.features.clone().unwrap_or_default(),
+			available_targets:None,
 		})
 	}
 
-	fn app_settings(&self) -> Arc<Self::AppSettings> {
-		self.app_settings.clone()
-	}
+	fn app_settings(&self) -> Arc<Self::AppSettings> { self.app_settings.clone() }
 
-	fn build(&mut self, options: Options) -> crate::Result<()> {
+	fn build(&mut self, options:Options) -> crate::Result<()> {
 		desktop::build(
 			options,
 			&self.app_settings,
@@ -173,10 +188,10 @@ impl Interface for Rust {
 		Ok(())
 	}
 
-	fn dev<F: Fn(Option<i32>, ExitReason) + Send + Sync + 'static>(
+	fn dev<F:Fn(Option<i32>, ExitReason) + Send + Sync + 'static>(
 		&mut self,
-		mut options: Options,
-		on_exit: F,
+		mut options:Options,
+		on_exit:F,
 	) -> crate::Result<()> {
 		let on_exit = Arc::new(on_exit);
 
@@ -200,7 +215,7 @@ impl Interface for Rust {
 			Ok(())
 		} else {
 			let config = options.config.clone().map(|c| c.0);
-			let run = Arc::new(|rust: &mut Rust| {
+			let run = Arc::new(|rust:&mut Rust| {
 				let on_exit = on_exit.clone();
 				rust.run_dev(options.clone(), run_args.clone(), move |status, reason| {
 					on_exit(status, reason)
@@ -210,10 +225,10 @@ impl Interface for Rust {
 		}
 	}
 
-	fn mobile_dev<R: Fn(MobileOptions) -> crate::Result<Box<dyn DevProcess + Send>>>(
+	fn mobile_dev<R:Fn(MobileOptions) -> crate::Result<Box<dyn DevProcess + Send>>>(
 		&mut self,
-		mut options: MobileOptions,
-		runner: R,
+		mut options:MobileOptions,
+		runner:R,
 	) -> crate::Result<()> {
 		let mut run_args = Vec::new();
 		dev_options(
@@ -229,7 +244,7 @@ impl Interface for Rust {
 			Ok(())
 		} else {
 			let config = options.config.clone().map(|c| c.0);
-			let run = Arc::new(|_rust: &mut Rust| runner(options.clone()));
+			let run = Arc::new(|_rust:&mut Rust| runner(options.clone()));
 			self.run_dev_watcher(config, run)
 		}
 	}
@@ -240,7 +255,7 @@ impl Interface for Rust {
 
 		let target_triple = &self.app_settings.target_triple;
 
-		let target_components: Vec<&str> = target_triple.split('-').collect();
+		let target_components:Vec<&str> = target_triple.split('-').collect();
 
 		let (arch, host, _host_env) = match target_components.as_slice() {
 			// 3 components like aarch64-apple-darwin
@@ -250,7 +265,7 @@ impl Interface for Rust {
 			_ => {
 				log::warn!("Invalid target triple: {}", target_triple);
 				return env;
-			}
+			},
 		};
 
 		env.insert("TAURI_ENV_ARCH", arch.into());
@@ -270,7 +285,7 @@ impl Interface for Rust {
 struct IgnoreMatcher(Vec<Gitignore>);
 
 impl IgnoreMatcher {
-	fn is_ignore(&self, path: &Path, is_dir: bool) -> bool {
+	fn is_ignore(&self, path:&Path, is_dir:bool) -> bool {
 		for gitignore in &self.0 {
 			if path.starts_with(gitignore.path())
 				&& gitignore.matched_path_or_any_parents(path, is_dir).is_ignore()
@@ -282,12 +297,13 @@ impl IgnoreMatcher {
 	}
 }
 
-fn build_ignore_matcher(dir: &Path) -> IgnoreMatcher {
+fn build_ignore_matcher(dir:&Path) -> IgnoreMatcher {
 	let mut matchers = Vec::new();
 
 	// ignore crate doesn't expose an API to build `ignore::gitignore::GitIgnore`
 	// with custom ignore file names so we have to walk the directory and collect
-	// our custom ignore files and add it using `ignore::gitignore::GitIgnoreBuilder::add`
+	// our custom ignore files and add it using
+	// `ignore::gitignore::GitIgnoreBuilder::add`
 	for entry in ignore::WalkBuilder::new(dir)
 		.require_git(false)
 		.ignore(false)
@@ -324,7 +340,7 @@ fn build_ignore_matcher(dir: &Path) -> IgnoreMatcher {
 	IgnoreMatcher(matchers)
 }
 
-fn lookup<F: FnMut(FileType, PathBuf)>(dir: &Path, mut f: F) {
+fn lookup<F:FnMut(FileType, PathBuf)>(dir:&Path, mut f:F) {
 	let mut default_gitignore = std::env::temp_dir();
 	default_gitignore.push(".tauri");
 	let _ = std::fs::create_dir_all(&default_gitignore);
@@ -349,10 +365,10 @@ fn lookup<F: FnMut(FileType, PathBuf)>(dir: &Path, mut f: F) {
 }
 
 fn shared_options(
-	mobile: bool,
-	args: &mut Vec<String>,
-	features: &mut Option<Vec<String>>,
-	app_settings: &RustAppSettings,
+	mobile:bool,
+	args:&mut Vec<String>,
+	features:&mut Option<Vec<String>>,
+	app_settings:&RustAppSettings,
 ) {
 	if mobile {
 		args.push("--lib".into());
@@ -372,11 +388,11 @@ fn shared_options(
 }
 
 fn dev_options(
-	mobile: bool,
-	args: &mut Vec<String>,
-	run_args: &mut Vec<String>,
-	features: &mut Option<Vec<String>>,
-	app_settings: &RustAppSettings,
+	mobile:bool,
+	args:&mut Vec<String>,
+	run_args:&mut Vec<String>,
+	features:&mut Option<Vec<String>>,
+	app_settings:&RustAppSettings,
 ) {
 	let mut dev_args = Vec::new();
 	let mut reached_run_args = false;
@@ -396,7 +412,7 @@ fn dev_options(
 	if !args.contains(&"--no-default-features".into()) {
 		let manifest_features = app_settings.manifest.lock().unwrap().features();
 
-		let enable_features: Vec<String> = manifest_features
+		let enable_features:Vec<String> = manifest_features
 			.get("default")
 			.cloned()
 			.unwrap_or_default()
@@ -417,7 +433,7 @@ fn dev_options(
 }
 
 // Copied from https://github.com/rust-lang/cargo/blob/69255bb10de7f74511b5cef900a9d102247b6029/src/cargo/core/workspace.rs#L665
-fn expand_member_path(path: &Path) -> crate::Result<Vec<PathBuf>> {
+fn expand_member_path(path:&Path) -> crate::Result<Vec<PathBuf>> {
 	let Some(path) = path.to_str() else {
 		return Err(anyhow::anyhow!("path is not UTF-8 compatible"));
 	};
@@ -435,27 +451,30 @@ fn get_watch_folders() -> crate::Result<Vec<PathBuf>> {
 	// We always want to watch the main tauri folder.
 	let mut watch_folders = vec![tauri_path.to_path_buf()];
 
-	// We also try to watch workspace members, no matter if the tauri cargo project is the workspace root or a workspace member
+	// We also try to watch workspace members, no matter if the tauri cargo project
+	// is the workspace root or a workspace member
 	let cargo_settings = CargoSettings::load(&workspace_path)?;
 	if let Some(members) = cargo_settings.workspace.and_then(|w| w.members) {
 		for p in members {
 			let p = workspace_path.join(p);
 			match expand_member_path(&p) {
-				// Sometimes expand_member_path returns an empty vec, for example if the path contains `[]` as in `C:/[abc]/project/`.
-				// Cargo won't complain unless theres a workspace.members config with glob patterns so we should support it too.
+				// Sometimes expand_member_path returns an empty vec, for example if the path
+				// contains `[]` as in `C:/[abc]/project/`. Cargo won't complain unless theres a
+				// workspace.members config with glob patterns so we should support it too.
 				Ok(expanded_paths) => {
 					if expanded_paths.is_empty() {
 						watch_folders.push(p);
 					} else {
 						watch_folders.extend(expanded_paths);
 					}
-				}
+				},
 
 				Err(err) => {
-					// If this fails cargo itself should fail too. But we still try to keep going with the unexpanded path.
+					// If this fails cargo itself should fail too. But we still try to keep going
+					// with the unexpanded path.
 					log::error!("Error watching {}: {}", p.display(), err.to_string());
 					watch_folders.push(p);
-				}
+				},
 			};
 		}
 	}
@@ -466,19 +485,19 @@ fn get_watch_folders() -> crate::Result<Vec<PathBuf>> {
 impl Rust {
 	pub fn build_options(
 		&self,
-		args: &mut Vec<String>,
-		features: &mut Option<Vec<String>>,
-		mobile: bool,
+		args:&mut Vec<String>,
+		features:&mut Option<Vec<String>>,
+		mobile:bool,
 	) {
 		features.get_or_insert(Vec::new()).push("tauri/custom-protocol".into());
 		shared_options(mobile, args, features, &self.app_settings);
 	}
 
-	fn run_dev<F: Fn(Option<i32>, ExitReason) + Send + Sync + 'static>(
+	fn run_dev<F:Fn(Option<i32>, ExitReason) + Send + Sync + 'static>(
 		&mut self,
-		options: Options,
-		run_args: Vec<String>,
-		on_exit: F,
+		options:Options,
+		run_args:Vec<String>,
+		on_exit:F,
 	) -> crate::Result<Box<dyn DevProcess + Send>> {
 		desktop::run_dev(
 			options,
@@ -491,10 +510,10 @@ impl Rust {
 		.map(|c| Box::new(c) as Box<dyn DevProcess + Send>)
 	}
 
-	fn run_dev_watcher<F: Fn(&mut Rust) -> crate::Result<Box<dyn DevProcess + Send>>>(
+	fn run_dev_watcher<F:Fn(&mut Rust) -> crate::Result<Box<dyn DevProcess + Send>>>(
 		&mut self,
-		config: Option<serde_json::Value>,
-		run: Arc<F>,
+		config:Option<serde_json::Value>,
+		run:Arc<F>,
 	) -> crate::Result<()> {
 		let child = run(self)?;
 
@@ -564,7 +583,8 @@ impl Rust {
 						p.kill().with_context(|| "failed to kill app process")?;
 
 						// wait for the process to exit
-						// note that on mobile, kill() already waits for the process to exit (duct implementation)
+						// note that on mobile, kill() already waits for the process to exit (duct
+						// implementation)
 						loop {
 							if !matches!(p.try_wait(), Ok(None)) {
 								break;
@@ -588,11 +608,10 @@ pub enum MaybeWorkspace<T> {
 	Defined(T),
 }
 
-impl<'de, T: Deserialize<'de>> serde::de::Deserialize<'de> for MaybeWorkspace<T> {
-	fn deserialize<D>(deserializer: D) -> Result<MaybeWorkspace<T>, D::Error>
+impl<'de, T:Deserialize<'de>> serde::de::Deserialize<'de> for MaybeWorkspace<T> {
+	fn deserialize<D>(deserializer:D) -> Result<MaybeWorkspace<T>, D::Error>
 	where
-		D: serde::de::Deserializer<'de>,
-	{
+		D: serde::de::Deserializer<'de>, {
 		let value = serde_value::Value::deserialize(deserializer)?;
 		if let Ok(workspace) = TomlWorkspaceField::deserialize(serde_value::ValueDeserializer::<
 			D::Error,
@@ -608,20 +627,23 @@ impl<'de, T: Deserialize<'de>> serde::de::Deserialize<'de> for MaybeWorkspace<T>
 impl<T> MaybeWorkspace<T> {
 	fn resolve(
 		self,
-		label: &str,
-		get_ws_field: impl FnOnce() -> anyhow::Result<T>,
+		label:&str,
+		get_ws_field:impl FnOnce() -> anyhow::Result<T>,
 	) -> anyhow::Result<T> {
 		match self {
 			MaybeWorkspace::Defined(value) => Ok(value),
-			MaybeWorkspace::Workspace(TomlWorkspaceField { workspace: true }) => get_ws_field()
-				.context(format!(
-          "error inheriting `{label}` from workspace root manifest's `workspace.package.{label}`"
-        )),
+			MaybeWorkspace::Workspace(TomlWorkspaceField { workspace: true }) => {
+				get_ws_field().context(format!(
+					"error inheriting `{label}` from workspace root manifest's \
+					 `workspace.package.{label}`"
+				))
+			},
 			MaybeWorkspace::Workspace(TomlWorkspaceField { workspace: false }) => {
 				Err(anyhow::anyhow!("`workspace=false` is unsupported for `package.{}`", label,))
-			}
+			},
 		}
 	}
+
 	fn _as_defined(&self) -> Option<&T> {
 		match self {
 			MaybeWorkspace::Workspace(_) => None,
@@ -632,30 +654,30 @@ impl<T> MaybeWorkspace<T> {
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct TomlWorkspaceField {
-	workspace: bool,
+	workspace:bool,
 }
 
 /// The `workspace` section of the app configuration (read from Cargo.toml).
 #[derive(Clone, Debug, Deserialize)]
 struct WorkspaceSettings {
 	/// the workspace members.
-	members: Option<Vec<String>>,
-	package: Option<WorkspacePackageSettings>,
+	members:Option<Vec<String>>,
+	package:Option<WorkspacePackageSettings>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 struct WorkspacePackageSettings {
-	authors: Option<Vec<String>>,
-	description: Option<String>,
-	homepage: Option<String>,
-	version: Option<String>,
-	license: Option<String>,
+	authors:Option<Vec<String>>,
+	description:Option<String>,
+	homepage:Option<String>,
+	version:Option<String>,
+	license:Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 struct BinarySettings {
-	name: String,
-	path: Option<String>,
+	name:String,
+	path:Option<String>,
 }
 
 /// The package settings.
@@ -663,19 +685,19 @@ struct BinarySettings {
 #[serde(rename_all = "kebab-case")]
 pub struct CargoPackageSettings {
 	/// the package's name.
-	pub name: String,
+	pub name:String,
 	/// the package's version.
-	pub version: Option<MaybeWorkspace<String>>,
+	pub version:Option<MaybeWorkspace<String>>,
 	/// the package's description.
-	pub description: Option<MaybeWorkspace<String>>,
+	pub description:Option<MaybeWorkspace<String>>,
 	/// the package's homepage.
-	pub homepage: Option<MaybeWorkspace<String>>,
+	pub homepage:Option<MaybeWorkspace<String>>,
 	/// the package's authors.
-	pub authors: Option<MaybeWorkspace<Vec<String>>>,
+	pub authors:Option<MaybeWorkspace<Vec<String>>>,
 	/// the package's license.
-	pub license: Option<MaybeWorkspace<String>>,
+	pub license:Option<MaybeWorkspace<String>>,
 	/// the default binary to run.
-	pub default_run: Option<String>,
+	pub default_run:Option<String>,
 }
 
 /// The Cargo settings (Cargo.toml root descriptor).
@@ -683,38 +705,44 @@ pub struct CargoPackageSettings {
 struct CargoSettings {
 	/// the package settings.
 	///
-	/// it's optional because ancestor workspace Cargo.toml files may not have package info.
-	package: Option<CargoPackageSettings>,
+	/// it's optional because ancestor workspace Cargo.toml files may not have
+	/// package info.
+	package:Option<CargoPackageSettings>,
 	/// the workspace settings.
 	///
 	/// it's present if the read Cargo.toml belongs to a workspace root.
-	workspace: Option<WorkspaceSettings>,
+	workspace:Option<WorkspaceSettings>,
 	/// the binary targets configuration.
-	bin: Option<Vec<BinarySettings>>,
+	bin:Option<Vec<BinarySettings>>,
 }
 
 impl CargoSettings {
-	/// Try to load a set of CargoSettings from a "Cargo.toml" file in the specified directory.
-	fn load(dir: &Path) -> crate::Result<Self> {
+	/// Try to load a set of CargoSettings from a "Cargo.toml" file in the
+	/// specified directory.
+	fn load(dir:&Path) -> crate::Result<Self> {
 		let toml_path = dir.join("Cargo.toml");
 
 		let mut toml_str = String::new();
 
 		let mut toml_file = File::open(toml_path).with_context(|| "failed to open Cargo.toml")?;
-		toml_file.read_to_string(&mut toml_str).with_context(|| "failed to read Cargo.toml")?;
-		toml::from_str(&toml_str).with_context(|| "failed to parse Cargo.toml").map_err(Into::into)
+		toml_file
+			.read_to_string(&mut toml_str)
+			.with_context(|| "failed to read Cargo.toml")?;
+		toml::from_str(&toml_str)
+			.with_context(|| "failed to parse Cargo.toml")
+			.map_err(Into::into)
 	}
 }
 
 pub struct RustAppSettings {
-	manifest: Mutex<Manifest>,
-	cargo_settings: CargoSettings,
-	cargo_package_settings: CargoPackageSettings,
-	cargo_ws_package_settings: Option<WorkspacePackageSettings>,
-	package_settings: PackageSettings,
-	cargo_config: CargoConfig,
-	target_triple: String,
-	target: Target,
+	manifest:Mutex<Manifest>,
+	cargo_settings:CargoSettings,
+	cargo_package_settings:CargoPackageSettings,
+	cargo_ws_package_settings:Option<WorkspacePackageSettings>,
+	package_settings:PackageSettings,
+	cargo_config:CargoConfig,
+	target_triple:String,
+	target:Target,
 }
 
 #[derive(Deserialize)]
@@ -727,37 +755,36 @@ enum DesktopDeepLinks {
 #[derive(Deserialize)]
 pub struct UpdaterConfig {
 	/// Signature public key.
-	pub pubkey: String,
+	pub pubkey:String,
 	/// The Windows configuration for the updater.
 	#[serde(default)]
-	pub windows: UpdaterWindowsConfig,
+	pub windows:UpdaterWindowsConfig,
 }
 
 /// Install modes for the Windows update.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum WindowsUpdateInstallMode {
-	/// Specifies there's a basic UI during the installation process, including a final dialog box at the end.
+	/// Specifies there's a basic UI during the installation process, including
+	/// a final dialog box at the end.
 	BasicUi,
 	/// The quiet mode means there's no user interaction required.
 	/// Requires admin privileges if the installer does.
 	Quiet,
-	/// Specifies unattended mode, which means the installation only shows a progress bar.
+	/// Specifies unattended mode, which means the installation only shows a
+	/// progress bar.
 	Passive,
 	// to add more modes, we need to check if the updater relaunch makes sense
 	// i.e. for a full UI mode, the user can also mark the installer to start the app
 }
 
 impl Default for WindowsUpdateInstallMode {
-	fn default() -> Self {
-		Self::Passive
-	}
+	fn default() -> Self { Self::Passive }
 }
 
 impl<'de> Deserialize<'de> for WindowsUpdateInstallMode {
-	fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+	fn deserialize<D>(deserializer:D) -> std::result::Result<Self, D::Error>
 	where
-		D: Deserializer<'de>,
-	{
+		D: Deserializer<'de>, {
 		let s = String::deserialize(deserializer)?;
 		match s.to_lowercase().as_str() {
 			"basicui" => Ok(Self::BasicUi),
@@ -783,18 +810,16 @@ impl WindowsUpdateInstallMode {
 #[serde(rename_all = "camelCase")]
 pub struct UpdaterWindowsConfig {
 	#[serde(default, alias = "install-mode")]
-	pub install_mode: WindowsUpdateInstallMode,
+	pub install_mode:WindowsUpdateInstallMode,
 }
 
 impl AppSettings for RustAppSettings {
-	fn get_package_settings(&self) -> PackageSettings {
-		self.package_settings.clone()
-	}
+	fn get_package_settings(&self) -> PackageSettings { self.package_settings.clone() }
 
 	fn get_bundle_settings(
 		&self,
-		config: &Config,
-		features: &[String],
+		config:&Config,
+		features:&[String],
 	) -> crate::Result<BundleSettings> {
 		let arch64bits =
 			self.target_triple.starts_with("x86_64") || self.target_triple.starts_with("aarch64");
@@ -804,21 +829,22 @@ impl AppSettings for RustAppSettings {
 		let v1_compatible = matches!(config.bundle.create_updater_artifacts, Updater::String(_));
 
 		let updater_settings = if updater_enabled {
-			let updater: UpdaterConfig =
-				serde_json::from_value(
-					config
-						.plugins
-						.0
-						.get("updater")
-						.ok_or_else(|| {
-							anyhow::anyhow!("failed to get updater configuration: plugins > updater doesn't exist")
-						})?
-						.clone(),
-				)?;
+			let updater:UpdaterConfig = serde_json::from_value(
+				config
+					.plugins
+					.0
+					.get("updater")
+					.ok_or_else(|| {
+						anyhow::anyhow!(
+							"failed to get updater configuration: plugins > updater doesn't exist"
+						)
+					})?
+					.clone(),
+			)?;
 			Some(UpdaterSettings {
 				v1_compatible,
-				pubkey: updater.pubkey,
-				msiexec_args: updater.windows.install_mode.msiexec_args(),
+				pubkey:updater.pubkey,
+				msiexec_args:updater.windows.install_mode.msiexec_args(),
 			})
 		} else {
 			None
@@ -836,7 +862,7 @@ impl AppSettings for RustAppSettings {
 		if let Some(plugin_config) =
 			config.plugins.0.get("deep-link").and_then(|c| c.get("desktop").cloned())
 		{
-			let protocols: DesktopDeepLinks = serde_json::from_value(plugin_config.clone())?;
+			let protocols:DesktopDeepLinks = serde_json::from_value(plugin_config.clone())?;
 			settings.deep_link_protocols = Some(match protocols {
 				DesktopDeepLinks::One(p) => vec![p],
 				DesktopDeepLinks::List(p) => p,
@@ -846,7 +872,7 @@ impl AppSettings for RustAppSettings {
 		Ok(settings)
 	}
 
-	fn app_binary_path(&self, options: &Options) -> crate::Result<PathBuf> {
+	fn app_binary_path(&self, options:&Options) -> crate::Result<PathBuf> {
 		let binaries = self.get_binaries(&self.target_triple)?;
 
 		let bin_name =
@@ -855,16 +881,16 @@ impl AppSettings for RustAppSettings {
 		let out_dir =
 			self.out_dir(options).with_context(|| "failed to get project out directory")?;
 
-		let binary_extension: String =
+		let binary_extension:String =
 			if self.target_triple.contains("windows") { "exe" } else { "" }.into();
 
 		Ok(out_dir.join(bin_name).with_extension(binary_extension))
 	}
 
-	fn get_binaries(&self, target: &str) -> crate::Result<Vec<BundleBinary>> {
-		let mut binaries: Vec<BundleBinary> = vec![];
+	fn get_binaries(&self, target:&str) -> crate::Result<Vec<BundleBinary>> {
+		let mut binaries:Vec<BundleBinary> = vec![];
 
-		let binary_extension: String = if target.contains("windows") { ".exe" } else { "" }.into();
+		let binary_extension:String = if target.contains("windows") { ".exe" } else { "" }.into();
 
 		if let Some(bins) = &self.cargo_settings.bin {
 			let default_run = self.package_settings.default_run.clone().unwrap_or_default();
@@ -904,12 +930,14 @@ impl AppSettings for RustAppSettings {
 		}
 
 		match binaries.len() {
-			0 => binaries.push(BundleBinary::new(
-				format!("{}{}", self.cargo_package_settings.name, &binary_extension),
-				true,
-			)),
+			0 => {
+				binaries.push(BundleBinary::new(
+					format!("{}{}", self.cargo_package_settings.name, &binary_extension),
+					true,
+				))
+			},
 			1 => binaries.get_mut(0).unwrap().set_main(true),
-			_ => {}
+			_ => {},
 		}
 
 		Ok(binaries)
@@ -943,7 +971,7 @@ impl AppSettings for RustAppSettings {
 }
 
 impl RustAppSettings {
-	pub fn new(config: &Config, manifest: Manifest, target: Option<String>) -> crate::Result<Self> {
+	pub fn new(config:&Config, manifest:Manifest, target:Option<String>) -> crate::Result<Self> {
 		let cargo_settings =
 			CargoSettings::load(tauri_dir()).with_context(|| "failed to load cargo settings")?;
 
@@ -958,11 +986,11 @@ impl RustAppSettings {
 			.and_then(|v| v.package);
 
 		let package_settings = PackageSettings {
-			product_name: config
+			product_name:config
 				.product_name
 				.clone()
 				.unwrap_or_else(|| cargo_package_settings.name.clone()),
-			version: config.version.clone().unwrap_or_else(|| {
+			version:config.version.clone().unwrap_or_else(|| {
 				cargo_package_settings
 					.version
 					.clone()
@@ -978,7 +1006,7 @@ impl RustAppSettings {
 					})
 					.expect("Cargo project does not have a version")
 			}),
-			description: cargo_package_settings
+			description:cargo_package_settings
 				.description
 				.clone()
 				.map(|description| {
@@ -996,7 +1024,7 @@ impl RustAppSettings {
 						.unwrap()
 				})
 				.unwrap_or_default(),
-			homepage: cargo_package_settings.homepage.clone().map(|homepage| {
+			homepage:cargo_package_settings.homepage.clone().map(|homepage| {
 				homepage
 					.resolve("homepage", || {
 						ws_package_settings.as_ref().and_then(|v| v.homepage.clone()).ok_or_else(
@@ -1009,7 +1037,7 @@ impl RustAppSettings {
 					})
 					.unwrap()
 			}),
-			authors: cargo_package_settings.authors.clone().map(|authors| {
+			authors:cargo_package_settings.authors.clone().map(|authors| {
 				authors
 					.resolve("authors", || {
 						ws_package_settings.as_ref().and_then(|v| v.authors.clone()).ok_or_else(
@@ -1022,7 +1050,7 @@ impl RustAppSettings {
 					})
 					.unwrap()
 			}),
-			default_run: cargo_package_settings.default_run.clone(),
+			default_run:cargo_package_settings.default_run.clone(),
 		};
 
 		let cargo_config = CargoConfig::load(tauri_dir())?;
@@ -1047,10 +1075,10 @@ impl RustAppSettings {
 		let target = Target::from_triple(&target_triple);
 
 		Ok(Self {
-			manifest: Mutex::new(manifest),
+			manifest:Mutex::new(manifest),
 			cargo_settings,
 			cargo_package_settings,
-			cargo_ws_package_settings: ws_package_settings,
+			cargo_ws_package_settings:ws_package_settings,
 			package_settings,
 			cargo_config,
 			target_triple,
@@ -1058,19 +1086,19 @@ impl RustAppSettings {
 		})
 	}
 
-	fn target<'a>(&'a self, options: &'a Options) -> Option<&'a str> {
+	fn target<'a>(&'a self, options:&'a Options) -> Option<&'a str> {
 		options.target.as_deref().or_else(|| self.cargo_config.build().target())
 	}
 
-	pub fn out_dir(&self, options: &Options) -> crate::Result<PathBuf> {
+	pub fn out_dir(&self, options:&Options) -> crate::Result<PathBuf> {
 		get_target_dir(self.target(options), options)
 	}
 }
 
 #[derive(Deserialize)]
 pub(crate) struct CargoMetadata {
-	pub(crate) target_directory: PathBuf,
-	pub(crate) workspace_root: PathBuf,
+	pub(crate) target_directory:PathBuf,
+	pub(crate) workspace_root:PathBuf,
 }
 
 pub(crate) fn get_cargo_metadata() -> crate::Result<CargoMetadata> {
@@ -1089,14 +1117,15 @@ pub(crate) fn get_cargo_metadata() -> crate::Result<CargoMetadata> {
 	Ok(serde_json::from_slice(&output.stdout)?)
 }
 
-/// This function determines the 'target' directory and suffixes it with the profile
-/// to determine where the compiled binary will be located.
-fn get_target_dir(triple: Option<&str>, options: &Options) -> crate::Result<PathBuf> {
+/// This function determines the 'target' directory and suffixes it with the
+/// profile to determine where the compiled binary will be located.
+fn get_target_dir(triple:Option<&str>, options:&Options) -> crate::Result<PathBuf> {
 	let mut path = if let Some(target) = get_cargo_option(&options.args, "--target-dir") {
 		std::env::current_dir()?.join(target)
 	} else {
-		let mut path =
-			get_cargo_metadata().with_context(|| "failed to get cargo metadata")?.target_directory;
+		let mut path = get_cargo_metadata()
+			.with_context(|| "failed to get cargo metadata")?
+			.target_directory;
 
 		if let Some(triple) = triple {
 			path.push(triple);
@@ -1111,7 +1140,7 @@ fn get_target_dir(triple: Option<&str>, options: &Options) -> crate::Result<Path
 }
 
 #[inline]
-fn get_cargo_option<'a>(args: &'a [String], option: &'a str) -> Option<&'a str> {
+fn get_cargo_option<'a>(args:&'a [String], option:&'a str) -> Option<&'a str> {
 	args.iter().position(|a| a.starts_with(option)).and_then(|i| {
 		args[i]
 			.split_once('=')
@@ -1122,10 +1151,12 @@ fn get_cargo_option<'a>(args: &'a [String], option: &'a str) -> Option<&'a str> 
 
 /// Executes `cargo metadata` to get the workspace directory.
 pub fn get_workspace_dir() -> crate::Result<PathBuf> {
-	Ok(get_cargo_metadata().with_context(|| "failed to get cargo metadata")?.workspace_root)
+	Ok(get_cargo_metadata()
+		.with_context(|| "failed to get cargo metadata")?
+		.workspace_root)
 }
 
-pub fn get_profile(options: &Options) -> &str {
+pub fn get_profile(options:&Options) -> &str {
 	get_cargo_option(&options.args, "--profile").unwrap_or(if options.debug {
 		"dev"
 	} else {
@@ -1133,7 +1164,7 @@ pub fn get_profile(options: &Options) -> &str {
 	})
 }
 
-pub fn get_profile_dir(options: &Options) -> &str {
+pub fn get_profile_dir(options:&Options) -> &str {
 	match get_profile(options) {
 		"dev" => "debug",
 		profile => profile,
@@ -1142,12 +1173,12 @@ pub fn get_profile_dir(options: &Options) -> &str {
 
 #[allow(unused_variables)]
 fn tauri_config_to_bundle_settings(
-	settings: &RustAppSettings,
-	features: &[String],
-	identifier: String,
-	config: crate::helpers::config::BundleConfig,
-	updater_config: Option<UpdaterSettings>,
-	arch64bits: bool,
+	settings:&RustAppSettings,
+	features:&[String],
+	identifier:String,
+	config:crate::helpers::config::BundleConfig,
+	updater_config:Option<UpdaterSettings>,
+	arch64bits:bool,
 ) -> crate::Result<BundleSettings> {
 	let enabled_features = settings.manifest.lock().unwrap().all_enabled_features(features);
 
@@ -1174,7 +1205,7 @@ fn tauri_config_to_bundle_settings(
 	// set env vars used by the bundler and inject dependencies
 	#[cfg(target_os = "linux")]
 	{
-		let mut libs: Vec<String> = Vec::new();
+		let mut libs:Vec<String> = Vec::new();
 
 		if enabled_features.contains(&"tray-icon".into())
 			|| enabled_features.contains(&"tauri/tray-icon".into())
@@ -1185,19 +1216,24 @@ fn tauri_config_to_bundle_settings(
 						(
 							pkgconfig_utils::TrayKind::Ayatana,
 							format!(
-                "{}/libayatana-appindicator3.so.1",
-                pkgconfig_utils::get_library_path("ayatana-appindicator3-0.1")
-                  .expect("failed to get ayatana-appindicator library path using pkg-config.")
-              ),
+								"{}/libayatana-appindicator3.so.1",
+								pkgconfig_utils::get_library_path("ayatana-appindicator3-0.1")
+									.expect(
+										"failed to get ayatana-appindicator library path using \
+										 pkg-config."
+									)
+							),
 						)
 					} else {
 						(
 							pkgconfig_utils::TrayKind::Libappindicator,
 							format!(
-                "{}/libappindicator3.so.1",
-                pkgconfig_utils::get_library_path("appindicator3-0.1")
-                  .expect("failed to get libappindicator-gtk library path using pkg-config.")
-              ),
+								"{}/libappindicator3.so.1",
+								pkgconfig_utils::get_library_path("appindicator3-0.1").expect(
+									"failed to get libappindicator-gtk library path using \
+									 pkg-config."
+								)
+							),
 						)
 					}
 				})
@@ -1206,11 +1242,11 @@ fn tauri_config_to_bundle_settings(
 				pkgconfig_utils::TrayKind::Ayatana => {
 					depends_deb.push("libayatana-appindicator3-1".into());
 					libs.push("libayatana-appindicator3.so.1".into());
-				}
+				},
 				pkgconfig_utils::TrayKind::Libappindicator => {
 					depends_deb.push("libappindicator3-1".into());
 					libs.push("libappindicator3.so.1".into());
-				}
+				},
 			}
 
 			std::env::set_var("TAURI_TRAY_LIBRARY_PATH", path);
@@ -1241,22 +1277,26 @@ fn tauri_config_to_bundle_settings(
 	}
 
 	let signing_identity = match std::env::var_os("APPLE_SIGNING_IDENTITY") {
-		Some(signing_identity) => Some(
-			signing_identity
-				.to_str()
-				.expect("failed to convert APPLE_SIGNING_IDENTITY to string")
-				.to_string(),
-		),
+		Some(signing_identity) => {
+			Some(
+				signing_identity
+					.to_str()
+					.expect("failed to convert APPLE_SIGNING_IDENTITY to string")
+					.to_string(),
+			)
+		},
 		None => config.macos.signing_identity,
 	};
 
 	let provider_short_name = match std::env::var_os("APPLE_PROVIDER_SHORT_NAME") {
-		Some(provider_short_name) => Some(
-			provider_short_name
-				.to_str()
-				.expect("failed to convert APPLE_PROVIDER_SHORT_NAME to string")
-				.to_string(),
-		),
+		Some(provider_short_name) => {
+			Some(
+				provider_short_name
+					.to_str()
+					.expect("failed to convert APPLE_PROVIDER_SHORT_NAME to string")
+					.to_string(),
+			)
+		},
 		None => config.macos.provider_short_name,
 	};
 
@@ -1266,105 +1306,105 @@ fn tauri_config_to_bundle_settings(
 	};
 
 	Ok(BundleSettings {
-		identifier: Some(identifier),
-		publisher: config.publisher,
-		homepage: config.homepage,
-		icon: Some(config.icon),
+		identifier:Some(identifier),
+		publisher:config.publisher,
+		homepage:config.homepage,
+		icon:Some(config.icon),
 		resources,
 		resources_map,
-		copyright: config.copyright,
-		category: match config.category {
-			Some(category) => Some(AppCategory::from_str(&category).map_err(|e| match e {
-				Some(e) => anyhow::anyhow!("invalid category, did you mean `{}`?", e),
-				None => anyhow::anyhow!("invalid category"),
-			})?),
+		copyright:config.copyright,
+		category:match config.category {
+			Some(category) => {
+				Some(AppCategory::from_str(&category).map_err(|e| {
+					match e {
+						Some(e) => anyhow::anyhow!("invalid category, did you mean `{}`?", e),
+						None => anyhow::anyhow!("invalid category"),
+					}
+				})?)
+			},
 			None => None,
 		},
-		file_associations: config.file_associations,
-		short_description: config.short_description,
-		long_description: config.long_description,
-		external_bin: config.external_bin,
-		deb: DebianSettings {
-			depends: if depends_deb.is_empty() { None } else { Some(depends_deb) },
-			provides: config.linux.deb.provides,
-			conflicts: config.linux.deb.conflicts,
-			replaces: config.linux.deb.replaces,
-			files: config.linux.deb.files,
-			desktop_template: config.linux.deb.desktop_template,
-			section: config.linux.deb.section,
-			priority: config.linux.deb.priority,
-			changelog: config.linux.deb.changelog,
-			pre_install_script: config.linux.deb.pre_install_script,
-			post_install_script: config.linux.deb.post_install_script,
-			pre_remove_script: config.linux.deb.pre_remove_script,
-			post_remove_script: config.linux.deb.post_remove_script,
+		file_associations:config.file_associations,
+		short_description:config.short_description,
+		long_description:config.long_description,
+		external_bin:config.external_bin,
+		deb:DebianSettings {
+			depends:if depends_deb.is_empty() { None } else { Some(depends_deb) },
+			provides:config.linux.deb.provides,
+			conflicts:config.linux.deb.conflicts,
+			replaces:config.linux.deb.replaces,
+			files:config.linux.deb.files,
+			desktop_template:config.linux.deb.desktop_template,
+			section:config.linux.deb.section,
+			priority:config.linux.deb.priority,
+			changelog:config.linux.deb.changelog,
+			pre_install_script:config.linux.deb.pre_install_script,
+			post_install_script:config.linux.deb.post_install_script,
+			pre_remove_script:config.linux.deb.pre_remove_script,
+			post_remove_script:config.linux.deb.post_remove_script,
 		},
-		appimage: AppImageSettings { files: config.linux.appimage.files },
-		rpm: RpmSettings {
-			depends: if depends_rpm.is_empty() { None } else { Some(depends_rpm) },
-			provides: config.linux.rpm.provides,
-			conflicts: config.linux.rpm.conflicts,
-			obsoletes: config.linux.rpm.obsoletes,
-			release: config.linux.rpm.release,
-			epoch: config.linux.rpm.epoch,
-			files: config.linux.rpm.files,
-			desktop_template: config.linux.rpm.desktop_template,
-			pre_install_script: config.linux.rpm.pre_install_script,
-			post_install_script: config.linux.rpm.post_install_script,
-			pre_remove_script: config.linux.rpm.pre_remove_script,
-			post_remove_script: config.linux.rpm.post_remove_script,
+		appimage:AppImageSettings { files:config.linux.appimage.files },
+		rpm:RpmSettings {
+			depends:if depends_rpm.is_empty() { None } else { Some(depends_rpm) },
+			provides:config.linux.rpm.provides,
+			conflicts:config.linux.rpm.conflicts,
+			obsoletes:config.linux.rpm.obsoletes,
+			release:config.linux.rpm.release,
+			epoch:config.linux.rpm.epoch,
+			files:config.linux.rpm.files,
+			desktop_template:config.linux.rpm.desktop_template,
+			pre_install_script:config.linux.rpm.pre_install_script,
+			post_install_script:config.linux.rpm.post_install_script,
+			pre_remove_script:config.linux.rpm.pre_remove_script,
+			post_remove_script:config.linux.rpm.post_remove_script,
 		},
-		dmg: DmgSettings {
-			background: config.macos.dmg.background,
-			window_position: config
+		dmg:DmgSettings {
+			background:config.macos.dmg.background,
+			window_position:config
 				.macos
 				.dmg
 				.window_position
-				.map(|window_position| Position { x: window_position.x, y: window_position.y }),
-			window_size: Size {
-				width: config.macos.dmg.window_size.width,
-				height: config.macos.dmg.window_size.height,
+				.map(|window_position| Position { x:window_position.x, y:window_position.y }),
+			window_size:Size {
+				width:config.macos.dmg.window_size.width,
+				height:config.macos.dmg.window_size.height,
 			},
-			app_position: Position {
-				x: config.macos.dmg.app_position.x,
-				y: config.macos.dmg.app_position.y,
+			app_position:Position {
+				x:config.macos.dmg.app_position.x,
+				y:config.macos.dmg.app_position.y,
 			},
-			application_folder_position: Position {
-				x: config.macos.dmg.application_folder_position.x,
-				y: config.macos.dmg.application_folder_position.y,
+			application_folder_position:Position {
+				x:config.macos.dmg.application_folder_position.x,
+				y:config.macos.dmg.application_folder_position.y,
 			},
 		},
-		macos: MacOsSettings {
-			frameworks: config.macos.frameworks,
-			files: config.macos.files,
-			minimum_system_version: config.macos.minimum_system_version,
-			exception_domain: config.macos.exception_domain,
+		macos:MacOsSettings {
+			frameworks:config.macos.frameworks,
+			files:config.macos.files,
+			minimum_system_version:config.macos.minimum_system_version,
+			exception_domain:config.macos.exception_domain,
 			signing_identity,
-			hardened_runtime: config.macos.hardened_runtime,
+			hardened_runtime:config.macos.hardened_runtime,
 			provider_short_name,
-			entitlements: config.macos.entitlements,
-			info_plist_path: {
+			entitlements:config.macos.entitlements,
+			info_plist_path:{
 				let path = tauri_dir().join("Info.plist");
-				if path.exists() {
-					Some(path)
-				} else {
-					None
-				}
+				if path.exists() { Some(path) } else { None }
 			},
 		},
-		windows: WindowsSettings {
-			timestamp_url: config.windows.timestamp_url,
-			tsp: config.windows.tsp,
-			digest_algorithm: config.windows.digest_algorithm,
-			certificate_thumbprint: config.windows.certificate_thumbprint,
-			wix: config.windows.wix.map(wix_settings),
-			nsis: config.windows.nsis.map(nsis_settings),
-			icon_path: windows_icon_path,
-			webview_install_mode: config.windows.webview_install_mode,
-			allow_downgrades: config.windows.allow_downgrades,
-			sign_command: config.windows.sign_command.map(custom_sign_settings),
+		windows:WindowsSettings {
+			timestamp_url:config.windows.timestamp_url,
+			tsp:config.windows.tsp,
+			digest_algorithm:config.windows.digest_algorithm,
+			certificate_thumbprint:config.windows.certificate_thumbprint,
+			wix:config.windows.wix.map(wix_settings),
+			nsis:config.windows.nsis.map(nsis_settings),
+			icon_path:windows_icon_path,
+			webview_install_mode:config.windows.webview_install_mode,
+			allow_downgrades:config.windows.allow_downgrades,
+			sign_command:config.windows.sign_command.map(custom_sign_settings),
 		},
-		license: config.license.or_else(|| {
+		license:config.license.or_else(|| {
 			settings.cargo_package_settings.license.clone().map(|license| {
 				license
 					.resolve("license", || {
@@ -1381,8 +1421,8 @@ fn tauri_config_to_bundle_settings(
 					.unwrap()
 			})
 		}),
-		license_file: config.license_file.map(|l| tauri_dir().join(l)),
-		updater: updater_config,
+		license_file:config.license_file.map(|l| tauri_dir().join(l)),
+		updater:updater_config,
 		..Default::default()
 	})
 }
@@ -1399,15 +1439,17 @@ mod pkgconfig_utils {
 	pub fn get_appindicator_library_path() -> (TrayKind, String) {
 		match get_library_path("ayatana-appindicator3-0.1") {
 			Some(p) => (TrayKind::Ayatana, format!("{p}/libayatana-appindicator3.so.1")),
-			None => match get_library_path("appindicator3-0.1") {
-				Some(p) => (TrayKind::Libappindicator, format!("{p}/libappindicator3.so.1")),
-				None => panic!("Can't detect any appindicator library"),
+			None => {
+				match get_library_path("appindicator3-0.1") {
+					Some(p) => (TrayKind::Libappindicator, format!("{p}/libappindicator3.so.1")),
+					None => panic!("Can't detect any appindicator library"),
+				}
 			},
 		}
 	}
 
 	/// Gets the folder in which a library is located using `pkg-config`.
-	pub fn get_library_path(name: &str) -> Option<String> {
+	pub fn get_library_path(name:&str) -> Option<String> {
 		let mut cmd = Command::new("pkg-config");
 		cmd.env("PKG_CONFIG_ALLOW_SYSTEM_LIBS", "1");
 		cmd.arg("--libs-only-L");
@@ -1452,7 +1494,7 @@ mod tests {
 	#[test]
 	fn parse_profile_from_opts() {
 		let options = Options {
-			args: vec![
+			args:vec![
 				"build".into(),
 				"--".into(),
 				"--profile".into(),
@@ -1465,7 +1507,7 @@ mod tests {
 		assert_eq!(get_profile(&options), "testing");
 
 		let options = Options {
-			args: vec![
+			args:vec![
 				"build".into(),
 				"--".into(),
 				"--profile=customprofile".into(),
@@ -1478,8 +1520,8 @@ mod tests {
 		assert_eq!(get_profile(&options), "customprofile");
 
 		let options = Options {
-			debug: true,
-			args: vec![
+			debug:true,
+			args:vec![
 				"build".into(),
 				"--".into(),
 				"testing".into(),
@@ -1491,8 +1533,8 @@ mod tests {
 		assert_eq!(get_profile(&options), "dev");
 
 		let options = Options {
-			debug: false,
-			args: vec![
+			debug:false,
+			args:vec![
 				"build".into(),
 				"--".into(),
 				"testing".into(),
@@ -1504,7 +1546,7 @@ mod tests {
 		assert_eq!(get_profile(&options), "release");
 
 		let options = Options {
-			args: vec!["build".into(), "--".into(), "--profile".into()],
+			args:vec!["build".into(), "--".into(), "--profile".into()],
 			..Default::default()
 		};
 		assert_eq!(get_profile(&options), "release");
@@ -1517,7 +1559,7 @@ mod tests {
 		let current_dir = std::env::current_dir().unwrap();
 
 		let options = Options {
-			args: vec![
+			args:vec![
 				"build".into(),
 				"--".into(),
 				"--target-dir".into(),
@@ -1525,7 +1567,7 @@ mod tests {
 				"--features".into(),
 				"feat1".into(),
 			],
-			debug: false,
+			debug:false,
 			..Default::default()
 		};
 
@@ -1539,19 +1581,23 @@ mod tests {
 		);
 
 		let options = Options {
-			args: vec!["build".into(), "--".into(), "--features".into(), "feat1".into()],
-			debug: false,
+			args:vec!["build".into(), "--".into(), "--features".into(), "feat1".into()],
+			debug:false,
 			..Default::default()
 		};
 
 		#[cfg(windows)]
-		assert!(get_target_dir(Some("x86_64-pc-windows-msvc"), &options)
-			.unwrap()
-			.ends_with("x86_64-pc-windows-msvc\\release"));
+		assert!(
+			get_target_dir(Some("x86_64-pc-windows-msvc"), &options)
+				.unwrap()
+				.ends_with("x86_64-pc-windows-msvc\\release")
+		);
 		#[cfg(not(windows))]
-		assert!(get_target_dir(Some("x86_64-pc-windows-msvc"), &options)
-			.unwrap()
-			.ends_with("x86_64-pc-windows-msvc/release"));
+		assert!(
+			get_target_dir(Some("x86_64-pc-windows-msvc"), &options)
+				.unwrap()
+				.ends_with("x86_64-pc-windows-msvc/release")
+		);
 
 		#[cfg(windows)]
 		{

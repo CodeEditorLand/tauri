@@ -116,11 +116,7 @@ mod windows {
 		let parent = HWND(hwnd as _);
 
 		// return early if we already attached
-		if unsafe {
-			FindWindowExW(parent, HWND::default(), CLASS_NAME, WINDOW_NAME)
-		}
-		.is_ok()
-		{
+		if unsafe { FindWindowExW(parent, HWND::default(), CLASS_NAME, WINDOW_NAME) }.is_ok() {
 			return;
 		}
 
@@ -130,11 +126,7 @@ mod windows {
 			lpfnWndProc:Some(drag_resize_window_proc),
 			cbClsExtra:0,
 			cbWndExtra:0,
-			hInstance:unsafe {
-				HINSTANCE(
-					GetModuleHandleW(PCWSTR::null()).unwrap_or_default().0,
-				)
-			},
+			hInstance:unsafe { HINSTANCE(GetModuleHandleW(PCWSTR::null()).unwrap_or_default().0) },
 			hIcon:HICON::default(),
 			hCursor:HCURSOR::default(),
 			hbrBackground:HBRUSH::default(),
@@ -181,10 +173,7 @@ mod windows {
 				0,
 				0,
 				0,
-				SWP_ASYNCWINDOWPOS
-					| SWP_NOACTIVATE
-					| SWP_NOMOVE | SWP_NOOWNERZORDER
-					| SWP_NOSIZE,
+				SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE,
 			);
 
 			let _ = SetWindowSubclass(
@@ -215,9 +204,7 @@ mod windows {
 					0,
 					0,
 					0,
-					SWP_ASYNCWINDOWPOS
-						| SWP_NOACTIVATE | SWP_NOOWNERZORDER
-						| SWP_NOMOVE,
+					SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE,
 				);
 			} else {
 				let mut rect = RECT::default();
@@ -232,9 +219,7 @@ mod windows {
 						0,
 						width,
 						height,
-						SWP_ASYNCWINDOWPOS
-							| SWP_NOACTIVATE | SWP_NOOWNERZORDER
-							| SWP_NOMOVE,
+						SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE,
 					);
 
 					set_drag_hwnd_rgn(child, width, height);
@@ -269,8 +254,7 @@ mod windows {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
 
-				let (cx, cy) =
-					(GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
+				let (cx, cy) = (GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
 
 				let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
 				let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
@@ -307,8 +291,7 @@ mod windows {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
 
-				let (cx, cy) =
-					(GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
+				let (cx, cy) = (GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
 
 				let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
 				let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
@@ -348,9 +331,8 @@ mod windows {
 	pub fn detach_resize_handler(hwnd:isize) {
 		let hwnd = HWND(hwnd as _);
 
-		let Ok(child) = (unsafe {
-			FindWindowExW(hwnd, HWND::default(), CLASS_NAME, WINDOW_NAME)
-		}) else {
+		let Ok(child) = (unsafe { FindWindowExW(hwnd, HWND::default(), CLASS_NAME, WINDOW_NAME) })
+		else {
 			return;
 		};
 
@@ -366,12 +348,7 @@ mod windows {
 
 		let hrgn1 = CreateRectRgn(0, 0, width, height);
 
-		let hrgn2 = CreateRectRgn(
-			border_x,
-			border_y,
-			width - border_x,
-			height - border_y,
-		);
+		let hrgn2 = CreateRectRgn(border_x, border_y, width - border_x, height - border_y);
 		CombineRgn(hrgn1, hrgn1, hrgn2, RGN_DIFF);
 		SetWindowRgn(hwnd, hrgn1, true);
 	}
@@ -388,9 +365,7 @@ mod windows {
 	/// Implementation of the `GET_X_LPARAM` macro.
 	#[allow(non_snake_case)]
 	#[inline]
-	fn GET_X_LPARAM(lparam:LPARAM) -> i16 {
-		((lparam.0 as usize) & 0xFFFF) as u16 as i16
-	}
+	fn GET_X_LPARAM(lparam:LPARAM) -> i16 { ((lparam.0 as usize) & 0xFFFF) as u16 as i16 }
 
 	/// Implementation of the `GET_Y_LPARAM` macro.
 	#[allow(non_snake_case)]
@@ -441,28 +416,20 @@ mod gtk {
 		);
 
 		webview.connect_button_press_event(
-			move |webview:&webkit2gtk::WebView,
-			      event:&gtk::gdk::EventButton| {
+			move |webview:&webkit2gtk::WebView, event:&gtk::gdk::EventButton| {
 				if event.button() == 1 {
 					// This one should be GtkBox
-					if let Some(window) =
-						webview.parent().and_then(|w| w.parent())
-					{
+					if let Some(window) = webview.parent().and_then(|w| w.parent()) {
 						// Safe to unwrap unless this is not from tao
 						let window:gtk::Window = window.downcast().unwrap();
-						if !window.is_decorated()
-							&& window.is_resizable()
-							&& !window.is_maximized()
+						if !window.is_decorated() && window.is_resizable() && !window.is_maximized()
 						{
 							if let Some(window) = window.window() {
 								let (root_x, root_y) = event.root();
 								let (window_x, window_y) = window.position();
-								let (client_x, client_y) = (
-									root_x - window_x as f64,
-									root_y - window_y as f64,
-								);
-								let border = window.scale_factor()
-									* BORDERLESS_RESIZE_INSET;
+								let (client_x, client_y) =
+									(root_x - window_x as f64, root_y - window_y as f64);
+								let border = window.scale_factor() * BORDERLESS_RESIZE_INSET;
 								let edge = hit_test(
 									0.0,
 									0.0,
@@ -499,65 +466,54 @@ mod gtk {
 			},
 		);
 
-		webview.connect_touch_event(
-			move |webview:&webkit2gtk::WebView, event:&gtk::gdk::Event| {
-				// This one should be GtkBox
-				if let Some(window) = webview.parent().and_then(|w| w.parent())
-				{
-					// Safe to unwrap unless this is not from tao
-					let window:gtk::Window = window.downcast().unwrap();
-					if !window.is_decorated()
-						&& window.is_resizable()
-						&& !window.is_maximized()
-					{
-						if let Some(window) = window.window() {
-							if let Some((root_x, root_y)) = event.root_coords()
-							{
-								if let Some(device) = event.device() {
-									let (window_x, window_y) =
-										window.position();
-									let (client_x, client_y) = (
-										root_x - window_x as f64,
-										root_y - window_y as f64,
-									);
-									let border = window.scale_factor()
-										* BORDERLESS_RESIZE_INSET;
-									let edge = hit_test(
-										0.0,
-										0.0,
-										window.width() as f64,
-										window.height() as f64,
-										client_x,
-										client_y,
-										border as _,
-										border as _,
-									)
-									.to_gtk_edge();
+		webview.connect_touch_event(move |webview:&webkit2gtk::WebView, event:&gtk::gdk::Event| {
+			// This one should be GtkBox
+			if let Some(window) = webview.parent().and_then(|w| w.parent()) {
+				// Safe to unwrap unless this is not from tao
+				let window:gtk::Window = window.downcast().unwrap();
+				if !window.is_decorated() && window.is_resizable() && !window.is_maximized() {
+					if let Some(window) = window.window() {
+						if let Some((root_x, root_y)) = event.root_coords() {
+							if let Some(device) = event.device() {
+								let (window_x, window_y) = window.position();
+								let (client_x, client_y) =
+									(root_x - window_x as f64, root_y - window_y as f64);
+								let border = window.scale_factor() * BORDERLESS_RESIZE_INSET;
+								let edge = hit_test(
+									0.0,
+									0.0,
+									window.width() as f64,
+									window.height() as f64,
+									client_x,
+									client_y,
+									border as _,
+									border as _,
+								)
+								.to_gtk_edge();
 
-									// we ignore the `__Unknown` variant so the
-									// window receives the click correctly if it
-									// is not on the edges.
-									match edge {
-										WindowEdge::__Unknown(_) => (),
-										_ => {
-											window.begin_resize_drag_for_device(
-												edge,
-												&device,
-												0,
-												root_x as i32,
-												root_y as i32,
-												event.time(),
-											)
-										},
-									}
+								// we ignore the `__Unknown` variant so the
+								// window receives the click correctly if it
+								// is not on the edges.
+								match edge {
+									WindowEdge::__Unknown(_) => (),
+									_ => {
+										window.begin_resize_drag_for_device(
+											edge,
+											&device,
+											0,
+											root_x as i32,
+											root_y as i32,
+											event.time(),
+										)
+									},
 								}
 							}
 						}
 					}
 				}
+			}
 
-				Propagation::Proceed
-			},
-		);
+			Propagation::Proceed
+		});
 	}
 }

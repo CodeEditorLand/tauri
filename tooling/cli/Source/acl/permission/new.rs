@@ -5,6 +5,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
+use tauri_utils::acl::{manifest::PermissionFile, Commands, Permission};
 
 use crate::{
 	acl::FileFormat,
@@ -12,31 +13,29 @@ use crate::{
 	Result,
 };
 
-use tauri_utils::acl::{manifest::PermissionFile, Commands, Permission};
-
 #[derive(Debug, Parser)]
 #[clap(about = "Create a new permission file")]
 pub struct Options {
 	/// Permission identifier.
-	identifier: Option<String>,
+	identifier:Option<String>,
 	/// Permission description
 	#[clap(long)]
-	description: Option<String>,
+	description:Option<String>,
 	/// List of commands to allow
 	#[clap(short, long, use_value_delimiter = true)]
-	allow: Option<Vec<String>>,
+	allow:Option<Vec<String>>,
 	/// List of commands to deny
 	#[clap(short, long, use_value_delimiter = true)]
-	deny: Option<Vec<String>>,
+	deny:Option<Vec<String>>,
 	/// Output file format.
 	#[clap(long, default_value_t = FileFormat::Json)]
-	format: FileFormat,
+	format:FileFormat,
 	/// The output file.
 	#[clap(short, long)]
-	out: Option<PathBuf>,
+	out:Option<PathBuf>,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	let identifier = match options.identifier {
 		Some(i) => i,
 		None => prompts::input("What's the permission identifier?", None, false, false)?.unwrap(),
@@ -44,20 +43,22 @@ pub fn command(options: Options) -> Result<()> {
 
 	let description = match options.description {
 		Some(d) => Some(d),
-		None => prompts::input::<String>("What's the permission description?", None, false, true)?
-			.and_then(|d| if d.is_empty() { None } else { Some(d) }),
+		None => {
+			prompts::input::<String>("What's the permission description?", None, false, true)?
+				.and_then(|d| if d.is_empty() { None } else { Some(d) })
+		},
 	};
 
-	let allow: Vec<String> = options.allow.map(FromIterator::from_iter).unwrap_or_default();
-	let deny: Vec<String> = options.deny.map(FromIterator::from_iter).unwrap_or_default();
+	let allow:Vec<String> = options.allow.map(FromIterator::from_iter).unwrap_or_default();
+	let deny:Vec<String> = options.deny.map(FromIterator::from_iter).unwrap_or_default();
 
 	let permission = Permission {
-		version: None,
+		version:None,
 		identifier,
 		description,
-		commands: Commands { allow, deny },
-		scope: Default::default(),
-		platforms: Default::default(),
+		commands:Commands { allow, deny },
+		scope:Default::default(),
+		platforms:Default::default(),
 	};
 
 	let path = match options.out {
@@ -73,7 +74,7 @@ pub fn command(options: Options) -> Result<()> {
 				permission.identifier,
 				options.format.extension()
 			))
-		}
+		},
 	};
 
 	if path.exists() {
@@ -94,9 +95,9 @@ pub fn command(options: Options) -> Result<()> {
 	std::fs::write(
 		&path,
 		options.format.serialize(&PermissionFile {
-			default: None,
-			set: Vec::new(),
-			permission: vec![permission],
+			default:None,
+			set:Vec::new(),
+			permission:vec![permission],
 		})?,
 	)?;
 

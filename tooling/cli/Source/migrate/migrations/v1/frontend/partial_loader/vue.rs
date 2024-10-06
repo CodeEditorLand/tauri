@@ -10,22 +10,17 @@ use oxc_span::SourceType;
 use super::{find_script_closing_angle, JavaScriptSource, SCRIPT_END, SCRIPT_START};
 
 pub struct VuePartialLoader<'a> {
-	source_text: &'a str,
+	source_text:&'a str,
 }
 
 impl<'a> VuePartialLoader<'a> {
-	pub fn new(source_text: &'a str) -> Self {
-		Self { source_text }
-	}
+	pub fn new(source_text:&'a str) -> Self { Self { source_text } }
 
-	pub fn parse(self) -> Vec<JavaScriptSource<'a>> {
-		self.parse_scripts()
-	}
+	pub fn parse(self) -> Vec<JavaScriptSource<'a>> { self.parse_scripts() }
 
 	/// Each *.vue file can contain at most
 	///  * one `<script>` block (excluding `<script setup>`).
-	///  * one `<script setup>` block (excluding normal `<script>`).
-	///     <https://vuejs.org/api/sfc-spec.html#script>
+	///  * one `<script setup>` block (excluding normal `<script>`). <https://vuejs.org/api/sfc-spec.html#script>
 	fn parse_scripts(&self) -> Vec<JavaScriptSource<'a>> {
 		let mut pointer = 0;
 
@@ -39,7 +34,7 @@ impl<'a> VuePartialLoader<'a> {
 		vec![result1, result2]
 	}
 
-	fn parse_script(&self, pointer: &mut usize) -> Option<JavaScriptSource<'a>> {
+	fn parse_script(&self, pointer:&mut usize) -> Option<JavaScriptSource<'a>> {
 		let script_start_finder = Finder::new(SCRIPT_START);
 
 		let script_end_finder = Finder::new(SCRIPT_END);
@@ -80,7 +75,7 @@ impl<'a> VuePartialLoader<'a> {
 mod test {
 	use super::{JavaScriptSource, VuePartialLoader};
 
-	fn parse_vue(source_text: &str) -> JavaScriptSource<'_> {
+	fn parse_vue(source_text:&str) -> JavaScriptSource<'_> {
 		let sources = VuePartialLoader::new(source_text).parse();
 		*sources.first().unwrap()
 	}

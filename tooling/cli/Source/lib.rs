@@ -44,14 +44,7 @@ use std::{
 	sync::{Arc, Mutex},
 };
 
-use clap::{
-	ArgAction,
-	CommandFactory,
-	FromArgMatches,
-	Parser,
-	Subcommand,
-	ValueEnum,
-};
+use clap::{ArgAction, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
 use env_logger::{
 	fmt::style::{AnsiColor, Style},
 	Builder,
@@ -68,17 +61,13 @@ impl FromStr for ConfigValue {
 
 	fn from_str(config:&str) -> std::result::Result<Self, Self::Err> {
 		if config.starts_with('{') {
-			Ok(Self(
-				serde_json::from_str(config)
-					.context("invalid configuration JSON")?,
-			))
+			Ok(Self(serde_json::from_str(config).context("invalid configuration JSON")?))
 		} else {
 			let path = PathBuf::from(config);
 			if path.exists() {
 				Ok(Self(serde_json::from_str(
-					&read_to_string(&path).with_context(|| {
-						format!("invalid configuration at file {config}")
-					})?,
+					&read_to_string(&path)
+						.with_context(|| format!("invalid configuration at file {config}"))?,
 				)?))
 			} else {
 				anyhow::bail!("provided configuration path does not exist")
@@ -237,24 +226,17 @@ where
 				let action = action.to_cow_str().unwrap();
 				is_command_output = action == "stdout" || action == "stderr";
 				if !is_command_output {
-					let style = Style::new()
-						.fg_color(Some(AnsiColor::Green.into()))
-						.bold();
+					let style = Style::new().fg_color(Some(AnsiColor::Green.into())).bold();
 
 					write!(f, "    {style}{}{style:#} ", action)?;
 				}
 			} else {
 				let style = f.default_level_style(record.level()).bold();
-				write!(
-					f,
-					"    {style}{}{style:#} ",
-					prettyprint_level(record.level())
-				)?;
+				write!(f, "    {style}{}{style:#} ", prettyprint_level(record.level()))?;
 			}
 
 			if !is_command_output && log::log_enabled!(Level::Debug) {
-				let style =
-					Style::new().fg_color(Some(AnsiColor::Black.into()));
+				let style = Style::new().fg_color(Some(AnsiColor::Black.into()));
 
 				write!(f, "[{style}{}{style:#}] ", record.target())?;
 			}

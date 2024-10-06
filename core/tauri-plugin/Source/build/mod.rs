@@ -9,13 +9,13 @@ use tauri_utils::acl::{self, Error};
 
 pub mod mobile;
 
-use serde::de::DeserializeOwned;
-
 use std::{env::var, io::Cursor};
 
-const RESERVED_PLUGIN_NAMES: &[&str] = &["core", "tauri"];
+use serde::de::DeserializeOwned;
 
-pub fn plugin_config<T: DeserializeOwned>(name: &str) -> Option<T> {
+const RESERVED_PLUGIN_NAMES:&[&str] = &["core", "tauri"];
+
+pub fn plugin_config<T:DeserializeOwned>(name:&str) -> Option<T> {
 	let config_env_var_name =
 		format!("TAURI_{}_PLUGIN_CONFIG", name.to_uppercase().replace('-', "_"));
 	if let Ok(config_str) = var(&config_env_var_name) {
@@ -29,46 +29,48 @@ pub fn plugin_config<T: DeserializeOwned>(name: &str) -> Option<T> {
 }
 
 pub struct Builder<'a> {
-	commands: &'a [&'static str],
-	global_scope_schema: Option<schemars::schema::RootSchema>,
-	global_api_script_path: Option<PathBuf>,
-	android_path: Option<PathBuf>,
-	ios_path: Option<PathBuf>,
+	commands:&'a [&'static str],
+	global_scope_schema:Option<schemars::schema::RootSchema>,
+	global_api_script_path:Option<PathBuf>,
+	android_path:Option<PathBuf>,
+	ios_path:Option<PathBuf>,
 }
 
 impl<'a> Builder<'a> {
-	pub fn new(commands: &'a [&'static str]) -> Self {
+	pub fn new(commands:&'a [&'static str]) -> Self {
 		Self {
 			commands,
-			global_scope_schema: None,
-			global_api_script_path: None,
-			android_path: None,
-			ios_path: None,
+			global_scope_schema:None,
+			global_api_script_path:None,
+			android_path:None,
+			ios_path:None,
 		}
 	}
 
 	/// Sets the global scope JSON schema.
-	pub fn global_scope_schema(mut self, schema: schemars::schema::RootSchema) -> Self {
+	pub fn global_scope_schema(mut self, schema:schemars::schema::RootSchema) -> Self {
 		self.global_scope_schema.replace(schema);
 		self
 	}
 
-	/// Sets the path to the script that is injected in the webview when the `withGlobalTauri` configuration is set to true.
+	/// Sets the path to the script that is injected in the webview when the
+	/// `withGlobalTauri` configuration is set to true.
 	///
-	/// This is usually an IIFE that injects the plugin API JavaScript bindings to `window.__TAURI__`.
-	pub fn global_api_script_path<P: Into<PathBuf>>(mut self, path: P) -> Self {
+	/// This is usually an IIFE that injects the plugin API JavaScript bindings
+	/// to `window.__TAURI__`.
+	pub fn global_api_script_path<P:Into<PathBuf>>(mut self, path:P) -> Self {
 		self.global_api_script_path.replace(path.into());
 		self
 	}
 
 	/// Sets the Android project path.
-	pub fn android_path<P: Into<PathBuf>>(mut self, android_path: P) -> Self {
+	pub fn android_path<P:Into<PathBuf>>(mut self, android_path:P) -> Self {
 		self.android_path.replace(android_path.into());
 		self
 	}
 
 	/// Sets the iOS project path.
-	pub fn ios_path<P: Into<PathBuf>>(mut self, ios_path: P) -> Self {
+	pub fn ios_path<P:Into<PathBuf>>(mut self, ios_path:P) -> Self {
 		self.ios_path.replace(ios_path.into());
 		self
 	}
@@ -85,8 +87,9 @@ impl<'a> Builder<'a> {
 	///
 	/// # Errors
 	///
-	/// Errors will occur if environmental variables expected to be set inside of [build scripts]
-	/// are not found, or if the crate violates Tauri plugin conventions.
+	/// Errors will occur if environmental variables expected to be set inside
+	/// of [build scripts] are not found, or if the crate violates Tauri plugin
+	/// conventions.
 	pub fn try_build(self) -> Result<()> {
 		// convention: plugin names should not use underscores
 		let name = build_var("CARGO_PKG_NAME")?;
@@ -147,7 +150,7 @@ impl<'a> Builder<'a> {
 	}
 }
 
-fn cfg_alias(alias: &str, has_feature: bool) {
+fn cfg_alias(alias:&str, has_feature:bool) {
 	println!("cargo:rustc-check-cfg=cfg({alias})");
 	if has_feature {
 		println!("cargo:rustc-cfg={alias}");
@@ -155,6 +158,6 @@ fn cfg_alias(alias: &str, has_feature: bool) {
 }
 
 /// Grab an env var that is expected to be set inside of build scripts.
-fn build_var(key: &'static str) -> Result<String, Error> {
+fn build_var(key:&'static str) -> Result<String, Error> {
 	std::env::var(key).map_err(|_| Error::BuildVar(key))
 }

@@ -22,15 +22,12 @@ use crate::{
 
 #[derive(Debug, Clone, Parser)]
 #[clap(
-	about = "Build your app in release mode and generate bundles and \
-	         installers",
-	long_about = "Build your app in release mode and generate bundles and \
-	              installers. It makes use of the `build.frontendDist` \
-	              property from your `tauri.conf.json` file. It also runs \
-	              your `build.beforeBuildCommand` which usually builds your \
-	              frontend into `build.frontendDist`. This will also run \
-	              `build.beforeBundleCommand` before generating the bundles \
-	              and installers of your app."
+	about = "Build your app in release mode and generate bundles and installers",
+	long_about = "Build your app in release mode and generate bundles and installers. It makes \
+	              use of the `build.frontendDist` property from your `tauri.conf.json` file. It \
+	              also runs your `build.beforeBuildCommand` which usually builds your frontend \
+	              into `build.frontendDist`. This will also run `build.beforeBundleCommand` \
+	              before generating the bundles and installers of your app."
 )]
 pub struct Options {
 	/// Binary to use to build the application, defaults to `cargo`
@@ -86,10 +83,8 @@ pub fn command(mut options:Options, verbosity:u8) -> Result<()> {
 
 	let config = get_config(target, options.config.as_ref().map(|c| &c.0))?;
 
-	let mut interface = AppInterface::new(
-		config.lock().unwrap().as_ref().unwrap(),
-		options.target.clone(),
-	)?;
+	let mut interface =
+		AppInterface::new(config.lock().unwrap().as_ref().unwrap(), options.target.clone())?;
 
 	setup(&interface, &mut options, config.clone(), false)?;
 
@@ -108,9 +103,7 @@ pub fn command(mut options:Options, verbosity:u8) -> Result<()> {
 
 	let app_settings = interface.app_settings();
 
-	if !options.no_bundle
-		&& (config_.bundle.active || options.bundles.is_some())
-	{
+	if !options.no_bundle && (config_.bundle.active || options.bundles.is_some()) {
 		crate::bundle::bundle(
 			&options.into(),
 			verbosity,
@@ -132,8 +125,7 @@ pub fn setup(
 	mobile:bool,
 ) -> Result<()> {
 	let tauri_path = tauri_dir();
-	set_current_dir(tauri_path)
-		.with_context(|| "failed to change current working directory")?;
+	set_current_dir(tauri_path).with_context(|| "failed to change current working directory")?;
 
 	let config_guard = config.lock().unwrap();
 	let config_ = config_guard.as_ref().unwrap();
@@ -144,9 +136,8 @@ pub fn setup(
 
 	if config_.identifier == "com.tauri.dev" {
 		log::error!(
-			"You must change the bundle identifier in `{} identifier`. The \
-			 default value `com.tauri.dev` is not allowed as it must be \
-			 unique across applications.",
+			"You must change the bundle identifier in `{} identifier`. The default value \
+			 `com.tauri.dev` is not allowed as it must be unique across applications.",
 			bundle_identifier_source
 		);
 		std::process::exit(1);
@@ -158,9 +149,9 @@ pub fn setup(
 		.any(|ch| !(ch.is_alphanumeric() || ch == '-' || ch == '.'))
 	{
 		log::error!(
-			"The bundle identifier \"{}\" set in `{} identifier`. The bundle \
-			 identifier string must contain only alphanumeric characters \
-			 (A-Z, a-z, and 0-9), hyphens (-), and periods (.).",
+			"The bundle identifier \"{}\" set in `{} identifier`. The bundle identifier string \
+			 must contain only alphanumeric characters (A-Z, a-z, and 0-9), hyphens (-), and \
+			 periods (.).",
 			config_.identifier,
 			bundle_identifier_source
 		);
@@ -168,39 +159,27 @@ pub fn setup(
 	}
 
 	if let Some(before_build) = config_.build.before_build_command.clone() {
-		helpers::run_hook(
-			"beforeBuildCommand",
-			before_build,
-			interface,
-			options.debug,
-		)?;
+		helpers::run_hook("beforeBuildCommand", before_build, interface, options.debug)?;
 	}
 
-	if let Some(FrontendDist::Directory(web_asset_path)) =
-		&config_.build.frontend_dist
-	{
+	if let Some(FrontendDist::Directory(web_asset_path)) = &config_.build.frontend_dist {
 		if !web_asset_path.exists() {
 			let absolute_path = web_asset_path
 				.parent()
 				.and_then(|p| p.canonicalize().ok())
 				.map(|p| p.join(web_asset_path.file_name().unwrap()))
-				.unwrap_or_else(|| {
-					std::env::current_dir().unwrap().join(web_asset_path)
-				});
+				.unwrap_or_else(|| std::env::current_dir().unwrap().join(web_asset_path));
 			return Err(anyhow::anyhow!(
-				"Unable to find your web assets, did you forget to build your \
-				 web app? Your frontendDist is set to \"{}\" (which is `{}`).",
+				"Unable to find your web assets, did you forget to build your web app? Your \
+				 frontendDist is set to \"{}\" (which is `{}`).",
 				web_asset_path.display(),
 				absolute_path.display(),
 			));
 		}
-		if web_asset_path.canonicalize()?.file_name()
-			== Some(std::ffi::OsStr::new("src-tauri"))
-		{
+		if web_asset_path.canonicalize()?.file_name() == Some(std::ffi::OsStr::new("src-tauri")) {
 			return Err(anyhow::anyhow!(
-				"The configured frontendDist is the `src-tauri` folder. \
-				 Please isolate your web assets on a separate folder and \
-				 update `tauri.conf.json > build > frontendDist`.",
+				"The configured frontendDist is the `src-tauri` folder. Please isolate your web \
+				 assets on a separate folder and update `tauri.conf.json > build > frontendDist`.",
 			));
 		}
 
@@ -212,9 +191,8 @@ pub fn setup(
 		}
 		if !out_folders.is_empty() {
 			return Err(anyhow::anyhow!(
-				"The configured frontendDist includes the `{:?}` {}. Please \
-				 isolate your web assets on a separate folder and update \
-				 `tauri.conf.json > build > frontendDist`.",
+				"The configured frontendDist includes the `{:?}` {}. Please isolate your web \
+				 assets on a separate folder and update `tauri.conf.json > build > frontendDist`.",
 				out_folders,
 				if out_folders.len() == 1 { "folder" } else { "folders" }
 			));

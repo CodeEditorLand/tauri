@@ -338,13 +338,7 @@ pub trait WindowBuilder: WindowBuilderBase {
 	/// colors with alpha values different than `1.0` will produce a
 	/// transparent window.
 	#[cfg(any(not(target_os = "macos"), feature = "macos-private-api"))]
-	#[cfg_attr(
-		docsrs,
-		doc(cfg(any(
-			not(target_os = "macos"),
-			feature = "macos-private-api"
-		)))
-	)]
+	#[cfg_attr(docsrs, doc(cfg(any(not(target_os = "macos"), feature = "macos-private-api"))))]
 	#[must_use]
 	fn transparent(self, transparent:bool) -> Self;
 
@@ -471,8 +465,7 @@ pub struct PendingWindow<T:UserEvent, R:Runtime<T>> {
 	pub label:String,
 
 	/// The [`WindowBuilder`] that the window will be created with.
-	pub window_builder:
-		<R::WindowDispatcher as WindowDispatch<T>>::WindowBuilder,
+	pub window_builder:<R::WindowDispatcher as WindowDispatch<T>>::WindowBuilder,
 
 	/// The webview that gets added to the window. Optional in case you want to
 	/// use child webviews or other window content instead.
@@ -480,16 +473,15 @@ pub struct PendingWindow<T:UserEvent, R:Runtime<T>> {
 }
 
 pub fn is_label_valid(label:&str) -> bool {
-	label.chars().all(|c| {
-		char::is_alphanumeric(c) || c == '-' || c == '/' || c == ':' || c == '_'
-	})
+	label
+		.chars()
+		.all(|c| char::is_alphanumeric(c) || c == '-' || c == '/' || c == ':' || c == '_')
 }
 
 pub fn assert_label_is_valid(label:&str) {
 	assert!(
 		is_label_valid(label),
-		"Window label must include only alphanumeric characters, `-`, `/`, \
-		 `:` and `_`."
+		"Window label must include only alphanumeric characters, `-`, `/`, `:` and `_`."
 	);
 }
 
@@ -497,7 +489,7 @@ impl<T:UserEvent, R:Runtime<T>> PendingWindow<T, R> {
 	/// Create a new [`PendingWindow`] with a label from the given
 	/// [`WindowBuilder`].
 	pub fn new(
-		window_builder: <R::WindowDispatcher as WindowDispatch<T>>::WindowBuilder,
+		window_builder:<R::WindowDispatcher as WindowDispatch<T>>::WindowBuilder,
 		label:impl Into<String>,
 	) -> crate::Result<Self> {
 		let label = label.into();

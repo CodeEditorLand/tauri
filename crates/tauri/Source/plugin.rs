@@ -84,12 +84,7 @@ pub trait Plugin<R:Runtime>: Send {
 
 	/// Callback invoked when the webview performs a navigation to a page.
 	#[allow(unused_variables)]
-	fn on_page_load(
-		&mut self,
-		webview:&Webview<R>,
-		payload:&PageLoadPayload<'_>,
-	) {
-	}
+	fn on_page_load(&mut self, webview:&Webview<R>, payload:&PageLoadPayload<'_>) {}
 
 	/// Callback invoked when the event loop receives a new event.
 	#[allow(unused_variables)]
@@ -100,11 +95,8 @@ pub trait Plugin<R:Runtime>: Send {
 	fn extend_api(&mut self, invoke:Invoke<R>) -> bool { false }
 }
 
-type SetupHook<R, C> = dyn FnOnce(
-		&AppHandle<R>,
-		PluginApi<R, C>,
-	) -> Result<(), Box<dyn std::error::Error>>
-	+ Send;
+type SetupHook<R, C> =
+	dyn FnOnce(&AppHandle<R>, PluginApi<R, C>) -> Result<(), Box<dyn std::error::Error>> + Send;
 type OnWindowReady<R> = dyn FnMut(Window<R>) + Send;
 type OnWebviewReady<R> = dyn FnMut(Webview<R>) + Send;
 type OnEvent<R> = dyn FnMut(&AppHandle<R>, &RunEvent) + Send;
@@ -121,9 +113,7 @@ pub struct PluginHandle<R:Runtime> {
 }
 
 impl<R:Runtime> Clone for PluginHandle<R> {
-	fn clone(&self) -> Self {
-		Self { name:self.name, handle:self.handle.clone() }
-	}
+	fn clone(&self) -> Self { Self { name:self.name, handle:self.handle.clone() } }
 }
 
 impl<R:Runtime> PluginHandle<R> {
@@ -191,9 +181,7 @@ const RESERVED_PLUGIN_NAMES:&[&str] = &["core", "tauri"];
 /// 	Runtime,
 /// };
 ///
-/// pub fn init<R:Runtime>() -> TauriPlugin<R> {
-/// 	Builder::new("example").build()
-/// }
+/// pub fn init<R:Runtime>() -> TauriPlugin<R> { Builder::new("example").build() }
 /// ```
 ///
 /// When plugins expose more complex configuration options, it can be helpful to
@@ -213,11 +201,7 @@ const RESERVED_PLUGIN_NAMES:&[&str] = &["core", "tauri"];
 ///
 /// impl Default for Builder {
 /// 	fn default() -> Self {
-/// 		Self {
-/// 			option_a:"foo".to_string(),
-/// 			option_b:"bar".to_string(),
-/// 			option_c:false,
-/// 		}
+/// 		Self { option_a:"foo".to_string(), option_b:"bar".to_string(), option_c:false }
 /// 	}
 /// }
 ///
@@ -243,10 +227,7 @@ const RESERVED_PLUGIN_NAMES:&[&str] = &["core", "tauri"];
 /// 		PluginBuilder::new("example")
 /// 			.setup(move |app_handle, api| {
 /// 				// use the options here to do stuff
-/// 				println!(
-/// 					"a: {}, b: {}, c: {}",
-/// 					self.option_a, self.option_b, self.option_c
-/// 				);
+/// 				println!("a: {}, b: {}, c: {}", self.option_a, self.option_b, self.option_c);
 ///
 /// 				Ok(())
 /// 			})
@@ -309,9 +290,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	/// }
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
-	/// 	Builder::new("example")
-	/// 		.invoke_handler(tauri::generate_handler![foobar])
-	/// 		.build()
+	/// 	Builder::new("example").invoke_handler(tauri::generate_handler![foobar]).build()
 	/// }
 	/// ```
 	/// [tauri::generate_handler]: ../macro.generate_handler.html
@@ -395,10 +374,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	#[must_use]
 	pub fn setup<F>(mut self, setup:F) -> Self
 	where
-		F: FnOnce(
-				&AppHandle<R>,
-				PluginApi<R, C>,
-			) -> Result<(), Box<dyn std::error::Error>>
+		F: FnOnce(&AppHandle<R>, PluginApi<R, C>) -> Result<(), Box<dyn std::error::Error>>
 			+ Send
 			+ 'static, {
 		self.setup.replace(Box::new(setup));
@@ -420,8 +396,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	/// 	Builder::new("example")
 	/// 		.on_navigation(|webview, url| {
 	/// 			// allow the production URL or localhost on dev
-	/// 			url.scheme() == "tauri"
-	/// 				|| (cfg!(dev) && url.host_str() == Some("localhost"))
+	/// 			url.scheme() == "tauri" || (cfg!(dev) && url.host_str() == Some("localhost"))
 	/// 		})
 	/// 		.build()
 	/// }
@@ -613,10 +588,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	pub fn register_uri_scheme_protocol<
 		N:Into<String>,
 		T:Into<Cow<'static, [u8]>>,
-		H:Fn(
-				UriSchemeContext<'_, R>,
-				http::Request<Vec<u8>>,
-			) -> http::Response<T>
+		H:Fn(UriSchemeContext<'_, R>, http::Request<Vec<u8>>) -> http::Response<T>
 			+ Send
 			+ Sync
 			+ 'static,
@@ -656,46 +628,31 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
 	/// 	Builder::new("myplugin")
-	/// 		.register_asynchronous_uri_scheme_protocol(
-	/// 			"app-files",
-	/// 			|_ctx, request, responder| {
-	/// 				// skip leading `/`
-	/// 				let path = request.uri().path()[1..].to_string();
-	/// 				std::thread::spawn(move || {
-	/// 					if let Ok(data) = std::fs::read(path) {
-	/// 						responder.respond(
-	/// 							http::Response::builder().body(data).unwrap(),
-	/// 						);
-	/// 					} else {
-	/// 						responder.respond(
-	/// 							http::Response::builder()
-	/// 								.status(http::StatusCode::BAD_REQUEST)
-	/// 								.header(
-	/// 									http::header::CONTENT_TYPE,
-	/// 									mime::TEXT_PLAIN.essence_str(),
-	/// 								)
-	/// 								.body(
-	/// 									"failed to read file"
-	/// 										.as_bytes()
-	/// 										.to_vec(),
-	/// 								)
-	/// 								.unwrap(),
-	/// 						);
-	/// 					}
-	/// 				});
-	/// 			},
-	/// 		)
+	/// 		.register_asynchronous_uri_scheme_protocol("app-files", |_ctx, request, responder| {
+	/// 			// skip leading `/`
+	/// 			let path = request.uri().path()[1..].to_string();
+	/// 			std::thread::spawn(move || {
+	/// 				if let Ok(data) = std::fs::read(path) {
+	/// 					responder.respond(http::Response::builder().body(data).unwrap());
+	/// 				} else {
+	/// 					responder.respond(
+	/// 						http::Response::builder()
+	/// 							.status(http::StatusCode::BAD_REQUEST)
+	/// 							.header(http::header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
+	/// 							.body("failed to read file".as_bytes().to_vec())
+	/// 							.unwrap(),
+	/// 					);
+	/// 				}
+	/// 			});
+	/// 		})
 	/// 		.build()
 	/// }
 	/// ```
 	#[must_use]
 	pub fn register_asynchronous_uri_scheme_protocol<
 		N:Into<String>,
-		H:Fn(
-				UriSchemeContext<'_, R>,
-				http::Request<Vec<u8>>,
-				UriSchemeResponder,
-			) + Send
+		H:Fn(UriSchemeContext<'_, R>, http::Request<Vec<u8>>, UriSchemeResponder)
+			+ Send
 			+ Sync
 			+ 'static,
 	>(
@@ -703,18 +660,14 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 		uri_scheme:N,
 		protocol:H,
 	) -> Self {
-		self.uri_scheme_protocols.insert(
-			uri_scheme.into(),
-			Arc::new(UriSchemeProtocol { protocol:Box::new(protocol) }),
-		);
+		self.uri_scheme_protocols
+			.insert(uri_scheme.into(), Arc::new(UriSchemeProtocol { protocol:Box::new(protocol) }));
 		self
 	}
 
 	/// Builds the [`TauriPlugin`].
 	pub fn try_build(self) -> Result<TauriPlugin<R, C>, BuilderError> {
-		if let Some(&reserved) =
-			RESERVED_PLUGIN_NAMES.iter().find(|&r| r == &self.name)
-		{
+		if let Some(&reserved) = RESERVED_PLUGIN_NAMES.iter().find(|&r| r == &self.name) {
 			return Err(BuilderError::ReservedName(reserved.into()));
 		}
 
@@ -740,9 +693,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// If the builder returns an error during [`Self::try_build`], then this
 	/// method will panic.
-	pub fn build(self) -> TauriPlugin<R, C> {
-		self.try_build().expect("valid plugin")
-	}
+	pub fn build(self) -> TauriPlugin<R, C> { self.try_build().expect("valid plugin") }
 }
 
 /// Plugin struct that is returned by the [`Builder`]. Should only be
@@ -764,9 +715,7 @@ pub struct TauriPlugin<R:Runtime, C:DeserializeOwned = ()> {
 
 impl<R:Runtime, C:DeserializeOwned> Drop for TauriPlugin<R, C> {
 	fn drop(&mut self) {
-		if let (Some(on_drop), Some(app)) =
-			(self.on_drop.take(), self.app.take())
-		{
+		if let (Some(on_drop), Some(app)) = (self.on_drop.take(), self.app.take()) {
 			on_drop(app);
 		}
 	}
@@ -790,8 +739,8 @@ impl<R:Runtime, C:DeserializeOwned> Plugin<R> for TauriPlugin<R, C> {
 					raw_config:Arc::new(config.clone()),
 					config:serde_json::from_value(config).map_err(|err| {
 						format!(
-							"Error deserializing 'plugins.{}' within your \
-							 Tauri configuration: {err}",
+							"Error deserializing 'plugins.{}' within your Tauri configuration: \
+							 {err}",
 							self.name
 						)
 					})?,
@@ -800,44 +749,28 @@ impl<R:Runtime, C:DeserializeOwned> Plugin<R> for TauriPlugin<R, C> {
 		}
 
 		for (uri_scheme, protocol) in &self.uri_scheme_protocols {
-			app.manager
-				.webview
-				.register_uri_scheme_protocol(uri_scheme, protocol.clone())
+			app.manager.webview.register_uri_scheme_protocol(uri_scheme, protocol.clone())
 		}
 		Ok(())
 	}
 
-	fn initialization_script(&self) -> Option<String> {
-		self.js_init_script.clone()
-	}
+	fn initialization_script(&self) -> Option<String> { self.js_init_script.clone() }
 
-	fn window_created(&mut self, window:Window<R>) {
-		(self.on_window_ready)(window)
-	}
+	fn window_created(&mut self, window:Window<R>) { (self.on_window_ready)(window) }
 
-	fn webview_created(&mut self, webview:Webview<R>) {
-		(self.on_webview_ready)(webview)
-	}
+	fn webview_created(&mut self, webview:Webview<R>) { (self.on_webview_ready)(webview) }
 
 	fn on_navigation(&mut self, webview:&Webview<R>, url:&Url) -> bool {
 		(self.on_navigation)(webview, url)
 	}
 
-	fn on_page_load(
-		&mut self,
-		webview:&Webview<R>,
-		payload:&PageLoadPayload<'_>,
-	) {
+	fn on_page_load(&mut self, webview:&Webview<R>, payload:&PageLoadPayload<'_>) {
 		(self.on_page_load)(webview, payload)
 	}
 
-	fn on_event(&mut self, app:&AppHandle<R>, event:&RunEvent) {
-		(self.on_event)(app, event)
-	}
+	fn on_event(&mut self, app:&AppHandle<R>, event:&RunEvent) { (self.on_event)(app, event) }
 
-	fn extend_api(&mut self, invoke:Invoke<R>) -> bool {
-		(self.invoke_handler)(invoke)
-	}
+	fn extend_api(&mut self, invoke:Invoke<R>) -> bool { (self.invoke_handler)(invoke) }
 }
 
 /// Plugin collection type.
@@ -848,8 +781,7 @@ pub(crate) struct PluginStore<R:Runtime> {
 
 impl<R:Runtime> fmt::Debug for PluginStore<R> {
 	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
-		let plugins:Vec<&str> =
-			self.store.iter().map(|plugins| plugins.name()).collect();
+		let plugins:Vec<&str> = self.store.iter().map(|plugins| plugins.name()).collect();
 		f.debug_struct("PluginStore").field("plugins", &plugins).finish()
 	}
 }
@@ -893,9 +825,7 @@ impl<R:Runtime> PluginStore<R> {
 		app:&AppHandle<R>,
 		config:&PluginConfig,
 	) -> crate::Result<()> {
-		self.store
-			.iter_mut()
-			.try_for_each(|plugin| initialize(plugin, app, config))
+		self.store.iter_mut().try_for_each(|plugin| initialize(plugin, app, config))
 	}
 
 	/// Generates an initialization script from all plugins in the store.
@@ -911,34 +841,20 @@ impl<R:Runtime> PluginStore<R> {
 	pub(crate) fn window_created(&mut self, window:Window<R>) {
 		self.store.iter_mut().for_each(|plugin| {
 			#[cfg(feature = "tracing")]
-			let _span = tracing::trace_span!(
-				"plugin::hooks::created",
-				name = plugin.name()
-			)
-			.entered();
+			let _span = tracing::trace_span!("plugin::hooks::created", name = plugin.name()).entered();
 			plugin.window_created(window.clone())
 		})
 	}
 
 	/// Runs the webview created hook for all plugins in the store.
 	pub(crate) fn webview_created(&mut self, webview:Webview<R>) {
-		self.store
-			.iter_mut()
-			.for_each(|plugin| plugin.webview_created(webview.clone()))
+		self.store.iter_mut().for_each(|plugin| plugin.webview_created(webview.clone()))
 	}
 
-	pub(crate) fn on_navigation(
-		&mut self,
-		webview:&Webview<R>,
-		url:&Url,
-	) -> bool {
+	pub(crate) fn on_navigation(&mut self, webview:&Webview<R>, url:&Url) -> bool {
 		for plugin in self.store.iter_mut() {
 			#[cfg(feature = "tracing")]
-			let _span = tracing::trace_span!(
-				"plugin::hooks::on_navigation",
-				name = plugin.name()
-			)
-			.entered();
+			let _span = tracing::trace_span!("plugin::hooks::on_navigation", name = plugin.name()).entered();
 			if !plugin.on_navigation(webview, url) {
 				return false;
 			}
@@ -947,18 +863,10 @@ impl<R:Runtime> PluginStore<R> {
 	}
 
 	/// Runs the on_page_load hook for all plugins in the store.
-	pub(crate) fn on_page_load(
-		&mut self,
-		webview:&Webview<R>,
-		payload:&PageLoadPayload<'_>,
-	) {
+	pub(crate) fn on_page_load(&mut self, webview:&Webview<R>, payload:&PageLoadPayload<'_>) {
 		self.store.iter_mut().for_each(|plugin| {
 			#[cfg(feature = "tracing")]
-			let _span = tracing::trace_span!(
-				"plugin::hooks::on_page_load",
-				name = plugin.name()
-			)
-			.entered();
+			let _span = tracing::trace_span!("plugin::hooks::on_page_load", name = plugin.name()).entered();
 			plugin.on_page_load(webview, payload)
 		})
 	}
@@ -977,8 +885,7 @@ impl<R:Runtime> PluginStore<R> {
 		for p in self.store.iter_mut() {
 			if p.name() == plugin {
 				#[cfg(feature = "tracing")]
-				let _span = tracing::trace_span!("plugin::hooks::ipc", name = plugin)
-					.entered();
+				let _span = tracing::trace_span!("plugin::hooks::ipc", name = plugin).entered();
 				return p.extend_api(invoke);
 			}
 		}
@@ -994,16 +901,8 @@ fn initialize<R:Runtime>(
 	config:&PluginConfig,
 ) -> crate::Result<()> {
 	plugin
-		.initialize(
-			app,
-			config.0.get(plugin.name()).cloned().unwrap_or_default(),
-		)
-		.map_err(|e| {
-			Error::PluginInitialization(
-				plugin.name().to_string(),
-				e.to_string(),
-			)
-		})
+		.initialize(app, config.0.get(plugin.name()).cloned().unwrap_or_default())
+		.map_err(|e| Error::PluginInitialization(plugin.name().to_string(), e.to_string()))
 }
 
 /// Permission state.
@@ -1034,10 +933,7 @@ impl std::fmt::Display for PermissionState {
 }
 
 impl Serialize for PermissionState {
-	fn serialize<S>(
-		&self,
-		serializer:S,
-	) -> std::result::Result<S::Ok, S::Error>
+	fn serialize<S>(&self, serializer:S) -> std::result::Result<S::Ok, S::Error>
 	where
 		S: Serializer, {
 		serializer.serialize_str(self.to_string().as_ref())
@@ -1054,9 +950,7 @@ impl<'de> Deserialize<'de> for PermissionState {
 			"denied" => Ok(Self::Denied),
 			"prompt" => Ok(Self::Prompt),
 			"prompt-with-rationale" => Ok(Self::PromptWithRationale),
-			_ => {
-				Err(DeError::custom(format!("unknown permission state '{s}'")))
-			},
+			_ => Err(DeError::custom(format!("unknown permission state '{s}'"))),
 		}
 	}
 }

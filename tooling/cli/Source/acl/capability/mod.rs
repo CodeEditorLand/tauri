@@ -12,7 +12,7 @@ mod new;
 #[clap(about = "Manage or create capabilities for your app")]
 pub struct Cli {
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Subcommand, Debug)]
@@ -21,7 +21,7 @@ enum Commands {
 	New(new::Options),
 }
 
-pub fn command(cli: Cli) -> Result<()> {
+pub fn command(cli:Cli) -> Result<()> {
 	match cli.command {
 		Commands::New(options) => new::command(options),
 	}

@@ -2,21 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::Result;
-
-use serde_json::{Map, Value};
-use tauri_utils::acl::{
-	capability::{Capability, PermissionEntry},
-	Scopes, Value as AclValue,
-};
-
 use std::{
 	collections::{BTreeMap, HashSet},
 	fs,
 	path::Path,
 };
 
-pub fn migrate(tauri_dir: &Path) -> Result<MigratedConfig> {
+use serde_json::{Map, Value};
+use tauri_utils::acl::{
+	capability::{Capability, PermissionEntry},
+	Scopes,
+	Value as AclValue,
+};
+
+use crate::Result;
+
+pub fn migrate(tauri_dir:&Path) -> Result<MigratedConfig> {
 	if let Ok((mut config, config_path)) =
 		tauri_utils_v1::config::parse::parse_value(tauri_dir.join("tauri.conf.json"))
 	{
@@ -27,7 +28,7 @@ pub fn migrate(tauri_dir: &Path) -> Result<MigratedConfig> {
 			fs::write(&config_path, serde_json::to_string_pretty(&config)?)?;
 		}
 
-		let mut permissions: Vec<PermissionEntry> = vec!["core:default"]
+		let mut permissions:Vec<PermissionEntry> = vec!["core:default"]
 			.into_iter()
 			.map(|p| PermissionEntry::PermissionRef(p.to_string().try_into().unwrap()))
 			.collect();
@@ -38,14 +39,14 @@ pub fn migrate(tauri_dir: &Path) -> Result<MigratedConfig> {
 		fs::write(
 			capabilities_path.join("migrated.json"),
 			serde_json::to_string_pretty(&Capability {
-				identifier: "migrated".to_string(),
-				description: "permissions that were migrated from v1".into(),
-				local: true,
-				remote: None,
-				windows: vec!["main".into()],
-				webviews: vec![],
+				identifier:"migrated".to_string(),
+				description:"permissions that were migrated from v1".into(),
+				local:true,
+				remote:None,
+				windows:vec!["main".into()],
+				webviews:vec![],
 				permissions,
-				platforms: None,
+				platforms:None,
 			})?,
 		)?;
 
@@ -57,12 +58,12 @@ pub fn migrate(tauri_dir: &Path) -> Result<MigratedConfig> {
 
 #[derive(Default)]
 pub struct MigratedConfig {
-	pub permissions: Vec<PermissionEntry>,
-	pub plugins: HashSet<String>,
+	pub permissions:Vec<PermissionEntry>,
+	pub plugins:HashSet<String>,
 }
 
-fn migrate_config(config: &mut Value) -> Result<MigratedConfig> {
-	let mut migrated = MigratedConfig { permissions: Vec::new(), plugins: HashSet::new() };
+fn migrate_config(config:&mut Value) -> Result<MigratedConfig> {
+	let mut migrated = MigratedConfig { permissions:Vec::new(), plugins:HashSet::new() };
 
 	if let Some(config) = config.as_object_mut() {
 		process_package_metadata(config);
@@ -119,7 +120,8 @@ fn migrate_config(config: &mut Value) -> Result<MigratedConfig> {
 
 		process_bundle(config, &migrated);
 
-		// if we have migrated the updater config, let's ensure createUpdaterArtifacts is set
+		// if we have migrated the updater config, let's ensure createUpdaterArtifacts
+		// is set
 		if plugins.contains_key("updater") {
 			let bundle_config = config
 				.entry("bundle")
@@ -141,7 +143,7 @@ fn migrate_config(config: &mut Value) -> Result<MigratedConfig> {
 	Ok(migrated)
 }
 
-fn process_package_metadata(config: &mut Map<String, Value>) {
+fn process_package_metadata(config:&mut Map<String, Value>) {
 	if let Some(mut package_config) = config.remove("package") {
 		if let Some(package_config) = package_config.as_object_mut() {
 			if let Some((product_name, key)) = package_config
@@ -158,8 +160,10 @@ fn process_package_metadata(config: &mut Map<String, Value>) {
 		}
 	}
 
-	if let Some(bundle_config) =
-		config.get_mut("tauri").and_then(|t| t.get_mut("bundle")).and_then(|b| b.as_object_mut())
+	if let Some(bundle_config) = config
+		.get_mut("tauri")
+		.and_then(|t| t.get_mut("bundle"))
+		.and_then(|b| b.as_object_mut())
 	{
 		if let Some(identifier) = bundle_config.remove("identifier") {
 			config.insert("identifier".into(), identifier);
@@ -167,7 +171,7 @@ fn process_package_metadata(config: &mut Map<String, Value>) {
 	}
 }
 
-fn process_build(config: &mut Map<String, Value>) {
+fn process_build(config:&mut Map<String, Value>) {
 	if let Some(build_config) = config.get_mut("build").and_then(|b| b.as_object_mut()) {
 		if let Some((dist_dir, key)) = build_config
 			.remove("distDir")
@@ -199,11 +203,13 @@ fn process_build(config: &mut Map<String, Value>) {
 	}
 }
 
-fn process_bundle(config: &mut Map<String, Value>, migrated: &MigratedConfig) {
+fn process_bundle(config:&mut Map<String, Value>, migrated:&MigratedConfig) {
 	let mut license_file = None;
 
-	if let Some(mut bundle_config) =
-		config.get_mut("tauri").and_then(|b| b.as_object_mut()).and_then(|t| t.remove("bundle"))
+	if let Some(mut bundle_config) = config
+		.get_mut("tauri")
+		.and_then(|b| b.as_object_mut())
+		.and_then(|t| t.remove("bundle"))
 	{
 		if let Some(bundle_config) = bundle_config.as_object_mut() {
 			if let Some(deb) = bundle_config.remove("deb") {
@@ -320,13 +326,13 @@ fn process_bundle(config: &mut Map<String, Value>, migrated: &MigratedConfig) {
 	}
 }
 
-fn process_security(security: &mut Map<String, Value>) -> Result<()> {
+fn process_security(security:&mut Map<String, Value>) -> Result<()> {
 	// migrate CSP: add `ipc:` to `connect-src`
 	if let Some(csp_value) = security.remove("csp") {
 		let csp = if csp_value.is_null() {
 			csp_value
 		} else {
-			let mut csp: tauri_utils_v1::config::Csp = serde_json::from_value(csp_value)?;
+			let mut csp:tauri_utils_v1::config::Csp = serde_json::from_value(csp_value)?;
 			match &mut csp {
 				tauri_utils_v1::config::Csp::Policy(csp) => {
 					if csp.contains("connect-src") {
@@ -334,7 +340,7 @@ fn process_security(security: &mut Map<String, Value>) -> Result<()> {
 					} else {
 						*csp = format!("{csp}; connect-src ipc: http://ipc.localhost");
 					}
-				}
+				},
 				tauri_utils_v1::config::Csp::DirectiveMap(csp) => {
 					if let Some(connect_src) = csp.get_mut("connect-src") {
 						if !connect_src.contains("ipc: http://ipc.localhost") {
@@ -348,7 +354,7 @@ fn process_security(security: &mut Map<String, Value>) -> Result<()> {
 							]),
 						);
 					}
-				}
+				},
 			}
 			serde_json::to_value(csp)?
 		};
@@ -371,10 +377,10 @@ fn process_security(security: &mut Map<String, Value>) -> Result<()> {
 }
 
 fn process_allowlist(
-	tauri_config: &mut Map<String, Value>,
-	allowlist: Value,
+	tauri_config:&mut Map<String, Value>,
+	allowlist:Value,
 ) -> Result<tauri_utils_v1::config::AllowlistConfig> {
-	let allowlist: tauri_utils_v1::config::AllowlistConfig = serde_json::from_value(allowlist)?;
+	let allowlist:tauri_utils_v1::config::AllowlistConfig = serde_json::from_value(allowlist)?;
 
 	if allowlist.protocol.asset_scope != Default::default() {
 		let security = tauri_config
@@ -396,10 +402,16 @@ fn process_allowlist(
 }
 
 fn allowlist_to_permissions(
-	allowlist: tauri_utils_v1::config::AllowlistConfig,
+	allowlist:tauri_utils_v1::config::AllowlistConfig,
 ) -> Vec<PermissionEntry> {
 	macro_rules! permissions {
-		($allowlist: ident, $permissions_list: ident, $object: ident, $field: ident => $associated_permission: expr) => {{
+		(
+			$allowlist:ident,
+			$permissions_list:ident,
+			$object:ident,
+			$field:ident =>
+			$associated_permission:expr
+		) => {{
 			if $allowlist.all || $allowlist.$object.all || $allowlist.$object.$field {
 				$permissions_list.push(PermissionEntry::PermissionRef(
 					$associated_permission.to_string().try_into().unwrap(),
@@ -438,10 +450,10 @@ fn allowlist_to_permissions(
 			.map(|p| AclValue::String(p.to_string_lossy().into()))
 			.collect::<Vec<_>>();
 		permissions.push(PermissionEntry::ExtendedPermission {
-			identifier: "fs:scope".to_string().try_into().unwrap(),
-			scope: Scopes {
-				allow: if fs_allowed.is_empty() { None } else { Some(fs_allowed) },
-				deny: if fs_denied.is_empty() { None } else { Some(fs_denied) },
+			identifier:"fs:scope".to_string().try_into().unwrap(),
+			scope:Scopes {
+				allow:if fs_allowed.is_empty() { None } else { Some(fs_allowed) },
+				deny:if fs_denied.is_empty() { None } else { Some(fs_denied) },
 			},
 		});
 	}
@@ -498,8 +510,8 @@ fn allowlist_to_permissions(
 			.collect::<Vec<_>>();
 
 		permissions.push(PermissionEntry::ExtendedPermission {
-			identifier: "shell:allow-execute".to_string().try_into().unwrap(),
-			scope: Scopes { allow: Some(allowed), deny: None },
+			identifier:"shell:allow-execute".to_string().try_into().unwrap(),
+			scope:Scopes { allow:Some(allowed), deny:None },
 		});
 	}
 
@@ -535,8 +547,8 @@ fn allowlist_to_permissions(
 			.collect::<Vec<_>>();
 
 		permissions.push(PermissionEntry::ExtendedPermission {
-			identifier: "http:default".to_string().try_into().unwrap(),
-			scope: Scopes { allow: Some(allowed), deny: None },
+			identifier:"http:default".to_string().try_into().unwrap(),
+			scope:Scopes { allow:Some(allowed), deny:None },
 		});
 	}
 
@@ -570,7 +582,7 @@ fn allowlist_to_permissions(
 	permissions
 }
 
-fn process_cli(plugins: &mut Map<String, Value>, cli: Value) -> Result<()> {
+fn process_cli(plugins:&mut Map<String, Value>, cli:Value) -> Result<()> {
 	if let Some(cli) = cli.as_object() {
 		plugins.insert("cli".into(), serde_json::to_value(cli)?);
 	}
@@ -578,9 +590,9 @@ fn process_cli(plugins: &mut Map<String, Value>, cli: Value) -> Result<()> {
 }
 
 fn process_updater(
-	tauri_config: &mut Map<String, Value>,
-	plugins: &mut Map<String, Value>,
-	migrated: &mut MigratedConfig,
+	tauri_config:&mut Map<String, Value>,
+	plugins:&mut Map<String, Value>,
+	migrated:&mut MigratedConfig,
 ) -> Result<()> {
 	if let Some(mut updater) = tauri_config.remove("updater") {
 		if let Some(updater) = updater.as_object_mut() {
@@ -588,8 +600,9 @@ fn process_updater(
 
 			// we only migrate the updater config if it's active
 			// since we now assume it's always active if the config object is set
-			// we also migrate if pubkey is set so we do not lose that information on the migration
-			// in this case, the user need to deal with the updater being inactive on their own
+			// we also migrate if pubkey is set so we do not lose that information on the
+			// migration in this case, the user need to deal with the updater being
+			// inactive on their own
 			if updater.remove("active").and_then(|a| a.as_bool()).unwrap_or_default()
 				|| updater.get("pubkey").is_some()
 			{
@@ -602,7 +615,7 @@ fn process_updater(
 	Ok(())
 }
 
-const KNOWN_PLUGINS: &[&str] = &[
+const KNOWN_PLUGINS:&[&str] = &[
 	"fs",
 	"shell",
 	"dialog",
@@ -614,7 +627,7 @@ const KNOWN_PLUGINS: &[&str] = &[
 	"clipboard-manager",
 ];
 
-fn plugins_from_permissions(permissions: &Vec<PermissionEntry>) -> HashSet<String> {
+fn plugins_from_permissions(permissions:&Vec<PermissionEntry>) -> HashSet<String> {
 	let mut plugins = HashSet::new();
 
 	for permission in permissions {
@@ -632,7 +645,7 @@ fn plugins_from_permissions(permissions: &Vec<PermissionEntry>) -> HashSet<Strin
 
 #[cfg(test)]
 mod test {
-	fn migrate(original: &serde_json::Value) -> serde_json::Value {
+	fn migrate(original:&serde_json::Value) -> serde_json::Value {
 		let mut migrated = original.clone();
 		super::migrate_config(&mut migrated).expect("failed to migrate config");
 
@@ -961,10 +974,12 @@ mod test {
 			migrated["app"]["security"]["csp"]["default-src"],
 			original["tauri"]["security"]["csp"]["default-src"]
 		);
-		assert!(migrated["app"]["security"]["csp"]["connect-src"]
-			.as_array()
-			.expect("connect-src isn't an array")
-			.contains(&"ipc: http://ipc.localhost".into()));
+		assert!(
+			migrated["app"]["security"]["csp"]["connect-src"]
+				.as_array()
+				.expect("connect-src isn't an array")
+				.contains(&"ipc: http://ipc.localhost".into())
+		);
 	}
 
 	#[test]
@@ -1024,7 +1039,10 @@ mod test {
 		let original_connect_src =
 			original["tauri"]["security"]["csp"]["connect-src"].as_array().unwrap();
 		assert!(
-			migrated_connect_src.iter().zip(original_connect_src.iter()).all(|(a, b)| a == b),
+			migrated_connect_src
+				.iter()
+				.zip(original_connect_src.iter())
+				.all(|(a, b)| a == b),
 			"connect-src migration failed"
 		);
 	}

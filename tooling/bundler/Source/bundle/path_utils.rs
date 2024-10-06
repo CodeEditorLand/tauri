@@ -11,60 +11,57 @@ use std::{
 /// Directory options.
 #[derive(Default, Clone)]
 pub struct DirOpts {
-	pub depth: u64,
+	pub depth:u64,
 }
 
 /// File options.
 pub struct FileOpts {
-	pub overwrite: bool,
-	pub skip: bool,
+	pub overwrite:bool,
+	pub skip:bool,
 	#[allow(dead_code)]
-	pub buffer_size: usize,
+	pub buffer_size:usize,
 }
 
 /// Copy options.
 #[derive(Clone)]
 pub struct Options {
-	pub overwrite: bool,
-	pub skip: bool,
-	pub buffer_size: usize,
-	pub copy_files: bool,
-	pub content_only: bool,
-	pub depth: u64,
+	pub overwrite:bool,
+	pub skip:bool,
+	pub buffer_size:usize,
+	pub copy_files:bool,
+	pub content_only:bool,
+	pub depth:u64,
 }
 
 /// Directory information descriptor
 pub struct DirInfo {
-	pub size: u64,
-	pub files: Vec<String>,
-	pub directories: Vec<String>,
+	pub size:u64,
+	pub files:Vec<String>,
+	pub directories:Vec<String>,
 }
 
 impl Default for Options {
 	fn default() -> Options {
 		Options {
-			overwrite: false,
-			skip: false,
-			buffer_size: 64000,
-			copy_files: false,
-			content_only: false,
-			depth: 0,
+			overwrite:false,
+			skip:false,
+			buffer_size:64000,
+			copy_files:false,
+			content_only:false,
+			depth:0,
 		}
 	}
 }
 
 impl Default for FileOpts {
-	fn default() -> FileOpts {
-		FileOpts { overwrite: false, skip: false, buffer_size: 64000 }
-	}
+	fn default() -> FileOpts { FileOpts { overwrite:false, skip:false, buffer_size:64000 } }
 }
 
 /// Creates the given directory path,
 /// erasing it first if specified.
-pub fn create<P>(path: P, erase: bool) -> crate::Result<()>
+pub fn create<P>(path:P, erase:bool) -> crate::Result<()>
 where
-	P: AsRef<Path>,
-{
+	P: AsRef<Path>, {
 	if erase && path.as_ref().exists() {
 		remove(&path)?;
 	}
@@ -73,10 +70,9 @@ where
 
 /// Creates all of the directories of the specified path,
 /// erasing it first if specified.
-pub fn create_all<P>(path: P, erase: bool) -> crate::Result<()>
+pub fn create_all<P>(path:P, erase:bool) -> crate::Result<()>
 where
-	P: AsRef<Path>,
-{
+	P: AsRef<Path>, {
 	if erase && path.as_ref().exists() {
 		remove(&path)?;
 	}
@@ -84,20 +80,15 @@ where
 }
 
 /// Removes the directory if it exists.
-pub fn remove<P: AsRef<Path>>(path: P) -> crate::Result<()> {
-	if path.as_ref().exists() {
-		Ok(remove_dir_all(path)?)
-	} else {
-		Ok(())
-	}
+pub fn remove<P:AsRef<Path>>(path:P) -> crate::Result<()> {
+	if path.as_ref().exists() { Ok(remove_dir_all(path)?) } else { Ok(()) }
 }
 
 /// Copy file with the given options.
-pub fn copy_file<P, Q>(from: P, to: Q, options: &FileOpts) -> crate::Result<u64>
+pub fn copy_file<P, Q>(from:P, to:Q, options:&FileOpts) -> crate::Result<u64>
 where
 	P: AsRef<Path>,
-	Q: AsRef<Path>,
-{
+	Q: AsRef<Path>, {
 	let from = from.as_ref();
 	if !from.exists() {
 		if let Some(msg) = from.to_str() {
@@ -132,11 +123,10 @@ where
 
 /// Copies the directory with the given options.
 #[allow(dead_code)]
-pub fn copy<P, Q>(from: P, to: Q, options: &Options) -> crate::Result<u64>
+pub fn copy<P, Q>(from:P, to:Q, options:&Options) -> crate::Result<u64>
 where
 	P: AsRef<Path>,
-	Q: AsRef<Path>,
-{
+	Q: AsRef<Path>, {
 	let from = from.as_ref();
 	if !from.exists() {
 		if let Some(msg) = from.to_str() {
@@ -160,7 +150,7 @@ where
 	} else {
 		return Err(crate::Error::PathUtilError("Invalid Folder form".to_owned()));
 	};
-	let mut to: PathBuf = to.as_ref().to_path_buf();
+	let mut to:PathBuf = to.as_ref().to_path_buf();
 	if !options.content_only && (!options.copy_files || to.exists()) {
 		to.push(dir_name);
 	}
@@ -183,7 +173,7 @@ where
 			}
 		}
 	}
-	let mut result: u64 = 0;
+	let mut result:u64 = 0;
 	for file in dir_content.files {
 		let to = to.to_path_buf();
 
@@ -192,12 +182,12 @@ where
 		let path = to.join(tp);
 
 		let file_options = FileOpts {
-			overwrite: options.overwrite,
-			skip: options.skip,
-			buffer_size: options.buffer_size,
+			overwrite:options.overwrite,
+			skip:options.skip,
+			buffer_size:options.buffer_size,
 		};
 
-		let mut result_copy: crate::Result<u64>;
+		let mut result_copy:crate::Result<u64>;
 
 		let mut work = true;
 
@@ -210,12 +200,12 @@ where
 				Ok(val) => {
 					result += val;
 					work = false;
-				}
+				},
 
 				Err(err) => {
 					let err_msg = err.to_string();
 					return Err(crate::Error::PathUtilError(err_msg));
-				}
+				},
 			}
 		}
 	}
@@ -223,20 +213,18 @@ where
 }
 
 /// Gets the DirInfo from the directory path with the given options.
-pub fn get_dir_info<P>(path: P, options: &DirOpts) -> crate::Result<DirInfo>
+pub fn get_dir_info<P>(path:P, options:&DirOpts) -> crate::Result<DirInfo>
 where
-	P: AsRef<Path>,
-{
+	P: AsRef<Path>, {
 	let depth = if options.depth == 0 { 0 } else { options.depth + 1 };
 
 	_get_dir_info(path, depth)
 }
 
 /// Gets the DirInfo from the directory with the given depth.
-fn _get_dir_info<P>(path: P, mut depth: u64) -> crate::Result<DirInfo>
+fn _get_dir_info<P>(path:P, mut depth:u64) -> crate::Result<DirInfo>
 where
-	P: AsRef<Path>,
-{
+	P: AsRef<Path>, {
 	let mut directories = Vec::new();
 	let mut files = Vec::new();
 	let mut size = 0;
@@ -262,7 +250,7 @@ where
 						size += items.size;
 						files.append(&mut _files);
 						directories.append(&mut _directories);
-					}
+					},
 					Err(err) => return Err(err),
 				}
 			}

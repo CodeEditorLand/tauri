@@ -32,18 +32,13 @@ pub struct SelfSignedCertificateRequest {
 	pub password:String,
 }
 
-pub fn generate_self_signed(
-	request:SelfSignedCertificateRequest,
-) -> Result<Vec<u8>> {
+pub fn generate_self_signed(request:SelfSignedCertificateRequest) -> Result<Vec<u8>> {
 	let algorithm = match request.algorithm.as_str() {
 		"ecdsa" => KeyAlgorithm::Ecdsa(EcdsaCurve::Secp256r1),
 		"ed25519" => KeyAlgorithm::Ed25519,
 		"rsa" => KeyAlgorithm::Rsa,
 		value => {
-			panic!(
-				"algorithm values should have been validated by arg parser: \
-				 {value}"
-			)
+			panic!("algorithm values should have been validated by arg parser: {value}")
 		},
 	};
 

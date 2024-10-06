@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::bundle::{common, Settings};
 use std::{
 	cmp::min,
 	ffi::OsStr,
@@ -14,10 +13,12 @@ use std::{
 
 use image::GenericImageView;
 
+use crate::bundle::{common, Settings};
+
 // Given a list of icon files, try to produce an ICNS file in the out_dir
 // and return the path to it.  Returns `Ok(None)` if no usable icons
 // were provided.
-pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Option<PathBuf>> {
+pub fn create_icns_file(out_dir:&Path, settings:&Settings) -> crate::Result<Option<PathBuf>> {
 	if settings.icon_files().count() == 0 {
 		return Ok(None);
 	}
@@ -37,9 +38,9 @@ pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Op
 	let mut family = icns::IconFamily::new();
 
 	fn add_icon_to_family(
-		icon: image::DynamicImage,
-		density: u32,
-		family: &mut icns::IconFamily,
+		icon:image::DynamicImage,
+		density:u32,
+		family:&mut icns::IconFamily,
 	) -> io::Result<()> {
 		// Try to add this image to the icon family.  Ignore images whose sizes
 		// don't map to any ICNS icon type; print warnings and skip images that
@@ -51,12 +52,12 @@ pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Op
 					family.add_icon_with_type(&icon, icon_type)?;
 				}
 				Ok(())
-			}
+			},
 			None => Err(io::Error::new(io::ErrorKind::InvalidData, "No matching IconType")),
 		}
 	}
 
-	let mut images_to_resize: Vec<(image::DynamicImage, u32, u32)> = vec![];
+	let mut images_to_resize:Vec<(image::DynamicImage, u32, u32)> = vec![];
 	for icon_path in settings.icon_files() {
 		let icon_path = icon_path?;
 
@@ -101,7 +102,7 @@ pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Op
 }
 
 // Converts an image::DynamicImage into an icns::Image.
-fn make_icns_image(img: image::DynamicImage) -> io::Result<icns::Image> {
+fn make_icns_image(img:image::DynamicImage) -> io::Result<icns::Image> {
 	let pixel_format = match img.color() {
 		image::ColorType::Rgba8 => icns::PixelFormat::RGBA,
 		image::ColorType::Rgb8 => icns::PixelFormat::RGB,
@@ -110,7 +111,7 @@ fn make_icns_image(img: image::DynamicImage) -> io::Result<icns::Image> {
 		_ => {
 			let msg = format!("unsupported ColorType: {:?}", img.color());
 			return Err(io::Error::new(io::ErrorKind::InvalidData, msg));
-		}
+		},
 	};
 	icns::Image::from_data(pixel_format, img.width(), img.height(), img.into_bytes())
 }

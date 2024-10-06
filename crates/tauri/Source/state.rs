@@ -49,15 +49,13 @@ impl<'r, T:Send + Sync + std::fmt::Debug> std::fmt::Debug for State<'r, T> {
 	}
 }
 
-impl<'r, 'de:'r, T:Send + Sync + 'static, R:Runtime> CommandArg<'de, R>
-	for State<'r, T>
-{
+impl<'r, 'de:'r, T:Send + Sync + 'static, R:Runtime> CommandArg<'de, R> for State<'r, T> {
 	/// Grabs the [`State`] from the [`CommandItem`]. This will never fail.
 	fn from_command(command:CommandItem<'de, R>) -> Result<Self, InvokeError> {
 		Ok(command.message.state_ref().try_get().unwrap_or_else(|| {
 			panic!(
-				"state not managed for field `{}` on command `{}`. You must \
-				 call `.manage()` before using this command",
+				"state not managed for field `{}` on command `{}`. You must call `.manage()` \
+				 before using this command",
 				command.key, command.name
 			)
 		}))
@@ -140,9 +138,7 @@ impl StateManager {
 	/// Gets the state associated with the specified type.
 	pub fn try_get<T:Send + Sync + 'static>(&self) -> Option<State<'_, T>> {
 		self.with_map_ref(|map| {
-			map.get(&TypeId::of::<T>())
-				.and_then(|ptr| ptr.downcast_ref::<T>())
-				.map(State)
+			map.get(&TypeId::of::<T>()).and_then(|ptr| ptr.downcast_ref::<T>()).map(State)
 		})
 	}
 }
@@ -226,8 +222,7 @@ mod tests {
 			threads.push(thread::spawn(move || state_.set(10i64)))
 		}
 
-		let results:Vec<bool> =
-			threads.into_iter().map(|t| t.join().unwrap()).collect();
+		let results:Vec<bool> = threads.into_iter().map(|t| t.join().unwrap()).collect();
 		assert_eq!(results.into_iter().filter(|&b| b).count(), 1);
 		assert_eq!(*state.get::<i64>(), 10);
 	}
@@ -254,8 +249,7 @@ mod tests {
 		let dropping_struct_a = DroppingStruct(drop_flag_a.clone());
 
 		let drop_flag_b = Arc::new(RwLock::new(false));
-		let dropping_struct_b =
-			DroppingStructWrap(DroppingStruct(drop_flag_b.clone()));
+		let dropping_struct_b = DroppingStructWrap(DroppingStruct(drop_flag_b.clone()));
 
 		{
 			let state = StateManager::new();

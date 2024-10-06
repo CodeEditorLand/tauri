@@ -7,26 +7,29 @@ use std::sync::Arc;
 use super::{run_item_main_thread, AboutMetadata, PredefinedMenuItem};
 use crate::{
 	menu::{MenuId, PredefinedMenuItemInner},
-	run_main_thread, AppHandle, Manager, Runtime,
+	run_main_thread,
+	AppHandle,
+	Manager,
+	Runtime,
 };
 
-impl<R: Runtime> PredefinedMenuItem<R> {
+impl<R:Runtime> PredefinedMenuItem<R> {
 	/// Separator menu item
-	pub fn separator<M: Manager<R>>(manager: &M) -> crate::Result<Self> {
+	pub fn separator<M:Manager<R>>(manager:&M) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::separator();
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
 	}
 
 	/// Copy menu item
-	pub fn copy<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn copy<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -35,14 +38,14 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::copy(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
 	}
 
 	/// Cut menu item
-	pub fn cut<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn cut<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -51,14 +54,14 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::cut(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
 	}
 
 	/// Paste menu item
-	pub fn paste<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn paste<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -67,14 +70,14 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::paste(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
 	}
 
 	/// SelectAll menu item
-	pub fn select_all<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn select_all<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -83,7 +86,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::select_all(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -94,7 +97,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Windows / Linux:** Unsupported.
-	pub fn undo<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn undo<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -103,17 +106,18 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::undo(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
 	}
+
 	/// Redo menu item
 	///
 	/// ## Platform-specific:
 	///
 	/// - **Windows / Linux:** Unsupported.
-	pub fn redo<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn redo<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -122,7 +126,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::redo(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -133,7 +137,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Linux:** Unsupported.
-	pub fn minimize<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn minimize<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -142,7 +146,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::minimize(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -153,7 +157,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Linux:** Unsupported.
-	pub fn maximize<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn maximize<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -162,7 +166,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::maximize(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -173,7 +177,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Windows / Linux:** Unsupported.
-	pub fn fullscreen<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn fullscreen<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -182,7 +186,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::fullscreen(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -193,7 +197,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Linux:** Unsupported.
-	pub fn hide<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn hide<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -202,7 +206,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::hide(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -213,7 +217,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Linux:** Unsupported.
-	pub fn hide_others<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn hide_others<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -222,7 +226,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::hide_others(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -233,7 +237,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Windows / Linux:** Unsupported.
-	pub fn show_all<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn show_all<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -242,7 +246,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::show_all(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -253,7 +257,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Linux:** Unsupported.
-	pub fn close_window<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn close_window<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -262,7 +266,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::close_window(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -273,7 +277,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Linux:** Unsupported.
-	pub fn quit<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn quit<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -282,17 +286,17 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::quit(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
 	}
 
 	/// About app menu item
-	pub fn about<M: Manager<R>>(
-		manager: &M,
-		text: Option<&str>,
-		metadata: Option<AboutMetadata<'_>>,
+	pub fn about<M:Manager<R>>(
+		manager:&M,
+		text:Option<&str>,
+		metadata:Option<AboutMetadata<'_>>,
 	) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
@@ -307,7 +311,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::about(text.as_deref(), metadata);
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
@@ -318,7 +322,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 	/// ## Platform-specific:
 	///
 	/// - **Windows / Linux:** Unsupported.
-	pub fn services<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
+	pub fn services<M:Manager<R>>(manager:&M, text:Option<&str>) -> crate::Result<Self> {
 		let handle = manager.app_handle();
 
 		let app_handle = handle.clone();
@@ -327,32 +331,29 @@ impl<R: Runtime> PredefinedMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::PredefinedMenuItem::services(text.as_deref());
-			PredefinedMenuItemInner { id: item.id().clone(), inner: Some(item), app_handle }
+			PredefinedMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
 		Ok(Self(Arc::new(item)))
 	}
 
 	/// Returns a unique identifier associated with this menu item.
-	pub fn id(&self) -> &MenuId {
-		&self.0.id
-	}
+	pub fn id(&self) -> &MenuId { &self.0.id }
 
 	/// Get the text for this menu item.
 	pub fn text(&self) -> crate::Result<String> {
-		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().text())
+		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().text())
 	}
 
 	/// Set the text for this menu item. `text` could optionally contain
 	/// an `&` before a character to assign this character as the mnemonic
-	/// for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
-	pub fn set_text<S: AsRef<str>>(&self, text: S) -> crate::Result<()> {
+	/// for this menu item. To display a `&` without assigning a mnemenonic, use
+	/// `&&`.
+	pub fn set_text<S:AsRef<str>>(&self, text:S) -> crate::Result<()> {
 		let text = text.as_ref().to_string();
-		run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_text(text))
+		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_text(text))
 	}
 
 	/// The application handle associated with this type.
-	pub fn app_handle(&self) -> &AppHandle<R> {
-		&self.0.app_handle
-	}
+	pub fn app_handle(&self) -> &AppHandle<R> { &self.0.app_handle }
 }

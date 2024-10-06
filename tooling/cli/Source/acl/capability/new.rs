@@ -17,25 +17,25 @@ use crate::{
 #[clap(about = "Create a new permission file")]
 pub struct Options {
 	/// Capability identifier.
-	identifier: Option<String>,
+	identifier:Option<String>,
 	/// Capability description
 	#[clap(long)]
-	description: Option<String>,
+	description:Option<String>,
 	/// Capability windows
 	#[clap(long)]
-	windows: Option<Vec<String>>,
+	windows:Option<Vec<String>>,
 	/// Capability permissions
 	#[clap(long)]
-	permission: Option<Vec<String>>,
+	permission:Option<Vec<String>>,
 	/// Output file format.
 	#[clap(long, default_value_t = FileFormat::Json)]
-	format: FileFormat,
+	format:FileFormat,
 	/// The output file.
 	#[clap(short, long)]
-	out: Option<PathBuf>,
+	out:Option<PathBuf>,
 }
 
-pub fn command(options: Options) -> Result<()> {
+pub fn command(options:Options) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let identifier = match options.identifier {
@@ -45,54 +45,60 @@ pub fn command(options: Options) -> Result<()> {
 
 	let description = match options.description {
 		Some(d) => Some(d),
-		None => prompts::input::<String>("What's the capability description?", None, false, true)?
-			.and_then(|d| if d.is_empty() { None } else { Some(d) }),
+		None => {
+			prompts::input::<String>("What's the capability description?", None, false, true)?
+				.and_then(|d| if d.is_empty() { None } else { Some(d) })
+		},
 	};
 
 	let windows = match options.windows.map(FromIterator::from_iter) {
 		Some(w) => w,
-		None => prompts::input::<String>(
-			"Which windows should be affected by this? (comma separated)",
-			Some("main".into()),
-			false,
-			false,
-		)?
-		.and_then(|d| {
-			if d.is_empty() {
-				None
-			} else {
-				Some(d.split(',').map(ToString::to_string).collect())
-			}
-		})
-		.unwrap_or_default(),
+		None => {
+			prompts::input::<String>(
+				"Which windows should be affected by this? (comma separated)",
+				Some("main".into()),
+				false,
+				false,
+			)?
+			.and_then(|d| {
+				if d.is_empty() {
+					None
+				} else {
+					Some(d.split(',').map(ToString::to_string).collect())
+				}
+			})
+			.unwrap_or_default()
+		},
 	};
 
-	let permissions: HashSet<String> = match options.permission.map(FromIterator::from_iter) {
+	let permissions:HashSet<String> = match options.permission.map(FromIterator::from_iter) {
 		Some(p) => p,
-		None => prompts::input::<String>(
-			"What permissions to enable? (comma separated)",
-			None,
-			false,
-			true,
-		)?
-		.and_then(|p| {
-			if p.is_empty() {
-				None
-			} else {
-				Some(p.split(',').map(ToString::to_string).collect())
-			}
-		})
-		.unwrap_or_default(),
+		None => {
+			prompts::input::<String>(
+				"What permissions to enable? (comma separated)",
+				None,
+				false,
+				true,
+			)?
+			.and_then(|p| {
+				if p.is_empty() {
+					None
+				} else {
+					Some(p.split(',').map(ToString::to_string).collect())
+				}
+			})
+			.unwrap_or_default()
+		},
 	};
 
 	let capability = Capability {
 		identifier,
-		description: description.unwrap_or_default(),
-		remote: None,
-		local: true,
+		description:description.unwrap_or_default(),
+		remote:None,
+		local:true,
 		windows,
-		webviews: Vec::new(),
-		permissions: permissions
+		webviews:Vec::new(),
+		permissions:permissions
 			.into_iter()
 			.map(|p| {
 				PermissionEntry::PermissionRef(
@@ -100,7 +106,7 @@ pub fn command(options: Options) -> Result<()> {
 				)
 			})
 			.collect(),
-		platforms: None,
+		platforms:None,
 	};
 
 	let path = match options.out {
@@ -113,7 +119,7 @@ pub fn command(options: Options) -> Result<()> {
 				capability.identifier,
 				options.format.extension()
 			))
-		}
+		},
 	};
 
 	if path.exists() {

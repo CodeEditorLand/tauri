@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use anyhow::Context;
-use base64::Engine;
-use minisign::{sign, KeyPair as KP, SecretKey, SecretKeyBox, SignatureBox};
 use std::{
 	fs::{self, File, OpenOptions},
 	io::{BufReader, BufWriter, Write},
@@ -13,14 +10,18 @@ use std::{
 	time::{SystemTime, UNIX_EPOCH},
 };
 
+use anyhow::Context;
+use base64::Engine;
+use minisign::{sign, KeyPair as KP, SecretKey, SecretKeyBox, SignatureBox};
+
 /// A key pair (`PublicKey` and `SecretKey`).
 #[derive(Clone, Debug)]
 pub struct KeyPair {
-	pub pk: String,
-	pub sk: String,
+	pub pk:String,
+	pub sk:String,
 }
 
-fn create_file(path: &Path) -> crate::Result<BufWriter<File>> {
+fn create_file(path:&Path) -> crate::Result<BufWriter<File>> {
 	if let Some(parent) = path.parent() {
 		fs::create_dir_all(parent)?;
 	}
@@ -29,7 +30,7 @@ fn create_file(path: &Path) -> crate::Result<BufWriter<File>> {
 }
 
 /// Generate base64 encoded keypair
-pub fn generate_key(password: Option<String>) -> crate::Result<KeyPair> {
+pub fn generate_key(password:Option<String>) -> crate::Result<KeyPair> {
 	let KP { pk, sk } = KP::generate_encrypted_keypair(password).unwrap();
 
 	let pk_box_str = pk.to_box().unwrap().to_string();
@@ -38,25 +39,24 @@ pub fn generate_key(password: Option<String>) -> crate::Result<KeyPair> {
 	let encoded_pk = base64::engine::general_purpose::STANDARD.encode(pk_box_str);
 	let encoded_sk = base64::engine::general_purpose::STANDARD.encode(sk_box_str);
 
-	Ok(KeyPair { pk: encoded_pk, sk: encoded_sk })
+	Ok(KeyPair { pk:encoded_pk, sk:encoded_sk })
 }
 
 /// Transform a base64 String to readable string for the main signer
-pub fn decode_key<S: AsRef<[u8]>>(base64_key: S) -> crate::Result<String> {
+pub fn decode_key<S:AsRef<[u8]>>(base64_key:S) -> crate::Result<String> {
 	let decoded_str = &base64::engine::general_purpose::STANDARD.decode(base64_key)?[..];
 	Ok(String::from(str::from_utf8(decoded_str)?))
 }
 
 /// Save KeyPair to disk
 pub fn save_keypair<P>(
-	force: bool,
-	sk_path: P,
-	key: &str,
-	pubkey: &str,
+	force:bool,
+	sk_path:P,
+	key:&str,
+	pubkey:&str,
 ) -> crate::Result<(PathBuf, PathBuf)>
 where
-	P: AsRef<Path>,
-{
+	P: AsRef<Path>, {
 	let sk_path = sk_path.as_ref();
 
 	let pubkey_path = format!("{}.pub", sk_path.display());
@@ -65,9 +65,10 @@ where
 	if sk_path.exists() {
 		if !force {
 			return Err(anyhow::anyhow!(
-        "Key generation aborted:\n{} already exists\nIf you really want to overwrite the existing key pair, add the --force switch to force this operation.",
-        sk_path.display()
-      ));
+				"Key generation aborted:\n{} already exists\nIf you really want to overwrite the \
+				 existing key pair, add the --force switch to force this operation.",
+				sk_path.display()
+			));
 		} else {
 			std::fs::remove_file(sk_path)?;
 		}
@@ -89,10 +90,9 @@ where
 }
 
 /// Sign files
-pub fn sign_file<P>(secret_key: &SecretKey, bin_path: P) -> crate::Result<(PathBuf, SignatureBox)>
+pub fn sign_file<P>(secret_key:&SecretKey, bin_path:P) -> crate::Result<(PathBuf, SignatureBox)>
 where
-	P: AsRef<Path>,
-{
+	P: AsRef<Path>, {
 	let bin_path = bin_path.as_ref();
 	// We need to append .sig at the end it's where the signature will be stored
 	let mut extension = bin_path.extension().unwrap().to_os_string();
@@ -125,9 +125,9 @@ where
 }
 
 /// Gets the updater secret key from the given private key and password.
-pub fn secret_key<S: AsRef<[u8]>>(
-	private_key: S,
-	password: Option<String>,
+pub fn secret_key<S:AsRef<[u8]>>(
+	private_key:S,
+	password:Option<String>,
 ) -> crate::Result<SecretKey> {
 	let decoded_secret = decode_key(private_key)?;
 	let sk_box = SecretKeyBox::from_string(&decoded_secret)
@@ -144,10 +144,9 @@ fn unix_timestamp() -> u64 {
 	since_the_epoch.as_secs()
 }
 
-fn open_data_file<P>(data_path: P) -> crate::Result<BufReader<File>>
+fn open_data_file<P>(data_path:P) -> crate::Result<BufReader<File>>
 where
-	P: AsRef<Path>,
-{
+	P: AsRef<Path>, {
 	let data_path = data_path.as_ref();
 	let file = OpenOptions::new()
 		.read(true)

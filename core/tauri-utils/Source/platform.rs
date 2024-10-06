@@ -87,9 +87,7 @@ impl Target {
 	}
 
 	/// Whether the target is mobile or not.
-	pub fn is_mobile(&self) -> bool {
-		matches!(self, Target::Android | Target::Ios)
-	}
+	pub fn is_mobile(&self) -> bool { matches!(self, Target::Android | Target::Ios) }
 
 	/// Whether the target is desktop or not.
 	pub fn is_desktop(&self) -> bool { !self.is_mobile() }
@@ -173,9 +171,7 @@ impl Target {
 ///
 /// [Hard Link]: https://en.wikipedia.org/wiki/Hard_link
 /// [See the patch that enabled this]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=800179c9b8a1e796e441674776d11cd4c05d61d7
-pub fn current_exe() -> std::io::Result<PathBuf> {
-	self::starting_binary::STARTING_BINARY.cloned()
-}
+pub fn current_exe() -> std::io::Result<PathBuf> { self::starting_binary::STARTING_BINARY.cloned() }
 
 /// Try to determine the current target triple.
 ///
@@ -231,18 +227,14 @@ pub fn target_triple() -> crate::Result<String> {
 }
 
 #[cfg(all(not(test), not(target_os = "android")))]
-fn is_cargo_output_directory(path:&std::path::Path) -> bool {
-	path.join(".cargo-lock").exists()
-}
+fn is_cargo_output_directory(path:&std::path::Path) -> bool { path.join(".cargo-lock").exists() }
 
 #[cfg(test)]
-const CARGO_OUTPUT_DIRECTORIES:&[&str] =
-	&["debug", "release", "custom-profile"];
+const CARGO_OUTPUT_DIRECTORIES:&[&str] = &["debug", "release", "custom-profile"];
 
 #[cfg(test)]
 fn is_cargo_output_directory(path:&std::path::Path) -> bool {
-	let last_component =
-		path.components().last().unwrap().as_os_str().to_str().unwrap();
+	let last_component = path.components().last().unwrap().as_os_str().to_str().unwrap();
 	CARGO_OUTPUT_DIRECTORIES.iter().any(|dirname| &last_component == dirname)
 }
 
@@ -263,10 +255,7 @@ fn is_cargo_output_directory(path:&std::path::Path) -> bool {
 ///
 /// Android uses a special URI prefix that is resolved by the Tauri file system
 /// plugin `asset://localhost/`
-pub fn resource_dir(
-	package_info:&PackageInfo,
-	env:&Env,
-) -> crate::Result<PathBuf> {
+pub fn resource_dir(package_info:&PackageInfo, env:&Env) -> crate::Result<PathBuf> {
 	#[cfg(target_os = "android")]
 	return resource_dir_android(package_info, env);
 	#[cfg(not(target_os = "android"))]
@@ -277,10 +266,7 @@ pub fn resource_dir(
 }
 
 #[cfg(target_os = "android")]
-fn resource_dir_android(
-	_package_info:&PackageInfo,
-	_env:&Env,
-) -> crate::Result<PathBuf> {
+fn resource_dir_android(_package_info:&PackageInfo, _env:&Env) -> crate::Result<PathBuf> {
 	Ok(PathBuf::from(ANDROID_ASSET_PROTOCOL_URI_PREFIX))
 }
 
@@ -305,8 +291,7 @@ fn resource_dir_from<P:AsRef<std::path::Path>>(
 	// in production Windows also includes the resources in the executable
 	// folder so we check that too
 	if cfg!(target_os = "windows")
-		|| ((len >= 2 && parts[len - 2] == "target")
-			|| (len >= 3 && parts[len - 3] == "target"))
+		|| ((len >= 2 && parts[len - 2] == "target") || (len >= 3 && parts[len - 3] == "target"))
 			&& is_cargo_output_directory(exe_dir)
 	{
 		return Ok(exe_dir.to_path_buf());
@@ -389,23 +374,19 @@ mod tests {
 
 		let env = Env::default();
 
-		let path =
-			PathBuf::from("/path/to/target/aarch64-apple-darwin/debug/app");
+		let path = PathBuf::from("/path/to/target/aarch64-apple-darwin/debug/app");
 
-		let resource_dir =
-			super::resource_dir_from(&path, &package_info, &env).unwrap();
+		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
 		assert_eq!(resource_dir, path.parent().unwrap());
 
 		let path = PathBuf::from("/path/to/target/custom-profile/app");
 
-		let resource_dir =
-			super::resource_dir_from(&path, &package_info, &env).unwrap();
+		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
 		assert_eq!(resource_dir, path.parent().unwrap());
 
 		let path = PathBuf::from("/path/to/target/release/app");
 
-		let resource_dir =
-			super::resource_dir_from(&path, &package_info, &env).unwrap();
+		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
 		assert_eq!(resource_dir, path.parent().unwrap());
 
 		let path = PathBuf::from("/path/to/target/unknown-profile/app");

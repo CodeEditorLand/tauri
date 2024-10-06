@@ -41,9 +41,7 @@ impl FromStr for BundleFormat {
 impl ValueEnum for BundleFormat {
 	fn value_variants<'a>() -> &'a [Self] {
 		static VARIANTS:OnceLock<Vec<BundleFormat>> = OnceLock::new();
-		VARIANTS.get_or_init(|| {
-			PackageType::all().iter().map(|t| Self(*t)).collect()
-		})
+		VARIANTS.get_or_init(|| PackageType::all().iter().map(|t| Self(*t)).collect())
 	}
 
 	fn to_possible_value(&self) -> Option<PossibleValue> {
@@ -53,11 +51,10 @@ impl ValueEnum for BundleFormat {
 
 #[derive(Debug, Parser, Clone)]
 #[clap(
-	about = "Generate bundles and installers for your app (already built by \
-	         `tauri build`)",
-	long_about = "Generate bundles and installers for your app (already built \
-	              by `tauri build`). This run `build.beforeBundleCommand` \
-	              before generating the bundles and installers of your app."
+	about = "Generate bundles and installers for your app (already built by `tauri build`)",
+	long_about = "Generate bundles and installers for your app (already built by `tauri build`). \
+	              This run `build.beforeBundleCommand` before generating the bundles and \
+	              installers of your app."
 )]
 pub struct Options {
 	/// Builds with the debug flag
@@ -117,10 +114,8 @@ pub fn command(options:Options, verbosity:u8) -> crate::Result<()> {
 
 	let config = get_config(target, options.config.as_ref().map(|c| &c.0))?;
 
-	let interface = AppInterface::new(
-		config.lock().unwrap().as_ref().unwrap(),
-		options.target.clone(),
-	)?;
+	let interface =
+		AppInterface::new(config.lock().unwrap().as_ref().unwrap(), options.target.clone())?;
 
 	let tauri_path = tauri_dir();
 	std::env::set_current_dir(tauri_path)
@@ -134,15 +129,7 @@ pub fn command(options:Options, verbosity:u8) -> crate::Result<()> {
 
 	let out_dir = app_settings.out_dir(&interface_options)?;
 
-	bundle(
-		&options,
-		verbosity,
-		ci,
-		&interface,
-		&app_settings,
-		config_,
-		&out_dir,
-	)
+	bundle(&options, verbosity, ci, &interface, &app_settings, config_, &out_dir)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -155,8 +142,7 @@ pub fn bundle<A:AppSettings>(
 	config:&ConfigMetadata,
 	out_dir:&Path,
 ) -> crate::Result<()> {
-	let package_types:Vec<PackageType> = if let Some(bundles) = &options.bundles
-	{
+	let package_types:Vec<PackageType> = if let Some(bundles) = &options.bundles {
 		bundles.iter().map(|bundle| bundle.0).collect::<Vec<_>>()
 	} else {
 		config.bundle.targets.to_vec().into_iter().map(Into::into).collect()
@@ -168,24 +154,13 @@ pub fn bundle<A:AppSettings>(
 
 	// if we have a package to bundle, let's run the `before_bundle_command`.
 	if !package_types.is_empty() {
-		if let Some(before_bundle) = config.build.before_bundle_command.clone()
-		{
-			helpers::run_hook(
-				"beforeBundleCommand",
-				before_bundle,
-				interface,
-				options.debug,
-			)?;
+		if let Some(before_bundle) = config.build.before_bundle_command.clone() {
+			helpers::run_hook("beforeBundleCommand", before_bundle, interface, options.debug)?;
 		}
 	}
 
 	let mut settings = app_settings
-		.get_bundler_settings(
-			options.clone().into(),
-			config,
-			out_dir,
-			package_types,
-		)
+		.get_bundler_settings(options.clone().into(), config, out_dir, package_types)
 		.with_context(|| "failed to build bundler settings")?;
 
 	settings.set_log_level(match verbosity {
@@ -201,9 +176,7 @@ pub fn bundle<A:AppSettings>(
 			std::env::set_var("APPIMAGE_BUNDLE_GSTREAMER", "1");
 		}
 
-		if let Some(open) =
-			config.plugins.0.get("shell").and_then(|v| v.get("open"))
-		{
+		if let Some(open) = config.plugins.0.get("shell").and_then(|v| v.get("open")) {
 			if open.as_bool().is_some_and(|x| x) || open.is_string() {
 				std::env::set_var("APPIMAGE_BUNDLE_XDG_OPEN", "1");
 			}
@@ -271,13 +244,12 @@ fn sign_updaters(
 		.or_else(|| if ci { Some("".into()) } else { None });
 
 	// get the private key
-	let private_key =
-		std::env::var("TAURI_SIGNING_PRIVATE_KEY").map_err(|_| {
-			anyhow::anyhow!(
-				"A public key has been found, but no private key. Make sure \
-				 to set `TAURI_SIGNING_PRIVATE_KEY` environment variable."
-			)
-		})?;
+	let private_key = std::env::var("TAURI_SIGNING_PRIVATE_KEY").map_err(|_| {
+		anyhow::anyhow!(
+			"A public key has been found, but no private key. Make sure to set \
+			 `TAURI_SIGNING_PRIVATE_KEY` environment variable."
+		)
+	})?;
 	// check if private_key points to a file...
 	let maybe_path = Path::new(&private_key);
 	let private_key = if maybe_path.exists() {
@@ -289,8 +261,7 @@ fn sign_updaters(
 
 	let pubkey = base64::engine::general_purpose::STANDARD.decode(pubkey)?;
 	let pub_key_decoded = String::from_utf8_lossy(&pubkey);
-	let public_key = minisign::PublicKeyBox::from_string(&pub_key_decoded)?
-		.into_public_key()?;
+	let public_key = minisign::PublicKeyBox::from_string(&pub_key_decoded)?.into_public_key()?;
 
 	let mut signed_paths = Vec::new();
 	for bundle in update_enabled_bundles {
@@ -298,15 +269,13 @@ fn sign_updaters(
 		// another type of updater package who require multiple file signature
 		for path in &bundle.bundle_paths {
 			// sign our path from environment variables
-			let (signature_path, signature) =
-				updater_signature::sign_file(&secret_key, path)?;
+			let (signature_path, signature) = updater_signature::sign_file(&secret_key, path)?;
 			if signature.keynum() != public_key.keynum() {
 				log::warn!(
-					"The updater secret key from `TAURI_SIGNING_PRIVATE_KEY` \
-					 does not match the public key from `plugins > updater > \
-					 pubkey`. If you are not rotating keys, this means your \
-					 configuration is wrong and won't be accepted at runtime \
-					 when performing update."
+					"The updater secret key from `TAURI_SIGNING_PRIVATE_KEY` does not match the \
+					 public key from `plugins > updater > pubkey`. If you are not rotating keys, \
+					 this means your configuration is wrong and won't be accepted at runtime when \
+					 performing update."
 				);
 			}
 			signed_paths.push(signature_path);
@@ -322,18 +291,11 @@ fn print_signed_updater_archive(output_paths:&[PathBuf]) -> crate::Result<()> {
 	use std::fmt::Write;
 	if !output_paths.is_empty() {
 		let finished_bundles = output_paths.len();
-		let pluralised = if finished_bundles == 1 {
-			"updater signature"
-		} else {
-			"updater signatures"
-		};
+		let pluralised =
+			if finished_bundles == 1 { "updater signature" } else { "updater signatures" };
 		let mut printable_paths = String::new();
 		for path in output_paths {
-			writeln!(
-				printable_paths,
-				"        {}",
-				tauri_utils::display_path(path)
-			)?;
+			writeln!(printable_paths, "        {}", tauri_utils::display_path(path))?;
 		}
 		log::info!( action = "Finished"; "{finished_bundles} {pluralised} at:\n{printable_paths}");
 	}

@@ -2,32 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{
-	helpers::{
-		app_paths::tauri_dir,
-		config::{Config as TauriConfig, ConfigHandle},
-	},
-	interface::{AppInterface, AppSettings, DevProcess, Interface, Options as InterfaceOptions},
-	ConfigValue,
-};
-#[cfg(unix)]
-use anyhow::Context;
-use anyhow::{bail, Result};
-use heck::ToSnekCase;
-use jsonrpsee::{
-	core::client::{Client, ClientBuilder, ClientT},
-	server::{RpcModule, ServerBuilder, ServerHandle},
-};
-use jsonrpsee_client_transport::ws::WsTransportClientBuilder;
-use jsonrpsee_core::rpc_params;
-use serde::{Deserialize, Serialize};
-
-use cargo_mobile2::{
-	config::app::{App, Raw as RawAppConfig},
-	env::Error as EnvError,
-	opts::{NoiseLevel, Profile},
-	ChildHandle,
-};
 use std::{
 	collections::HashMap,
 	env::{set_var, temp_dir},
@@ -42,29 +16,55 @@ use std::{
 		Arc,
 	},
 };
-use tokio::runtime::Runtime;
 
+#[cfg(unix)]
+use anyhow::Context;
+use anyhow::{bail, Result};
 #[cfg(not(windows))]
 use cargo_mobile2::env::Env;
 #[cfg(windows)]
 use cargo_mobile2::os::Env;
+use cargo_mobile2::{
+	config::app::{App, Raw as RawAppConfig},
+	env::Error as EnvError,
+	opts::{NoiseLevel, Profile},
+	ChildHandle,
+};
+use heck::ToSnekCase;
+use jsonrpsee::{
+	core::client::{Client, ClientBuilder, ClientT},
+	server::{RpcModule, ServerBuilder, ServerHandle},
+};
+use jsonrpsee_client_transport::ws::WsTransportClientBuilder;
+use jsonrpsee_core::rpc_params;
+use serde::{Deserialize, Serialize};
+use tokio::runtime::Runtime;
+
+use crate::{
+	helpers::{
+		app_paths::tauri_dir,
+		config::{Config as TauriConfig, ConfigHandle},
+	},
+	interface::{AppInterface, AppSettings, DevProcess, Interface, Options as InterfaceOptions},
+	ConfigValue,
+};
 
 pub mod android;
 mod init;
 #[cfg(target_os = "macos")]
 pub mod ios;
 
-const MIN_DEVICE_MATCH_SCORE: isize = 0;
+const MIN_DEVICE_MATCH_SCORE:isize = 0;
 
 #[derive(Clone)]
 pub struct DevChild {
-	child: Arc<ChildHandle>,
-	manually_killed_process: Arc<AtomicBool>,
+	child:Arc<ChildHandle>,
+	manually_killed_process:Arc<AtomicBool>,
 }
 
 impl DevChild {
-	fn new(handle: ChildHandle) -> Self {
-		Self { child: Arc::new(handle), manually_killed_process: Default::default() }
+	fn new(handle:ChildHandle) -> Self {
+		Self { child:Arc::new(handle), manually_killed_process:Default::default() }
 	}
 }
 
@@ -76,7 +76,7 @@ impl DevProcess for DevChild {
 			Err(e) => {
 				self.manually_killed_process.store(false, Ordering::Relaxed);
 				Err(e)
-			}
+			},
 		}
 	}
 
@@ -84,9 +84,7 @@ impl DevProcess for DevChild {
 		self.child.try_wait().map(|res| res.map(|o| o.status))
 	}
 
-	fn wait(&self) -> std::io::Result<ExitStatus> {
-		self.child.wait().map(|o| o.status)
-	}
+	fn wait(&self) -> std::io::Result<ExitStatus> { self.child.wait().map(|o| o.status) }
 
 	fn manually_killed_process(&self) -> bool {
 		self.manually_killed_process.load(Ordering::Relaxed)
@@ -136,31 +134,31 @@ impl Target {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TargetDevice {
-	id: String,
-	name: String,
+	id:String,
+	name:String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CliOptions {
-	pub dev: bool,
-	pub features: Option<Vec<String>>,
-	pub args: Vec<String>,
-	pub noise_level: NoiseLevel,
-	pub vars: HashMap<String, OsString>,
-	pub config: Option<ConfigValue>,
-	pub target_device: Option<TargetDevice>,
+	pub dev:bool,
+	pub features:Option<Vec<String>>,
+	pub args:Vec<String>,
+	pub noise_level:NoiseLevel,
+	pub vars:HashMap<String, OsString>,
+	pub config:Option<ConfigValue>,
+	pub target_device:Option<TargetDevice>,
 }
 
 impl Default for CliOptions {
 	fn default() -> Self {
 		Self {
-			dev: false,
-			features: None,
-			args: vec!["--lib".into()],
-			noise_level: Default::default(),
-			vars: Default::default(),
-			config: None,
-			target_device: None,
+			dev:false,
+			features:None,
+			args:vec!["--lib".into()],
+			noise_level:Default::default(),
+			vars:Default::default(),
+			config:None,
+			target_device:None,
 		}
 	}
 }
@@ -191,12 +189,13 @@ fn env() -> Result<Env, EnvError> {
 
 pub struct OptionsHandle(#[allow(unused)] Runtime, #[allow(unused)] ServerHandle);
 
-/// Writes CLI options to be used later on the Xcode and Android Studio build commands
-pub fn write_options(identifier: &str, mut options: CliOptions) -> crate::Result<OptionsHandle> {
+/// Writes CLI options to be used later on the Xcode and Android Studio build
+/// commands
+pub fn write_options(identifier:&str, mut options:CliOptions) -> crate::Result<OptionsHandle> {
 	options.vars.extend(env_vars());
 
 	let runtime = Runtime::new().unwrap();
-	let r: anyhow::Result<(ServerHandle, SocketAddr)> = runtime.block_on(async move {
+	let r:anyhow::Result<(ServerHandle, SocketAddr)> = runtime.block_on(async move {
 		let server = ServerBuilder::default().build("127.0.0.1:0").await?;
 
 		let addr = server.local_addr()?;
@@ -215,7 +214,7 @@ pub fn write_options(identifier: &str, mut options: CliOptions) -> crate::Result
 	Ok(OptionsHandle(runtime, handle))
 }
 
-fn read_options(identifier: &str) -> CliOptions {
+fn read_options(identifier:&str) -> CliOptions {
 	let runtime = tokio::runtime::Runtime::new().unwrap();
 	let options = runtime
 		.block_on(async move {
@@ -224,17 +223,16 @@ fn read_options(identifier: &str) -> CliOptions {
 				.build(
 					format!(
 						"ws://{}",
-						read_to_string(&addr_path).unwrap_or_else(|e| panic!(
-							"failed to read missing addr file {}: {e}",
-							addr_path.display()
-						))
+						read_to_string(&addr_path).unwrap_or_else(|e| {
+							panic!("failed to read missing addr file {}: {e}", addr_path.display())
+						})
 					)
 					.parse()
 					.unwrap(),
 				)
 				.await?;
-			let client: Client = ClientBuilder::default().build_with_tokio(tx, rx);
-			let options: CliOptions = client.request("options", rpc_params![]).await?;
+			let client:Client = ClientBuilder::default().build_with_tokio(tx, rx);
+			let options:CliOptions = client.request("options", rpc_params![]).await?;
 			Ok::<CliOptions, anyhow::Error>(options)
 		})
 		.expect("failed to read CLI options");
@@ -245,7 +243,7 @@ fn read_options(identifier: &str) -> CliOptions {
 	options
 }
 
-pub fn get_app(target: Target, config: &TauriConfig, interface: &AppInterface) -> App {
+pub fn get_app(target:Target, config:&TauriConfig, interface:&AppInterface) -> App {
 	let identifier = match target {
 		Target::Android => config.identifier.replace('-', "_"),
 		#[cfg(target_os = "macos")]
@@ -261,12 +259,12 @@ pub fn get_app(target: Target, config: &TauriConfig, interface: &AppInterface) -
 	let lib_name = interface.app_settings().lib_name().unwrap_or_else(|| app_name.to_snek_case());
 
 	let raw = RawAppConfig {
-		name: app_name,
-		lib_name: Some(lib_name),
-		stylized_name: config.product_name.clone(),
+		name:app_name,
+		lib_name:Some(lib_name),
+		stylized_name:config.product_name.clone(),
 		identifier,
-		asset_dir: None,
-		template_pack: None,
+		asset_dir:None,
+		template_pack:None,
 	};
 
 	let app_settings = interface.app_settings();
@@ -274,8 +272,8 @@ pub fn get_app(target: Target, config: &TauriConfig, interface: &AppInterface) -
 		move |target, profile| {
 			let bin_path = app_settings
 				.app_binary_path(&InterfaceOptions {
-					debug: matches!(profile, Profile::Debug),
-					target: Some(target.into()),
+					debug:matches!(profile, Profile::Debug),
+					target:Some(target.into()),
 					..Default::default()
 				})
 				.expect("failed to resolve target directory");
@@ -286,10 +284,10 @@ pub fn get_app(target: Target, config: &TauriConfig, interface: &AppInterface) -
 
 #[allow(unused_variables)]
 fn ensure_init(
-	tauri_config: &ConfigHandle,
-	app: &App,
-	project_dir: PathBuf,
-	target: Target,
+	tauri_config:&ConfigHandle,
+	app:&App,
+	project_dir:PathBuf,
+	target:Target,
 ) -> Result<()> {
 	if !project_dir.exists() {
 		bail!(
@@ -317,7 +315,7 @@ fn ensure_init(
 				project_outdated_reasons
 					.push("you have modified your \"identifier\" in the Tauri configuration");
 			}
-		}
+		},
 		#[cfg(target_os = "macos")]
 		Target::Ios => {
 			let pbxproj_contents = read_to_string(
@@ -332,23 +330,24 @@ fn ensure_init(
 					"you have modified your [lib.name] or [package.name] in the Cargo.toml file",
 				);
 			}
-		}
+		},
 	}
 
 	if !project_outdated_reasons.is_empty() {
 		let reason = project_outdated_reasons.join(" and ");
 		bail!(
-        "{} project directory is outdated because {reason}. Please run `tauri {} init` and try again.",
-        target.ide_name(),
-        target.command_name(),
-      )
+			"{} project directory is outdated because {reason}. Please run `tauri {} init` and \
+			 try again.",
+			target.ide_name(),
+			target.command_name(),
+		)
 	}
 
 	Ok(())
 }
 
 #[cfg(unix)]
-fn ensure_gradlew(project_dir: &std::path::Path) -> Result<()> {
+fn ensure_gradlew(project_dir:&std::path::Path) -> Result<()> {
 	use std::os::unix::fs::PermissionsExt;
 
 	let gradlew_path = project_dir.join("gradlew");
@@ -373,7 +372,7 @@ fn ensure_gradlew(project_dir: &std::path::Path) -> Result<()> {
 	Ok(())
 }
 
-fn log_finished(outputs: Vec<PathBuf>, kind: &str) {
+fn log_finished(outputs:Vec<PathBuf>, kind:&str) {
 	if !outputs.is_empty() {
 		let mut printable_paths = String::new();
 		for path in &outputs {

@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::{fs::read_to_string, str::FromStr};
+
+use anyhow::Context;
+
 use crate::{
 	helpers::{
 		app_paths::tauri_dir,
@@ -10,10 +14,6 @@ use crate::{
 	interface::rust::get_workspace_dir,
 	Result,
 };
-
-use std::{fs::read_to_string, str::FromStr};
-
-use anyhow::Context;
 
 mod migrations;
 

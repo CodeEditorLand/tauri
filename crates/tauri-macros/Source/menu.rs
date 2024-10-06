@@ -55,23 +55,14 @@ impl Parse for DoMenuItemInput {
 		let _:Token![|] = input.parse()?;
 		let expr:Expr = input.parse()?;
 		let _:syn::Result<Token![,]> = input.parse();
-		let kinds =
-			Punctuated::<NegatedIdent, Token![|]>::parse_terminated(input)?;
+		let kinds = Punctuated::<NegatedIdent, Token![|]>::parse_terminated(input)?;
 
-		Ok(Self {
-			resources_table,
-			rid,
-			kind,
-			var,
-			expr,
-			kinds:kinds.into_iter().collect(),
-		})
+		Ok(Self { resources_table, rid, kind, var, expr, kinds:kinds.into_iter().collect() })
 	}
 }
 
 pub fn do_menu_item(input:DoMenuItemInput) -> TokenStream {
-	let DoMenuItemInput { rid, resources_table, kind, expr, var, mut kinds } =
-		input;
+	let DoMenuItemInput { rid, resources_table, kind, expr, var, mut kinds } = input;
 
 	let defaults = vec![
 		NegatedIdent::new("Submenu"),
@@ -99,27 +90,13 @@ pub fn do_menu_item(input:DoMenuItemInput) -> TokenStream {
 				None
 			} else {
 				match nident.ident {
-					i if i == "MenuItem" => {
-						Some((i, Ident::new("MenuItem", Span::call_site())))
-					},
-					i if i == "Submenu" => {
-						Some((i, Ident::new("Submenu", Span::call_site())))
-					},
+					i if i == "MenuItem" => Some((i, Ident::new("MenuItem", Span::call_site()))),
+					i if i == "Submenu" => Some((i, Ident::new("Submenu", Span::call_site()))),
 					i if i == "Predefined" => {
-						Some((
-							i,
-							Ident::new("PredefinedMenuItem", Span::call_site()),
-						))
+						Some((i, Ident::new("PredefinedMenuItem", Span::call_site())))
 					},
-					i if i == "Check" => {
-						Some((
-							i,
-							Ident::new("CheckMenuItem", Span::call_site()),
-						))
-					},
-					i if i == "Icon" => {
-						Some((i, Ident::new("IconMenuItem", Span::call_site())))
-					},
+					i if i == "Check" => Some((i, Ident::new("CheckMenuItem", Span::call_site()))),
+					i if i == "Icon" => Some((i, Ident::new("IconMenuItem", Span::call_site()))),
 					_ => None,
 				}
 			}

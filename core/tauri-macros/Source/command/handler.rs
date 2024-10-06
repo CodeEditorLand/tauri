@@ -5,16 +5,19 @@
 use quote::format_ident;
 use syn::{
 	parse::{Parse, ParseBuffer, ParseStream},
-	Attribute, Ident, Path, Token,
+	Attribute,
+	Ident,
+	Path,
+	Token,
 };
 
 struct CommandDef {
-	path: Path,
-	attrs: Vec<Attribute>,
+	path:Path,
+	attrs:Vec<Attribute>,
 }
 
 impl Parse for CommandDef {
-	fn parse(input: ParseStream) -> syn::Result<Self> {
+	fn parse(input:ParseStream) -> syn::Result<Self> {
 		let attrs = input.call(Attribute::parse_outer)?;
 
 		let path = input.parse()?;
@@ -25,13 +28,13 @@ impl Parse for CommandDef {
 
 /// The items parsed from [`generate_handle!`](crate::generate_handle).
 pub struct Handler {
-	command_defs: Vec<CommandDef>,
-	commands: Vec<Ident>,
-	wrappers: Vec<Path>,
+	command_defs:Vec<CommandDef>,
+	commands:Vec<Ident>,
+	wrappers:Vec<Path>,
 }
 
 impl Parse for Handler {
-	fn parse(input: &ParseBuffer<'_>) -> syn::Result<Self> {
+	fn parse(input:&ParseBuffer<'_>) -> syn::Result<Self> {
 		let command_defs = input.parse_terminated(CommandDef::parse, Token![,])?;
 
 		// parse the command names and wrappers from the passed paths
@@ -52,7 +55,7 @@ impl Parse for Handler {
 			.unzip();
 
 		Ok(Self {
-			command_defs: command_defs.into_iter().collect(), // remove punctuation separators
+			command_defs:command_defs.into_iter().collect(), // remove punctuation separators
 			commands,
 			wrappers,
 		})
@@ -60,12 +63,12 @@ impl Parse for Handler {
 }
 
 impl From<Handler> for proc_macro::TokenStream {
-	fn from(Handler { command_defs, commands, wrappers }: Handler) -> Self {
+	fn from(Handler { command_defs, commands, wrappers }:Handler) -> Self {
 		let cmd = format_ident!("__tauri_cmd__");
 
 		let invoke = format_ident!("__tauri_invoke__");
 
-		let (paths, attrs): (Vec<Path>, Vec<Vec<Attribute>>) =
+		let (paths, attrs):(Vec<Path>, Vec<Vec<Attribute>>) =
 			command_defs.into_iter().map(|def| (def.path, def.attrs)).unzip();
 		quote::quote!(move |#invoke| {
 		  let #cmd = #invoke.message.command();

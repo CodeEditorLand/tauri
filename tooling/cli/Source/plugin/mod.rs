@@ -23,7 +23,7 @@ pub enum PluginIosFramework {
 }
 
 impl Display for PluginIosFramework {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::Spm => write!(f, "spm"),
 			Self::Xcode => write!(f, "xcode"),
@@ -41,7 +41,7 @@ impl Display for PluginIosFramework {
 )]
 pub struct Cli {
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Subcommand)]
@@ -52,7 +52,7 @@ enum Commands {
 	Ios(ios::Cli),
 }
 
-pub fn command(cli: Cli) -> Result<()> {
+pub fn command(cli:Cli) -> Result<()> {
 	match cli.command {
 		Commands::New(options) => new::command(options)?,
 		Commands::Init(options) => init::command(options)?,
@@ -63,13 +63,13 @@ pub fn command(cli: Cli) -> Result<()> {
 	Ok(())
 }
 
-fn infer_plugin_name<P: AsRef<Path>>(directory: P) -> Result<String> {
+fn infer_plugin_name<P:AsRef<Path>>(directory:P) -> Result<String> {
 	let dir = directory.as_ref();
 	let cargo_toml_path = dir.join("Cargo.toml");
 	let name = if cargo_toml_path.exists() {
 		let contents = std::fs::read_to_string(cargo_toml_path)?;
 
-		let cargo_toml: toml::Value = toml::from_str(&contents)?;
+		let cargo_toml:toml::Value = toml::from_str(&contents)?;
 		cargo_toml
 			.get("package")
 			.and_then(|v| v.get("name"))

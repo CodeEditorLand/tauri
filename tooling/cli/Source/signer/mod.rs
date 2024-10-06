@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::Result;
 use clap::{Parser, Subcommand};
+
+use crate::Result;
 
 mod generate;
 mod sign;
@@ -18,7 +19,7 @@ mod sign;
 )]
 pub struct Cli {
 	#[clap(subcommand)]
-	command: Commands,
+	command:Commands,
 }
 
 #[derive(Subcommand)]
@@ -27,7 +28,7 @@ enum Commands {
 	Generate(generate::Options),
 }
 
-pub fn command(cli: Cli) -> Result<()> {
+pub fn command(cli:Cli) -> Result<()> {
 	match cli.command {
 		Commands::Sign(options) => sign::command(options)?,
 		Commands::Generate(options) => generate::command(options)?,

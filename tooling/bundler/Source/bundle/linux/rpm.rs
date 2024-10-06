@@ -3,21 +3,21 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::Settings;
-
-use anyhow::Context;
-use rpm::{self, signature::pgp, Dependency, FileMode, FileOptions};
 use std::{
 	env,
 	fs::{self, File},
 	path::{Path, PathBuf},
 };
 
+use anyhow::Context;
+use rpm::{self, signature::pgp, Dependency, FileMode, FileOptions};
+
 use super::freedesktop;
+use crate::Settings;
 
 /// Bundles the project.
 /// Returns a vector of PathBuf that shows where the RPM was created.
-pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
+pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 	let product_name = settings.product_name();
 	let version = settings.version_string();
 	let release = settings.rpm().release.as_str();
@@ -133,7 +133,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 		builder = builder.with_file(
 			empty_file_path,
 			FileOptions::new(resource_dir.to_string_lossy())
-				.mode(FileMode::Dir { permissions: 0o755 }),
+				.mode(FileMode::Dir { permissions:0o755 }),
 		)?;
 		// Then add the resources files in that directory
 		for src in settings.resource_files() {

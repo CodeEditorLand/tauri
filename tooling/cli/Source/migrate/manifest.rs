@@ -2,20 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use crate::{
-	interface::rust::manifest::{read_manifest, serialize_manifest},
-	Result,
-};
+use std::path::Path;
 
 use anyhow::Context;
 use tauri_utils_v1::config::Allowlist;
 use toml_edit::{DocumentMut, Entry, Item, TableLike, Value};
 
-use std::path::Path;
+use crate::{
+	interface::rust::manifest::{read_manifest, serialize_manifest},
+	Result,
+};
 
-const CRATE_TYPES: [&str; 3] = ["lib", "staticlib", "cdylib"];
+const CRATE_TYPES:[&str; 3] = ["lib", "staticlib", "cdylib"];
 
-pub fn migrate(tauri_dir: &Path) -> Result<()> {
+pub fn migrate(tauri_dir:&Path) -> Result<()> {
 	let manifest_path = tauri_dir.join("Cargo.toml");
 	let (mut manifest, _) = read_manifest(&manifest_path)?;
 	migrate_manifest(&mut manifest)?;
@@ -26,7 +26,7 @@ pub fn migrate(tauri_dir: &Path) -> Result<()> {
 	Ok(())
 }
 
-fn migrate_manifest(manifest: &mut DocumentMut) -> Result<()> {
+fn migrate_manifest(manifest:&mut DocumentMut) -> Result<()> {
 	let version = dependency_version();
 
 	let remove_features = features_to_remove();
@@ -76,7 +76,12 @@ fn migrate_manifest(manifest: &mut DocumentMut) -> Result<()> {
 		for item in items {
 			// do not rewrite if dependency uses workspace inheritance
 			if item.get("workspace").and_then(|v| v.as_bool()).unwrap_or_default() {
-				log::warn!("`{dependency}` dependency has workspace inheritance enabled. This migration must be manually migrated to v2 by changing its version to {version}, removing any of the {remove_features:?} and renaming [{}] Cargo features.", rename_message);
+				log::warn!(
+					"`{dependency}` dependency has workspace inheritance enabled. This migration \
+					 must be manually migrated to v2 by changing its version to {version}, \
+					 removing any of the {remove_features:?} and renaming [{}] Cargo features.",
+					rename_message
+				);
 			} else {
 				migrate_dependency(item, &version, &remove_features, &rename_features);
 			}
@@ -100,12 +105,12 @@ fn migrate_manifest(manifest: &mut DocumentMut) -> Result<()> {
 						types.push(t);
 					}
 				}
-			}
+			},
 			Entry::Vacant(e) => {
 				let mut arr = toml_edit::Array::new();
 				arr.extend(CRATE_TYPES.to_vec());
 				e.insert(Item::Value(arr.into()));
-			}
+			},
 		}
 	}
 
@@ -113,9 +118,9 @@ fn migrate_manifest(manifest: &mut DocumentMut) -> Result<()> {
 }
 
 fn find_dependency<'a>(
-	manifest: &'a mut DocumentMut,
-	name: &'a str,
-	table: &'a str,
+	manifest:&'a mut DocumentMut,
+	name:&'a str,
+	table:&'a str,
 ) -> Vec<&'a mut Item> {
 	let m = manifest.as_table_mut();
 	for (k, v) in m.iter_mut() {
@@ -189,7 +194,7 @@ fn dependency_version() -> String {
 	}
 }
 
-fn migrate_dependency(item: &mut Item, version: &str, remove: &[&str], rename: &[(&str, &str)]) {
+fn migrate_dependency(item:&mut Item, version:&str, remove:&[&str], rename:&[(&str, &str)]) {
 	if let Some(dep) = item.as_table_mut() {
 		migrate_dependency_table(dep, version, remove, rename);
 	} else if let Some(Value::InlineTable(table)) = item.as_value_mut() {
@@ -199,11 +204,11 @@ fn migrate_dependency(item: &mut Item, version: &str, remove: &[&str], rename: &
 	}
 }
 
-fn migrate_dependency_table<D: TableLike>(
-	dep: &mut D,
-	version: &str,
-	remove: &[&str],
-	rename: &[(&str, &str)],
+fn migrate_dependency_table<D:TableLike>(
+	dep:&mut D,
+	version:&str,
+	remove:&[&str],
+	rename:&[(&str, &str)],
 ) {
 	dep.remove("rev");
 	dep.remove("git");
@@ -241,7 +246,7 @@ fn migrate_dependency_table<D: TableLike>(
 mod tests {
 	use itertools::Itertools;
 
-	fn migrate_deps<F: FnOnce(&[&str]) -> String>(get_toml: F) {
+	fn migrate_deps<F:FnOnce(&[&str]) -> String>(get_toml:F) {
 		let keep_features = vec!["isolation", "protocol-asset"];
 
 		let mut features = super::features_to_remove();
@@ -296,9 +301,9 @@ mod tests {
 
 		if toml.contains("reqwest-native-tls-vendored") {
 			assert!(
-				features
-					.iter()
-					.any(|f| f.as_str().expect("feature must be a string") == "native-tls-vendored"),
+				features.iter().any(|f| {
+					f.as_str().expect("feature must be a string") == "native-tls-vendored"
+				}),
 				"reqwest-native-tls-vendored was not replaced with native-tls-vendored"
 			);
 		}

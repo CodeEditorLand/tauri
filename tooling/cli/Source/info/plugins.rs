@@ -7,6 +7,7 @@ use std::{
 	path::{Path, PathBuf},
 };
 
+use super::{packages_nodejs, packages_rust, SectionItem};
 use crate::{
 	helpers::{
 		self,
@@ -16,25 +17,23 @@ use crate::{
 	interface::rust::get_workspace_dir,
 };
 
-use super::{packages_nodejs, packages_rust, SectionItem};
-
 pub fn items(
-	app_dir: Option<&PathBuf>,
-	tauri_dir: Option<&Path>,
-	package_manager: PackageManager,
+	app_dir:Option<&PathBuf>,
+	tauri_dir:Option<&Path>,
+	package_manager:PackageManager,
 ) -> Vec<SectionItem> {
 	let mut items = Vec::new();
 
 	if tauri_dir.is_some() || app_dir.is_some() {
 		if let Some(tauri_dir) = tauri_dir {
-			let manifest: Option<CargoManifest> =
+			let manifest:Option<CargoManifest> =
 				if let Ok(manifest_contents) = fs::read_to_string(tauri_dir.join("Cargo.toml")) {
 					toml::from_str(&manifest_contents).ok()
 				} else {
 					None
 				};
 
-			let lock: Option<CargoLock> = get_workspace_dir()
+			let lock:Option<CargoLock> = get_workspace_dir()
 				.ok()
 				.and_then(|p| fs::read_to_string(p.join("Cargo.lock")).ok())
 				.and_then(|s| toml::from_str(&s).ok());

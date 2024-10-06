@@ -2,23 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use anyhow::{Context, Result};
-use serde::Deserialize;
 use std::{
 	fs,
 	path::{Path, PathBuf},
 };
 
+use anyhow::{Context, Result};
+use serde::Deserialize;
 use tauri_utils::display_path;
 
 struct PathAncestors<'a> {
-	current: Option<&'a Path>,
+	current:Option<&'a Path>,
 }
 
 impl<'a> PathAncestors<'a> {
-	fn new(path: &'a Path) -> PathAncestors<'a> {
-		PathAncestors { current: Some(path) }
-	}
+	fn new(path:&'a Path) -> PathAncestors<'a> { PathAncestors { current:Some(path) } }
 }
 
 impl<'a> Iterator for PathAncestors<'a> {
@@ -37,24 +35,24 @@ impl<'a> Iterator for PathAncestors<'a> {
 
 #[derive(Default, Deserialize)]
 pub struct BuildConfig {
-	target: Option<String>,
+	target:Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct ConfigSchema {
-	build: Option<BuildConfig>,
+	build:Option<BuildConfig>,
 }
 
 #[derive(Default)]
 pub struct Config {
-	build: BuildConfig,
+	build:BuildConfig,
 }
 
 impl Config {
-	pub fn load(path: &Path) -> Result<Self> {
+	pub fn load(path:&Path) -> Result<Self> {
 		let mut config = Self::default();
 
-		let get_config = |path: PathBuf| -> Result<ConfigSchema> {
+		let get_config = |path:PathBuf| -> Result<ConfigSchema> {
 			let contents = fs::read_to_string(&path).with_context(|| {
 				format!("failed to read configuration file `{}`", display_path(&path))
 			})?;
@@ -87,27 +85,19 @@ impl Config {
 		Ok(config)
 	}
 
-	pub fn build(&self) -> &BuildConfig {
-		&self.build
-	}
+	pub fn build(&self) -> &BuildConfig { &self.build }
 }
 
 impl BuildConfig {
-	pub fn target(&self) -> Option<&str> {
-		self.target.as_deref()
-	}
+	pub fn target(&self) -> Option<&str> { self.target.as_deref() }
 }
 
 /// The purpose of this function is to aid in the transition to using
 /// .toml extensions on Cargo's config files, which were historically not used.
-/// Both 'config.toml' and 'credentials.toml' should be valid with or without extension.
-/// When both exist, we want to prefer the one without an extension for
-/// backwards compatibility, but warn the user appropriately.
-fn get_file_path(
-	dir: &Path,
-	filename_without_extension: &str,
-	warn: bool,
-) -> Result<Option<PathBuf>> {
+/// Both 'config.toml' and 'credentials.toml' should be valid with or without
+/// extension. When both exist, we want to prefer the one without an extension
+/// for backwards compatibility, but warn the user appropriately.
+fn get_file_path(dir:&Path, filename_without_extension:&str, warn:bool) -> Result<Option<PathBuf>> {
 	let possible = dir.join(filename_without_extension);
 	let possible_with_extension = dir.join(format!("{filename_without_extension}.toml"));
 

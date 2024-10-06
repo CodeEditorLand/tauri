@@ -55,9 +55,7 @@ impl From<&Pattern> for PatternObject {
 		match pattern {
 			Pattern::Brownfield => Self::Brownfield,
 			#[cfg(feature = "isolation")]
-			Pattern::Isolation { .. } => {
-				Self::Isolation { side:IsolationSide::default() }
-			},
+			Pattern::Isolation { .. } => Self::Isolation { side:IsolationSide::default() },
 		}
 	}
 }
