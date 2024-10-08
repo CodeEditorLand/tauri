@@ -12,7 +12,7 @@
 	},
 	"devDependencies": {
 		"@iconify-json/codicon": "1.2.2",
-		"@iconify-json/ph": "1.2.0",
+		"@iconify-json/ph": "1.2.1",
 		"@playform/build": "",
 		"@unocss/extractor-svelte": "0.63.4",
 		"unocss": "0.63.4"
