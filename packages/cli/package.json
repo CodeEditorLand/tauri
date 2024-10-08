@@ -17,7 +17,7 @@
 	"devDependencies": {
 		"@napi-rs/cli": "2.18.4",
 		"@playform/build": "",
-		"@types/node": "22.7.4",
+		"@types/node": "22.7.5",
 		"cross-env": "7.0.3"
 	},
 	"funding": {
