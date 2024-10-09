@@ -7,20 +7,18 @@
 use tauri::Manager;
 
 fn main() {
-  let mut app = tauri::Builder::default()
-    .build(tauri::generate_context!(
-      "../../examples/run-iteration/tauri.conf.json"
-    ))
-    .expect("error while building tauri application");
+	let mut app = tauri::Builder::default()
+		.build(tauri::generate_context!("../../examples/run-iteration/tauri.conf.json"))
+		.expect("error while building tauri application");
 
-  loop {
-    app.run_iteration(|_app, _event| {
-      //println!("{:?}", _event);
-    });
+	loop {
+		app.run_iteration(|_app, _event| {
+			// println!("{:?}", _event);
+		});
 
-    if app.webview_windows().is_empty() {
-      app.cleanup_before_exit();
-      break;
-    }
-  }
+		if app.webview_windows().is_empty() {
+			app.cleanup_before_exit();
+			break;
+		}
+	}
 }
