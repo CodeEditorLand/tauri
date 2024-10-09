@@ -64,7 +64,7 @@ jobs:
                   profile: minimal
                   toolchain: ${{ matrix.toolchain }}
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -79,7 +79,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -94,7 +94,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./bench/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -109,7 +109,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-build/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -124,7 +124,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-bundler/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -139,7 +139,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-cli/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -154,7 +154,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-codegen/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -169,7 +169,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-driver/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -184,7 +184,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-macos-sign/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -199,7 +199,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-macros/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -214,7 +214,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-plugin/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -229,7 +229,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-runtime-wry/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -244,7 +244,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-runtime/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -259,7 +259,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-schema-generator/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -274,7 +274,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-schema-worker/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -289,7 +289,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri-utils/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -304,7 +304,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./crates/tauri/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -319,7 +319,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./examples/api/src-tauri/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -334,7 +334,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./examples/api/src-tauri/tauri-plugin-sample/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -349,7 +349,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./examples/file-associations/src-tauri/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/
@@ -364,7 +364,7 @@ jobs:
                 command: build
                 args: --release --all-features --manifest-path ./examples/resources/src-tauri/Cargo.toml
 
-            - uses: actions/cache@v4.0.2
+            - uses: actions/cache@v4.1.1
               with:
                   path: |
                       ~/.cargo/bin/

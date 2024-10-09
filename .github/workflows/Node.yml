@@ -88,7 +88,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-crates-tauri-cli-templates-plugin-__example-api-tauri-app-Node-${{ matrix.node-version }}-Target
                   path: ./crates/tauri-cli/templates/plugin/__example-api/tauri-app/Target
@@ -96,7 +96,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-crates-tauri-cli-templates-plugin-__example-api-tauri-app-Node-${{ matrix.node-version }}-Target
                   path: ./crates/tauri-cli/templates/plugin/__example-api/tauri-app/Target
@@ -113,7 +113,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-crates-tauri-cli-templates-plugin-__example-basic-vanilla-Node-${{ matrix.node-version }}-Target
                   path: ./crates/tauri-cli/templates/plugin/__example-basic/vanilla/Target
@@ -130,7 +130,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-crates-tauri-cli-templates-plugin-Node-${{ matrix.node-version }}-Target
                   path: ./crates/tauri-cli/templates/plugin/Target
@@ -138,7 +138,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-crates-tauri-cli-templates-plugin-Node-${{ matrix.node-version }}-Target
                   path: ./crates/tauri-cli/templates/plugin/Target
@@ -155,7 +155,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-crates-tauri-schema-worker-Node-${{ matrix.node-version }}-Target
                   path: ./crates/tauri-schema-worker/Target
@@ -172,7 +172,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-examples-api-Node-${{ matrix.node-version }}-Target
                   path: ./examples/api/Target
@@ -180,7 +180,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-examples-api-Node-${{ matrix.node-version }}-Target
                   path: ./examples/api/Target
@@ -197,7 +197,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-examples-file-associations-Node-${{ matrix.node-version }}-Target
                   path: ./examples/file-associations/Target
@@ -214,7 +214,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-examples-resources-Node-${{ matrix.node-version }}-Target
                   path: ./examples/resources/Target
@@ -231,7 +231,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-Node-${{ matrix.node-version }}-Target
                   path: ./Target
@@ -239,7 +239,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-Node-${{ matrix.node-version }}-Target
                   path: ./Target
@@ -256,7 +256,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-api-Node-${{ matrix.node-version }}-Target
                   path: ./packages/api/Target
@@ -264,7 +264,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-api-Node-${{ matrix.node-version }}-Target
                   path: ./packages/api/Target
@@ -281,7 +281,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-darwin-arm64-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/darwin-arm64/Target
@@ -298,7 +298,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-darwin-x64-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/darwin-x64/Target
@@ -315,7 +315,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-linux-arm-gnueabihf-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/linux-arm-gnueabihf/Target
@@ -332,7 +332,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-linux-arm64-gnu-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/linux-arm64-gnu/Target
@@ -349,7 +349,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-linux-arm64-musl-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/linux-arm64-musl/Target
@@ -366,7 +366,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-linux-x64-gnu-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/linux-x64-gnu/Target
@@ -383,7 +383,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-linux-x64-musl-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/linux-x64-musl/Target
@@ -400,7 +400,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-win32-arm64-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/win32-arm64-msvc/Target
@@ -417,7 +417,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-win32-ia32-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/win32-ia32-msvc/Target
@@ -434,7 +434,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-npm-win32-x64-msvc-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/npm/win32-x64-msvc/Target
@@ -451,7 +451,7 @@ jobs:
             - run: pnpm run build
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/Target
@@ -459,7 +459,7 @@ jobs:
             - run: pnpm run prepublishOnly
               working-directory: .
 
-            - uses: actions/upload-artifact@v4.4.0
+            - uses: actions/upload-artifact@v4.4.2
               with:
                   name: .-packages-cli-Node-${{ matrix.node-version }}-Target
                   path: ./packages/cli/Target
