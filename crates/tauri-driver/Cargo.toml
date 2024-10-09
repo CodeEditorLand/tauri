@@ -14,12 +14,12 @@ rust-version = "1.77.2"
 [dependencies]
 anyhow = "1"
 hyper = { version = "0.14", features = [
-  "client",
-  "http1",
-  "runtime",
-  "server",
-  "stream",
-  "tcp",
+	"client",
+	"http1",
+	"runtime",
+	"server",
+	"stream",
+	"tcp",
 ] }
 futures = "0.3"
 futures-util = "0.3"

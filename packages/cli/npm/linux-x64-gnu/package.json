@@ -14,7 +14,7 @@
 		"x64"
 	],
 	"devDependencies": {
-		"@playform/build": "0.1.7"
+		"@playform/build": ""
 	},
 	"files": [
 		"cli.linux-x64-gnu.node"

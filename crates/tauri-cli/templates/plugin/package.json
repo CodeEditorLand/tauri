@@ -8,12 +8,12 @@
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"dependencies": {
-		"@tauri-apps/api": ">=2.0.0-beta.6"
+		"@tauri-apps/api": ">=2.0.2"
 	},
 	"description": "",
 	"devDependencies": {
-		"@playform/build": "0.1.7",
-		"tslib": "^2.6.2"
+		"@playform/build": "",
+		"tslib": "2.7.0"
 	},
 	"exports": {
 		"import": "./dist-js/index.js",

@@ -14,7 +14,7 @@
 		"arm64"
 	],
 	"devDependencies": {
-		"@playform/build": "0.1.7"
+		"@playform/build": ""
 	},
 	"files": [
 		"cli.darwin-arm64.node"

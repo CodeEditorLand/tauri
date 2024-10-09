@@ -19,6 +19,9 @@
 	"extends": "@playform/build/tsconfig",
 	"include": [
 		"guest-js/*.ts",
+		"src",
+		"src",
+		"src",
 		"src"
 	]
 }
