@@ -13,10 +13,10 @@
 	"description": "Tauri API definitions",
 	"devDependencies": {
 		"@playform/build": "0.1.7",
-		"@types/node": "20.16.1",
+		"@types/node": "22.7.5",
 		"fast-glob": "3.3.2",
-		"globals": "15.4.0",
-		"tslib": "2.6.3"
+		"globals": "15.11.0",
+		"tslib": "2.7.0"
 	},
 	"exports": {
 		".": {

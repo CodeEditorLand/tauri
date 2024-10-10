@@ -9,7 +9,7 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.1.7",
-		"wrangler": "3.75"
+		"wrangler": "3.80"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
