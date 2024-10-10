@@ -2,4 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-fn main() { ::napi_build::setup(); }
+fn main() {
+  ::napi_build::setup();
+}

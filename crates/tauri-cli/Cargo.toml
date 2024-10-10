@@ -10,14 +10,14 @@ homepage = "https://tauri.app"
 repository = "https://github.com/tauri-apps/tauri"
 description = "Command line interface for building Tauri apps"
 include = [
-	"src/",
-	"/templates",
-	"scripts/",
-	"*.json",
-	"*.rs",
-	"tauri.gitignore",
-	"tauri-dev-watcher.gitignore",
-	"LICENSE*",
+  "src/",
+  "/templates",
+  "scripts/",
+  "*.json",
+  "*.rs",
+  "tauri.gitignore",
+  "tauri-dev-watcher.gitignore",
+  "LICENSE*",
 ]
 
 [package.metadata.binstall]
@@ -58,22 +58,22 @@ duct = "0.13"
 toml_edit = { version = "0.22", features = ["serde"] }
 json-patch = "2.0"
 tauri-utils = { version = "2.0.1", path = "../tauri-utils", features = [
-	"isolation",
-	"schema",
-	"config-json5",
-	"config-toml",
+  "isolation",
+  "schema",
+  "config-json5",
+  "config-toml",
 ] }
 tauri-utils-v1 = { version = "1", package = "tauri-utils", features = [
-	"isolation",
-	"schema",
-	"config-json5",
-	"config-toml",
+  "isolation",
+  "schema",
+  "config-json5",
+  "config-toml",
 ] }
 toml = "0.8"
 jsonschema = "0.18"
 handlebars = "6.0"
 include_dir = "0.7"
-minisign = "0.7.3"
+minisign = "=0.7.3"
 base64 = "0.22.0"
 ureq = { version = "2.9.6", default-features = false, features = ["gzip"] }
 os_info = "3"
@@ -121,9 +121,9 @@ pretty_assertions = "1"
 [target."cfg(windows)".dependencies.windows-sys]
 version = "0.59"
 features = [
-	"Win32_Storage_FileSystem",
-	"Win32_System_IO",
-	"Win32_System_Console",
+  "Win32_Storage_FileSystem",
+  "Win32_System_IO",
+  "Win32_System_Console",
 ]
 
 [target."cfg(unix)".dependencies]
@@ -133,18 +133,18 @@ libc = "0.2"
 plist = "1"
 tauri-macos-sign = { version = "2.0.1", path = "../tauri-macos-sign" }
 object = { version = "0.36", default-features = false, features = [
-	"macho",
-	"read_core",
-	"std",
+  "macho",
+  "read_core",
+  "std",
 ] }
 ar = "0.9"
 
 [features]
 default = ["rustls"]
 native-tls = [
-	"tauri-bundler/native-tls",
-	"cargo-mobile2/native-tls",
-	"ureq/native-tls",
+  "tauri-bundler/native-tls",
+  "cargo-mobile2/native-tls",
+  "ureq/native-tls",
 ]
 native-tls-vendored = ["native-tls", "tauri-bundler/native-tls-vendored"]
 rustls = ["tauri-bundler/rustls", "cargo-mobile2/rustls", "ureq/tls"]
