@@ -12,7 +12,7 @@
 	},
 	"description": "",
 	"devDependencies": {
-		"@playform/build": "",
+		"@playform/build": "0.1.7",
 		"tslib": "2.7.0"
 	},
 	"exports": {

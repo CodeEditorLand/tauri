@@ -14,7 +14,7 @@
 		"arm64"
 	],
 	"devDependencies": {
-		"@playform/build": ""
+		"@playform/build": "0.1.7"
 	},
 	"files": [
 		"cli.linux-arm64-gnu.node"

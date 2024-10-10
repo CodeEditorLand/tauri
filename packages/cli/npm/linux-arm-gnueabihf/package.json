@@ -14,7 +14,7 @@
 		"arm"
 	],
 	"devDependencies": {
-		"@playform/build": ""
+		"@playform/build": "0.1.7"
 	},
 	"files": [
 		"cli.linux-arm-gnueabihf.node"
