@@ -21,6 +21,7 @@
 		"guest-js/*.ts",
 		"src",
 		"src",
+		"src",
 		"src"
 	]
 }
