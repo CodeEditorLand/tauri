@@ -16,7 +16,7 @@
 	"description": "Command line interface for building Tauri apps",
 	"devDependencies": {
 		"@napi-rs/cli": "2.18.4",
-		"@playform/build": "0.1.7",
+		"@playform/build": "0.1.8",
 		"@types/node": "22.7.7",
 		"cross-env": "7.0.3"
 	},

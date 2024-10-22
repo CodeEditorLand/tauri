@@ -8,11 +8,11 @@
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"dependencies": {
-		"@tauri-apps/cli": "2.0.3"
+		"@tauri-apps/cli": "2.0.4"
 	},
 	"description": "",
 	"devDependencies": {
-		"@playform/build": "0.1.7"
+		"@playform/build": "0.1.8"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
