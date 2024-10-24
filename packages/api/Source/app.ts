@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-import { invoke } from "./core";
-import { Image } from "./image";
-import { Theme } from "./window";
+import { invoke } from './core'
+import { Image } from './image'
+import { Theme } from './window'
 
 /**
  * Application metadata and related APIs.
@@ -23,7 +23,7 @@ import { Theme } from "./window";
  * @since 1.0.0
  */
 async function getVersion(): Promise<string> {
-	return invoke("plugin:app|version");
+  return invoke('plugin:app|version')
 }
 
 /**
@@ -37,7 +37,7 @@ async function getVersion(): Promise<string> {
  * @since 1.0.0
  */
 async function getName(): Promise<string> {
-	return invoke("plugin:app|name");
+  return invoke('plugin:app|name')
 }
 
 /**
@@ -52,7 +52,7 @@ async function getName(): Promise<string> {
  * @since 1.0.0
  */
 async function getTauriVersion(): Promise<string> {
-	return invoke("plugin:app|tauri_version");
+  return invoke('plugin:app|tauri_version')
 }
 
 /**
@@ -67,7 +67,7 @@ async function getTauriVersion(): Promise<string> {
  * @since 1.2.0
  */
 async function show(): Promise<void> {
-	return invoke("plugin:app|app_show");
+  return invoke('plugin:app|app_show')
 }
 
 /**
@@ -82,7 +82,7 @@ async function show(): Promise<void> {
  * @since 1.2.0
  */
 async function hide(): Promise<void> {
-	return invoke("plugin:app|app_hide");
+  return invoke('plugin:app|app_hide')
 }
 
 /**
@@ -97,9 +97,9 @@ async function hide(): Promise<void> {
  * @since 2.0.0
  */
 async function defaultWindowIcon(): Promise<Image | null> {
-	return invoke<number | null>("plugin:app|default_window_icon").then(
-		(rid) => (rid ? new Image(rid) : null),
-	);
+  return invoke<number | null>('plugin:app|default_window_icon').then((rid) =>
+    rid ? new Image(rid) : null
+  )
 }
 
 /**
@@ -118,15 +118,15 @@ async function defaultWindowIcon(): Promise<Image | null> {
  * @since 2.0.0
  */
 async function setTheme(theme?: Theme | null): Promise<void> {
-	return invoke("plugin:app|set_app_theme", { theme });
+  return invoke('plugin:app|set_app_theme', { theme })
 }
 
 export {
-	getName,
-	getVersion,
-	getTauriVersion,
-	show,
-	hide,
-	defaultWindowIcon,
-	setTheme,
-};
+  getName,
+  getVersion,
+  getTauriVersion,
+  show,
+  hide,
+  defaultWindowIcon,
+  setTheme
+}
