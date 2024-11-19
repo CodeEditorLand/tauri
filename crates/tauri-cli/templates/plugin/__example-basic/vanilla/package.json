@@ -12,7 +12,7 @@
 	},
 	"description": "",
 	"devDependencies": {
-		"@playform/build": "0.1.8"
+		"@playform/build": "0.1.9"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [
