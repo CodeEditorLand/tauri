@@ -1,23 +1,35 @@
 {
-	"author": {
-		"email": "Source/Open@Editor.Land",
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"url": "HTTPS://Editor.Land"
-	},
+	"name": "@tauri-apps/api",
+	"version": "0.0.1",
+	"private": false,
+	"description": "Tauri API definitions",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"funding": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/tauri"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
 	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"description": "Tauri API definitions",
-	"devDependencies": {
-		"@playform/build": "0.1.9",
-		"@types/node": "22.9.1",
-		"fast-glob": "3.3.2",
-		"globals": "^15.12.0",
-		"tslib": "^2.8.1"
-	},
+	"type": "module",
 	"exports": {
 		".": {
 			"import": "./index.js",
@@ -31,28 +43,9 @@
 		},
 		"./package.json": "./package.json"
 	},
-	"funding": {
-		"type": "opencollective",
-		"url": "https://opencollective.com/tauri"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"license": "SEE LICENSE IN LICENSE",
 	"main": "./index.cjs",
 	"module": "./index.js",
-	"name": "@tauri-apps/api",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
+	"types": "./index.d.ts",
 	"scripts": {
 		"build": "rollup -c --configPlugin typescript",
 		"eslint:check": "eslint src/**/*.ts",
@@ -62,7 +55,14 @@
 		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"ts:check": "tsc --noEmit"
 	},
-	"type": "module",
-	"types": "./index.d.ts",
-	"version": "0.0.1"
+	"devDependencies": {
+		"@playform/build": "0.1.9",
+		"@types/node": "22.9.1",
+		"fast-glob": "3.3.2",
+		"globals": "^15.12.0",
+		"tslib": "^2.8.1"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
