@@ -9,58 +9,58 @@
  * @module
  */
 
-import { invoke, transformCallback } from './core'
+import { invoke, transformCallback } from "./core";
 
 type EventTarget =
-  | { kind: 'Any' }
-  | { kind: 'AnyLabel'; label: string }
-  | { kind: 'App' }
-  | { kind: 'Window'; label: string }
-  | { kind: 'Webview'; label: string }
-  | { kind: 'WebviewWindow'; label: string }
+	| { kind: "Any" }
+	| { kind: "AnyLabel"; label: string }
+	| { kind: "App" }
+	| { kind: "Window"; label: string }
+	| { kind: "Webview"; label: string }
+	| { kind: "WebviewWindow"; label: string };
 
 interface Event<T> {
-  /** Event name */
-  event: EventName
-  /** Event identifier used to unlisten */
-  id: number
-  /** Event payload */
-  payload: T
+	/** Event name */
+	event: EventName;
+	/** Event identifier used to unlisten */
+	id: number;
+	/** Event payload */
+	payload: T;
 }
 
-type EventCallback<T> = (event: Event<T>) => void
+type EventCallback<T> = (event: Event<T>) => void;
 
-type UnlistenFn = () => void
+type UnlistenFn = () => void;
 
-type EventName = `${TauriEvent}` | (string & Record<never, never>)
+type EventName = `${TauriEvent}` | (string & Record<never, never>);
 
 interface Options {
-  /**
-   * The event target to listen to, defaults to `{ kind: 'Any' }`, see {@link EventTarget}.
-   *
-   * If a string is provided, {@link EventTarget.AnyLabel} is used.
-   */
-  target?: string | EventTarget
+	/**
+	 * The event target to listen to, defaults to `{ kind: 'Any' }`, see {@link EventTarget}.
+	 *
+	 * If a string is provided, {@link EventTarget.AnyLabel} is used.
+	 */
+	target?: string | EventTarget;
 }
 
 /**
  * @since 1.1.0
  */
 enum TauriEvent {
-  WINDOW_RESIZED = 'tauri://resize',
-  WINDOW_MOVED = 'tauri://move',
-  WINDOW_CLOSE_REQUESTED = 'tauri://close-requested',
-  WINDOW_DESTROYED = 'tauri://destroyed',
-  WINDOW_FOCUS = 'tauri://focus',
-  WINDOW_BLUR = 'tauri://blur',
-  WINDOW_SCALE_FACTOR_CHANGED = 'tauri://scale-change',
-  WINDOW_THEME_CHANGED = 'tauri://theme-changed',
-  WINDOW_CREATED = 'tauri://window-created',
-  WEBVIEW_CREATED = 'tauri://webview-created',
-  DRAG_ENTER = 'tauri://drag-enter',
-  DRAG_OVER = 'tauri://drag-over',
-  DRAG_DROP = 'tauri://drag-drop',
-  DRAG_LEAVE = 'tauri://drag-leave'
+	WINDOW_RESIZED = "tauri://resize",
+	WINDOW_MOVED = "tauri://move",
+	WINDOW_CLOSE_REQUESTED = "tauri://close-requested",
+	WINDOW_DESTROYED = "tauri://destroyed",
+	WINDOW_FOCUS = "tauri://focus",
+	WINDOW_BLUR = "tauri://blur",
+	WINDOW_SCALE_FACTOR_CHANGED = "tauri://scale-change",
+	WINDOW_THEME_CHANGED = "tauri://theme-changed",
+	WINDOW_CREATED = "tauri://window-created",
+	WEBVIEW_CREATED = "tauri://webview-created",
+	DRAG_ENTER = "tauri://drag-enter",
+	DRAG_OVER = "tauri://drag-over",
+	DRAG_DROP = "tauri://drag-drop",
+	DRAG_LEAVE = "tauri://drag-leave",
 }
 
 /**
@@ -72,10 +72,10 @@ enum TauriEvent {
  * @returns
  */
 async function _unlisten(event: string, eventId: number): Promise<void> {
-  await invoke('plugin:event|unlisten', {
-    event,
-    eventId
-  })
+	await invoke("plugin:event|unlisten", {
+		event,
+		eventId,
+	});
 }
 
 /**
@@ -101,21 +101,21 @@ async function _unlisten(event: string, eventId: number): Promise<void> {
  * @since 1.0.0
  */
 async function listen<T>(
-  event: EventName,
-  handler: EventCallback<T>,
-  options?: Options
+	event: EventName,
+	handler: EventCallback<T>,
+	options?: Options,
 ): Promise<UnlistenFn> {
-  const target: EventTarget =
-    typeof options?.target === 'string'
-      ? { kind: 'AnyLabel', label: options.target }
-      : (options?.target ?? { kind: 'Any' })
-  return invoke<number>('plugin:event|listen', {
-    event,
-    target,
-    handler: transformCallback(handler)
-  }).then((eventId) => {
-    return async () => _unlisten(event, eventId)
-  })
+	const target: EventTarget =
+		typeof options?.target === "string"
+			? { kind: "AnyLabel", label: options.target }
+			: (options?.target ?? { kind: "Any" });
+	return invoke<number>("plugin:event|listen", {
+		event,
+		target,
+		handler: transformCallback(handler),
+	}).then((eventId) => {
+		return async () => _unlisten(event, eventId);
+	});
 }
 
 /**
@@ -145,19 +145,19 @@ async function listen<T>(
  * @since 1.0.0
  */
 async function once<T>(
-  event: EventName,
-  handler: EventCallback<T>,
-  options?: Options
+	event: EventName,
+	handler: EventCallback<T>,
+	options?: Options,
 ): Promise<UnlistenFn> {
-  return listen<T>(
-    event,
-    (eventData) => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      _unlisten(event, eventData.id)
-      handler(eventData)
-    },
-    options
-  )
+	return listen<T>(
+		event,
+		(eventData) => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			_unlisten(event, eventData.id);
+			handler(eventData);
+		},
+		options,
+	);
 }
 
 /**
@@ -175,10 +175,10 @@ async function once<T>(
  * @since 1.0.0
  */
 async function emit(event: string, payload?: unknown): Promise<void> {
-  await invoke('plugin:event|emit', {
-    event,
-    payload
-  })
+	await invoke("plugin:event|emit", {
+		event,
+		payload,
+	});
 }
 
 /**
@@ -197,26 +197,28 @@ async function emit(event: string, payload?: unknown): Promise<void> {
  * @since 2.0.0
  */
 async function emitTo(
-  target: EventTarget | string,
-  event: string,
-  payload?: unknown
+	target: EventTarget | string,
+	event: string,
+	payload?: unknown,
 ): Promise<void> {
-  const eventTarget: EventTarget =
-    typeof target === 'string' ? { kind: 'AnyLabel', label: target } : target
-  await invoke('plugin:event|emit_to', {
-    target: eventTarget,
-    event,
-    payload
-  })
+	const eventTarget: EventTarget =
+		typeof target === "string"
+			? { kind: "AnyLabel", label: target }
+			: target;
+	await invoke("plugin:event|emit_to", {
+		target: eventTarget,
+		event,
+		payload,
+	});
 }
 
 export type {
-  Event,
-  EventTarget,
-  EventCallback,
-  UnlistenFn,
-  EventName,
-  Options
-}
+	Event,
+	EventTarget,
+	EventCallback,
+	UnlistenFn,
+	EventName,
+	Options,
+};
 
-export { listen, once, emit, emitTo, TauriEvent }
+export { listen, once, emit, emitTo, TauriEvent };

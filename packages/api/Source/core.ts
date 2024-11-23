@@ -57,7 +57,7 @@
 // if this value changes, make sure to update it in:
 // 1. ipc.js
 // 2. process-ipc-message-fn.js
-export const SERIALIZE_TO_IPC_FN = '__TAURI_TO_IPC_KEY__'
+export const SERIALIZE_TO_IPC_FN = "__TAURI_TO_IPC_KEY__";
 
 /**
  * Transforms a callback function to a string identifier that can be passed to the backend.
@@ -68,95 +68,98 @@ export const SERIALIZE_TO_IPC_FN = '__TAURI_TO_IPC_KEY__'
  * @since 1.0.0
  */
 function transformCallback<T = unknown>(
-  callback?: (response: T) => void,
-  once = false
+	callback?: (response: T) => void,
+	once = false,
 ): number {
-  return window.__TAURI_INTERNALS__.transformCallback(callback, once)
+	return window.__TAURI_INTERNALS__.transformCallback(callback, once);
 }
 
 class Channel<T = unknown> {
-  id: number
-  // @ts-expect-error field used by the IPC serializer
-  private readonly __TAURI_CHANNEL_MARKER__ = true
-  #onmessage: (response: T) => void = () => {
-    // no-op
-  }
-  #nextMessageId = 0
-  #pendingMessages: Record<string, T> = {}
+	id: number;
+	// @ts-expect-error field used by the IPC serializer
+	private readonly __TAURI_CHANNEL_MARKER__ = true;
+	#onmessage: (response: T) => void = () => {
+		// no-op
+	};
+	#nextMessageId = 0;
+	#pendingMessages: Record<string, T> = {};
 
-  constructor() {
-    this.id = transformCallback(
-      ({ message, id }: { message: T; id: number }) => {
-        // the id is used as a mechanism to preserve message order
-        if (id === this.#nextMessageId) {
-          this.#nextMessageId = id + 1
-          this.#onmessage(message)
+	constructor() {
+		this.id = transformCallback(
+			({ message, id }: { message: T; id: number }) => {
+				// the id is used as a mechanism to preserve message order
+				if (id === this.#nextMessageId) {
+					this.#nextMessageId = id + 1;
+					this.#onmessage(message);
 
-          // process pending messages
-          const pendingMessageIds = Object.keys(this.#pendingMessages)
-          if (pendingMessageIds.length > 0) {
-            let nextId = id + 1
-            for (const pendingId of pendingMessageIds.sort()) {
-              // if we have the next message, process it
-              if (parseInt(pendingId) === nextId) {
-                // eslint-disable-next-line security/detect-object-injection
-                const message = this.#pendingMessages[pendingId]
-                // eslint-disable-next-line security/detect-object-injection
-                delete this.#pendingMessages[pendingId]
+					// process pending messages
+					const pendingMessageIds = Object.keys(
+						this.#pendingMessages,
+					);
+					if (pendingMessageIds.length > 0) {
+						let nextId = id + 1;
+						for (const pendingId of pendingMessageIds.sort()) {
+							// if we have the next message, process it
+							if (parseInt(pendingId) === nextId) {
+								// eslint-disable-next-line security/detect-object-injection
+								const message =
+									this.#pendingMessages[pendingId];
+								// eslint-disable-next-line security/detect-object-injection
+								delete this.#pendingMessages[pendingId];
 
-                this.#onmessage(message)
+								this.#onmessage(message);
 
-                // move the id counter to the next message to check
-                nextId += 1
-              } else {
-                // we do not have the next message, let's wait
-                break
-              }
-            }
-            this.#nextMessageId = nextId
-          }
-        } else {
-          this.#pendingMessages[id.toString()] = message
-        }
-      }
-    )
-  }
+								// move the id counter to the next message to check
+								nextId += 1;
+							} else {
+								// we do not have the next message, let's wait
+								break;
+							}
+						}
+						this.#nextMessageId = nextId;
+					}
+				} else {
+					this.#pendingMessages[id.toString()] = message;
+				}
+			},
+		);
+	}
 
-  set onmessage(handler: (response: T) => void) {
-    this.#onmessage = handler
-  }
+	set onmessage(handler: (response: T) => void) {
+		this.#onmessage = handler;
+	}
 
-  get onmessage(): (response: T) => void {
-    return this.#onmessage
-  }
+	get onmessage(): (response: T) => void {
+		return this.#onmessage;
+	}
 
-  [SERIALIZE_TO_IPC_FN]() {
-    return `__CHANNEL__:${this.id}`
-  }
+	[SERIALIZE_TO_IPC_FN]() {
+		return `__CHANNEL__:${this.id}`;
+	}
 
-  toJSON(): string {
-    // eslint-disable-next-line security/detect-object-injection
-    return this[SERIALIZE_TO_IPC_FN]()
-  }
+	toJSON(): string {
+		// eslint-disable-next-line security/detect-object-injection
+		return this[SERIALIZE_TO_IPC_FN]();
+	}
 }
 
 class PluginListener {
-  plugin: string
-  event: string
-  channelId: number
+	plugin: string;
+	event: string;
+	channelId: number;
 
-  constructor(plugin: string, event: string, channelId: number) {
-    this.plugin = plugin
-    this.event = event
-    this.channelId = channelId
-  }
+	constructor(plugin: string, event: string, channelId: number) {
+		this.plugin = plugin;
+		this.event = event;
+		this.channelId = channelId;
+	}
 
-  async unregister(): Promise<void> {
-    return invoke(`plugin:${this.plugin}|remove_listener`, {
-      event: this.event,
-      channelId: this.channelId
-    })
-  }
+	async unregister(): Promise<void> {
+		return invoke(`plugin:${this.plugin}|remove_listener`, {
+			event: this.event,
+			channelId: this.channelId,
+		});
+	}
 }
 
 /**
@@ -167,18 +170,22 @@ class PluginListener {
  * @since 2.0.0
  */
 async function addPluginListener<T>(
-  plugin: string,
-  event: string,
-  cb: (payload: T) => void
+	plugin: string,
+	event: string,
+	cb: (payload: T) => void,
 ): Promise<PluginListener> {
-  const handler = new Channel<T>()
-  handler.onmessage = cb
-  return invoke(`plugin:${plugin}|registerListener`, { event, handler }).then(
-    () => new PluginListener(plugin, event, handler.id)
-  )
+	const handler = new Channel<T>();
+	handler.onmessage = cb;
+	return invoke(`plugin:${plugin}|registerListener`, { event, handler }).then(
+		() => new PluginListener(plugin, event, handler.id),
+	);
 }
 
-type PermissionState = 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale'
+type PermissionState =
+	| "granted"
+	| "denied"
+	| "prompt"
+	| "prompt-with-rationale";
 
 /**
  * Get permission state for a plugin.
@@ -186,7 +193,7 @@ type PermissionState = 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale'
  * This should be used by plugin authors to wrap their actual implementation.
  */
 async function checkPermissions<T>(plugin: string): Promise<T> {
-  return invoke(`plugin:${plugin}|check_permissions`)
+	return invoke(`plugin:${plugin}|check_permissions`);
 }
 
 /**
@@ -195,7 +202,7 @@ async function checkPermissions<T>(plugin: string): Promise<T> {
  * This should be used by plugin authors to wrap their actual implementation.
  */
 async function requestPermissions<T>(plugin: string): Promise<T> {
-  return invoke(`plugin:${plugin}|request_permissions`)
+	return invoke(`plugin:${plugin}|request_permissions`);
 }
 
 /**
@@ -203,13 +210,13 @@ async function requestPermissions<T>(plugin: string): Promise<T> {
  *
  * @since 1.0.0
  */
-type InvokeArgs = Record<string, unknown> | number[] | ArrayBuffer | Uint8Array
+type InvokeArgs = Record<string, unknown> | number[] | ArrayBuffer | Uint8Array;
 
 /**
  * @since 2.0.0
  */
 interface InvokeOptions {
-  headers: Headers | Record<string, string>
+	headers: Headers | Record<string, string>;
 }
 
 /**
@@ -228,11 +235,11 @@ interface InvokeOptions {
  * @since 1.0.0
  */
 async function invoke<T>(
-  cmd: string,
-  args: InvokeArgs = {},
-  options?: InvokeOptions
+	cmd: string,
+	args: InvokeArgs = {},
+	options?: InvokeOptions,
 ): Promise<T> {
-  return window.__TAURI_INTERNALS__.invoke(cmd, args, options)
+	return window.__TAURI_INTERNALS__.invoke(cmd, args, options);
 }
 
 /**
@@ -265,8 +272,8 @@ async function invoke<T>(
  *
  * @since 1.0.0
  */
-function convertFileSrc(filePath: string, protocol = 'asset'): string {
-  return window.__TAURI_INTERNALS__.convertFileSrc(filePath, protocol)
+function convertFileSrc(filePath: string, protocol = "asset"): string {
+	return window.__TAURI_INTERNALS__.convertFileSrc(filePath, protocol);
 }
 
 /**
@@ -292,42 +299,42 @@ function convertFileSrc(filePath: string, protocol = 'asset'): string {
  * ```
  */
 export class Resource {
-  readonly #rid: number
+	readonly #rid: number;
 
-  get rid(): number {
-    return this.#rid
-  }
+	get rid(): number {
+		return this.#rid;
+	}
 
-  constructor(rid: number) {
-    this.#rid = rid
-  }
+	constructor(rid: number) {
+		this.#rid = rid;
+	}
 
-  /**
-   * Destroys and cleans up this resource from memory.
-   * **You should not call any method on this object anymore and should drop any reference to it.**
-   */
-  async close(): Promise<void> {
-    return invoke('plugin:resources|close', {
-      rid: this.rid
-    })
-  }
+	/**
+	 * Destroys and cleans up this resource from memory.
+	 * **You should not call any method on this object anymore and should drop any reference to it.**
+	 */
+	async close(): Promise<void> {
+		return invoke("plugin:resources|close", {
+			rid: this.rid,
+		});
+	}
 }
 
 function isTauri(): boolean {
-  return 'isTauri' in window && !!window.isTauri
+	return "isTauri" in window && !!window.isTauri;
 }
 
-export type { InvokeArgs, InvokeOptions }
+export type { InvokeArgs, InvokeOptions };
 
 export {
-  transformCallback,
-  Channel,
-  PluginListener,
-  addPluginListener,
-  PermissionState,
-  checkPermissions,
-  requestPermissions,
-  invoke,
-  convertFileSrc,
-  isTauri
-}
+	transformCallback,
+	Channel,
+	PluginListener,
+	addPluginListener,
+	PermissionState,
+	checkPermissions,
+	requestPermissions,
+	invoke,
+	convertFileSrc,
+	isTauri,
+};

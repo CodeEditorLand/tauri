@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-import type { invoke, InvokeArgs, InvokeOptions } from './core'
+import type { invoke, InvokeArgs, InvokeOptions } from "./core";
 
 function mockInternals() {
-  window.__TAURI_INTERNALS__ = window.__TAURI_INTERNALS__ ?? {}
+	window.__TAURI_INTERNALS__ = window.__TAURI_INTERNALS__ ?? {};
 }
 
 /**
@@ -62,43 +62,43 @@ function mockInternals() {
  * @since 1.0.0
  */
 export function mockIPC(
-  cb: (cmd: string, payload?: InvokeArgs) => unknown
+	cb: (cmd: string, payload?: InvokeArgs) => unknown,
 ): void {
-  mockInternals()
+	mockInternals();
 
-  window.__TAURI_INTERNALS__.transformCallback = function transformCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback?: (response: any) => void,
-    once = false
-  ) {
-    const identifier = window.crypto.getRandomValues(new Uint32Array(1))[0]
-    const prop = `_${identifier}`
+	window.__TAURI_INTERNALS__.transformCallback = function transformCallback(
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		callback?: (response: any) => void,
+		once = false,
+	) {
+		const identifier = window.crypto.getRandomValues(new Uint32Array(1))[0];
+		const prop = `_${identifier}`;
 
-    Object.defineProperty(window, prop, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      value: (result: any) => {
-        if (once) {
-          Reflect.deleteProperty(window, prop)
-        }
+		Object.defineProperty(window, prop, {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			value: (result: any) => {
+				if (once) {
+					Reflect.deleteProperty(window, prop);
+				}
 
-        return callback && callback(result)
-      },
-      writable: false,
-      configurable: true
-    })
+				return callback && callback(result);
+			},
+			writable: false,
+			configurable: true,
+		});
 
-    return identifier
-  }
+		return identifier;
+	};
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  window.__TAURI_INTERNALS__.invoke = async function (
-    cmd: string,
-    args?: InvokeArgs,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options?: InvokeOptions
-  ): Promise<unknown> {
-    return cb(cmd, args)
-  } as typeof invoke
+	// eslint-disable-next-line @typescript-eslint/require-await
+	window.__TAURI_INTERNALS__.invoke = async function (
+		cmd: string,
+		args?: InvokeArgs,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		options?: InvokeOptions,
+	): Promise<unknown> {
+		return cb(cmd, args);
+	} as typeof invoke;
 }
 
 /**
@@ -141,14 +141,14 @@ export function mockIPC(
  * @since 1.0.0
  */
 export function mockWindows(
-  current: string,
-  ..._additionalWindows: string[]
+	current: string,
+	..._additionalWindows: string[]
 ): void {
-  mockInternals()
-  window.__TAURI_INTERNALS__.metadata = {
-    currentWindow: { label: current },
-    currentWebview: { windowLabel: current, label: current }
-  }
+	mockInternals();
+	window.__TAURI_INTERNALS__.metadata = {
+		currentWindow: { label: current },
+		currentWebview: { windowLabel: current, label: current },
+	};
 }
 
 /**
@@ -170,16 +170,16 @@ export function mockWindows(
  * @since 1.6.0
  */
 export function mockConvertFileSrc(osName: string): void {
-  mockInternals()
-  window.__TAURI_INTERNALS__.convertFileSrc = function (
-    filePath,
-    protocol = 'asset'
-  ) {
-    const path = encodeURIComponent(filePath)
-    return osName === 'windows'
-      ? `http://${protocol}.localhost/${path}`
-      : `${protocol}://localhost/${path}`
-  }
+	mockInternals();
+	window.__TAURI_INTERNALS__.convertFileSrc = function (
+		filePath,
+		protocol = "asset",
+	) {
+		const path = encodeURIComponent(filePath);
+		return osName === "windows"
+			? `http://${protocol}.localhost/${path}`
+			: `${protocol}://localhost/${path}`;
+	};
 }
 
 /**
@@ -209,17 +209,17 @@ export function mockConvertFileSrc(osName: string): void {
  * @since 1.0.0
  */
 export function clearMocks(): void {
-  if (typeof window.__TAURI_INTERNALS__ !== 'object') {
-    return
-  }
+	if (typeof window.__TAURI_INTERNALS__ !== "object") {
+		return;
+	}
 
-  if (window.__TAURI_INTERNALS__?.convertFileSrc)
-    // @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
-    delete window.__TAURI_INTERNALS__.convertFileSrc
-  if (window.__TAURI_INTERNALS__?.invoke)
-    // @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
-    delete window.__TAURI_INTERNALS__.invoke
-  if (window.__TAURI_INTERNALS__?.metadata)
-    // @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
-    delete window.__TAURI_INTERNALS__.metadata
+	if (window.__TAURI_INTERNALS__?.convertFileSrc)
+		// @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
+		delete window.__TAURI_INTERNALS__.convertFileSrc;
+	if (window.__TAURI_INTERNALS__?.invoke)
+		// @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
+		delete window.__TAURI_INTERNALS__.invoke;
+	if (window.__TAURI_INTERNALS__?.metadata)
+		// @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
+		delete window.__TAURI_INTERNALS__.metadata;
 }
