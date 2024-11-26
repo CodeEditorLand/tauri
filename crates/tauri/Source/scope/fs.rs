@@ -339,21 +339,12 @@ impl Scope {
   }
 
   /// Determines if the given path is allowed on this scope.
+  ///
+  /// Returns `false` if the path was explicitly forbidden or neither allowed nor forbidden.
+  ///
+  /// May return `false` if the path points to a broken symlink.
   pub fn is_allowed<P: AsRef<Path>>(&self, path: P) -> bool {
-    let path = path.as_ref();
-    let path = if path.is_symlink() {
-      match std::fs::read_link(path) {
-        Ok(p) => p,
-        Err(_) => return false,
-      }
-    } else {
-      path.to_path_buf()
-    };
-    let path = if !path.exists() {
-      crate::Result::Ok(path)
-    } else {
-      std::fs::canonicalize(path).map_err(Into::into)
-    };
+    let path = try_resolve_symlink_and_canonicalize(path);
 
     if let Ok(path) = path {
       let path: PathBuf = path.components().collect();
@@ -379,6 +370,39 @@ impl Scope {
     } else {
       false
     }
+  }
+
+  /// Determines if the given path is explicitly forbidden on this scope.
+  ///
+  /// May return `true` if the path points to a broken symlink.
+  pub fn is_forbidden<P: AsRef<Path>>(&self, path: P) -> bool {
+    let path = try_resolve_symlink_and_canonicalize(path);
+
+    if let Ok(path) = path {
+      let path: PathBuf = path.components().collect();
+      self
+        .forbidden_patterns
+        .lock()
+        .unwrap()
+        .iter()
+        .any(|p| p.matches_path_with(&path, self.match_options))
+    } else {
+      true
+    }
+  }
+}
+
+fn try_resolve_symlink_and_canonicalize<P: AsRef<Path>>(path: P) -> crate::Result<PathBuf> {
+  let path = path.as_ref();
+  let path = if path.is_symlink() {
+    std::fs::read_link(path)?
+  } else {
+    path.to_path_buf()
+  };
+  if !path.exists() {
+    crate::Result::Ok(path)
+  } else {
+    std::fs::canonicalize(path).map_err(Into::into)
   }
 }
 
