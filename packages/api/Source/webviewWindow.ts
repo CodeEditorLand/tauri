@@ -269,4 +269,5 @@ function applyMixins(
 }
 
 export { WebviewWindow, getCurrentWebviewWindow, getAllWebviewWindows };
+
 export type { DragDropEvent, Color };

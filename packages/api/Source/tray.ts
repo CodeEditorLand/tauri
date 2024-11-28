@@ -8,7 +8,9 @@ import { Image, transformImage } from "./image";
 import type { Menu, Submenu } from "./menu";
 
 export type MouseButtonState = "Up" | "Down";
+
 export type MouseButton = "Left" | "Right" | "Middle";
+
 export type TrayIconEventType =
 	| "Click"
 	| "DoubleClick"

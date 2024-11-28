@@ -12,4 +12,5 @@ export declare function run(
 	binName: string | undefined | null,
 	callback: (...args: any[]) => any,
 ): void;
+
 export declare function logError(error: string): void;
