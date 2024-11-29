@@ -90,14 +90,17 @@ class Channel<T = unknown> {
 				// the id is used as a mechanism to preserve message order
 				if (id === this.#nextMessageId) {
 					this.#nextMessageId = id + 1;
+
 					this.#onmessage(message);
 
 					// process pending messages
 					const pendingMessageIds = Object.keys(
 						this.#pendingMessages,
 					);
+
 					if (pendingMessageIds.length > 0) {
 						let nextId = id + 1;
+
 						for (const pendingId of pendingMessageIds.sort()) {
 							// if we have the next message, process it
 							if (parseInt(pendingId) === nextId) {
@@ -116,6 +119,7 @@ class Channel<T = unknown> {
 								break;
 							}
 						}
+
 						this.#nextMessageId = nextId;
 					}
 				} else {
@@ -145,12 +149,16 @@ class Channel<T = unknown> {
 
 class PluginListener {
 	plugin: string;
+
 	event: string;
+
 	channelId: number;
 
 	constructor(plugin: string, event: string, channelId: number) {
 		this.plugin = plugin;
+
 		this.event = event;
+
 		this.channelId = channelId;
 	}
 
@@ -175,7 +183,9 @@ async function addPluginListener<T>(
 	cb: (payload: T) => void,
 ): Promise<PluginListener> {
 	const handler = new Channel<T>();
+
 	handler.onmessage = cb;
+
 	return invoke(`plugin:${plugin}|registerListener`, { event, handler }).then(
 		() => new PluginListener(plugin, event, handler.id),
 	);

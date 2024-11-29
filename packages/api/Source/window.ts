@@ -108,10 +108,12 @@ class CloseRequestedEvent {
 	event: EventName;
 	/** Event identifier used to unlisten */
 	id: number;
+
 	private _preventDefault = false;
 
 	constructor(event: Event<unknown>) {
 		this.event = event.event;
+
 		this.id = event.id;
 	}
 
@@ -190,8 +192,11 @@ export enum ProgressBarStatus {
 
 export interface WindowSizeConstraints {
 	minWidth?: number;
+
 	minHeight?: number;
+
 	maxWidth?: number;
+
 	maxHeight?: number;
 }
 
@@ -360,6 +365,7 @@ class Window {
 				return w;
 			}
 		}
+
 		return null;
 	}
 
@@ -390,9 +396,11 @@ class Window {
 			return () => {
 				// eslint-disable-next-line security/detect-object-injection
 				const listeners = this.listeners[event];
+
 				listeners.splice(listeners.indexOf(handler), 1);
 			};
 		}
+
 		return listen(event, handler, {
 			target: { kind: "Window", label: this.label },
 		});
@@ -425,9 +433,11 @@ class Window {
 			return () => {
 				// eslint-disable-next-line security/detect-object-injection
 				const listeners = this.listeners[event];
+
 				listeners.splice(listeners.indexOf(handler), 1);
 			};
 		}
+
 		return once(event, handler, {
 			target: { kind: "Window", label: this.label },
 		});
@@ -454,8 +464,10 @@ class Window {
 					payload,
 				});
 			}
+
 			return;
 		}
+
 		return emit(event, payload);
 	}
 
@@ -485,8 +497,10 @@ class Window {
 					payload,
 				});
 			}
+
 			return;
 		}
+
 		return emitTo(target, event, payload);
 	}
 
@@ -500,8 +514,10 @@ class Window {
 				// eslint-disable-next-line
 				this.listeners[event].push(handler);
 			}
+
 			return true;
 		}
+
 		return false;
 	}
 
@@ -850,6 +866,7 @@ class Window {
 		requestType: UserAttentionType | null,
 	): Promise<void> {
 		let requestType_ = null;
+
 		if (requestType) {
 			if (requestType === UserAttentionType.Critical) {
 				requestType_ = { type: "Critical" };
@@ -1786,6 +1803,7 @@ class Window {
 	async onResized(handler: EventCallback<PhysicalSize>): Promise<UnlistenFn> {
 		return this.listen<PhysicalSize>(TauriEvent.WINDOW_RESIZED, (e) => {
 			e.payload = new PhysicalSize(e.payload);
+
 			handler(e);
 		});
 	}
@@ -1812,6 +1830,7 @@ class Window {
 	): Promise<UnlistenFn> {
 		return this.listen<PhysicalPosition>(TauriEvent.WINDOW_MOVED, (e) => {
 			e.payload = new PhysicalPosition(e.payload);
+
 			handler(e);
 		});
 	}
@@ -1844,7 +1863,9 @@ class Window {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		return this.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async (event) => {
 			const evt = new CloseRequestedEvent(event);
+
 			await handler(evt);
+
 			if (!evt.isPreventDefault()) {
 				await this.destroy();
 			}
@@ -1931,8 +1952,11 @@ class Window {
 
 		return () => {
 			unlistenDrag();
+
 			unlistenDrop();
+
 			unlistenDragOver();
+
 			unlistenCancel();
 		};
 	}
@@ -1961,14 +1985,17 @@ class Window {
 				handler({ ...event, payload: true });
 			},
 		);
+
 		const unlistenBlur = await this.listen<PhysicalPosition>(
 			TauriEvent.WINDOW_BLUR,
 			(event) => {
 				handler({ ...event, payload: false });
 			},
 		);
+
 		return () => {
 			unlistenFocus();
+
 			unlistenBlur();
 		};
 	}

@@ -166,6 +166,7 @@ class Webview {
 	 */
 	constructor(window: Window, label: WebviewLabel, options: WebviewOptions) {
 		this.window = window;
+
 		this.label = label;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this.listeners = Object.create(null);
@@ -238,9 +239,11 @@ class Webview {
 			return () => {
 				// eslint-disable-next-line security/detect-object-injection
 				const listeners = this.listeners[event];
+
 				listeners.splice(listeners.indexOf(handler), 1);
 			};
 		}
+
 		return listen(event, handler, {
 			target: { kind: "Webview", label: this.label },
 		});
@@ -273,9 +276,11 @@ class Webview {
 			return () => {
 				// eslint-disable-next-line security/detect-object-injection
 				const listeners = this.listeners[event];
+
 				listeners.splice(listeners.indexOf(handler), 1);
 			};
 		}
+
 		return once(event, handler, {
 			target: { kind: "Webview", label: this.label },
 		});
@@ -303,8 +308,10 @@ class Webview {
 					payload,
 				});
 			}
+
 			return;
 		}
+
 		return emit(event, payload);
 	}
 
@@ -335,8 +342,10 @@ class Webview {
 					payload,
 				});
 			}
+
 			return;
 		}
+
 		return emitTo(target, event, payload);
 	}
 
@@ -350,8 +359,10 @@ class Webview {
 				// eslint-disable-next-line security/detect-object-injection
 				this.listeners[event].push(handler);
 			}
+
 			return true;
 		}
+
 		return false;
 	}
 
@@ -650,8 +661,11 @@ class Webview {
 
 		return () => {
 			unlistenDragEnter();
+
 			unlistenDragDrop();
+
 			unlistenDragOver();
+
 			unlistenDragLeave();
 		};
 	}

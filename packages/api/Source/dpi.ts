@@ -11,12 +11,17 @@ import { SERIALIZE_TO_IPC_FN } from "./core";
  */
 class LogicalSize {
 	readonly type = "Logical";
+
 	width: number;
+
 	height: number;
 
 	constructor(width: number, height: number);
+
 	constructor(object: { Logical: { width: number; height: number } });
+
 	constructor(object: { width: number; height: number });
+
 	constructor(
 		...args:
 			| [number, number]
@@ -26,13 +31,16 @@ class LogicalSize {
 		if (args.length === 1) {
 			if ("Logical" in args[0]) {
 				this.width = args[0].Logical.width;
+
 				this.height = args[0].Logical.height;
 			} else {
 				this.width = args[0].width;
+
 				this.height = args[0].height;
 			}
 		} else {
 			this.width = args[0];
+
 			this.height = args[1];
 		}
 	}
@@ -79,12 +87,17 @@ class LogicalSize {
  */
 class PhysicalSize {
 	readonly type = "Physical";
+
 	width: number;
+
 	height: number;
 
 	constructor(width: number, height: number);
+
 	constructor(object: { Physical: { width: number; height: number } });
+
 	constructor(object: { width: number; height: number });
+
 	constructor(
 		...args:
 			| [number, number]
@@ -94,13 +107,16 @@ class PhysicalSize {
 		if (args.length === 1) {
 			if ("Physical" in args[0]) {
 				this.width = args[0].Physical.width;
+
 				this.height = args[0].Physical.height;
 			} else {
 				this.width = args[0].width;
+
 				this.height = args[0].height;
 			}
 		} else {
 			this.width = args[0];
+
 			this.height = args[1];
 		}
 	}
@@ -208,12 +224,17 @@ class Size {
  */
 class LogicalPosition {
 	readonly type = "Logical";
+
 	x: number;
+
 	y: number;
 
 	constructor(x: number, y: number);
+
 	constructor(object: { Logical: { x: number; y: number } });
+
 	constructor(object: { x: number; y: number });
+
 	constructor(
 		...args:
 			| [number, number]
@@ -223,13 +244,16 @@ class LogicalPosition {
 		if (args.length === 1) {
 			if ("Logical" in args[0]) {
 				this.x = args[0].Logical.x;
+
 				this.y = args[0].Logical.y;
 			} else {
 				this.x = args[0].x;
+
 				this.y = args[0].y;
 			}
 		} else {
 			this.x = args[0];
+
 			this.y = args[1];
 		}
 	}
@@ -273,12 +297,17 @@ class LogicalPosition {
  */
 class PhysicalPosition {
 	readonly type = "Physical";
+
 	x: number;
+
 	y: number;
 
 	constructor(x: number, y: number);
+
 	constructor(object: { Physical: { x: number; y: number } });
+
 	constructor(object: { x: number; y: number });
+
 	constructor(
 		...args:
 			| [number, number]
@@ -288,13 +317,16 @@ class PhysicalPosition {
 		if (args.length === 1) {
 			if ("Physical" in args[0]) {
 				this.x = args[0].Physical.x;
+
 				this.y = args[0].Physical.y;
 			} else {
 				this.x = args[0].x;
+
 				this.y = args[0].y;
 			}
 		} else {
 			this.x = args[0];
+
 			this.y = args[1];
 		}
 	}

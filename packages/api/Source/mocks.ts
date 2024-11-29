@@ -72,6 +72,7 @@ export function mockIPC(
 		once = false,
 	) {
 		const identifier = window.crypto.getRandomValues(new Uint32Array(1))[0];
+
 		const prop = `_${identifier}`;
 
 		Object.defineProperty(window, prop, {
@@ -145,6 +146,7 @@ export function mockWindows(
 	..._additionalWindows: string[]
 ): void {
 	mockInternals();
+
 	window.__TAURI_INTERNALS__.metadata = {
 		currentWindow: { label: current },
 		currentWebview: { windowLabel: current, label: current },
@@ -171,11 +173,13 @@ export function mockWindows(
  */
 export function mockConvertFileSrc(osName: string): void {
 	mockInternals();
+
 	window.__TAURI_INTERNALS__.convertFileSrc = function (
 		filePath,
 		protocol = "asset",
 	) {
 		const path = encodeURIComponent(filePath);
+
 		return osName === "windows"
 			? `http://${protocol}.localhost/${path}`
 			: `${protocol}://localhost/${path}`;
@@ -216,9 +220,11 @@ export function clearMocks(): void {
 	if (window.__TAURI_INTERNALS__?.convertFileSrc)
 		// @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
 		delete window.__TAURI_INTERNALS__.convertFileSrc;
+
 	if (window.__TAURI_INTERNALS__?.invoke)
 		// @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
 		delete window.__TAURI_INTERNALS__.invoke;
+
 	if (window.__TAURI_INTERNALS__?.metadata)
 		// @ts-expect-error "The operand of a 'delete' operator must be optional' does not matter in this case
 		delete window.__TAURI_INTERNALS__.metadata;

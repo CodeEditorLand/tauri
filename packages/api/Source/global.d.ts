@@ -11,22 +11,33 @@ declare global {
 	interface Window {
 		__TAURI_INTERNALS__: {
 			invoke: typeof invoke;
+
 			transformCallback: typeof transformCallback;
+
 			convertFileSrc: typeof convertFileSrc;
+
 			ipc: (message: {
 				cmd: string;
+
 				callback: number;
+
 				error: number;
+
 				payload: unknown;
+
 				options?: InvokeOptions;
 			}) => void;
+
 			metadata: {
 				currentWindow: WindowDef;
+
 				currentWebview: WebviewDef;
 			};
+
 			plugins: {
 				path: {
 					sep: string;
+
 					delimiter: string;
 				};
 			};
@@ -37,6 +48,7 @@ declare global {
 /** @ignore */
 interface WebviewDef {
 	windowLabel: string;
+
 	label: string;
 }
 

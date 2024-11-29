@@ -109,6 +109,7 @@ async function listen<T>(
 		typeof options?.target === "string"
 			? { kind: "AnyLabel", label: options.target }
 			: (options?.target ?? { kind: "Any" });
+
 	return invoke<number>("plugin:event|listen", {
 		event,
 		target,
@@ -154,6 +155,7 @@ async function once<T>(
 		(eventData) => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			_unlisten(event, eventData.id);
+
 			handler(eventData);
 		},
 		options,
@@ -205,6 +207,7 @@ async function emitTo(
 		typeof target === "string"
 			? { kind: "AnyLabel", label: target }
 			: target;
+
 	await invoke("plugin:event|emit_to", {
 		target: eventTarget,
 		event,

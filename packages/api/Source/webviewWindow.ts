@@ -118,10 +118,12 @@ class WebviewWindow {
 		const webview =
 			(await getAllWebviewWindows()).find((w) => w.label === label) ??
 			null;
+
 		if (webview) {
 			// @ts-expect-error `skip` is not defined in the public API but it is handled by the constructor
 			return new WebviewWindow(webview.label, { skip: true });
 		}
+
 		return null;
 	}
 
@@ -166,9 +168,11 @@ class WebviewWindow {
 			return () => {
 				// eslint-disable-next-line security/detect-object-injection
 				const listeners = this.listeners[event];
+
 				listeners.splice(listeners.indexOf(handler), 1);
 			};
 		}
+
 		return listen(event, handler, {
 			target: { kind: "WebviewWindow", label: this.label },
 		});
@@ -201,9 +205,11 @@ class WebviewWindow {
 			return () => {
 				// eslint-disable-next-line security/detect-object-injection
 				const listeners = this.listeners[event];
+
 				listeners.splice(listeners.indexOf(handler), 1);
 			};
 		}
+
 		return once(event, handler, {
 			target: { kind: "WebviewWindow", label: this.label },
 		});
@@ -255,6 +261,7 @@ function applyMixins(
 				name in baseClass.prototype
 			)
 				return;
+
 			Object.defineProperty(
 				baseClass.prototype,
 				name,

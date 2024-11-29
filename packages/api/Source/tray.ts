@@ -28,6 +28,7 @@ export type TrayIconEventBase<T extends TrayIconEventType> = {
 	/** Position and size of the tray icon. */
 	rect: {
 		position: PhysicalPosition;
+
 		size: PhysicalSize;
 	};
 };
@@ -60,6 +61,7 @@ type RustTrayIconEvent = Omit<TrayIconEvent, "rect"> & {
 		position: {
 			Physical: { x: number; y: number };
 		};
+
 		size: {
 			Physical: { width: number; height: number };
 		};
@@ -164,6 +166,7 @@ export class TrayIcon extends Resource {
 
 	private constructor(rid: number, id: string) {
 		super(rid);
+
 		this.id = id;
 	}
 
@@ -197,14 +200,18 @@ export class TrayIcon extends Resource {
 			// @ts-expect-error we only need the rid and kind
 			options.menu = [options.menu.rid, options.menu.kind];
 		}
+
 		if (options?.icon) {
 			options.icon = transformImage(options.icon);
 		}
 
 		const handler = new Channel<RustTrayIconEvent>();
+
 		if (options?.action) {
 			const action = options.action;
+
 			handler.onmessage = (e) => action(mapEvent(e));
+
 			delete options.action;
 		}
 
@@ -228,9 +235,11 @@ export class TrayIcon extends Resource {
 		icon: string | Image | Uint8Array | ArrayBuffer | number[] | null,
 	): Promise<void> {
 		let trayIcon = null;
+
 		if (icon) {
 			trayIcon = transformImage(icon);
 		}
+
 		return invoke("plugin:tray|set_icon", {
 			rid: this.rid,
 			icon: trayIcon,
@@ -249,6 +258,7 @@ export class TrayIcon extends Resource {
 			// @ts-expect-error we only need the rid and kind
 			menu = [menu.rid, menu.kind];
 		}
+
 		return invoke("plugin:tray|set_menu", { rid: this.rid, menu });
 	}
 
@@ -339,7 +349,9 @@ function mapEvent(e: RustTrayIconEvent): TrayIconEvent {
 	const out = e as unknown as TrayIconEvent;
 
 	out.position = new PhysicalPosition(e.position);
+
 	out.rect.position = new PhysicalPosition(e.rect.position);
+
 	out.rect.size = new PhysicalSize(e.rect.size);
 
 	return out;

@@ -94,6 +94,7 @@ function makeFlatPackageInDist(): Plugin {
 
 function cleanDir(path: string) {
 	let dir: Dir;
+
 	try {
 		dir = opendirSync(path);
 	} catch (err: any) {
@@ -102,16 +103,21 @@ function cleanDir(path: string) {
 				return; // Noop when directory don't exists.
 			case "ENOTDIR":
 				throw new Error(`'${path}' is not a directory.`);
+
 			default:
 				throw err;
 		}
 	}
 
 	let file = dir.readSync();
+
 	while (file) {
 		const filePath = join(path, file.name);
+
 		rmSync(filePath, { recursive: true });
+
 		file = dir.readSync();
 	}
+
 	dir.closeSync();
 }
