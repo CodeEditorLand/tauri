@@ -41,6 +41,7 @@ impl FromStr for BundleFormat {
 impl ValueEnum for BundleFormat {
 	fn value_variants<'a>() -> &'a [Self] {
 		static VARIANTS:OnceLock<Vec<BundleFormat>> = OnceLock::new();
+
 		VARIANTS.get_or_init(|| PackageType::all().iter().map(|t| Self(*t)).collect())
 	}
 
@@ -118,16 +119,20 @@ pub fn command(options:Options, verbosity:u8) -> crate::Result<()> {
 		AppInterface::new(config.lock().unwrap().as_ref().unwrap(), options.target.clone())?;
 
 	let tauri_path = tauri_dir();
+
 	std::env::set_current_dir(tauri_path)
 		.with_context(|| "failed to change current working directory")?;
 
 	let config_guard = config.lock().unwrap();
+
 	let config_ = config_guard.as_ref().unwrap();
 
 	let app_settings = interface.app_settings();
+
 	let interface_options = options.clone().into();
 
 	let bin_path = app_settings.app_binary_path(&interface_options)?;
+
 	let out_dir = bin_path.parent().unwrap();
 
 	bundle(&options, verbosity, ci, &interface, &app_settings, config_, out_dir)
@@ -237,6 +242,7 @@ fn sign_updaters(
 	let pubkey = &update_settings.pubkey;
 	// check if pubkey points to a file...
 	let maybe_path = Path::new(pubkey);
+
 	let pubkey = if maybe_path.exists() {
 		std::fs::read_to_string(maybe_path)?
 	} else {
@@ -257,24 +263,30 @@ fn sign_updaters(
 	})?;
 	// check if private_key points to a file...
 	let maybe_path = Path::new(&private_key);
+
 	let private_key = if maybe_path.exists() {
 		std::fs::read_to_string(maybe_path)?
 	} else {
 		private_key
 	};
+
 	let secret_key = updater_signature::secret_key(private_key, password)?;
 
 	let pubkey = base64::engine::general_purpose::STANDARD.decode(pubkey)?;
+
 	let pub_key_decoded = String::from_utf8_lossy(&pubkey);
+
 	let public_key = minisign::PublicKeyBox::from_string(&pub_key_decoded)?.into_public_key()?;
 
 	let mut signed_paths = Vec::new();
+
 	for bundle in update_enabled_bundles {
 		// we expect to have only one path in the vec but we iter if we add
 		// another type of updater package who require multiple file signature
 		for path in &bundle.bundle_paths {
 			// sign our path from environment variables
 			let (signature_path, signature) = updater_signature::sign_file(&secret_key, path)?;
+
 			if signature.keynum() != public_key.keynum() {
 				log::warn!(
 					"The updater secret key from `TAURI_SIGNING_PRIVATE_KEY` does not match the \
@@ -283,6 +295,7 @@ fn sign_updaters(
 					 performing update."
 				);
 			}
+
 			signed_paths.push(signature_path);
 		}
 	}
@@ -294,6 +307,7 @@ fn sign_updaters(
 
 fn print_signed_updater_archive(output_paths:&[PathBuf]) -> crate::Result<()> {
 	use std::fmt::Write;
+
 	if !output_paths.is_empty() {
 		let finished_bundles = output_paths.len();
 
@@ -301,10 +315,13 @@ fn print_signed_updater_archive(output_paths:&[PathBuf]) -> crate::Result<()> {
 			if finished_bundles == 1 { "updater signature" } else { "updater signatures" };
 
 		let mut printable_paths = String::new();
+
 		for path in output_paths {
 			writeln!(printable_paths, "        {}", tauri_utils::display_path(path))?;
 		}
+
 		log::info!( action = "Finished"; "{finished_bundles} {pluralised} at:\n{printable_paths}");
 	}
+
 	Ok(())
 }

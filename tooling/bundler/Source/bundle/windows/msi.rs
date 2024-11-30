@@ -36,7 +36,9 @@ pub fn bundle_project(settings:&Settings, updater:bool) -> crate::Result<Vec<Pat
 		wix::get_and_extract_wix(&wix_path)?;
 	} else if WIX_REQUIRED_FILES.iter().any(|p| !wix_path.join(p).exists()) {
 		log::warn!("WixTools directory is missing some files. Recreating it.");
+
 		std::fs::remove_dir_all(&wix_path)?;
+
 		wix::get_and_extract_wix(&wix_path)?;
 	}
 

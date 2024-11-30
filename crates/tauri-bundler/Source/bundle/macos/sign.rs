@@ -24,12 +24,14 @@ pub fn keychain(identity: Option<&str>) -> crate::Result<Option<tauri_macos_sign
     // import user certificate - useful for for CI build
     let keychain =
       tauri_macos_sign::Keychain::with_certificate(&certificate_encoded, &certificate_password)?;
+
     if let Some(identity) = identity {
       let certificate_identity = keychain.signing_identity();
       if !certificate_identity.contains(identity) {
         return Err(anyhow::anyhow!("certificate from APPLE_CERTIFICATE \"{certificate_identity}\" environment variable does not match provided identity \"{identity}\"").into());
       }
     }
+
     Ok(Some(keychain))
   } else if let Some(identity) = identity {
     Ok(Some(tauri_macos_sign::Keychain::with_signing_identity(
@@ -105,7 +107,9 @@ pub fn notarize_auth() -> Result<tauri_macos_sign::AppleNotarizationCredentials,
           let mut search_paths = vec!["./private_keys".into()];
           if let Some(home_dir) = dirs::home_dir() {
             search_paths.push(home_dir.join("private_keys"));
+
             search_paths.push(home_dir.join(".private_keys"));
+
             search_paths.push(home_dir.join(".appstoreconnect").join("private_keys"));
           }
 
@@ -122,6 +126,7 @@ pub fn notarize_auth() -> Result<tauri_macos_sign::AppleNotarizationCredentials,
             Err(anyhow::anyhow!("could not find API key file. Please set the APPLE_API_KEY_PATH environment variables to the path to the {api_key_file_name:?} file").into())
           }
         }
+
         _ => Err(anyhow::anyhow!("no APPLE_ID & APPLE_PASSWORD & APPLE_TEAM_ID or APPLE_API_KEY & APPLE_API_ISSUER & APPLE_API_KEY_PATH environment variables found").into())
       }
     }

@@ -26,6 +26,7 @@ pub fn tauri_version() -> &'static str { crate::VERSION }
 pub fn app_show<R:Runtime>(app:AppHandle<R>) -> crate::Result<()> {
 	#[cfg(target_os = "macos")]
 	app.show()?;
+
 	Ok(())
 }
 
@@ -34,6 +35,7 @@ pub fn app_show<R:Runtime>(app:AppHandle<R>) -> crate::Result<()> {
 pub fn app_hide<R:Runtime>(app:AppHandle<R>) -> crate::Result<()> {
 	#[cfg(target_os = "macos")]
 	app.hide()?;
+
 	Ok(())
 }
 
@@ -41,6 +43,7 @@ pub fn app_hide<R:Runtime>(app:AppHandle<R>) -> crate::Result<()> {
 pub fn default_window_icon<R:Runtime>(webview:Webview<R>, app:AppHandle<R>) -> Option<ResourceId> {
 	app.default_window_icon().cloned().map(|icon| {
 		let mut resources_table = webview.resources_table();
+
 		resources_table.add(icon.to_owned())
 	})
 }

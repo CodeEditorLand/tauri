@@ -90,13 +90,17 @@ impl Source {
 		match self {
 			Self::Svg(svg) => {
 				let mut pixmap = tiny_skia::Pixmap::new(size, size).unwrap();
+
 				let scale = size as f32 / svg.size().height();
+
 				resvg::render(
 					svg,
 					tiny_skia::Transform::from_scale(scale, scale),
 					&mut pixmap.as_mut(),
 				);
+
 				let img_buffer = ImageBuffer::from_raw(size, size, pixmap.take()).unwrap();
+
 				Ok(DynamicImage::ImageRgba8(img_buffer))
 			},
 			Self::DynamicImage(i) => Ok(i.resize_exact(size, size, FilterType::Lanczos3)),
@@ -106,11 +110,15 @@ impl Source {
 
 pub fn command(options:Options) -> Result<()> {
 	let input = options.input;
+
 	let out_dir = options.output.unwrap_or_else(|| {
 		crate::helpers::app_paths::resolve();
+
 		tauri_dir().join("icons")
 	});
+
 	let png_icon_sizes = options.png.unwrap_or_default();
+
 	let ios_color = css_color::Srgb::from_str(&options.ios_color)
 		.map(|color| {
 			Rgba([
@@ -128,6 +136,7 @@ pub fn command(options:Options) -> Result<()> {
 		if extension == "svg" {
 			let rtree = {
 				let mut fontdb = usvg::fontdb::Database::new();
+
 				fontdb.load_system_fonts();
 
 				let opt = usvg::Options {
@@ -140,6 +149,7 @@ pub fn command(options:Options) -> Result<()> {
 				};
 
 				let svg_data = std::fs::read(&input).unwrap();
+
 				usvg::Tree::from_data(&svg_data, &opt).unwrap()
 			};
 
@@ -159,7 +169,9 @@ pub fn command(options:Options) -> Result<()> {
 
 	if png_icon_sizes.is_empty() {
 		appx(&source, &out_dir).context("Failed to generate appx icons")?;
+
 		icns(&source, &out_dir).context("Failed to generate .icns file")?;
+
 		ico(&source, &out_dir).context("Failed to generate .ico file")?;
 
 		png(&source, &out_dir, ios_color).context("Failed to generate png icons")?;
@@ -168,12 +180,15 @@ pub fn command(options:Options) -> Result<()> {
 			.into_iter()
 			.map(|size| {
 				let name = format!("{size}x{size}.png");
+
 				let out_path = out_dir.join(&name);
+
 				PngEntry { name, out_path, size }
 			})
 			.collect::<Vec<PngEntry>>()
 		{
 			log::info!(action = "PNG"; "Creating {}", target.name);
+
 			resize_and_save_png(&source, target.size, &target.out_path, None)?;
 		}
 	}
@@ -183,10 +198,12 @@ pub fn command(options:Options) -> Result<()> {
 
 fn appx(source:&Source, out_dir:&Path) -> Result<()> {
 	log::info!(action = "Appx"; "Creating StoreLogo.png");
+
 	resize_and_save_png(source, 50, &out_dir.join("StoreLogo.png"), None)?;
 
 	for size in [30, 44, 71, 89, 107, 142, 150, 284, 310] {
 		let file_name = format!("Square{size}x{size}Logo.png");
+
 		log::info!(action = "Appx"; "Creating {}", file_name);
 
 		resize_and_save_png(source, size, &out_dir.join(&file_name), None)?;
@@ -198,6 +215,7 @@ fn appx(source:&Source, out_dir:&Path) -> Result<()> {
 // Main target: macOS
 fn icns(source:&Source, out_dir:&Path) -> Result<()> {
 	log::info!(action = "ICNS"; "Creating icon.icns");
+
 	let entries:HashMap<String, IcnsEntry> =
 		serde_json::from_slice(include_bytes!("helpers/icns.json")).unwrap();
 
@@ -223,7 +241,9 @@ fn icns(source:&Source, out_dir:&Path) -> Result<()> {
 	}
 
 	let mut out_file = BufWriter::new(File::create(out_dir.join("icon.icns"))?);
+
 	family.write(&mut out_file)?;
+
 	out_file.flush()?;
 
 	Ok(())
@@ -233,6 +253,7 @@ fn icns(source:&Source, out_dir:&Path) -> Result<()> {
 // Main target: Windows
 fn ico(source:&Source, out_dir:&Path) -> Result<()> {
 	log::info!(action = "ICO"; "Creating icon.ico");
+
 	let mut frames = Vec::new();
 
 	for size in [32, 16, 24, 48, 64, 256] {
@@ -251,8 +272,11 @@ fn ico(source:&Source, out_dir:&Path) -> Result<()> {
 	}
 
 	let mut out_file = BufWriter::new(File::create(out_dir.join("icon.ico"))?);
+
 	let encoder = IcoEncoder::new(&mut out_file);
+
 	encoder.encode_images(&frames)?;
+
 	out_file.flush()?;
 
 	Ok(())
@@ -296,6 +320,7 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 
 		for target in targets {
 			let folder_name = format!("mipmap-{}", target.name);
+
 			let out_folder = out_dir.join(&folder_name);
 
 			create_dir_all(&out_folder).context("Can't create Android mipmap output directory")?;
@@ -305,11 +330,13 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 				out_path:out_folder.join("ic_launcher_foreground.png"),
 				size:target.foreground_size,
 			});
+
 			entries.push(PngEntry {
 				name:format!("{}/{}", folder_name, "ic_launcher_round.png"),
 				out_path:out_folder.join("ic_launcher_round.png"),
 				size:target.size,
 			});
+
 			entries.push(PngEntry {
 				name:format!("{}/{}", folder_name, "ic_launcher.png"),
 				out_path:out_folder.join("ic_launcher.png"),
@@ -345,16 +372,20 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 			} else {
 				format!("{size}x{size}", size = target.size)
 			};
+
 			if target.has_extra {
 				let name = format!("AppIcon-{size_str}@2x-1.png");
+
 				entries.push(PngEntry {
 					out_path:out_dir.join(&name),
 					name,
 					size:(target.size * 2.) as u32,
 				});
 			}
+
 			for multiplier in target.multipliers {
 				let name = format!("AppIcon-{size_str}@{multiplier}x.png");
+
 				entries.push(PngEntry {
 					out_path:out_dir.join(&name),
 					name,
@@ -369,31 +400,40 @@ fn png(source:&Source, out_dir:&Path, ios_color:Rgba<u8>) -> Result<()> {
 	let mut entries = desktop_entries(out_dir);
 
 	let android_out = out_dir.parent().unwrap().join("gen/android/app/src/main/res/");
+
 	let out = if android_out.exists() {
 		android_out
 	} else {
 		let out = out_dir.join("android");
+
 		create_dir_all(&out).context("Can't create Android output directory")?;
+
 		out
 	};
+
 	entries.extend(android_entries(&out)?);
 
 	let ios_out = out_dir.parent().unwrap().join("gen/apple/Assets.xcassets/AppIcon.appiconset");
+
 	let out = if ios_out.exists() {
 		ios_out
 	} else {
 		let out = out_dir.join("ios");
+
 		create_dir_all(&out).context("Can't create iOS output directory")?;
+
 		out
 	};
 
 	for entry in entries {
 		log::info!(action = "PNG"; "Creating {}", entry.name);
+
 		resize_and_save_png(source, entry.size, &entry.out_path, None)?;
 	}
 
 	for entry in ios_entries(&out)? {
 		log::info!(action = "iOS"; "Creating {}", entry.name);
+
 		resize_and_save_png(source, entry.size, &entry.out_path, Some(ios_color))?;
 	}
 
@@ -411,18 +451,24 @@ fn resize_and_save_png(
 
 	if let Some(bg_color) = bg_color {
 		let mut bg_img = ImageBuffer::from_fn(size, size, |_, _| bg_color);
+
 		image::imageops::overlay(&mut bg_img, &image, 0, 0);
+
 		image = bg_img.into();
 	}
 
 	let mut out_file = BufWriter::new(File::create(file_path)?);
+
 	write_png(image.as_bytes(), &mut out_file, size)?;
+
 	Ok(out_file.flush()?)
 }
 
 // Encode image data as png with compression.
 fn write_png<W:Write>(image_data:&[u8], w:W, size:u32) -> Result<()> {
 	let encoder = PngEncoder::new_with_quality(w, CompressionType::Best, PngFilterType::Adaptive);
+
 	encoder.write_image(image_data, size, size, ExtendedColorType::Rgba8)?;
+
 	Ok(())
 }

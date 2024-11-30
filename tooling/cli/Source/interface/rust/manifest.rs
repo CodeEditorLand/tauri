@@ -32,11 +32,13 @@ impl Manifest {
 			for (feature, enabled_features) in features.into_iter() {
 				if let Item::Value(Value::Array(enabled_features)) = enabled_features {
 					let mut enabled = Vec::new();
+
 					for value in enabled_features {
 						if let Value::String(s) = value {
 							enabled.push(s.value().clone());
 						}
 					}
+
 					f.insert(feature.to_string(), enabled);
 				}
 			}
@@ -50,6 +52,7 @@ impl Manifest {
 			self.tauri_features.iter().map(|f| format!("tauri/{f}")).collect();
 
 		let manifest_features = self.features();
+
 		for f in enabled_features {
 			all_enabled_features.extend(get_enabled_features(&manifest_features, f));
 		}
@@ -79,6 +82,7 @@ pub fn read_manifest(manifest_path:&Path) -> crate::Result<(DocumentMut, String)
 
 	let mut manifest_file = File::open(manifest_path)
 		.with_context(|| format!("failed to open `{manifest_path:?}` file"))?;
+
 	manifest_file.read_to_string(&mut manifest_str)?;
 
 	let manifest:DocumentMut = manifest_str
@@ -102,11 +106,15 @@ pub fn serialize_manifest(manifest:&DocumentMut) -> String {
 
 pub fn toml_array(features:&HashSet<String>) -> Array {
 	let mut f = Array::default();
+
 	let mut features:Vec<String> = features.iter().map(|f| f.to_string()).collect();
+
 	features.sort();
+
 	for feature in features {
 		f.push(feature.as_str());
 	}
+
 	f
 }
 
@@ -121,6 +129,7 @@ fn find_dependency<'a>(
 	};
 
 	let m = manifest.as_table_mut();
+
 	for (k, v) in m.iter_mut() {
 		if let Some(t) = v.as_table_mut() {
 			if k == table {
@@ -129,6 +138,7 @@ fn find_dependency<'a>(
 				}
 			} else if k == "target" {
 				let mut matching_deps = Vec::new();
+
 				for (_, target_value) in t.iter_mut() {
 					if let Some(target_table) = target_value.as_table_mut() {
 						if let Some(deps) = target_table.get_mut(table) {
@@ -138,6 +148,7 @@ fn find_dependency<'a>(
 						}
 					}
 				}
+
 				return matching_deps;
 			}
 		}
@@ -154,6 +165,7 @@ fn write_features<F:Fn(&str) -> bool>(
 ) -> crate::Result<bool> {
 	if let Some(dep) = item.as_table_mut() {
 		inject_features_table(dep, is_managed_feature, features);
+
 		Ok(true)
 	} else if let Some(dep) = item.as_value_mut() {
 		match dep {
@@ -162,7 +174,9 @@ fn write_features<F:Fn(&str) -> bool>(
 			},
 			Value::String(version) => {
 				let mut def = InlineTable::default();
+
 				def.get_or_insert("version", version.to_string().replace(['\"', ' '], ""));
+
 				def.get_or_insert("features", Value::Array(toml_array(features)));
 				*dep = Value::InlineTable(def);
 			},
@@ -173,6 +187,7 @@ fn write_features<F:Fn(&str) -> bool>(
 				));
 			},
 		}
+
 		Ok(true)
 	} else {
 		Ok(false)
@@ -199,6 +214,7 @@ fn inject_features_table<D:TableLike, F:Fn(&str) -> bool>(
 	features:&mut HashSet<String>,
 ) {
 	let manifest_features = dep.entry("features").or_insert(Item::None);
+
 	if let Item::Value(Value::Array(f)) = &manifest_features {
 		for feat in f.iter() {
 			if let Value::String(feature) = feat {
@@ -208,6 +224,7 @@ fn inject_features_table<D:TableLike, F:Fn(&str) -> bool>(
 			}
 		}
 	}
+
 	if let Some(features_array) = manifest_features.as_array_mut() {
 		// add features that aren't in the manifest
 		for feature in features.iter() {
@@ -218,13 +235,16 @@ fn inject_features_table<D:TableLike, F:Fn(&str) -> bool>(
 
 		// remove features that shouldn't be in the manifest anymore
 		let mut i = features_array.len();
+
 		while i != 0 {
 			let index = i - 1;
+
 			if let Some(f) = features_array.get(index).and_then(|f| f.as_str()) {
 				if !features.contains(f) {
 					features_array.remove(index);
 				}
 			}
+
 			i -= 1;
 		}
 	} else {
@@ -237,6 +257,7 @@ fn inject_features(
 	dependencies:&mut Vec<DependencyAllowlist>,
 ) -> crate::Result<bool> {
 	let mut persist = false;
+
 	for dependency in dependencies {
 		let name = dependency.name.clone();
 
@@ -252,6 +273,7 @@ fn inject_features(
 				);
 			} else {
 				let all_cli_managed_features = dependency.all_cli_managed_features.clone();
+
 				let is_managed_feature:Box<dyn Fn(&str) -> bool> =
 					Box::new(move |feature| all_cli_managed_features.contains(&feature));
 
@@ -270,15 +292,18 @@ fn inject_features(
 
 pub fn rewrite_manifest(config:&Config) -> crate::Result<(Manifest, bool)> {
 	let manifest_path = tauri_dir().join("Cargo.toml");
+
 	let (mut manifest, original_manifest_str) = read_manifest(&manifest_path)?;
 
 	let mut dependencies = Vec::new();
 
 	// tauri-build
 	let mut tauri_build_features = HashSet::new();
+
 	if let PatternKind::Isolation { .. } = config.app.security.pattern {
 		tauri_build_features.insert("isolation".to_string());
 	}
+
 	dependencies.push(DependencyAllowlist {
 		name:"tauri-build".into(),
 		kind:DependencyKind::Build,
@@ -289,6 +314,7 @@ pub fn rewrite_manifest(config:&Config) -> crate::Result<(Manifest, bool)> {
 	// tauri
 	let tauri_features =
 		HashSet::from_iter(config.app.features().into_iter().map(|f| f.to_string()));
+
 	dependencies.push(DependencyAllowlist {
 		name:"tauri".into(),
 		kind:DependencyKind::Normal,
@@ -308,8 +334,11 @@ pub fn rewrite_manifest(config:&Config) -> crate::Result<(Manifest, bool)> {
 	if persist && original_manifest_str != new_manifest_str {
 		let mut manifest_file = File::create(&manifest_path)
 			.with_context(|| "failed to open Cargo.toml for rewrite")?;
+
 		manifest_file.write_all(new_manifest_str.as_bytes())?;
+
 		manifest_file.flush()?;
+
 		Ok((Manifest { inner:manifest, tauri_features }, true))
 	} else {
 		Ok((Manifest { inner:manifest, tauri_features }, false))
@@ -326,8 +355,10 @@ mod tests {
 		let mut manifest = toml.parse::<toml_edit::DocumentMut>().expect("invalid toml");
 
 		let mut expected = HashMap::new();
+
 		for dep in &dependencies {
 			let mut features = dep.features.clone();
+
 			for item in super::find_dependency(&mut manifest, &dep.name, dep.kind) {
 				let item_table = if let Some(table) = item.as_table() {
 					Some(table.clone())
@@ -336,18 +367,21 @@ mod tests {
 				} else {
 					None
 				};
+
 				if let Some(f) = item_table
 					.and_then(|t| t.get("features").cloned())
 					.and_then(|f| f.as_array().cloned())
 				{
 					for feature in f.iter() {
 						let feature = feature.as_str().expect("feature is not a string");
+
 						if !dep.all_cli_managed_features.contains(&feature) {
 							features.insert(feature.into());
 						}
 					}
 				}
 			}
+
 			expected.insert(dep.name.clone(), features);
 		}
 
@@ -356,6 +390,7 @@ mod tests {
 
 		for dep in dependencies {
 			let expected_features = expected.get(&dep.name).unwrap();
+
 			for item in super::find_dependency(&mut manifest, &dep.name, dep.kind) {
 				let item_table = if let Some(table) = item.as_table() {
 					table.clone()
@@ -373,10 +408,13 @@ mod tests {
 					.clone();
 
 				let mut features = Vec::new();
+
 				for feature in features_array.iter() {
 					let feature = feature.as_str().expect("feature must be a string");
+
 					features.push(feature);
 				}
+
 				for expected in expected_features {
 					assert!(
 						features.contains(&expected.as_str()),

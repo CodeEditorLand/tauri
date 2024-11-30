@@ -40,6 +40,7 @@ impl<R:Runtime> CheckMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::CheckMenuItem::new(text, enabled, checked, accelerator);
+
 			CheckMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
@@ -77,6 +78,7 @@ impl<R:Runtime> CheckMenuItem<R> {
 		let item = run_main_thread!(handle, || {
 			let item =
 				muda::CheckMenuItem::with_id(id.clone(), text, enabled, checked, accelerator);
+
 			CheckMenuItemInner { id, inner:Some(item), app_handle }
 		})?;
 
@@ -100,6 +102,7 @@ impl<R:Runtime> CheckMenuItem<R> {
 	/// `&&`.
 	pub fn set_text<S:AsRef<str>>(&self, text:S) -> crate::Result<()> {
 		let text = text.as_ref().to_string();
+
 		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_text(text))
 	}
 
@@ -116,6 +119,7 @@ impl<R:Runtime> CheckMenuItem<R> {
 	/// Set this menu item accelerator.
 	pub fn set_accelerator<S:AsRef<str>>(&self, accelerator:Option<S>) -> crate::Result<()> {
 		let accel = accelerator.and_then(|s| s.as_ref().parse().ok());
+
 		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_accelerator(accel))?
 			.map_err(Into::into)
 	}

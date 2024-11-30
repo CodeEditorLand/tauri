@@ -102,6 +102,7 @@ impl<R: Runtime> WebviewManager<R> {
     protocol: Arc<UriSchemeProtocol<R>>,
   ) {
     let uri_scheme = uri_scheme.into();
+
     self
       .uri_scheme_protocols
       .lock()
@@ -124,6 +125,7 @@ impl<R: Runtime> WebviewManager<R> {
     let app_manager = manager.manager();
 
     let is_init_global = app_manager.config.app.with_global_tauri;
+
     let plugin_init_scripts = app_manager
       .plugins
       .lock()
@@ -145,6 +147,7 @@ impl<R: Runtime> WebviewManager<R> {
         crate::Pattern::Isolation { schema, .. } => {
           crate::pattern::format_real_schema(schema, use_https_scheme)
         }
+
         _ => "".to_string(),
       },
     }
@@ -231,6 +234,7 @@ impl<R: Runtime> WebviewManager<R> {
     }
 
     let window_url = Url::parse(&pending.url).unwrap();
+
     let window_origin = if window_url.scheme() == "data" {
       "null".into()
     } else if (cfg!(windows) || cfg!(target_os = "android"))
@@ -275,8 +279,11 @@ impl<R: Runtime> WebviewManager<R> {
     }
 
     let label = pending.label.clone();
+
     let app_manager_ = manager.manager_owned();
+
     let on_page_load_handler = pending.on_page_load_handler.take();
+
     pending
       .on_page_load_handler
       .replace(Box::new(move |url, event| {
@@ -436,12 +443,16 @@ impl<R: Runtime> WebviewManager<R> {
       }
       WebviewUrl::External(url) => {
         let config_url = app_manager.get_url(pending.webview_attributes.use_https_scheme);
+
         let is_local = config_url.make_relative(url).is_some();
+
         let mut url = url.clone();
+
         if is_local && PROXY_DEV_SERVER {
           url.set_scheme("tauri").unwrap();
           url.set_host(Some("localhost")).unwrap();
         }
+
         url
       }
 
@@ -465,7 +476,9 @@ impl<R: Runtime> WebviewManager<R> {
           // naive way to check if it's an html
           if html.contains('<') && html.contains('>') {
             let document = tauri_utils::html::parse(html);
+
             tauri_utils::html::inject_csp(&document, &csp.to_string());
+
             url.set_path(&format!("{},{}", mime::TEXT_HTML, document.to_string()));
           }
         }
@@ -500,6 +513,7 @@ impl<R: Runtime> WebviewManager<R> {
     }
 
     let label = pending.label.clone();
+
     pending = self.prepare_pending_webview(pending, &label, window_label, manager)?;
 
     pending.ipc_handler = Some(crate::ipc::protocol::message_handler(
@@ -545,9 +559,13 @@ impl<R: Runtime> WebviewManager<R> {
 
     #[cfg(feature = "isolation")]
     let pattern = app_manager.pattern.clone();
+
     let navigation_handler = pending.navigation_handler.take();
+
     let app_manager = manager.manager_owned();
+
     let label = pending.label.clone();
+
     pending.navigation_handler = Some(Box::new(move |url| {
       // always allow navigation events for the isolation iframe and do not emit them for consumers
       #[cfg(feature = "isolation")]
@@ -587,7 +605,9 @@ impl<R: Runtime> WebviewManager<R> {
     let webview = Webview::new(window, webview, use_https_scheme);
 
     let webview_event_listeners = self.event_listeners.clone();
+
     let webview_ = webview.clone();
+
     webview.on_webview_event(move |event| {
       let _ = on_webview_event(&webview_, event);
       for handler in webview_event_listeners.iter() {
@@ -604,6 +624,7 @@ impl<R: Runtime> WebviewManager<R> {
 
     // let plugins know that a new webview has been added to the manager
     let manager = webview.manager_owned();
+
     let webview_ = webview.clone();
     // run on main thread so the plugin store doesn't dead lock with the event loop handler in App
     let _ = webview.run_on_main_thread(move || {
@@ -635,7 +656,9 @@ impl<R: Runtime> WebviewManager<R> {
 
   pub fn eval_script_all<S: Into<String>>(&self, script: S) -> crate::Result<()> {
     let script = script.into();
+
     let webviews = self.webviews_lock().values().cloned().collect::<Vec<_>>();
+
     webviews
       .iter()
       .try_for_each(|webview| webview.eval(&script))
@@ -654,6 +677,7 @@ impl<R: Runtime> Webview<R> {
   /// Emits event to [`EventTarget::Window`] and [`EventTarget::WebviewWindow`]
   fn emit_to_webview<S: Serialize + Clone>(&self, event: &str, payload: S) -> crate::Result<()> {
     let window_label = self.label();
+
     self.emit_filter(event, payload, |target| match target {
       EventTarget::Webview { label } | EventTarget::WebviewWindow { label } => {
         label == window_label
@@ -671,6 +695,7 @@ fn on_webview_event<R: Runtime>(webview: &Webview<R>, event: &WebviewEvent) -> c
           paths: Some(paths),
           position,
         };
+
         webview.emit_to_webview(DRAG_ENTER_EVENT, payload)?
       }
       DragDropEvent::Over { position } => {
@@ -678,10 +703,12 @@ fn on_webview_event<R: Runtime>(webview: &Webview<R>, event: &WebviewEvent) -> c
           position,
           paths: None,
         };
+
         webview.emit_to_webview(DRAG_OVER_EVENT, payload)?
       }
       DragDropEvent::Drop { paths, position } => {
         let scopes = webview.state::<Scopes>();
+
         for path in paths {
           if path.is_file() {
             let _ = scopes.allow_file(path);
@@ -689,10 +716,12 @@ fn on_webview_event<R: Runtime>(webview: &Webview<R>, event: &WebviewEvent) -> c
             let _ = scopes.allow_directory(path, false);
           }
         }
+
         let payload = DragDropPayload {
           paths: Some(paths),
           position,
         };
+
         webview.emit_to_webview(DRAG_DROP_EVENT, payload)?
       }
       DragDropEvent::Leave => webview.emit_to_webview(DRAG_LEAVE_EVENT, ())?,

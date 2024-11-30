@@ -21,6 +21,7 @@ pub fn migrate(tauri_dir: &Path) -> Result<MigratedConfig> {
     tauri_utils_v1::config::parse::parse_value(tauri_dir.join("tauri.conf.json"))
   {
     let migrated = migrate_config(&mut config)?;
+
     if config_path.extension().map_or(false, |ext| ext == "toml") {
       fs::write(&config_path, toml::to_string_pretty(&config)?)?;
     } else {
@@ -31,10 +32,13 @@ pub fn migrate(tauri_dir: &Path) -> Result<MigratedConfig> {
       .into_iter()
       .map(|p| PermissionEntry::PermissionRef(p.to_string().try_into().unwrap()))
       .collect();
+
     permissions.extend(migrated.permissions.clone());
 
     let capabilities_path = config_path.parent().unwrap().join("capabilities");
+
     fs::create_dir_all(&capabilities_path)?;
+
     fs::write(
       capabilities_path.join("migrated.json"),
       serde_json::to_string_pretty(&Capability {
@@ -69,6 +73,7 @@ fn migrate_config(config: &mut Value) -> Result<MigratedConfig> {
 
   if let Some(config) = config.as_object_mut() {
     process_package_metadata(config);
+
     process_build(config);
 
     let mut plugins = config
@@ -82,8 +87,11 @@ fn migrate_config(config: &mut Value) -> Result<MigratedConfig> {
       // allowlist
       if let Some(allowlist) = tauri_config.remove("allowlist") {
         let allowlist = process_allowlist(tauri_config, allowlist)?;
+
         let permissions = allowlist_to_permissions(allowlist);
+
         migrated.plugins = plugins_from_permissions(&permissions);
+
         migrated.permissions = permissions;
       }
 
@@ -215,6 +223,7 @@ fn process_build(config: &mut Map<String, Value>) {
     {
       build_config.insert(key.into(), dist_dir);
     }
+
     if let Some((dev_path, key)) = build_config
       .remove("devPath")
       .map(|v| (v, "devUrl"))
@@ -225,6 +234,7 @@ fn process_build(config: &mut Map<String, Value>) {
         build_config.insert(key.into(), dev_path);
       }
     }
+
     if let Some((with_global_tauri, key)) = build_config
       .remove("withGlobalTauri")
       .map(|v| (v, "withGlobalTauri"))
@@ -341,6 +351,7 @@ fn process_bundle(config: &mut Map<String, Value>, migrated: &MigratedConfig) {
             .position(|target| *target == serde_json::Value::String("updater".to_owned()))
           {
             targets.remove(index);
+
             true
           } else {
             false
@@ -349,6 +360,7 @@ fn process_bundle(config: &mut Map<String, Value>, migrated: &MigratedConfig) {
           // targets: "updater"
           if target == "updater" {
             bundle_config.remove("targets");
+
             true
           } else {
             // note that target == "all" is the default from the v1 tauri CLI
@@ -359,6 +371,7 @@ fn process_bundle(config: &mut Map<String, Value>, migrated: &MigratedConfig) {
         } else {
           false
         };
+
         if should_migrate {
           bundle_config.insert("createUpdaterArtifacts".to_owned(), "v1Compatible".into());
         }
@@ -384,6 +397,7 @@ fn process_security(security: &mut Map<String, Value>) -> Result<()> {
             *csp = format!("{csp}; connect-src ipc: http://ipc.localhost");
           }
         }
+
         tauri_utils_v1::config::Csp::DirectiveMap(csp) => {
           if let Some(connect_src) = csp.get_mut("connect-src") {
             if !connect_src.contains("ipc: http://ipc.localhost") {
@@ -433,13 +447,16 @@ fn process_allowlist(
       .unwrap();
 
     let mut asset_protocol = Map::new();
+
     asset_protocol.insert(
       "scope".into(),
       serde_json::to_value(allowlist.protocol.asset_scope.clone())?,
     );
+
     if allowlist.protocol.asset {
       asset_protocol.insert("enable".into(), true.into());
     }
+
     security.insert("assetProtocol".into(), asset_protocol.into());
   }
 
@@ -455,6 +472,7 @@ fn allowlist_to_permissions(
         $permissions_list.push(PermissionEntry::PermissionRef(
           $associated_permission.to_string().try_into().unwrap(),
         ));
+
         true
       } else {
         false
@@ -483,10 +501,12 @@ fn allowlist_to_permissions(
       .into_iter()
       .map(|p| AclValue::String(p.to_string_lossy().into()))
       .collect::<Vec<_>>();
+
     let fs_denied = fs_denied
       .into_iter()
       .map(|p| AclValue::String(p.to_string_lossy().into()))
       .collect::<Vec<_>>();
+
     permissions.push(PermissionEntry::ExtendedPermission {
       identifier: "fs:scope".to_string().try_into().unwrap(),
       scope: Scopes {
@@ -593,7 +613,9 @@ fn allowlist_to_permissions(
       .into_iter()
       .map(|p| {
         let mut map = BTreeMap::new();
+
         map.insert("url".to_string(), AclValue::String(p.to_string()));
+
         AclValue::Map(map)
       })
       .collect::<Vec<_>>();
@@ -664,6 +686,7 @@ fn process_updater(
         || updater.get("pubkey").is_some()
       {
         plugins.insert("updater".into(), serde_json::to_value(updater)?);
+
         migrated.plugins.insert("updater".to_string());
       }
     }
@@ -689,9 +712,11 @@ fn plugins_from_permissions(permissions: &Vec<PermissionEntry>) -> HashSet<Strin
 
   for permission in permissions {
     let permission = permission.identifier().get();
+
     for plugin in KNOWN_PLUGINS {
       if permission.starts_with(plugin) {
         plugins.insert(plugin.to_string());
+
         break;
       }
     }
@@ -704,6 +729,7 @@ fn plugins_from_permissions(permissions: &Vec<PermissionEntry>) -> HashSet<Strin
 mod test {
   fn migrate(original: &serde_json::Value) -> serde_json::Value {
     let mut migrated = original.clone();
+
     super::migrate_config(&mut migrated).expect("failed to migrate config");
 
     if original.get("$schema").is_some() {
@@ -839,14 +865,17 @@ mod test {
       migrated["plugins"]["updater"]["endpoints"],
       original["tauri"]["updater"]["endpoints"]
     );
+
     assert_eq!(
       migrated["plugins"]["updater"]["pubkey"],
       original["tauri"]["updater"]["pubkey"]
     );
+
     assert_eq!(
       migrated["plugins"]["updater"]["windows"]["installMode"],
       original["tauri"]["updater"]["windows"]["installMode"]
     );
+
     assert_eq!(
       migrated["plugins"]["updater"]["windows"]["installerArgs"],
       original["tauri"]["updater"]["windows"]["installerArgs"]
@@ -860,10 +889,12 @@ mod test {
       migrated["app"]["security"]["assetProtocol"]["enable"],
       original["tauri"]["allowlist"]["protocol"]["asset"]
     );
+
     assert_eq!(
       migrated["app"]["security"]["assetProtocol"]["scope"]["allow"],
       original["tauri"]["allowlist"]["protocol"]["assetScope"]["allow"]
     );
+
     assert_eq!(
       migrated["app"]["security"]["assetProtocol"]["scope"]["deny"],
       original["tauri"]["allowlist"]["protocol"]["assetScope"]["deny"]
@@ -889,10 +920,12 @@ mod test {
       migrated["bundle"]["licenseFile"],
       original["tauri"]["bundle"]["macOS"]["license"]
     );
+
     assert_eq!(
       migrated["bundle"]["licenseFile"],
       original["tauri"]["bundle"]["windows"]["wix"]["license"]
     );
+
     assert_eq!(
       migrated["bundle"]["licenseFile"],
       original["tauri"]["bundle"]["windows"]["nsis"]["license"]
@@ -903,6 +936,7 @@ mod test {
       migrated["bundle"]["linux"]["deb"],
       original["tauri"]["bundle"]["deb"]
     );
+
     assert_eq!(
       migrated["bundle"]["linux"]["appimage"],
       original["tauri"]["bundle"]["appimage"]
@@ -910,11 +944,14 @@ mod test {
 
     // app information
     assert_eq!(migrated["productName"], original["package"]["productName"]);
+
     assert_eq!(
       migrated["mainBinaryName"],
       original["package"]["productName"]
     );
+
     assert_eq!(migrated["version"], original["package"]["version"]);
+
     assert_eq!(
       migrated["identifier"],
       original["tauri"]["bundle"]["identifier"]
@@ -925,7 +962,9 @@ mod test {
       migrated["build"]["frontendDist"],
       original["build"]["distDir"]
     );
+
     assert_eq!(migrated["build"]["devUrl"], original["build"]["devPath"]);
+
     assert_eq!(
       migrated["app"]["withGlobalTauri"],
       original["build"]["withGlobalTauri"]
@@ -945,6 +984,7 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(migrated["plugins"]["updater"], serde_json::Value::Null);
   }
 
@@ -960,6 +1000,7 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(
       migrated["plugins"]["updater"]["pubkey"],
       original["tauri"]["updater"]["pubkey"]
@@ -978,6 +1019,7 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(
       !migrated["app"]["windows"][0]["useHttpsScheme"]
         .as_bool()
@@ -991,6 +1033,7 @@ mod test {
   #[test]
   fn can_migrate_default_config() {
     let original = serde_json::to_value(tauri_utils_v1::config::Config::default()).unwrap();
+
     migrate(&original);
   }
 
@@ -998,6 +1041,7 @@ mod test {
   fn can_migrate_api_example_config() {
     let original =
       serde_json::from_str(include_str!("./fixtures/api-example.tauri.conf.json")).unwrap();
+
     migrate(&original);
   }
 
@@ -1005,6 +1049,7 @@ mod test {
   fn can_migrate_cli_template_config() {
     let original =
       serde_json::from_str(include_str!("./fixtures/cli-template.tauri.conf.json")).unwrap();
+
     migrate(&original);
   }
 
@@ -1013,6 +1058,7 @@ mod test {
     let original = serde_json::json!({});
 
     let migrated = migrate(&original);
+
     assert_eq!(
       migrated["bundle"]["createUpdaterArtifacts"],
       serde_json::Value::Null
@@ -1027,6 +1073,7 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
 
     let original = serde_json::json!({
@@ -1038,7 +1085,9 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
+
     assert_eq!(
       migrated["bundle"]["targets"].as_array(),
       Some(&vec!["nsis".into()])
@@ -1046,7 +1095,9 @@ mod test {
 
     let original =
       serde_json::from_str(include_str!("./fixtures/cli-template.tauri.conf.json")).unwrap();
+
     let migrated = migrate(&original);
+
     assert_eq!(
       migrated["bundle"]["createUpdaterArtifacts"],
       serde_json::Value::Null
@@ -1061,10 +1112,12 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(
       migrated["bundle"]["createUpdaterArtifacts"],
       serde_json::Value::Null
     );
+
     assert_eq!(migrated["bundle"]["targets"], "all");
 
     let original = serde_json::json!({
@@ -1079,7 +1132,9 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
+
     assert_eq!(migrated["bundle"]["targets"], "all");
 
     let original = serde_json::json!({
@@ -1091,7 +1146,9 @@ mod test {
     });
 
     let migrated = migrate(&original);
+
     assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
+
     assert_eq!(migrated["bundle"].get("targets"), None);
   }
 
@@ -1113,6 +1170,7 @@ mod test {
       migrated["app"]["security"]["csp"]["default-src"],
       original["tauri"]["security"]["csp"]["default-src"]
     );
+
     assert!(migrated["app"]["security"]["csp"]["connect-src"]
       .as_array()
       .expect("connect-src isn't an array")
@@ -1138,6 +1196,7 @@ mod test {
       migrated["app"]["security"]["csp"]["default-src"],
       original["tauri"]["security"]["csp"]["default-src"]
     );
+
     assert_eq!(
       migrated["app"]["security"]["csp"]["connect-src"]
         .as_str()
@@ -1174,9 +1233,11 @@ mod test {
     let migrated_connect_src = migrated["app"]["security"]["csp"]["connect-src"]
       .as_array()
       .expect("connect-src isn't an array");
+
     let original_connect_src = original["tauri"]["security"]["csp"]["connect-src"]
       .as_array()
       .unwrap();
+
     assert!(
       migrated_connect_src
         .iter()
@@ -1198,6 +1259,7 @@ mod test {
     let migrated = migrate(&original);
 
     assert!(migrated["build"].get("devUrl").is_none());
+
     assert_eq!(
       migrated["build"]["distDir"],
       original["build"]["frontendDist"]

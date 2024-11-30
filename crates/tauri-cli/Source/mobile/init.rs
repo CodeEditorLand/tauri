@@ -66,6 +66,7 @@ pub fn exec(
 
       if let Some(bin_stem) = bin_path.file_stem() {
         let r = regex::Regex::new("(nodejs|node)\\-?([1-9]*)*$").unwrap();
+
         if r.is_match(&bin_stem.to_string_lossy()) {
           if var_os("PNPM_PACKAGE_NAME").is_some() {
             return ("pnpm".into(), build_args);
@@ -74,7 +75,9 @@ pub fn exec(
               .file_stem()
               .unwrap()
               .to_os_string();
+
             let is_npm = manager_stem == "npm-cli";
+
             let binary = if is_npm {
               "npm".into()
             } else if manager_stem == "npx-cli" {
@@ -115,7 +118,9 @@ pub fn exec(
       Ok(_env) => {
         let (config, metadata) =
           super::android::get_config(&app, tauri_config_, None, &Default::default());
+
         map.insert("android", &config);
+
         super::android::project::gen(
           &config,
           &metadata,
@@ -123,6 +128,7 @@ pub fn exec(
           wrapper,
           skip_targets_install,
         )?;
+
         app
       }
       Err(err) => {

@@ -59,6 +59,7 @@ impl TomlOrJson {
         let permissions = t.entry("permissions").or_insert_with(|| {
           toml_edit::Item::Value(toml_edit::Value::Array(toml_edit::Array::new()))
         });
+
         if let Some(permissions) = permissions.as_array_mut() {
           permissions.push(identifier)
         };
@@ -238,7 +239,9 @@ pub fn command(options: Options) -> Result<()> {
 
   for (capability, path) in &mut capabilities {
     capability.insert_permission(options.identifier.clone());
+
     std::fs::write(&*path, capability.to_string()?)?;
+
     log::info!(action = "Added"; "permission `{}` to `{}` at {}", options.identifier, capability.identifier(), dunce::simplified(path).display());
   }
 

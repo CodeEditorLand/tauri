@@ -61,7 +61,9 @@ pub fn cross_command(bin: &str) -> Command {
   #[cfg(target_os = "windows")]
   let cmd = {
     let mut cmd = Command::new("cmd");
+
     cmd.arg("/c").arg(bin);
+
     cmd
   };
   #[cfg(not(target_os = "windows"))]
@@ -85,6 +87,7 @@ pub fn run_hook(
     log::info!(action = "Running"; "{} `{}`", name, script);
 
     let mut env = command_env(debug);
+
     env.extend(interface.env());
 
     log::debug!("Setting environment for hook {:?}", env);

@@ -136,14 +136,17 @@ pub fn json_value_number_lit(num: &serde_json::Number) -> TokenStream {
   if num.is_u64() {
     // guaranteed u64
     let num = num.as_u64().unwrap();
+
     quote! { #prefix::Number(#num.into()) }
   } else if num.is_i64() {
     // guaranteed i64
     let num = num.as_i64().unwrap();
+
     quote! { #prefix::Number(#num.into()) }
   } else if num.is_f64() {
     // guaranteed f64
     let num = num.as_f64().unwrap();
+
     quote! { #prefix::Number(::serde_json::Number::from_f64(#num).unwrap(/* safe to unwrap, guaranteed f64 */)) }
   } else {
     // invalid number
@@ -163,10 +166,12 @@ pub fn json_value_lit(jv: &JsonValue) -> TokenStream {
       let s = str_lit(str);
       quote! { #prefix::String(#s) }
     }
+
     JsonValue::Array(vec) => {
       let items = vec.iter().map(json_value_lit);
       quote! { #prefix::Array(vec![#(#items),*]) }
     }
+
     JsonValue::Object(map) => {
       let map = map_lit(quote! { ::serde_json::Map }, map, str_lit, json_value_lit);
       quote! { #prefix::Object(#map) }

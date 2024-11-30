@@ -14,6 +14,7 @@ pub fn manager_version(package_manager: &str) -> Option<String> {
     .map(|o| {
       if o.status.success() {
         let v = String::from_utf8_lossy(o.stdout.as_slice()).to_string();
+
         Some(v.split('\n').next().unwrap().to_string())
       } else {
         None
@@ -66,7 +67,9 @@ impl PackageManager {
     if let Ok(entries) = std::fs::read_dir(path) {
       for entry in entries.flatten() {
         let path = entry.path();
+
         let name = path.file_name().unwrap().to_string_lossy();
+
         if name.as_ref() == "package-lock.json" {
           found.push(PackageManager::Npm);
         } else if name.as_ref() == "pnpm-lock.yaml" {
@@ -113,6 +116,7 @@ impl PackageManager {
     } else {
       "dependency"
     };
+
     log::info!(
       "Installing NPM {dependencies_str} {}...",
       dependencies
@@ -123,6 +127,7 @@ impl PackageManager {
     );
 
     let mut command = self.cross_command();
+
     command.arg("add");
 
     match self {
@@ -152,6 +157,7 @@ impl PackageManager {
     } else {
       "dependency"
     };
+
     log::info!(
       "Removing NPM {dependencies_str} {}...",
       dependencies
@@ -224,6 +230,7 @@ impl PackageManager {
         None,
       ),
     };
+
     if output.status.success() {
       let stdout = String::from_utf8_lossy(&output.stdout);
       let regex = regex.unwrap_or_else(|| regex::Regex::new("@(\\d[\\da-zA-Z\\-\\.]+)").unwrap());

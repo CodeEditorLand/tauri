@@ -66,13 +66,17 @@ fn build_tools_version() -> crate::Result<Vec<String>> {
 
   if output_sdk10.status.success() {
     let stdout = String::from_utf8_lossy(&output_sdk10.stdout);
+
     let found: Vec<VsInstanceInfo> = serde_json::from_str(&stdout)?;
+
     instances.extend(found);
   }
 
   if output_sdk11.status.success() {
     let stdout = String::from_utf8_lossy(&output_sdk11.stdout);
+
     let found: Vec<VsInstanceInfo> = serde_json::from_str(&stdout)?;
+
     instances.extend(found);
   }
 
@@ -185,7 +189,9 @@ fn de_and_session() -> String {
   ))]
   return {
     let de = std::env::var("XDG_SESSION_DESKTOP");
+
     let session = std::env::var("XDG_SESSION_TYPE");
+
     format!(
       " ({} on {})",
       de.as_deref().unwrap_or("Unknown DE"),

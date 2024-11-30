@@ -144,6 +144,7 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let mut build_options:BuildOptions = options.clone().into();
+
 	build_options.target = Some(
 		Target::all()
 			.get(options.targets.first().map(|t| t.as_str()).unwrap_or(Target::DEFAULT_KEY))
@@ -156,12 +157,14 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 		tauri_utils::platform::Target::Ios,
 		options.config.as_ref().map(|c| &c.0),
 	)?;
+
 	let (interface, mut config) = {
 		let tauri_config_guard = tauri_config.lock().unwrap();
 
 		let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
 		let interface = AppInterface::new(tauri_config_, build_options.target.clone())?;
+
 		interface.build_options(&mut Vec::new(), &mut build_options.features, true);
 
 		let app = get_app(MobileTarget::Ios, tauri_config_, &interface);
@@ -172,28 +175,35 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	};
 
 	let tauri_path = tauri_dir();
+
 	set_current_dir(tauri_path).with_context(|| "failed to change current working directory")?;
 
 	ensure_init(&tauri_config, config.app(), config.project_dir(), MobileTarget::Ios)?;
+
 	inject_resources(&config, tauri_config.lock().unwrap().as_ref().unwrap())?;
 
 	let info_plist_path = config.project_dir().join(config.scheme()).join("Info.plist");
+
 	let merged_info_plist = merge_plist(vec![
 		info_plist_path.clone().into(),
 		tauri_path.join("Info.plist").into(),
 		tauri_path.join("Info.ios.plist").into(),
 	])?;
+
 	merged_info_plist.to_file_xml(&info_plist_path)?;
 
 	let mut env = env()?;
 
 	let mut export_options_plist = plist::Dictionary::new();
+
 	if let Some(method) = options.export_method {
 		export_options_plist.insert("method".to_string(), method.to_string().into());
 	}
 
 	let (keychain, provisioning_profile) = super::signing_from_env()?;
+
 	let project_config = project_config(keychain.as_ref(), provisioning_profile.as_ref())?;
+
 	let mut pbxproj = load_pbxproj(&config)?;
 
 	// synchronize pbxproj and exportoptions
@@ -205,6 +215,7 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 		&project_config,
 		options.debug,
 	)?;
+
 	if pbxproj.has_changes() {
 		pbxproj.save()?;
 	}
@@ -220,6 +231,7 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 			export_options_plist_path.clone().into(),
 			plist::Value::from(export_options_plist).into(),
 		])?;
+
 		merged_plist.to_file_xml(export_options.path())?;
 
 		config.set_export_options_plist_path(export_options.path());
@@ -230,6 +242,7 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	};
 
 	let open = options.open;
+
 	let _handle =
 		run_build(interface, options, build_options, tauri_config, &config, &mut env, noise_level)?;
 
@@ -255,12 +268,15 @@ fn run_build(
 	crate::build::setup(&interface, &mut build_options, tauri_config.clone(), true)?;
 
 	let app_settings = interface.app_settings();
+
 	let bin_path = app_settings.app_binary_path(&InterfaceOptions {
 		debug:build_options.debug,
 		target:build_options.target.clone(),
 		..Default::default()
 	})?;
+
 	let out_dir = bin_path.parent().unwrap();
+
 	let _lock = flock::open_rw(out_dir.join("lock").with_extension("ios"), "iOS")?;
 
 	let cli_options = CliOptions {
@@ -272,6 +288,7 @@ fn run_build(
 		config:build_options.config.clone(),
 		target_device:None,
 	};
+
 	let handle =
 		write_options(&tauri_config.lock().unwrap().as_ref().unwrap().identifier, cli_options)?;
 
@@ -283,6 +300,7 @@ fn run_build(
 		env,
 		|target:&Target| -> Result<()> {
 			let mut app_version = config.bundle_version().clone();
+
 			if let Some(build_number) = options.build_number {
 				app_version.push_extra(build_number);
 			}
@@ -290,6 +308,7 @@ fn run_build(
 			let credentials = auth_credentials_from_env()?;
 
 			let mut build_config = BuildConfig::new().allow_provisioning_updates().skip_codesign();
+
 			if let Some(credentials) = &credentials {
 				build_config = build_config.authentication_credentials(credentials.clone());
 			}
@@ -306,6 +325,7 @@ fn run_build(
 			)?;
 
 			let mut export_config = ExportConfig::new().allow_provisioning_updates();
+
 			if let Some(credentials) = credentials {
 				export_config = export_config.authentication_credentials(credentials);
 			}
@@ -324,15 +344,20 @@ fn run_build(
 					.with_extension("app");
 
 				let path = out_dir.join(app_path.file_name().unwrap());
+
 				fs::rename(&app_path, &path)?;
+
 				out_files.push(path);
 			} else {
 				target.export(config, env, noise_level, export_config)?;
 
 				if let Ok(ipa_path) = config.ipa_path() {
 					fs::create_dir_all(&out_dir)?;
+
 					let path = out_dir.join(ipa_path.file_name().unwrap());
+
 					fs::rename(&ipa_path, &path)?;
+
 					out_files.push(path);
 				}
 			}

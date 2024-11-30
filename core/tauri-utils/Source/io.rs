@@ -12,6 +12,7 @@ use std::io::BufRead;
 /// Adapted from <https://doc.rust-lang.org/std/io/trait.BufRead.html#method.read_line>.
 pub fn read_line<R:BufRead + ?Sized>(r:&mut R, buf:&mut Vec<u8>) -> std::io::Result<usize> {
 	let mut read = 0;
+
 	loop {
 		let (done, used) = {
 			let available = match r.fill_buf() {
@@ -22,9 +23,11 @@ pub fn read_line<R:BufRead + ?Sized>(r:&mut R, buf:&mut Vec<u8>) -> std::io::Res
 
 				Err(e) => return Err(e),
 			};
+
 			match memchr::memchr(b'\n', available) {
 				Some(i) => {
 					let end = i + 1;
+
 					buf.extend_from_slice(&available[..end]);
 					(true, end)
 				},
@@ -32,6 +35,7 @@ pub fn read_line<R:BufRead + ?Sized>(r:&mut R, buf:&mut Vec<u8>) -> std::io::Res
 					match memchr::memchr(b'\r', available) {
 						Some(i) => {
 							let end = i + 1;
+
 							buf.extend_from_slice(&available[..end]);
 							(true, end)
 						},
@@ -43,8 +47,11 @@ pub fn read_line<R:BufRead + ?Sized>(r:&mut R, buf:&mut Vec<u8>) -> std::io::Res
 				},
 			}
 		};
+
 		r.consume(used);
+
 		read += used;
+
 		if done || used == 0 {
 			return Ok(read);
 		}

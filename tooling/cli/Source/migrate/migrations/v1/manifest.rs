@@ -18,7 +18,9 @@ const CRATE_TYPES:[&str; 3] = ["lib", "staticlib", "cdylib"];
 
 pub fn migrate(tauri_dir:&Path) -> Result<()> {
 	let manifest_path = tauri_dir.join("Cargo.toml");
+
 	let (mut manifest, _) = read_manifest(&manifest_path)?;
+
 	migrate_manifest(&mut manifest)?;
 
 	std::fs::write(&manifest_path, serialize_manifest(&manifest))
@@ -53,6 +55,7 @@ fn migrate_manifest(manifest:&mut Document) -> Result<()> {
 			Entry::Occupied(mut e) => {
 				if let Item::Value(Value::Array(types)) = e.get_mut() {
 					let mut crate_types_to_add = CRATE_TYPES.to_vec();
+
 					for t in types.iter() {
 						// type is already in the manifest, skip adding it
 						if let Some(i) =
@@ -61,6 +64,7 @@ fn migrate_manifest(manifest:&mut Document) -> Result<()> {
 							crate_types_to_add.remove(i);
 						}
 					}
+
 					for t in crate_types_to_add {
 						types.push(t);
 					}
@@ -68,7 +72,9 @@ fn migrate_manifest(manifest:&mut Document) -> Result<()> {
 			},
 			Entry::Vacant(e) => {
 				let mut arr = toml_edit::Array::new();
+
 				arr.extend(CRATE_TYPES.to_vec());
+
 				e.insert(Item::Value(arr.into()));
 			},
 		}
@@ -79,16 +85,24 @@ fn migrate_manifest(manifest:&mut Document) -> Result<()> {
 
 fn features_to_remove() -> Vec<&'static str> {
 	let mut features_to_remove = tauri_utils_v1::config::AllowlistConfig::all_features();
+
 	features_to_remove.push("reqwest-client");
+
 	features_to_remove.push("reqwest-native-tls-vendored");
+
 	features_to_remove.push("process-command-api");
+
 	features_to_remove.push("shell-open-api");
+
 	features_to_remove.push("windows7-compat");
+
 	features_to_remove.push("updater");
+
 	features_to_remove.push("system-tray");
 
 	// this allowlist feature was not removed
 	let index = features_to_remove.iter().position(|x| x == &"protocol-asset").unwrap();
+
 	features_to_remove.remove(index);
 
 	features_to_remove
@@ -96,6 +110,7 @@ fn features_to_remove() -> Vec<&'static str> {
 
 fn dependency_version() -> String {
 	let pre = env!("CARGO_PKG_VERSION_PRE");
+
 	if pre.is_empty() {
 		env!("CARGO_PKG_VERSION_MAJOR").to_string()
 	} else {
@@ -119,6 +134,7 @@ fn migrate_dependency(dependencies:&mut Table, name:&str, version:&str, remove:&
 			 automatically rewritten. Remove features: [{}]",
 			remove.iter().join(", ")
 		);
+
 		return;
 	}
 
@@ -133,18 +149,24 @@ fn migrate_dependency(dependencies:&mut Table, name:&str, version:&str, remove:&
 
 fn migrate_dependency_table<D:TableLike>(dep:&mut D, version:&str, remove:&[&str]) {
 	*dep.entry("version").or_insert(Item::None) = Item::Value(version.into());
+
 	let manifest_features = dep.entry("features").or_insert(Item::None);
+
 	if let Some(features_array) = manifest_features.as_array_mut() {
 		// remove features that shouldn't be in the manifest anymore
 		let mut i = features_array.len();
 
 		let mut add_features = Vec::new();
+
 		while i != 0 {
 			let index = i - 1;
+
 			if let Some(f) = features_array.get(index).and_then(|f| f.as_str()) {
 				if remove.contains(&f) {
 					let f = f.to_string();
+
 					features_array.remove(index);
+
 					if f == "reqwest-native-tls-vendored" {
 						add_features.push("native-tls-vendored");
 					} else if f == "system-tray" {
@@ -152,8 +174,10 @@ fn migrate_dependency_table<D:TableLike>(dep:&mut D, version:&str, remove:&[&str
 					}
 				}
 			}
+
 			i -= 1;
 		}
+
 		for f in add_features {
 			features_array.push(f);
 		}
@@ -168,11 +192,13 @@ mod tests {
 		let keep_features = vec!["isolation", "protocol-asset"];
 
 		let mut features = super::features_to_remove();
+
 		features.extend(keep_features.clone());
 
 		let toml = get_toml(&features);
 
 		let mut manifest = toml.parse::<toml_edit::Document>().expect("invalid toml");
+
 		super::migrate_manifest(&mut manifest).expect("failed to migrate manifest");
 
 		let dependencies = manifest
@@ -191,11 +217,14 @@ mod tests {
 		} else if let Some(version) = tauri.as_str() {
 			// convert the value to a table for the assert logic below
 			let mut table = toml_edit::Table::new();
+
 			table.insert("version", toml_edit::Item::Value(version.to_string().into()));
+
 			table.insert(
 				"features",
 				toml_edit::Item::Value(toml_edit::Value::Array(Default::default())),
 			);
+
 			table
 		} else {
 			panic!("unexpected tauri dependency format");
@@ -207,6 +236,7 @@ mod tests {
 			.expect("missing version")
 			.as_str()
 			.expect("version must be a string");
+
 		assert_eq!(version, super::dependency_version());
 
 		// assert features matches
@@ -237,6 +267,7 @@ mod tests {
 
 		for feature in features.iter() {
 			let feature = feature.as_str().expect("feature must be a string");
+
 			assert!(
 				keep_features.contains(&feature)
 					|| feature == "native-tls-vendored"
@@ -291,6 +322,7 @@ mod tests {
     crate-type = ["something"]"#;
 
 		let mut manifest = toml.parse::<toml_edit::Document>().expect("invalid toml");
+
 		super::migrate_manifest(&mut manifest).expect("failed to migrate manifest");
 
 		if let Some(crate_types) = manifest
@@ -300,12 +332,15 @@ mod tests {
 			.and_then(|c| c.as_array())
 		{
 			let mut not_added_crate_types = super::CRATE_TYPES.to_vec();
+
 			for t in crate_types {
 				let t = t.as_str().expect("crate-type must be a string");
+
 				if let Some(i) = not_added_crate_types.iter().position(|ty| ty == &t) {
 					not_added_crate_types.remove(i);
 				}
 			}
+
 			assert!(
 				not_added_crate_types.is_empty(),
 				"missing crate-type: {not_added_crate_types:?}"

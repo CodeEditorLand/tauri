@@ -20,6 +20,7 @@ fn link_swift_library(name:&str, source:impl AsRef<std::path::Path>) {
 	let source = source.as_ref();
 
 	let sdk_root = std::env::var_os("SDKROOT");
+
 	std::env::remove_var("SDKROOT");
 
 	swift_rs::SwiftLinker::new(
@@ -40,6 +41,7 @@ fn link_xcode_library(name:&str, source:impl AsRef<std::path::Path>) {
 	use std::{path::PathBuf, process::Command};
 
 	let source = source.as_ref();
+
 	let configuration = if std::env::var("DEBUG").map(|v| v == "true").unwrap_or_default() {
 		"Debug"
 	} else {
@@ -54,6 +56,7 @@ fn link_xcode_library(name:&str, source:impl AsRef<std::path::Path>) {
 	};
 
 	let out_dir = std::env::var_os("OUT_DIR").map(PathBuf::from).unwrap();
+
 	let derived_data_path = out_dir.join(format!("derivedData-{name}"));
 
 	let status = Command::new("xcodebuild")
@@ -83,6 +86,8 @@ fn link_xcode_library(name:&str, source:impl AsRef<std::path::Path>) {
 		.join(format!("{configuration}-{sdk}"));
 
 	println!("cargo:rerun-if-changed={}", source.display());
+
 	println!("cargo:rustc-link-search=native={}", lib_out_dir.display());
+
 	println!("cargo:rustc-link-lib=static={name}");
 }

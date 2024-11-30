@@ -31,7 +31,9 @@ impl DevProcess for DevChild {
 		} else if let Some(child) = &self.build_child {
 			child.kill()?;
 		}
+
 		self.manually_killed_app.store(true, Ordering::Relaxed);
+
 		Ok(())
 	}
 
@@ -69,18 +71,26 @@ pub fn run_dev<F:Fn(Option<i32>, ExitReason) + Send + Sync + 'static>(
 	let bin_path = app_settings.app_binary_path(&options)?;
 
 	let manually_killed_app = Arc::new(AtomicBool::default());
+
 	let manually_killed_app_ = manually_killed_app.clone();
+
 	let app_child = Arc::new(Mutex::new(None));
+
 	let app_child_ = app_child.clone();
 
 	let build_child =
 		build_dev_app(options, available_targets, config_features, move |status, reason| {
 			if status == Some(0) {
 				let mut app = Command::new(bin_path);
+
 				app.stdout(os_pipe::dup_stdout().unwrap());
+
 				app.stderr(os_pipe::dup_stderr().unwrap());
+
 				app.args(run_args);
+
 				let app_child = Arc::new(SharedChild::spawn(&mut app).unwrap());
+
 				crate::dev::wait_dev_process(
 					DevChild {
 						manually_killed_app:manually_killed_app_,
@@ -113,6 +123,7 @@ pub fn build(
 	config_features:Vec<String>,
 ) -> crate::Result<()> {
 	let bin_path = app_settings.app_binary_path(&options)?;
+
 	let out_dir = bin_path.parent().unwrap();
 
 	let bin_name = bin_path.file_stem().unwrap();
@@ -126,9 +137,12 @@ pub fn build(
 			.with_context(|| "failed to create project out directory")?;
 
 		let mut lipo_cmd = Command::new("lipo");
+
 		lipo_cmd.arg("-create").arg("-output").arg(out_dir.join(bin_name));
+
 		for triple in ["aarch64-apple-darwin", "x86_64-apple-darwin"] {
 			let mut options = options.clone();
+
 			options.target.replace(triple.into());
 
 			let triple_out_dir = app_settings
@@ -142,6 +156,7 @@ pub fn build(
 		}
 
 		let lipo_status = lipo_cmd.output_ok()?.status;
+
 		if !lipo_status.success() {
 			return Err(anyhow::anyhow!(format!(
 				"Result of `lipo` command was unsuccessful: {lipo_status}. (Is `lipo` installed?)"
@@ -162,7 +177,9 @@ fn build_dev_app<F:FnOnce(Option<i32>, ExitReason) + Send + 'static>(
 	on_exit:F,
 ) -> crate::Result<Arc<SharedChild>> {
 	let mut build_cmd = build_command(options, available_targets, config_features)?;
+
 	let runner = build_cmd.get_program().to_string_lossy().into_owned();
+
 	build_cmd
 		.env(
 			"CARGO_TERM_PROGRESS_WIDTH",
@@ -172,10 +189,13 @@ fn build_dev_app<F:FnOnce(Option<i32>, ExitReason) + Send + 'static>(
 				.to_string(),
 		)
 		.env("CARGO_TERM_PROGRESS_WHEN", "always");
+
 	build_cmd.arg("--color");
+
 	build_cmd.arg("always");
 
 	build_cmd.stdout(os_pipe::dup_stdout()?);
+
 	build_cmd.stderr(Stdio::piped());
 
 	let build_child = match SharedChild::spawn(&mut build_cmd) {
@@ -193,28 +213,39 @@ fn build_dev_app<F:FnOnce(Option<i32>, ExitReason) + Send + 'static>(
 		},
 		Err(e) => Err(e.into()),
 	}?;
+
 	let build_child = Arc::new(build_child);
+
 	let build_child_stderr = build_child.take_stderr().unwrap();
+
 	let mut stderr = BufReader::new(build_child_stderr);
+
 	let stderr_lines = Arc::new(Mutex::new(Vec::new()));
+
 	let stderr_lines_ = stderr_lines.clone();
+
 	std::thread::spawn(move || {
 		let mut buf = Vec::new();
 
 		let mut lines = stderr_lines_.lock().unwrap();
 
 		let mut io_stderr = std::io::stderr();
+
 		loop {
 			buf.clear();
+
 			if let Ok(0) = tauri_utils::io::read_line(&mut stderr, &mut buf) {
 				break;
 			}
+
 			let _ = io_stderr.write_all(&buf);
+
 			lines.push(String::from_utf8_lossy(&buf).into_owned());
 		}
 	});
 
 	let build_child_ = build_child.clone();
+
 	std::thread::spawn(move || {
 		let status = build_child_.wait().expect("failed to build app");
 
@@ -227,6 +258,7 @@ fn build_dev_app<F:FnOnce(Option<i32>, ExitReason) + Send + 'static>(
 				.last()
 				.map(|l| l.contains("could not compile"))
 				.unwrap_or_default();
+
 			stderr_lines.lock().unwrap().clear();
 
 			on_exit(
@@ -249,7 +281,9 @@ fn build_production_app(
 	config_features:Vec<String>,
 ) -> crate::Result<()> {
 	let mut build_cmd = build_command(options, available_targets, config_features)?;
+
 	let runner = build_cmd.get_program().to_string_lossy().into_owned();
+
 	match build_cmd.piped() {
 		Ok(status) if status.success() => Ok(()),
 		Ok(_) => Err(anyhow::anyhow!("failed to build app")),
@@ -279,20 +313,25 @@ fn build_command(
 		if available_targets.is_none() {
 			*available_targets = fetch_available_targets();
 		}
+
 		validate_target(available_targets, target)?;
 	}
 
 	let mut args = Vec::new();
+
 	if !options.args.is_empty() {
 		args.extend(options.args);
 	}
 
 	let mut features = config_features;
+
 	if let Some(f) = options.features {
 		features.extend(f);
 	}
+
 	if !features.is_empty() {
 		args.push("--features".into());
+
 		args.push(features.join(","));
 	}
 
@@ -302,11 +341,14 @@ fn build_command(
 
 	if let Some(target) = options.target {
 		args.push("--target".into());
+
 		args.push(target);
 	}
 
 	let mut build_cmd = Command::new(runner);
+
 	build_cmd.arg("build");
+
 	build_cmd.args(args);
 
 	Ok(build_cmd)
@@ -315,13 +357,17 @@ fn build_command(
 fn fetch_available_targets() -> Option<Vec<RustupTarget>> {
 	if let Ok(output) = Command::new("rustup").args(["target", "list"]).output() {
 		let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+
 		Some(
 			stdout
 				.split('\n')
 				.map(|t| {
 					let mut s = t.split(' ');
+
 					let name = s.next().unwrap().to_string();
+
 					let installed = s.next().map(|v| v == "(installed)").unwrap_or_default();
+
 					RustupTarget { name, installed }
 				})
 				.filter(|t| !t.name.is_empty())
@@ -349,6 +395,7 @@ fn validate_target(available_targets:&Option<Vec<RustupTarget>>, target:&str) ->
 				);
 			}
 		}
+
 		if !available_targets.iter().any(|t| t.name == target) {
 			anyhow::bail!(
 				"Target {target} does not exist. Please run `rustup target list` to see the \
@@ -357,6 +404,7 @@ fn validate_target(available_targets:&Option<Vec<RustupTarget>>, target:&str) ->
 			);
 		}
 	}
+
 	Ok(())
 }
 
@@ -374,6 +422,7 @@ mod terminal {
 			if libc::ioctl(libc::STDERR_FILENO, libc::TIOCGWINSZ.into(), &mut winsize) < 0 {
 				return None;
 			}
+
 			if winsize.ws_col > 0 { Some(winsize.ws_col as usize) } else { None }
 		}
 	}
@@ -401,7 +450,9 @@ mod terminal {
 	pub fn stderr_width() -> Option<usize> {
 		unsafe {
 			let stdout = GetStdHandle(STD_ERROR_HANDLE);
+
 			let mut csbi:CONSOLE_SCREEN_BUFFER_INFO = mem::zeroed();
+
 			if GetConsoleScreenBufferInfo(stdout, &mut csbi) != 0 {
 				return Some((csbi.srWindow.Right - csbi.srWindow.Left) as usize);
 			}
@@ -418,13 +469,17 @@ mod terminal {
 				0,
 				std::ptr::null_mut(),
 			);
+
 			if h == INVALID_HANDLE_VALUE {
 				return None;
 			}
 
 			let mut csbi:CONSOLE_SCREEN_BUFFER_INFO = mem::zeroed();
+
 			let rc = GetConsoleScreenBufferInfo(h, &mut csbi);
+
 			CloseHandle(h);
+
 			if rc != 0 {
 				let width = (csbi.srWindow.Right - csbi.srWindow.Left) as usize;
 				// Unfortunately cygwin/mintty does not set the size of the

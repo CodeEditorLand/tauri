@@ -56,6 +56,7 @@ pub fn command(cli:Cli) -> Result<()> {
 			};
 
 			let out_dir = PathBuf::from(options.out_dir);
+
 			if out_dir.join("android").exists() {
 				return Err(anyhow::anyhow!("android folder already exists"));
 			}
@@ -71,10 +72,13 @@ pub fn command(cli:Cli) -> Result<()> {
 			let handlebars = Handlebars::new();
 
 			let mut data = BTreeMap::new();
+
 			super::init::plugin_name_data(&mut data, &plugin_name);
+
 			data.insert("android_package_id", handlebars::to_json(&plugin_id));
 
 			let mut created_dirs = Vec::new();
+
 			template::render_with_generator(
 				&handlebars,
 				&data,
@@ -82,7 +86,9 @@ pub fn command(cli:Cli) -> Result<()> {
 				&out_dir,
 				&mut |path| {
 					let mut components = path.components();
+
 					let root = components.next().unwrap();
+
 					if let Component::Normal(component) = root {
 						if component == OsStr::new("android") {
 							return super::init::generate_android_out_file(
@@ -107,8 +113,10 @@ tauri-build = "{}"
 "#,
 				metadata.tauri_build
 			);
+
 			let build_file =
 				super::init::TEMPLATE_DIR.get_file("build.rs").unwrap().contents_utf8().unwrap();
+
 			let init_fn = format!(
 				r#"
 pub fn init<R: Runtime>() -> TauriPlugin<R> {{
@@ -126,8 +134,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {{
 			);
 
 			log::info!("Android project added");
+
 			println!("You must add the following to the Cargo.toml file:\n{cargo_toml_addition}",);
+
 			println!("You must add the following code to the build.rs file:\n\n{build_file}",);
+
 			println!(
 				"Your plugin's init function under src/lib.rs must initialize the Android \
 				 plugin:\n{init_fn}"

@@ -60,6 +60,7 @@ pub(crate) fn set_csp<R:Runtime>(
 	csp:Csp,
 ) -> HashMap<String, CspDirectiveSources> {
 	let mut csp = csp.into();
+
 	let hash_strings =
 		assets
 			.borrow()
@@ -82,6 +83,7 @@ pub(crate) fn set_csp<R:Runtime>(
 
 	let dangerous_disable_asset_csp_modification =
 		&manager.config().app.security.dangerous_disable_asset_csp_modification;
+
 	if dangerous_disable_asset_csp_modification.can_modify("script-src") {
 		replace_csp_nonce(asset, SCRIPT_NONCE_TOKEN, &mut csp, "script-src", hash_strings.script);
 	}
@@ -100,13 +102,19 @@ fn replace_with_callback<F:FnMut() -> String>(
 	mut replacement:F,
 ) -> String {
 	let mut result = String::new();
+
 	let mut last_end = 0;
+
 	for (start, part) in original.match_indices(pattern) {
 		result.push_str(unsafe { original.get_unchecked(last_end..start) });
+
 		result.push_str(&replacement());
+
 		last_end = start + part.len();
 	}
+
 	result.push_str(unsafe { original.get_unchecked(last_end..original.len()) });
+
 	result
 }
 
@@ -125,10 +133,13 @@ fn replace_csp_nonce(
 		let mut raw = [0u8; 4];
 		#[cfg(target_pointer_width = "16")]
 		let mut raw = [0u8; 2];
+
 		getrandom::getrandom(&mut raw).expect("failed to get random bytes");
 
 		let nonce = usize::from_ne_bytes(raw);
+
 		nonces.push(nonce);
+
 		nonce.to_string()
 	});
 
@@ -139,10 +150,13 @@ fn replace_csp_nonce(
 		let sources = csp.entry(directive.into()).or_default();
 
 		let self_source = "'self'".to_string();
+
 		if !sources.contains(&self_source) {
 			sources.push(self_source);
 		}
+
 		sources.extend(nonce_sources);
+
 		sources.extend(hashes);
 	}
 }
@@ -307,6 +321,7 @@ impl<R:Runtime> AppManager<R> {
 	#[cfg(not(dev))]
 	fn base_path(&self) -> Option<&Url> {
 		use crate::utils::config::FrontendDist;
+
 		match self.config.build.frontend_dist.as_ref() {
 			Some(FrontendDist::Url(url)) => Some(url),
 			_ => None,
@@ -349,9 +364,11 @@ impl<R:Runtime> AppManager<R> {
 
 	pub fn get_asset(&self, mut path:String) -> Result<Asset, Box<dyn std::error::Error>> {
 		let assets = &self.assets;
+
 		if path.ends_with('/') {
 			path.pop();
 		}
+
 		path = percent_encoding::percent_decode(path.as_bytes())
 			.decode_utf8_lossy()
 			.to_string();
@@ -370,23 +387,35 @@ impl<R:Runtime> AppManager<R> {
 			.get(&path.as_str().into())
 			.or_else(|| {
 				log::debug!("Asset `{path}` not found; fallback to {path}.html");
+
 				let fallback = format!("{}.html", path.as_str()).into();
+
 				let asset = assets.get(&fallback);
+
 				asset_path = fallback;
+
 				asset
 			})
 			.or_else(|| {
 				log::debug!("Asset `{}` not found; fallback to {}/index.html", path, path);
+
 				let fallback = format!("{}/index.html", path.as_str()).into();
+
 				let asset = assets.get(&fallback);
+
 				asset_path = fallback;
+
 				asset
 			})
 			.or_else(|| {
 				log::debug!("Asset `{}` not found; fallback to index.html", path);
+
 				let fallback = AssetKey::from("index.html");
+
 				let asset = assets.get(&fallback);
+
 				asset_path = fallback;
+
 				asset
 			})
 			.ok_or_else(|| crate::Error::AssetNotFound(path.clone()))
@@ -400,6 +429,7 @@ impl<R:Runtime> AppManager<R> {
 			Ok(asset) => {
 				let final_data = if is_html {
 					let mut asset = String::from_utf8_lossy(&asset).into_owned();
+
 					if let Some(csp) = self.csp() {
 						#[allow(unused_mut)]
 						let mut csp_map = set_csp(&mut asset, &self.assets, &asset_path, self, csp);
@@ -408,6 +438,7 @@ impl<R:Runtime> AppManager<R> {
 							let default_src = csp_map
 								.entry("default-src".into())
 								.or_insert_with(Default::default);
+
 							default_src.push(crate::pattern::format_real_schema(schema));
 						}
 
@@ -418,11 +449,14 @@ impl<R:Runtime> AppManager<R> {
 				} else {
 					asset
 				};
+
 				let mime_type = tauri_utils::mime_type::MimeType::parse(&final_data, &path);
+
 				Ok(Asset { bytes:final_data.to_vec(), mime_type, csp_header })
 			},
 			Err(e) => {
 				log::error!("{:?}", e);
+
 				Err(Box::new(e))
 			},
 		}
@@ -459,6 +493,7 @@ impl<R:Runtime> AppManager<R> {
 		handler:F,
 	) -> EventId {
 		assert_event_name_is_valid(&event);
+
 		self.listeners().listen(event, target, handler)
 	}
 
@@ -469,6 +504,7 @@ impl<R:Runtime> AppManager<R> {
 		handler:F,
 	) -> EventId {
 		assert_event_name_is_valid(&event);
+
 		self.listeners().once(event, target, handler)
 	}
 
@@ -486,6 +522,7 @@ impl<R:Runtime> AppManager<R> {
 		let listeners = self.listeners();
 
 		listeners.emit_js(self.webview.webviews_lock().values(), event, &emit_args)?;
+
 		listeners.emit(emit_args)?;
 
 		Ok(())
@@ -567,6 +604,7 @@ impl<R:Runtime> AppManager<R> {
 
 	pub(crate) fn on_window_close(&self, label:&str) {
 		let window = self.window.windows_lock().remove(label);
+
 		if let Some(window) = window {
 			for webview in window.webviews() {
 				self.webview.webviews_lock().remove(webview.label());
@@ -606,6 +644,7 @@ impl<R:Runtime> AppManager<R> {
 		if let Some(id) = id {
 			let is_used_by_a_window =
 				self.window.windows_lock().values().any(|w| w.is_menu_in_use(id));
+
 			if !(self.menu.is_menu_in_use(id) || is_used_by_a_window) {
 				self.menu.menus_stash_lock().remove(id);
 			}
@@ -626,6 +665,7 @@ mod tests {
 			"tauri",
 			|| {
 				tauri_index += 1;
+
 				tauri_index.to_string()
 			},
 			"1 is awesome, 2 is amazing",
@@ -643,6 +683,7 @@ mod test {
 	};
 
 	use super::AppManager;
+
 	use crate::{
 		event::EventTarget,
 		generate_context,
@@ -663,13 +704,21 @@ mod test {
 	};
 
 	const APP_LISTEN_ID:&str = "App::listen";
+
 	const APP_LISTEN_ANY_ID:&str = "App::listen_any";
+
 	const WINDOW_LISTEN_ID:&str = "Window::listen";
+
 	const WINDOW_LISTEN_ANY_ID:&str = "Window::listen_any";
+
 	const WEBVIEW_LISTEN_ID:&str = "Webview::listen";
+
 	const WEBVIEW_LISTEN_ANY_ID:&str = "Webview::listen_any";
+
 	const WEBVIEW_WINDOW_LISTEN_ID:&str = "WebviewWindow::listen";
+
 	const WEBVIEW_WINDOW_LISTEN_ANY_ID:&str = "WebviewWindow::listen_any";
+
 	const TEST_EVENT_NAME:&str = "event";
 
 	#[test]
@@ -755,8 +804,11 @@ mod test {
 		}
 
 		setup_listener!(app, APP_LISTEN_ID, APP_LISTEN_ANY_ID);
+
 		setup_listener!(window, WINDOW_LISTEN_ID, WINDOW_LISTEN_ANY_ID);
+
 		setup_listener!(webview, WEBVIEW_LISTEN_ID, WEBVIEW_LISTEN_ANY_ID);
+
 		setup_listener!(webview_window, WEBVIEW_WINDOW_LISTEN_ID, WEBVIEW_WINDOW_LISTEN_ANY_ID);
 
 		EventSetup { app, window, webview, webview_window, tx, rx }
@@ -766,6 +818,7 @@ mod test {
 		for e in expected {
 			assert!(received.contains(e), "{e} did not receive `{kind}` event");
 		}
+
 		assert_eq!(
 			received.len(),
 			expected.len(),
@@ -778,8 +831,11 @@ mod test {
 		let EventSetup { app, window, webview, webview_window, tx: _, rx } = setup_events(true);
 
 		run_emit_test("emit (app)", app, &rx);
+
 		run_emit_test("emit (window)", window, &rx);
+
 		run_emit_test("emit (webview)", webview, &rx);
+
 		run_emit_test("emit (webview_window)", webview_window, &rx);
 	}
 
@@ -791,11 +847,15 @@ mod test {
 		let mut received = Vec::new();
 
 		let payload = "global-payload";
+
 		m.emit(TEST_EVENT_NAME, payload).unwrap();
+
 		while let Ok((source, p)) = rx.recv_timeout(Duration::from_secs(1)) {
 			assert_eq!(p, payload);
+
 			received.push(source);
 		}
+
 		assert_events(
 			kind,
 			&received,
@@ -825,6 +885,7 @@ mod test {
 			tx.clone(),
 			&rx,
 		);
+
 		run_emit_to_test(
 			"emit_to (window)",
 			&window,
@@ -834,6 +895,7 @@ mod test {
 			tx.clone(),
 			&rx,
 		);
+
 		run_emit_to_test(
 			"emit_to (webview)",
 			&webview,
@@ -843,6 +905,7 @@ mod test {
 			tx.clone(),
 			&rx,
 		);
+
 		run_emit_to_test(
 			"emit_to (webview_window)",
 			&webview_window,
@@ -870,10 +933,13 @@ mod test {
 		macro_rules! test_target {
 			($target:expr, $id:ident) => {
 				m.emit_to($target, TEST_EVENT_NAME, payload).unwrap();
+
 				while let Ok((source, p)) = rx.recv_timeout(Duration::from_secs(1)) {
 					assert_eq!(p, payload);
+
 					received.push(source);
 				}
+
 				assert_events(kind, &received, &[$id]);
 
 				received.clear();
@@ -881,8 +947,11 @@ mod test {
 		}
 
 		test_target!(EventTarget::App, APP_LISTEN_ID);
+
 		test_target!(window.label(), WINDOW_LISTEN_ID);
+
 		test_target!(webview.label(), WEBVIEW_LISTEN_ID);
+
 		test_target!(webview_window.label(), WEBVIEW_WINDOW_LISTEN_ID);
 
 		let other_webview_listen_id = "OtherWebview::listen";
@@ -902,11 +971,15 @@ mod test {
 			))
 			.unwrap();
 		});
+
 		m.emit_to(other_webview.label(), TEST_EVENT_NAME, payload).unwrap();
+
 		while let Ok((source, p)) = rx.recv_timeout(Duration::from_secs(1)) {
 			assert_eq!(p, payload);
+
 			received.push(source);
 		}
+
 		assert_events("emit_to", &received, &[other_webview_listen_id]);
 	}
 }

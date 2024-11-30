@@ -18,10 +18,13 @@ use crate::{
 
 pub fn run() -> Result<()> {
 	let app_dir = app_dir();
+
 	let tauri_dir = tauri_dir();
 
 	let manifest_path = tauri_dir.join("Cargo.toml");
+
 	let (mut manifest, _) = read_manifest(&manifest_path)?;
+
 	migrate_manifest(&mut manifest)?;
 
 	migrate_permissions(tauri_dir)?;
@@ -41,6 +44,7 @@ fn migrate_npm_dependencies(app_dir:&Path) -> Result<()> {
 		.unwrap_or(PackageManager::Npm);
 
 	let mut install_deps = Vec::new();
+
 	for pkg in [
 		"@tauri-apps/cli",
 		"@tauri-apps/api",
@@ -72,6 +76,7 @@ fn migrate_npm_dependencies(app_dir:&Path) -> Result<()> {
 	] {
 		let version =
 			pm.current_package_version(pkg, app_dir).unwrap_or_default().unwrap_or_default();
+
 		if version.starts_with('1') {
 			install_deps.push(format!("{pkg}@^2.0.0-rc.0"));
 		}
@@ -101,15 +106,19 @@ fn migrate_permissions(tauri_dir:&Path) -> Result<()> {
 		let entry = entry?;
 
 		let path = entry.path();
+
 		if path.extension().map_or(false, |ext| ext == "json") {
 			let mut capability = read_to_string(path).context("failed to read capability")?;
+
 			for plugin in core_plugins {
 				capability =
 					capability.replace(&format!("\"{plugin}:"), &format!("\"core:{plugin}:"));
 			}
+
 			std::fs::write(path, capability).context("failed to rewrite capability")?;
 		}
 	}
+
 	Ok(())
 }
 
@@ -178,6 +187,7 @@ fn migrate_dependency(dependencies:&mut Table, name:&str, version:&str) {
 			"`{name}` dependency has workspace inheritance enabled. The features array won't be \
 			 automatically rewritten."
 		);
+
 		return;
 	}
 

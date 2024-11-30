@@ -39,6 +39,7 @@ impl FromStr for BundleFormat {
 impl ValueEnum for BundleFormat {
   fn value_variants<'a>() -> &'a [Self] {
     static VARIANTS: OnceLock<Vec<BundleFormat>> = OnceLock::new();
+
     VARIANTS.get_or_init(|| PackageType::all().iter().map(|t| Self(*t)).collect())
   }
 
@@ -292,12 +293,15 @@ fn print_signed_updater_archive(output_paths: &[PathBuf]) -> crate::Result<()> {
   use std::fmt::Write;
   if !output_paths.is_empty() {
     let finished_bundles = output_paths.len();
+
     let pluralised = if finished_bundles == 1 {
       "updater signature"
     } else {
       "updater signatures"
     };
+
     let mut printable_paths = String::new();
+
     for path in output_paths {
       writeln!(
         printable_paths,
@@ -305,6 +309,7 @@ fn print_signed_updater_archive(output_paths: &[PathBuf]) -> crate::Result<()> {
         tauri_utils::display_path(path)
       )?;
     }
+
     log::info!( action = "Finished"; "{finished_bundles} {pluralised} at:\n{printable_paths}");
   }
   Ok(())

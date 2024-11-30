@@ -134,6 +134,7 @@ fn run_command(options: Options, noise_level: NoiseLevel) -> Result<()> {
       Ok(d) => Some(d),
       Err(e) => {
         log::error!("{e}");
+
         None
       }
     }
@@ -152,11 +153,13 @@ fn run_command(options: Options, noise_level: NoiseLevel) -> Result<()> {
   )?;
   let (interface, config) = {
     let tauri_config_guard = tauri_config.lock().unwrap();
+
     let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
     let interface = AppInterface::new(tauri_config_, Some(target_triple))?;
 
     let app = get_app(MobileTarget::Ios, tauri_config_, &interface);
+
     let (config, _metadata) = get_config(
       &app,
       tauri_config_,
@@ -281,12 +284,14 @@ fn run_dev(
         if !set_host {
           log::warn!("{PHYSICAL_IPHONE_DEV_WARNING}");
         }
+
         open_and_wait(config, &env)
       } else if let Some(device) = &device {
         match run(device, options, config, noise_level, &env) {
           Ok(c) => Ok(Box::new(c) as Box<dyn DevProcess + Send>),
           Err(e) => {
             crate::dev::kill_before_dev_process();
+
             Err(e)
           }
         }
@@ -294,6 +299,7 @@ fn run_dev(
         if !set_host {
           log::warn!("{PHYSICAL_IPHONE_DEV_WARNING}");
         }
+
         open_and_wait(config, &env)
       }
     },

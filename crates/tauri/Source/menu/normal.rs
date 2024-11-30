@@ -28,9 +28,11 @@ impl<R: Runtime> MenuItem<R> {
     A: AsRef<str>,
   {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.as_ref().to_owned();
+
     let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
 
     let item = run_main_thread!(handle, || {
@@ -63,10 +65,13 @@ impl<R: Runtime> MenuItem<R> {
     A: AsRef<str>,
   {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let id = id.into();
+
     let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
+
     let text = text.as_ref().to_owned();
 
     let item = run_main_thread!(handle, || {
@@ -101,6 +106,7 @@ impl<R: Runtime> MenuItem<R> {
   /// for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
   pub fn set_text<S: AsRef<str>>(&self, text: S) -> crate::Result<()> {
     let text = text.as_ref().to_string();
+
     run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_text(text))
   }
 
@@ -117,6 +123,7 @@ impl<R: Runtime> MenuItem<R> {
   /// Set this menu item accelerator.
   pub fn set_accelerator<S: AsRef<str>>(&self, accelerator: Option<S>) -> crate::Result<()> {
     let accel = accelerator.and_then(|s| s.as_ref().parse().ok());
+
     run_item_main_thread!(self, |self_: Self| {
       (*self_.0).as_ref().set_accelerator(accel)
     })?

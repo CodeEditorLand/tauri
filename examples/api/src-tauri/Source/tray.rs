@@ -63,6 +63,7 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
             "Show"
           } else {
             let _ = window.show();
+
             let _ = window.set_focus();
             "Hide"
           };
@@ -94,15 +95,18 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
       }
       "switch-menu" => {
         let flag = is_menu1.load(Ordering::Relaxed);
+
         let (menu, tooltip) = if flag {
           (menu2.clone(), "Menu 2")
         } else {
           (menu1.clone(), "Tauri")
         };
+
         if let Some(tray) = app.tray_by_id("tray-1") {
           let _ = tray.set_menu(Some(menu));
           let _ = tray.set_tooltip(Some(tooltip));
         }
+
         is_menu1.store(!flag, Ordering::Relaxed);
       }
 
@@ -116,6 +120,7 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
       } = event
       {
         let app = tray.app_handle();
+
         if let Some(window) = app.get_webview_window("main") {
           let _ = window.show();
           let _ = window.set_focus();

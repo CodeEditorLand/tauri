@@ -23,6 +23,7 @@ impl<R: Runtime> Sample<R> {
       kind: "ping".to_string(),
       value: payload.value.clone(),
     })?;
+
     Ok(PingResponse {
       value: payload.value,
     })

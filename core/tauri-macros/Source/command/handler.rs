@@ -42,6 +42,7 @@ impl Parse for Handler {
 			.iter()
 			.map(|command_def| {
 				let mut wrapper = command_def.path.clone();
+
 				let last = super::path_to_command(&mut wrapper);
 
 				// the name of the actual command function
@@ -70,6 +71,7 @@ impl From<Handler> for proc_macro::TokenStream {
 
 		let (paths, attrs):(Vec<Path>, Vec<Vec<Attribute>>) =
 			command_defs.into_iter().map(|def| (def.path, def.attrs)).unzip();
+
 		quote::quote!(move |#invoke| {
 		  let #cmd = #invoke.message.command();
 		  match #cmd {

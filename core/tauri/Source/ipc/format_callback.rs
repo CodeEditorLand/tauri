@@ -60,6 +60,7 @@ fn serialize_js_with<F:FnOnce(&str) -> String>(
 	// from here we know json.len() > 1 because an empty string is not a valid json
 	// value.
 	let json = raw.get();
+
 	let first = json.as_bytes()[0];
 
 	#[cfg(debug_assertions)]
@@ -154,6 +155,7 @@ pub fn format_result_raw(
 #[cfg(test)]
 mod test {
 	use quickcheck::{Arbitrary, Gen};
+
 	use quickcheck_macros::quickcheck;
 
 	use super::*;
@@ -190,6 +192,7 @@ mod test {
 	#[test]
 	fn test_serialize_js() {
 		assert_eq!(serialize_js(&()).unwrap(), "null");
+
 		assert_eq!(serialize_js(&5i32).unwrap(), "5");
 
 		#[derive(serde::Serialize)]
@@ -198,6 +201,7 @@ mod test {
 		}
 
 		let raw_str = "T".repeat(MIN_JSON_PARSE_LEN);
+
 		assert_eq!(serialize_js(&raw_str).unwrap(), format!("\"{raw_str}\""));
 
 		assert_eq!(
@@ -224,7 +228,9 @@ mod test {
 				.into_string();
 
 		let result = r#"JSON.parse('{"test":"don\\\\🚀🐱‍👤\\\\\'t forget to escape me!🚀🐱‍👤","te🚀🐱‍👤st2":"don\'t forget to escape me!","test3":"\\\\🚀🐱‍👤\\\\\\\\\'\'\'\\\\\\\\🚀🐱‍👤\\\\\\\\🚀🐱‍👤\\\\\'\'\'\'\'"}')"#;
+
 		assert_eq!(definitely_escaped_dangerous_json, result);
+
 		assert_eq!(escape_single_quoted_json_test, result);
 	}
 
@@ -233,6 +239,7 @@ mod test {
 	fn qc_formatting(f:CallbackFn, a:String) -> bool {
 		// call format callback
 		let fc = format(f, &a).unwrap();
+
 		fc.contains(&format!(
 			r#"window["_{}"](JSON.parse('{}'))"#,
 			f.0,
@@ -260,7 +267,9 @@ mod test {
 	#[test]
 	fn test_serialize_js_raw() {
 		assert_eq!(serialize_js_raw("null").unwrap(), "null");
+
 		assert_eq!(serialize_js_raw("5").unwrap(), "5");
+
 		assert_eq!(serialize_js_raw("{ \"x\": [1, 2, 3] }").unwrap(), "{ \"x\": [1, 2, 3] }");
 
 		#[derive(serde::Serialize)]
@@ -269,6 +278,7 @@ mod test {
 		}
 
 		let raw_str = "T".repeat(MIN_JSON_PARSE_LEN);
+
 		assert_eq!(serialize_js_raw(format!("\"{raw_str}\"")).unwrap(), format!("\"{raw_str}\""));
 
 		assert_eq!(
@@ -295,7 +305,9 @@ mod test {
 				.into_string();
 
 		let result = r#"JSON.parse('{"test":"don\\\\🚀🐱‍👤\\\\\'t forget to escape me!🚀🐱‍👤","te🚀🐱‍👤st2":"don\'t forget to escape me!","test3":"\\\\🚀🐱‍👤\\\\\\\\\'\'\'\\\\\\\\🚀🐱‍👤\\\\\\\\🚀🐱‍👤\\\\\'\'\'\'\'"}')"#;
+
 		assert_eq!(definitely_escaped_dangerous_json, result);
+
 		assert_eq!(escape_single_quoted_json_test, result);
 	}
 
@@ -305,6 +317,7 @@ mod test {
 		let a = a.0;
 		// call format callback
 		let fc = format_raw(f, a.clone()).unwrap();
+
 		fc.contains(&format!(r#"window["_{}"](JSON.parse('{}'))"#, f.0, a))
 			|| fc.contains(&format!(r#"window["_{}"]({})"#, f.0, a))
 	}

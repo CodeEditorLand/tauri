@@ -251,16 +251,21 @@ impl FromStr for RemoteUrlPattern {
 	fn from_str(s:&str) -> std::result::Result<Self, Self::Err> {
 		let mut init =
 			urlpattern::UrlPatternInit::parse_constructor_string::<regex::Regex>(s, None)?;
+
 		if init.search.as_ref().map(|p| p.is_empty()).unwrap_or(true) {
 			init.search.replace("*".to_string());
 		}
+
 		if init.hash.as_ref().map(|p| p.is_empty()).unwrap_or(true) {
 			init.hash.replace("*".to_string());
 		}
+
 		if init.pathname.as_ref().map(|p| p.is_empty() || p == "/").unwrap_or(true) {
 			init.pathname.replace("*".to_string());
 		}
+
 		let pattern = urlpattern::UrlPattern::parse(init, Default::default())?;
+
 		Ok(Self(Arc::new(pattern), s.to_string()))
 	}
 }
@@ -314,33 +319,45 @@ mod tests {
 		let pattern:RemoteUrlPattern = "http://*".parse().unwrap();
 
 		assert!(pattern.test(&"http://tauri.app/path".parse().unwrap()));
+
 		assert!(pattern.test(&"http://tauri.app/path?q=1".parse().unwrap()));
 
 		assert!(pattern.test(&"http://localhost/path".parse().unwrap()));
+
 		assert!(pattern.test(&"http://localhost/path?q=1".parse().unwrap()));
 
 		let pattern:RemoteUrlPattern = "http://*.tauri.app".parse().unwrap();
 
 		assert!(!pattern.test(&"http://tauri.app/path".parse().unwrap()));
+
 		assert!(!pattern.test(&"http://tauri.app/path?q=1".parse().unwrap()));
+
 		assert!(pattern.test(&"http://api.tauri.app/path".parse().unwrap()));
+
 		assert!(pattern.test(&"http://api.tauri.app/path?q=1".parse().unwrap()));
+
 		assert!(!pattern.test(&"http://localhost/path".parse().unwrap()));
+
 		assert!(!pattern.test(&"http://localhost/path?q=1".parse().unwrap()));
 	}
 
 	#[test]
 	fn url_pattern_path_wildcard() {
 		let pattern:RemoteUrlPattern = "http://localhost/*".parse().unwrap();
+
 		assert!(pattern.test(&"http://localhost/path".parse().unwrap()));
+
 		assert!(pattern.test(&"http://localhost/path?q=1".parse().unwrap()));
 	}
 
 	#[test]
 	fn url_pattern_scheme_wildcard() {
 		let pattern:RemoteUrlPattern = "*://localhost".parse().unwrap();
+
 		assert!(pattern.test(&"http://localhost/path".parse().unwrap()));
+
 		assert!(pattern.test(&"https://localhost/path?q=1".parse().unwrap()));
+
 		assert!(pattern.test(&"custom://localhost/path".parse().unwrap()));
 	}
 }
@@ -350,9 +367,11 @@ mod build_ {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
+
 	use quote::{quote, ToTokens, TokenStreamExt};
 
 	use super::*;
+
 	use crate::{literal_struct, tokens::*};
 
 	impl ToTokens for ExecutionContext {
@@ -365,6 +384,7 @@ mod build_ {
 				},
 				Self::Remote { url } => {
 					let url = url.as_str();
+
 					quote! { #prefix::Remote { url: #url.parse().unwrap() } }
 				},
 			});
@@ -374,7 +394,9 @@ mod build_ {
 	impl ToTokens for Commands {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let allow = vec_lit(&self.allow, str_lit);
+
 			let deny = vec_lit(&self.deny, str_lit);
+
 			literal_struct!(tokens, ::tauri::utils::acl::Commands, allow, deny)
 		}
 	}
@@ -382,7 +404,9 @@ mod build_ {
 	impl ToTokens for Scopes {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let allow = opt_vec_lit(self.allow.as_ref(), identity);
+
 			let deny = opt_vec_lit(self.deny.as_ref(), identity);
+
 			literal_struct!(tokens, ::tauri::utils::acl::Scopes, allow, deny)
 		}
 	}
@@ -391,12 +415,18 @@ mod build_ {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let version = opt_lit_owned(self.version.as_ref().map(|v| {
 				let v = v.get();
+
 				quote!(::core::num::NonZeroU64::new(#v).unwrap())
 			}));
+
 			let identifier = str_lit(&self.identifier);
+
 			let description = opt_str_lit(self.description.as_ref());
+
 			let commands = &self.commands;
+
 			let scope = &self.scope;
+
 			let platforms = opt_vec_lit(self.platforms.as_ref(), identity);
 
 			literal_struct!(
@@ -415,8 +445,11 @@ mod build_ {
 	impl ToTokens for PermissionSet {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let identifier = str_lit(&self.identifier);
+
 			let description = str_lit(&self.description);
+
 			let permissions = vec_lit(&self.permissions, str_lit);
+
 			literal_struct!(
 				tokens,
 				::tauri::utils::acl::PermissionSet,

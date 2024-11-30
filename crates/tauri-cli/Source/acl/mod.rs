@@ -36,6 +36,7 @@ impl FileFormat {
       Self::Json => serde_json::to_string_pretty(s)?,
       Self::Toml => toml_edit::ser::to_string_pretty(s)?,
     };
+
     Ok(contents)
   }
 }

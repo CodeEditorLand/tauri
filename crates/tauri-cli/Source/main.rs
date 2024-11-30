@@ -27,11 +27,13 @@ fn main() {
       if args.peek().and_then(|s| s.to_str()) == Some("tauri") {
         // remove the extra cargo subcommand
         args.next();
+
         Some("cargo tauri".into())
       } else {
         Some("cargo-tauri".into())
       }
     }
+
     Some(stem) => Some(stem.to_string()),
     None => {
       eprintln!("cargo-tauri wrapper unable to read first argument");

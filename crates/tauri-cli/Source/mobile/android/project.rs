@@ -39,6 +39,7 @@ pub fn gen(
   if !skip_targets_install {
     let installed_targets =
       crate::interface::rust::installation::installed_targets().unwrap_or_default();
+
     let missing_targets = Target::all()
       .values()
       .filter(|t| !installed_targets.contains(&t.triple().into()))
@@ -134,9 +135,11 @@ pub fn gen(
   let source_dest = dest.join("app");
   for source in metadata.app_sources() {
     let source_src = config.app().root_dir().join(source);
+
     let source_file = source_src
       .file_name()
       .ok_or_else(|| anyhow::anyhow!("asset source {} is invalid", source_src.display()))?;
+
     fs::copy(&source_src, source_dest.join(source_file)).map_err(|cause| {
       anyhow::anyhow!(
         "failed to copy {} to {}: {}",
@@ -193,12 +196,14 @@ fn generate_out_file(
         .join(parent);
       out_dir.join(file_name)
     }
+
     _ => dest.join(path),
   };
 
   let parent = path.parent().unwrap().to_path_buf();
   if !created_dirs.contains(&parent) {
     fs::create_dir_all(&parent)?;
+
     created_dirs.push(parent);
   }
 
@@ -208,6 +213,7 @@ fn generate_out_file(
   #[cfg(unix)]
   if path.file_name().unwrap() == OsStr::new("gradlew") {
     use std::os::unix::fs::OpenOptionsExt;
+
     options.mode(0o755);
   }
 

@@ -12,9 +12,11 @@ use crate::{
 #[cfg(desktop)]
 mod desktop_commands {
 	use tauri_runtime::{window::WindowSizeConstraints, ResizeDirection};
+
 	use tauri_utils::TitleBarStyle;
 
 	use super::*;
+
 	use crate::{
 		command,
 		sealed::ManagerBase,
@@ -42,6 +44,7 @@ mod desktop_commands {
 	#[command(root = "crate")]
 	pub async fn create<R:Runtime>(app:AppHandle<R>, options:WindowConfig) -> crate::Result<()> {
 		WindowBuilder::from_config(&app, &options)?.build()?;
+
 		Ok(())
 	}
 
@@ -90,65 +93,123 @@ mod desktop_commands {
 	}
 
 	getter!(scale_factor, f64);
+
 	getter!(inner_position, PhysicalPosition<i32>);
+
 	getter!(outer_position, PhysicalPosition<i32>);
+
 	getter!(inner_size, PhysicalSize<u32>);
+
 	getter!(outer_size, PhysicalSize<u32>);
+
 	getter!(is_fullscreen, bool);
+
 	getter!(is_minimized, bool);
+
 	getter!(is_maximized, bool);
+
 	getter!(is_focused, bool);
+
 	getter!(is_decorated, bool);
+
 	getter!(is_resizable, bool);
+
 	getter!(is_maximizable, bool);
+
 	getter!(is_minimizable, bool);
+
 	getter!(is_closable, bool);
+
 	getter!(is_visible, bool);
+
 	getter!(title, String);
+
 	getter!(current_monitor, Option<Monitor>);
+
 	getter!(primary_monitor, Option<Monitor>);
+
 	getter!(available_monitors, Vec<Monitor>);
+
 	getter!(cursor_position, PhysicalPosition<f64>);
+
 	getter!(theme, Theme);
 
 	setter!(center);
+
 	setter!(request_user_attention, Option<UserAttentionType>);
+
 	setter!(set_resizable, bool);
+
 	setter!(set_maximizable, bool);
+
 	setter!(set_minimizable, bool);
+
 	setter!(set_closable, bool);
+
 	setter!(set_title, &str);
+
 	setter!(maximize);
+
 	setter!(unmaximize);
+
 	setter!(minimize);
+
 	setter!(unminimize);
+
 	setter!(show);
+
 	setter!(hide);
+
 	setter!(close);
+
 	setter!(destroy);
+
 	setter!(set_decorations, bool);
+
 	setter!(set_shadow, bool);
+
 	setter!(set_effects, Option<WindowEffectsConfig>);
+
 	setter!(set_always_on_top, bool);
+
 	setter!(set_always_on_bottom, bool);
+
 	setter!(set_content_protected, bool);
+
 	setter!(set_size, Size);
+
 	setter!(set_min_size, Option<Size>);
+
 	setter!(set_max_size, Option<Size>);
+
 	setter!(set_position, Position);
+
 	setter!(set_fullscreen, bool);
+
 	setter!(set_focus);
+
 	setter!(set_skip_taskbar, bool);
+
 	setter!(set_cursor_grab, bool);
+
 	setter!(set_cursor_visible, bool);
+
 	setter!(set_cursor_icon, CursorIcon);
+
 	setter!(set_cursor_position, Position);
+
 	setter!(set_ignore_cursor_events, bool);
+
 	setter!(start_dragging);
+
 	setter!(start_resize_dragging, ResizeDirection);
+
 	setter!(set_progress_bar, ProgressBarState);
+
 	setter!(set_visible_on_all_workspaces, bool);
+
 	setter!(set_title_bar_style, TitleBarStyle);
+
 	setter!(set_size_constraints, WindowSizeConstraints);
 
 	#[command(root = "crate")]
@@ -161,6 +222,7 @@ mod desktop_commands {
 		let window = get_window(window, label)?;
 
 		let resources_table = webview.resources_table();
+
 		window
 			.set_icon(value.into_img(&resources_table)?.as_ref().clone())
 			.map_err(Into::into)
@@ -172,10 +234,12 @@ mod desktop_commands {
 		label:Option<String>,
 	) -> crate::Result<()> {
 		let window = get_window(window, label)?;
+
 		match window.is_maximized()? {
 			true => window.unmaximize()?,
 			false => window.maximize()?,
 		};
+
 		Ok(())
 	}
 
@@ -185,12 +249,14 @@ mod desktop_commands {
 		label:Option<String>,
 	) -> crate::Result<()> {
 		let window = get_window(window, label)?;
+
 		if window.is_resizable()? {
 			match window.is_maximized()? {
 				true => window.unmaximize()?,
 				false => window.maximize()?,
 			};
 		}
+
 		Ok(())
 	}
 
@@ -202,6 +268,7 @@ mod desktop_commands {
 		y:f64,
 	) -> crate::Result<Option<Monitor>> {
 		let window = get_window(window, label)?;
+
 		window.monitor_from_point(x, y)
 	}
 }
@@ -301,11 +368,13 @@ pub fn init<R:Runtime>() -> TauriPlugin<R> {
 						desktop_commands::toggle_maximize,
 						desktop_commands::internal_toggle_maximize,
 					]);
+
 				handler(invoke)
 			}
 			#[cfg(mobile)]
 			{
 				invoke.resolver.reject("Window API not available on mobile");
+
 				true
 			}
 		})

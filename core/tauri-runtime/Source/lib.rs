@@ -319,7 +319,9 @@ pub trait RuntimeHandle<T:UserEvent>: Debug + Clone + Send + Sync + Sized + 'sta
 	fn display_handle(&self) -> std::result::Result<DisplayHandle, raw_window_handle::HandleError>;
 
 	fn primary_monitor(&self) -> Option<Monitor>;
+
 	fn monitor_from_point(&self, x:f64, y:f64) -> Option<Monitor>;
+
 	fn available_monitors(&self) -> Vec<Monitor>;
 
 	fn cursor_position(&self) -> Result<PhysicalPosition<f64>>;
@@ -414,7 +416,9 @@ pub trait Runtime<T:UserEvent>: Debug + Sized + 'static {
 	) -> Result<DetachedWebview<T, Self>>;
 
 	fn primary_monitor(&self) -> Option<Monitor>;
+
 	fn monitor_from_point(&self, x:f64, y:f64) -> Option<Monitor>;
+
 	fn available_monitors(&self) -> Vec<Monitor>;
 
 	fn cursor_position(&self) -> Result<PhysicalPosition<f64>>;

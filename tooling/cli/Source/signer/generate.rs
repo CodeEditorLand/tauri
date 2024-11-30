@@ -35,8 +35,10 @@ pub fn command(mut options:Options) -> Result<()> {
 			"Generating new private key without password. For security reasons, we recommend \
 			 setting a password instead."
 		);
+
 		options.password.replace("".into());
 	}
+
 	let keypair = generate_key(options.password).expect("Failed to generate key");
 
 	if let Some(output_path) = options.write_keys {
@@ -55,6 +57,7 @@ pub fn command(mut options:Options) -> Result<()> {
 			"\nYour secret key was generated successfully - Keep it secret!\n{}\n\n",
 			keypair.sk
 		);
+
 		println!(
 			"Your public key was generated successfully:\n{}\n\nAdd the public key in your \
 			 tauri.conf.json\n---------------------------\n",
@@ -63,8 +66,11 @@ pub fn command(mut options:Options) -> Result<()> {
 	}
 
 	println!("\nEnvironment variables used to sign:");
+
 	println!("`TAURI_SIGNING_PRIVATE_KEY`  Path or String of your private key");
+
 	println!("`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`  Your private key password (optional)");
+
 	println!(
 		"\nATTENTION: If you lose your private key OR password, you'll not be able to sign your \
 		 update package and updates will not work.\n---------------------------\n"

@@ -129,6 +129,7 @@ impl<'de> Deserialize<'de> for JavaScriptChannelId {
 	where
 		D: Deserializer<'de>, {
 		let value:String = Deserialize::deserialize(deserializer)?;
+
 		Self::from_str(&value).map_err(|_| {
 			serde::de::Error::custom(format!(
 				"invalid channel value `{value}`, expected a string in the \
@@ -203,6 +204,7 @@ impl<'de, R:Runtime, TSend:Clone> CommandArg<'de, R> for Channel<TSend> {
 
 		let value:String = Deserialize::deserialize(command)
 			.map_err(|e| crate::Error::InvalidArgs(name, arg, e))?;
+
 		JavaScriptChannelId::from_str(&value)
 			.map(|id| id.channel_on(webview))
 			.map_err(|_| {

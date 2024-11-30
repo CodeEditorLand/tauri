@@ -57,6 +57,7 @@ impl Team {
                 .map(|caps| caps[1].to_owned())
                 .unwrap_or_else(|| {
                     println!("regex failed to capture nice part of name in cert {:?}; falling back to displaying full name", common_name);
+
                     common_name.clone()
                 })
     };
@@ -84,6 +85,7 @@ impl Team {
 pub fn list(keychain_path: &Path) -> Result<Vec<Team>> {
   let certs = {
     let mut certs = Vec::new();
+
     for cert_prefix in [
       "iOS Distribution:",
       "Apple Distribution:",
@@ -99,6 +101,7 @@ pub fn list(keychain_path: &Path) -> Result<Vec<Team>> {
         .context("Failed to parse X509 cert")?;
       certs.extend(cert_list.into_iter().map(|cert| (cert_prefix, cert)));
     }
+
     certs
   };
   Ok(

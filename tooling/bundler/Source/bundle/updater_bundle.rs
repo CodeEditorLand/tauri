@@ -48,6 +48,7 @@ pub fn bundle_project(settings:&Settings, bundles:&[Bundle]) -> crate::Result<Ve
 	#[cfg(not(any(target_os = "macos", target_os = "linux")))]
 	{
 		log::error!("Current platform does not support updates");
+
 		Ok(vec![])
 	}
 }
@@ -128,6 +129,7 @@ fn bundle_update_linux(bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 	#[cfg(target_os = "windows")]
 	use crate::bundle::windows::msi;
+
 	use crate::{
 		bundle::{settings::WebviewInstallMode, windows::nsis},
 		PackageType,
@@ -135,6 +137,7 @@ fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result
 
 	// find our installers or rebuild
 	let mut bundle_paths = Vec::new();
+
 	let mut rebuild_installers = || -> crate::Result<()> {
 		for bundle in bundles {
 			match bundle.package_type {
@@ -144,6 +147,7 @@ fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result
 				_ => {},
 			};
 		}
+
 		Ok(())
 	};
 
@@ -170,6 +174,7 @@ fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result
 	};
 
 	let mut installers_archived_paths = Vec::new();
+
 	for source_path in bundle_paths {
 		// add .zip to our path
 		let (archived_path, bundle_name) =
@@ -184,7 +189,9 @@ fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result
 								|| name == NSIS_UPDATER_OUTPUT_FOLDER_NAME
 							{
 								b = name.strip_suffix("-updater").unwrap().to_string();
+
 								p.push(&b);
+
 								return (p, b);
 							}
 
@@ -193,6 +200,7 @@ fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result
 							}
 						}
 					}
+
 					p.push(c);
 					(p, b)
 				});
@@ -212,21 +220,29 @@ fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result
 
 pub fn create_zip(src_file:&Path, dst_file:&Path) -> crate::Result<PathBuf> {
 	let parent_dir = dst_file.parent().expect("No data in parent");
+
 	fs::create_dir_all(parent_dir)?;
+
 	let writer = common::create_file(dst_file)?;
 
 	let file_name = src_file.file_name().expect("Can't extract file name from path");
 
 	let mut zip = zip::ZipWriter::new(writer);
+
 	let options = SimpleFileOptions::default()
 		.compression_method(zip::CompressionMethod::Stored)
 		.unix_permissions(0o755);
 
 	zip.start_file(file_name.to_string_lossy(), options)?;
+
 	let mut f = File::open(src_file)?;
+
 	let mut buffer = Vec::new();
+
 	f.read_to_end(&mut buffer)?;
+
 	zip.write_all(&buffer)?;
+
 	buffer.clear();
 
 	Ok(dst_file.to_owned())
@@ -237,27 +253,35 @@ fn create_tar(src_dir:&Path, dest_path:&Path) -> crate::Result<PathBuf> {
 	use flate2::{write::GzEncoder, Compression};
 
 	let dest_file = common::create_file(dest_path)?;
+
 	let gzip_encoder = GzEncoder::new(dest_file, Compression::default());
 
 	let gzip_encoder = create_tar_from_src(src_dir, gzip_encoder)?;
 
 	let mut dest_file = gzip_encoder.finish()?;
+
 	dest_file.flush()?;
+
 	Ok(dest_path.to_owned())
 }
 
 #[cfg(target_os = "macos")]
 fn create_tar_from_src<P:AsRef<Path>, W:Write>(src_dir:P, dest_file:W) -> crate::Result<W> {
 	let src_dir = src_dir.as_ref();
+
 	let mut builder = tar::Builder::new(dest_file);
+
 	builder.follow_symlinks(false);
+
 	builder.append_dir_all(src_dir.file_name().expect("Path has no file_name"), src_dir)?;
+
 	builder.into_inner().map_err(Into::into)
 }
 
 #[cfg(target_os = "linux")]
 fn create_tar_from_src<P:AsRef<Path>, W:Write>(src_dir:P, dest_file:W) -> crate::Result<W> {
 	let src_dir = src_dir.as_ref();
+
 	let mut tar_builder = tar::Builder::new(dest_file);
 
 	// validate source type
@@ -272,7 +296,9 @@ fn create_tar_from_src<P:AsRef<Path>, W:Write>(src_dir:P, dest_file:W) -> crate:
 	} else {
 		for entry in walkdir::WalkDir::new(src_dir) {
 			let entry = entry?;
+
 			let src_path = entry.path();
+
 			if src_path == src_dir {
 				continue;
 			}
@@ -282,14 +308,18 @@ fn create_tar_from_src<P:AsRef<Path>, W:Write>(src_dir:P, dest_file:W) -> crate:
 			// We need a tar with app.app/<...> (source root folder should be included)
 			// safe to unwrap: the path has a parent
 			let dest_path = src_path.strip_prefix(src_dir.parent().unwrap())?;
+
 			if entry.file_type().is_dir() {
 				tar_builder.append_dir(dest_path, src_path)?;
 			} else {
 				let mut src_file = fs::File::open(src_path)?;
+
 				tar_builder.append_file(dest_path, &mut src_file)?;
 			}
 		}
 	}
+
 	let dest_file = tar_builder.into_inner()?;
+
 	Ok(dest_file)
 }

@@ -11,6 +11,7 @@ impl super::WindowExt for tao::window::Window {
   // https://github.com/electron/electron/blob/15db63e26df3e3d59ce6281f030624f746518511/shell/browser/native_window_mac.mm#L474
   fn set_enabled(&self, enabled: bool) {
     let ns_window: &NSWindow = unsafe { &*self.ns_window().cast() };
+
     if !enabled {
       let frame = ns_window.frame();
       let mtm = MainThreadMarker::new()
@@ -33,11 +34,13 @@ impl super::WindowExt for tao::window::Window {
 
   fn is_enabled(&self) -> bool {
     let ns_window: &NSWindow = unsafe { &*self.ns_window().cast() };
+
     unsafe { ns_window.attachedSheet() }.is_none()
   }
 
   fn center(&self) {
     let ns_window: &NSWindow = unsafe { &*self.ns_window().cast() };
+
     ns_window.center();
   }
 }

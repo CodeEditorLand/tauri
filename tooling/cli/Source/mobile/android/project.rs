@@ -48,13 +48,17 @@ pub fn gen(
 
 		if !missing_targets.is_empty() {
 			println!("Installing Android Rust toolchains...");
+
 			for target in missing_targets {
 				target.install().context("failed to install target with rustup")?;
 			}
 		}
 	}
+
 	println!("Generating Android Studio project...");
+
 	let dest = config.project_dir();
+
 	let asset_packs = metadata.asset_packs().unwrap_or_default();
 
 	map.insert(
@@ -67,33 +71,47 @@ pub fn gen(
 			.into_os_string(),
 		)),
 	);
+
 	map.insert("root-dir", config.app().root_dir());
+
 	map.insert("abi-list", Target::all().values().map(|target| target.abi).collect::<Vec<_>>());
+
 	map.insert("target-list", Target::all().keys().collect::<Vec<_>>());
+
 	map.insert(
 		"arch-list",
 		Target::all().values().map(|target| target.arch).collect::<Vec<_>>(),
 	);
+
 	map.insert("android-app-plugins", metadata.app_plugins());
+
 	map.insert("android-project-dependencies", metadata.project_dependencies());
+
 	map.insert("android-app-dependencies", metadata.app_dependencies());
+
 	map.insert("android-app-dependencies-platform", metadata.app_dependencies_platform());
+
 	map.insert(
 		"has-code",
 		metadata.project_dependencies().is_some()
 			|| metadata.app_dependencies().is_some()
 			|| metadata.app_dependencies_platform().is_some(),
 	);
+
 	map.insert("has-asset-packs", !asset_packs.is_empty());
+
 	map.insert("asset-packs", asset_packs.iter().map(|p| p.name.as_str()).collect::<Vec<_>>());
+
 	map.insert("windows", cfg!(windows));
 
 	let identifier = config.app().identifier().replace('.', "/");
+
 	let package_path = format!("java/{}", identifier);
 
 	map.insert("package-path", &package_path);
 
 	let mut created_dirs = Vec::new();
+
 	template::render_with_generator(&handlebars, map.inner(), &TEMPLATE_DIR, &dest, &mut |path| {
 		generate_out_file(&path, &dest, &package_path, &mut created_dirs)
 	})
@@ -110,12 +128,14 @@ pub fn gen(
 	}
 
 	let source_dest = dest.join("app");
+
 	for source in metadata.app_sources() {
 		let source_src = config.app().root_dir().join(source);
 
 		let source_file = source_src
 			.file_name()
 			.ok_or_else(|| anyhow::anyhow!("asset source {} is invalid", source_src.display()))?;
+
 		fs::copy(&source_src, source_dest.join(source_file)).map_err(|cause| {
 			anyhow::anyhow!(
 				"failed to copy {} to {}: {}",
@@ -127,11 +147,13 @@ pub fn gen(
 	}
 
 	let dest = prefix_path(dest, "app/src/main/");
+
 	fs::create_dir_all(&dest).map_err(|cause| {
 		anyhow::anyhow!("failed to create directory at {}: {}", dest.display(), cause)
 	})?;
 
 	let asset_dir = dest.join(DEFAULT_ASSET_DIR);
+
 	if !asset_dir.is_dir() {
 		fs::create_dir_all(&asset_dir).map_err(|cause| {
 			anyhow::anyhow!(
@@ -151,8 +173,11 @@ fn generate_out_file(
 	created_dirs:&mut Vec<PathBuf>,
 ) -> std::io::Result<Option<fs::File>> {
 	let mut iter = path.iter();
+
 	let root = iter.next().unwrap().to_str().unwrap();
+
 	let path_without_root:std::path::PathBuf = iter.collect();
+
 	let path = match (
 		root,
 		path.extension().and_then(|o| o.to_str()),
@@ -160,25 +185,32 @@ fn generate_out_file(
 	) {
 		("app" | "buildSrc", Some("kt"), Ok(path)) => {
 			let parent = path.parent().unwrap();
+
 			let file_name = path.file_name().unwrap();
+
 			let out_dir = dest.join(root).join("src/main").join(package_path).join(parent);
+
 			out_dir.join(file_name)
 		},
 		_ => dest.join(path),
 	};
 
 	let parent = path.parent().unwrap().to_path_buf();
+
 	if !created_dirs.contains(&parent) {
 		fs::create_dir_all(&parent)?;
+
 		created_dirs.push(parent);
 	}
 
 	let mut options = fs::OpenOptions::new();
+
 	options.write(true);
 
 	#[cfg(unix)]
 	if path.file_name().unwrap() == OsStr::new("gradlew") {
 		use std::os::unix::fs::OpenOptionsExt;
+
 		options.mode(0o755);
 	}
 

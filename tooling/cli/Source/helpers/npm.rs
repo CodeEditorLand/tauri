@@ -46,7 +46,9 @@ impl PackageManager {
 		if let Ok(entries) = std::fs::read_dir(path) {
 			for entry in entries.flatten() {
 				let path = entry.path();
+
 				let name = path.file_name().unwrap().to_string_lossy();
+
 				if name.as_ref() == "package-lock.json" {
 					use_npm = true;
 				} else if name.as_ref() == "pnpm-lock.yaml" {
@@ -68,12 +70,15 @@ impl PackageManager {
 		if use_npm {
 			found.push(PackageManager::Npm);
 		}
+
 		if use_pnpm {
 			found.push(PackageManager::Pnpm);
 		}
+
 		if use_yarn {
 			found.push(PackageManager::Yarn);
 		}
+
 		if use_bun {
 			found.push(PackageManager::Bun);
 		}
@@ -93,6 +98,7 @@ impl PackageManager {
 
 	pub fn install<P:AsRef<Path>>(&self, dependencies:&[String], app_dir:P) -> crate::Result<()> {
 		let dependencies_str = if dependencies.len() > 1 { "dependencies" } else { "dependency" };
+
 		log::info!(
 			"Installing NPM {dependencies_str} {}...",
 			dependencies.iter().map(|d| format!("\"{d}\"")).collect::<Vec<_>>().join(", ")
@@ -115,6 +121,7 @@ impl PackageManager {
 
 	pub fn remove<P:AsRef<Path>>(&self, dependencies:&[String], app_dir:P) -> crate::Result<()> {
 		let dependencies_str = if dependencies.len() > 1 { "dependencies" } else { "dependency" };
+
 		log::info!(
 			"Removing NPM {dependencies_str} {}...",
 			dependencies.iter().map(|d| format!("\"{d}\"")).collect::<Vec<_>>().join(", ")
@@ -198,10 +205,13 @@ impl PackageManager {
 				)
 			},
 		};
+
 		if output.status.success() {
 			let stdout = String::from_utf8_lossy(&output.stdout);
+
 			let regex =
 				regex.unwrap_or_else(|| regex::Regex::new("@(\\d[\\da-zA-Z\\-\\.]+)").unwrap());
+
 			Ok(regex
 				.captures_iter(&stdout)
 				.last()

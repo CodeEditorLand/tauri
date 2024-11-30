@@ -688,6 +688,7 @@ impl BundleBinary {
   #[must_use]
   pub fn set_src_path(mut self, src_path: Option<String>) -> Self {
     self.src_path = src_path;
+
     self
   }
 
@@ -772,6 +773,7 @@ impl SettingsBuilder {
     self
       .project_out_directory
       .replace(path.as_ref().to_path_buf());
+
     self
   }
 
@@ -782,6 +784,7 @@ impl SettingsBuilder {
     self
       .local_tools_directory
       .replace(path.as_ref().to_path_buf());
+
     self
   }
 
@@ -789,6 +792,7 @@ impl SettingsBuilder {
   #[must_use]
   pub fn package_types(mut self, package_types: Vec<PackageType>) -> Self {
     self.package_types = Some(package_types);
+
     self
   }
 
@@ -796,6 +800,7 @@ impl SettingsBuilder {
   #[must_use]
   pub fn package_settings(mut self, settings: PackageSettings) -> Self {
     self.package_settings.replace(settings);
+
     self
   }
 
@@ -803,6 +808,7 @@ impl SettingsBuilder {
   #[must_use]
   pub fn bundle_settings(mut self, settings: BundleSettings) -> Self {
     self.bundle_settings = settings;
+
     self
   }
 
@@ -810,6 +816,7 @@ impl SettingsBuilder {
   #[must_use]
   pub fn binaries(mut self, binaries: Vec<BundleBinary>) -> Self {
     self.binaries = binaries;
+
     self
   }
 
@@ -817,6 +824,7 @@ impl SettingsBuilder {
   #[must_use]
   pub fn target(mut self, target: String) -> Self {
     self.target.replace(target);
+
     self
   }
 
@@ -824,6 +832,7 @@ impl SettingsBuilder {
   #[must_use]
   pub fn log_level(mut self, level: log::Level) -> Self {
     self.log_level.replace(level);
+
     self
   }
 
@@ -989,6 +998,7 @@ impl Settings {
       let mut types = vec![];
       for package_type in package_types {
         let package_type = *package_type;
+
         if platform_types
           .clone()
           .into_iter()
@@ -1067,6 +1077,7 @@ impl Settings {
       fs_utils::copy_file(&src, &dest)?;
       paths.push(dest);
     }
+
     Ok(paths)
   }
 
@@ -1077,6 +1088,7 @@ impl Settings {
       let dest = path.join(resource.target());
       fs_utils::copy_file(resource.path(), &dest)?;
     }
+
     Ok(())
   }
 
@@ -1101,6 +1113,7 @@ impl Settings {
   /// Returns the authors as a comma-separated string.
   pub fn authors_comma_separated(&self) -> Option<String> {
     let names = self.author_names();
+
     if names.is_empty() {
       None
     } else {

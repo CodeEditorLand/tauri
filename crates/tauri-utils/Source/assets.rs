@@ -58,6 +58,7 @@ impl<P: AsRef<Path>> From<P> for AssetKey {
           Component::Prefix(prefix) => buf.push_str(&prefix.as_os_str().to_string_lossy()),
           Component::Normal(s) => {
             buf.push_str(&s.to_string_lossy());
+
             buf.push('/')
           }
         }
@@ -141,6 +142,7 @@ impl EmbeddedAssets {
         // with the exception of extremely small files, output should usually be
         // at least as large as the compressed version.
         let mut buf = Vec::with_capacity(asdf.len());
+
         brotli::BrotliDecompress(&mut asdf, &mut buf).map(|()| buf)
       })
       .and_then(Result::ok)

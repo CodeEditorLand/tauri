@@ -71,7 +71,9 @@ pub(crate) struct Attributes {
 impl Parse for Attributes {
 	fn parse(input:ParseStream<'_>) -> syn::Result<Self> {
 		let default_type = input.parse()?;
+
 		input.parse::<Token![,]>()?;
+
 		Ok(Attributes { default_type, feature:input.parse()? })
 	}
 }
@@ -79,6 +81,7 @@ impl Parse for Attributes {
 pub(crate) fn default_runtime(attributes:Attributes, input:Input) -> TokenStream {
 	// create a new copy to manipulate for the wry feature flag
 	let mut wry = input.clone();
+
 	let wry_runtime = wry
 		.last_param_mut()
 		.expect("default_runtime requires the item to have at least 1 generic parameter");
@@ -88,6 +91,7 @@ pub(crate) fn default_runtime(attributes:Attributes, input:Input) -> TokenStream
 	match wry_runtime {
 		GenericParam::Type(param @ TypeParam { eq_token: None, default: None, .. }) => {
 			param.eq_token = Some(parse_quote!(=));
+
 			param.default = Some(attributes.default_type);
 		},
 		_ => {

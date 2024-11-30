@@ -25,6 +25,7 @@ impl super::WindowExt for tao::window::Window {
 
       if self.is_decorated() {
         let mut rect = RECT::default();
+
         let result = unsafe {
           DwmGetWindowAttribute(
             HWND(self.hwnd() as _),
@@ -33,6 +34,7 @@ impl super::WindowExt for tao::window::Window {
             std::mem::size_of::<RECT>() as u32,
           )
         };
+
         if result.is_ok() {
           window_size.height = (rect.bottom - rect.top) as u32;
         }
@@ -52,6 +54,7 @@ impl super::WindowExt for tao::window::Window {
     background_color: Option<tao::window::RGBA>,
   ) {
     let size = self.inner_size();
+
     if let (Some(width), Some(height)) = (
       std::num::NonZeroU32::new(size.width),
       std::num::NonZeroU32::new(size.height),

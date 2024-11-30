@@ -26,10 +26,13 @@ trait CommandExt {
 impl CommandExt for Command {
 	fn piped(&mut self) -> std::io::Result<ExitStatus> {
 		self.stdin(os_pipe::dup_stdin()?);
+
 		self.stdout(os_pipe::dup_stdout()?);
+
 		self.stderr(os_pipe::dup_stderr()?);
 
 		let program = self.get_program().to_string_lossy().into_owned();
+
 		log::debug!(action = "Running"; "Command `{} {}`", program, self.get_args().map(|arg| arg.to_string_lossy()).fold(String::new(), |acc, arg| format!("{acc} {arg}")));
 
 		self.status().map_err(Into::into)
@@ -61,7 +64,9 @@ pub fn notarize(
 	let bundle_stem = app_bundle_path.file_stem().expect("failed to get bundle filename");
 
 	let tmp_dir = tempfile::tempdir()?;
+
 	let zip_path = tmp_dir.path().join(format!("{}.zip", bundle_stem.to_string_lossy()));
+
 	let zip_args = vec![
 		"-c",
 		"-k",
@@ -101,14 +106,18 @@ pub fn notarize(
 	}
 
 	let output_str = String::from_utf8_lossy(&output.stdout);
+
 	if let Ok(submit_output) = serde_json::from_str::<NotarytoolSubmitOutput>(&output_str) {
 		let log_message = format!(
 			"Finished with status {} for id {} ({})",
 			submit_output.status, submit_output.id, submit_output.message
 		);
+
 		if submit_output.status == "Accepted" {
 			println!("Notarizing {}", log_message);
+
 			staple_app(app_bundle_path.to_path_buf())?;
+
 			Ok(())
 		} else if let Ok(output) = Command::new("xcrun")
 			.args(["notarytool", "log"])
@@ -130,6 +139,7 @@ pub fn notarize(
 
 fn staple_app(mut app_bundle_path:PathBuf) -> Result<()> {
 	let app_bundle_path_clone = app_bundle_path.clone();
+
 	let filename = app_bundle_path_clone
 		.file_name()
 		.expect("failed to get bundle filename")
@@ -175,7 +185,9 @@ impl NotarytoolCmdExt for Command {
 				let key_path = match key {
 					ApiKey::Raw(k) => {
 						let key_path = temp_dir.join("AuthKey.p8");
+
 						std::fs::write(&key_path, k)?;
+
 						key_path
 					},
 					ApiKey::Path(p) => p.to_owned(),
@@ -197,6 +209,7 @@ fn decode_base64(base64:&OsStr, out_path:&Path) -> Result<()> {
 	let tmp_dir = tempfile::tempdir()?;
 
 	let src_path = tmp_dir.path().join("src");
+
 	let base64 = base64.to_str().expect("failed to convert base64 to string").as_bytes();
 
 	// as base64 contain whitespace decoding may be broken
@@ -224,6 +237,7 @@ fn assert_command(
 ) -> std::io::Result<()> {
 	let status =
 		response.map_err(|e| std::io::Error::new(e.kind(), format!("{error_message}: {e}")))?;
+
 	if !status.success() {
 		Err(std::io::Error::new(std::io::ErrorKind::Other, error_message))
 	} else {

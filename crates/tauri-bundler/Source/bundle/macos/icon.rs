@@ -26,6 +26,7 @@ pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Op
   // If one of the icon files is already an ICNS file, just use that.
   for icon_path in settings.icon_files() {
     let icon_path = icon_path?;
+
     if icon_path.extension() == Some(OsStr::new("icns")) {
       let mut dest_path = out_dir.to_path_buf();
       dest_path.push(icon_path.file_name().expect("Could not get icon filename"));
@@ -51,6 +52,7 @@ pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Op
           let icon = make_icns_image(icon)?;
           family.add_icon_with_type(&icon, icon_type)?;
         }
+
         Ok(())
       }
       None => Err(io::Error::new(
@@ -63,11 +65,17 @@ pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Op
   let mut images_to_resize: Vec<(image::DynamicImage, u32, u32)> = vec![];
   for icon_path in settings.icon_files() {
     let icon_path = icon_path?;
+
     let icon = image::open(&icon_path)?;
+
     let density = if utils::is_retina(&icon_path) { 2 } else { 1 };
+
     let (w, h) = icon.dimensions();
+
     let orig_size = min(w, h);
+
     let next_size_down = 2f32.powf((orig_size as f32).log2().floor()) as u32;
+
     if orig_size > next_size_down {
       images_to_resize.push((icon, next_size_down, density));
     } else {
@@ -81,16 +89,23 @@ pub fn create_icns_file(out_dir: &Path, settings: &Settings) -> crate::Result<Op
       next_size_down,
       image::imageops::FilterType::Lanczos3,
     );
+
     add_icon_to_family(icon, density, &mut family)?;
   }
 
   if !family.is_empty() {
     fs::create_dir_all(out_dir)?;
+
     let mut dest_path = out_dir.to_path_buf();
+
     dest_path.push(settings.product_name());
+
     dest_path.set_extension("icns");
+
     let icns_file = BufWriter::new(File::create(&dest_path)?);
+
     family.write(icns_file)?;
+
     Ok(Some(dest_path))
   } else {
     Err(crate::Error::GenericError(

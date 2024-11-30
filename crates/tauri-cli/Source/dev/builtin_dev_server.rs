@@ -36,6 +36,7 @@ pub fn start<P: AsRef<Path>>(dir: P, ip: IpAddr, port: Option<u16>) -> crate::Re
   let mut port = port.unwrap_or(1430);
   let (tcp_listener, address) = loop {
     let address = SocketAddr::new(ip, port);
+
     if let Ok(tcp) = std::net::TcpListener::bind(address) {
       tcp.set_nonblocking(true)?;
       break (tcp, address);
@@ -101,6 +102,7 @@ async fn handler(uri: Uri, state: State<ServerState>) -> impl IntoResponse {
       }
       (StatusCode::OK, [(header::CONTENT_TYPE, mime_type)], bytes)
     }
+
     Err(_) => (
       StatusCode::NOT_FOUND,
       [(header::CONTENT_TYPE, "text/plain".into())],
@@ -112,6 +114,7 @@ async fn handler(uri: Uri, state: State<ServerState>) -> impl IntoResponse {
 async fn ws_handler(ws: WebSocketUpgrade, state: State<ServerState>) -> Response {
   ws.on_upgrade(move |mut ws| async move {
     let mut rx = state.tx.subscribe();
+
     while tokio::select! {
         _ = ws.recv() => return,
         fs_reload_event = rx.recv() => fs_reload_event.is_ok(),
@@ -141,8 +144,11 @@ fn inject_address(html_bytes: Vec<u8>, address: &SocketAddr) -> Vec<u8> {
   let mut document = kuchiki::parse_html().one(String::from_utf8_lossy(&html_bytes).into_owned());
   with_html_head(&mut document, |head| {
     let script = RELOAD_SCRIPT.replace("{{reload_url}}", &format!("ws://{address}/__tauri_cli"));
+
     let script_el = NodeRef::new_element(QualName::new(None, ns!(html), "script".into()), None);
+
     script_el.append(NodeRef::new_text(script));
+
     head.prepend(script_el);
   });
 

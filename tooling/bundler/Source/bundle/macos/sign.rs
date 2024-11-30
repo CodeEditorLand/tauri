@@ -25,8 +25,10 @@ pub fn keychain(identity:Option<&str>) -> crate::Result<Option<tauri_macos_sign:
 			&certificate_encoded,
 			&certificate_password,
 		)?;
+
 		if let Some(identity) = identity {
 			let certificate_identity = keychain.signing_identity();
+
 			if !certificate_identity.contains(identity) {
 				return Err(anyhow::anyhow!(
 					"certificate from APPLE_CERTIFICATE \"{certificate_identity}\" environment \
@@ -35,6 +37,7 @@ pub fn keychain(identity:Option<&str>) -> crate::Result<Option<tauri_macos_sign:
 				.into());
 			}
 		}
+
 		Ok(Some(keychain))
 	} else if let Some(identity) = identity {
 		Ok(Some(tauri_macos_sign::Keychain::with_signing_identity(identity)))
@@ -101,20 +104,27 @@ pub fn notarize_auth() -> Result<tauri_macos_sign::AppleNotarizationCredentials,
 				},
 				(Some(key_id), Some(issuer), Err(_)) => {
 					let mut api_key_file_name = OsString::from("AuthKey_");
+
 					api_key_file_name.push(&key_id);
+
 					api_key_file_name.push(".p8");
+
 					let mut key_path = None;
 
 					let mut search_paths = vec!["./private_keys".into()];
+
 					if let Some(home_dir) = dirs::home_dir() {
 						search_paths.push(home_dir.join("private_keys"));
+
 						search_paths.push(home_dir.join(".private_keys"));
+
 						search_paths.push(home_dir.join(".appstoreconnect").join("private_keys"));
 					}
 
 					for folder in search_paths {
 						if let Some(path) = find_api_key(folder, &api_key_file_name) {
 							key_path = Some(path);
+
 							break;
 						}
 					}
@@ -147,5 +157,6 @@ pub fn notarize_auth() -> Result<tauri_macos_sign::AppleNotarizationCredentials,
 
 fn find_api_key(folder:PathBuf, file_name:&OsString) -> Option<PathBuf> {
 	let path = folder.join(file_name);
+
 	if path.exists() { Some(path) } else { None }
 }

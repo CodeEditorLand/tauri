@@ -84,6 +84,7 @@ pub fn generate_handler(item:TokenStream) -> TokenStream {
 pub fn generate_context(items:TokenStream) -> TokenStream {
 	// this macro is exported from the context module
 	let path = parse_macro_input!(items as ContextItems);
+
 	context::generate_context(path).into()
 }
 
@@ -98,7 +99,9 @@ pub fn generate_context(items:TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn default_runtime(attributes:TokenStream, input:TokenStream) -> TokenStream {
 	let attributes = parse_macro_input!(attributes as runtime::Attributes);
+
 	let input = parse_macro_input!(input as runtime::Input);
+
 	runtime::default_runtime(attributes, input).into()
 }
 
@@ -161,6 +164,7 @@ pub fn default_runtime(attributes:TokenStream, input:TokenStream) -> TokenStream
 #[proc_macro]
 pub fn do_menu_item(input:TokenStream) -> TokenStream {
 	let tokens = parse_macro_input!(input as menu::DoMenuItemInput);
+
 	menu::do_menu_item(tokens).into()
 }
 
@@ -195,7 +199,9 @@ pub fn include_image(tokens:TokenStream) -> TokenStream {
 		Ok(path) => path,
 		Err(err) => return err.into_compile_error().into(),
 	};
+
 	let path = PathBuf::from(path.value());
+
 	let resolved_path = if path.is_relative() {
 		if let Ok(base_dir) = std::env::var("CARGO_MANIFEST_DIR").map(PathBuf::from) {
 			base_dir.join(path)
@@ -205,9 +211,11 @@ pub fn include_image(tokens:TokenStream) -> TokenStream {
 	} else {
 		path
 	};
+
 	if !resolved_path.exists() {
 		let error_string =
 			format!("Provided Image path \"{}\" doesn't exists", resolved_path.display());
+
 		return quote!(compile_error!(#error_string)).into();
 	}
 

@@ -63,6 +63,7 @@ impl<'de> Deserialize<'de> for SafePathBuf {
 	where
 		D: Deserializer<'de>, {
 		let path = PathBuf::deserialize(deserializer)?;
+
 		SafePathBuf::new(path).map_err(DeError::custom)
 	}
 }
@@ -216,6 +217,7 @@ impl BaseDirectory {
 
 			_ => return None,
 		};
+
 		Some(res)
 	}
 }
@@ -254,6 +256,7 @@ impl<R:Runtime> PathResolver<R> {
 		let mut p = PathBuf::new();
 
 		let mut components = path.as_ref().components();
+
 		match components.next() {
 			Some(Component::Normal(str)) => {
 				if let Some(base_directory) = BaseDirectory::from_variable(&str.to_string_lossy()) {
@@ -270,6 +273,7 @@ impl<R:Runtime> PathResolver<R> {
 			if let Component::ParentDir = component {
 				continue;
 			}
+
 			p.push(component);
 		}
 
@@ -283,6 +287,7 @@ fn resolve_path<R:Runtime>(
 	path:Option<PathBuf>,
 ) -> Result<PathBuf> {
 	let resolve_resource = matches!(directory, BaseDirectory::Resource);
+
 	let mut base_dir_path = match directory {
 		BaseDirectory::Audio => resolver.audio_dir(),
 		BaseDirectory::Cache => resolver.cache_dir(),
@@ -320,6 +325,7 @@ fn resolve_path<R:Runtime>(
 		// algorithm
 		if resolve_resource {
 			let mut resource_path = PathBuf::new();
+
 			for component in path.components() {
 				match component {
 					Component::Prefix(_) => {},
@@ -329,6 +335,7 @@ fn resolve_path<R:Runtime>(
 					Component::Normal(p) => resource_path.push(p),
 				}
 			}
+
 			base_dir_path.push(resource_path);
 		} else {
 			base_dir_path.push(path);

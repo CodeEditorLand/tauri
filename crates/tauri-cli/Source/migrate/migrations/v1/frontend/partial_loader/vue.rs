@@ -28,17 +28,21 @@ impl<'a> VuePartialLoader<'a> {
   ///     <https://vuejs.org/api/sfc-spec.html#script>
   fn parse_scripts(&self) -> Vec<JavaScriptSource<'a>> {
     let mut pointer = 0;
+
     let Some(result1) = self.parse_script(&mut pointer) else {
       return vec![];
     };
+
     let Some(result2) = self.parse_script(&mut pointer) else {
       return vec![result1];
     };
+
     vec![result1, result2]
   }
 
   fn parse_script(&self, pointer: &mut usize) -> Option<JavaScriptSource<'a>> {
     let script_start_finder = Finder::new(SCRIPT_START);
+
     let script_end_finder = Finder::new(SCRIPT_END);
 
     // find opening "<script"
@@ -50,22 +54,28 @@ impl<'a> VuePartialLoader<'a> {
 
     // get ts and jsx attribute
     let content = &self.source_text[*pointer..*pointer + offset];
+
     let is_ts = content.contains("ts");
+
     let is_jsx = content.contains("tsx") || content.contains("jsx");
 
     *pointer += offset + 1;
+
     let js_start = *pointer;
 
     // find "</script>"
     let offset = script_end_finder.find(self.source_text[*pointer..].as_bytes())?;
+
     let js_end = *pointer + offset;
     *pointer += offset + SCRIPT_END.len();
 
     let source_text = &self.source_text[js_start..js_end];
+
     let source_type = SourceType::default()
       .with_module(true)
       .with_typescript(is_ts)
       .with_jsx(is_jsx);
+
     Some(JavaScriptSource::new(source_text, source_type, js_start))
   }
 }
@@ -89,6 +99,7 @@ mod test {
         "#;
 
     let result = parse_vue(source_text);
+
     assert_eq!(result.source_text, r#" console.log("hi") "#);
   }
 
@@ -101,7 +112,9 @@ mod test {
         "#;
 
     let result = parse_vue(source_text);
+
     assert!(result.source_type.is_typescript());
+
     assert_eq!(result.source_text.trim(), "1/1");
   }
 
@@ -114,7 +127,9 @@ mod test {
         ";
 
     let result = parse_vue(source_text);
+
     assert!(result.source_type.is_typescript());
+
     assert_eq!(result.source_text.trim(), "1/1");
   }
 
@@ -127,7 +142,9 @@ mod test {
         ";
 
     let result = parse_vue(source_text);
+
     assert!(result.source_type.is_typescript());
+
     assert_eq!(result.source_text.trim(), "1/1");
   }
 
@@ -140,8 +157,11 @@ mod test {
         ";
 
     let result = parse_vue(source_text);
+
     assert!(result.source_type.is_jsx());
+
     assert!(result.source_type.is_typescript());
+
     assert_eq!(result.source_text.trim(), "1/1");
   }
 
@@ -155,7 +175,9 @@ mod test {
         ";
 
     let result = parse_vue(source_text);
+
     assert!(!result.source_type.is_typescript());
+
     assert_eq!(result.source_text.trim(), r"a.replace(/&#39;/g, '\''))");
   }
 
@@ -168,6 +190,7 @@ mod test {
         ";
 
     let result = parse_vue(source_text);
+
     assert_eq!(result.source_text.trim(), r"`a${b( `c \`${d}\``)}`");
   }
 
@@ -180,6 +203,7 @@ mod test {
         ";
 
     let result = parse_vue(source_text);
+
     assert_eq!(result.source_text.trim(), r"`${/{/}`");
   }
 
@@ -190,6 +214,7 @@ mod test {
         ";
 
     let sources = VuePartialLoader::new(source_text).parse();
+
     assert!(sources.is_empty());
   }
 
@@ -199,7 +224,9 @@ mod test {
         <script>
             console.log('error')
         ";
+
     let sources = VuePartialLoader::new(source_text).parse();
+
     assert!(sources.is_empty());
   }
 
@@ -210,9 +237,13 @@ mod test {
         <script>a</script>
         <script setup>b</script>
         ";
+
     let sources = VuePartialLoader::new(source_text).parse();
+
     assert_eq!(sources.len(), 2);
+
     assert_eq!(sources[0].source_text, "a");
+
     assert_eq!(sources[1].source_text, "b");
   }
 
@@ -221,6 +252,7 @@ mod test {
     let source_text = r"
         <script setup>
         let 日历 = '2000年';
+
         const t = useTranslate({
             'zh-CN': {
                 calendar: '日历',
@@ -231,9 +263,11 @@ mod test {
         ";
 
     let result = parse_vue(source_text);
+
     assert_eq!(
       result.source_text.trim(),
       "let 日历 = '2000年';
+
         const t = useTranslate({
             'zh-CN': {
                 calendar: '日历',

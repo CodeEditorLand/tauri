@@ -10,6 +10,7 @@ use std::{
 
 pub fn parse<P:AsRef<Path>>(path:P) -> crate::Result<Pbxproj> {
 	let path = path.as_ref();
+
 	let pbxproj = std::fs::read_to_string(path)?;
 
 	let mut proj = Pbxproj {
@@ -40,8 +41,10 @@ pub fn parse<P:AsRef<Path>>(path:P) -> crate::Result<Pbxproj> {
 					state = State::Idle;
 				} else if let Some((_identation, token)) = split_at_identation(line) {
 					let id:String = token.chars().take_while(|c| c.is_alphanumeric()).collect();
+
 					proj.xc_build_configuration
 						.insert(id.clone(), XCBuildConfiguration { build_settings:Vec::new() });
+
 					state = State::XCBuildConfigurationObject { id };
 				}
 			},
@@ -58,16 +61,19 @@ pub fn parse<P:AsRef<Path>>(path:P) -> crate::Result<Pbxproj> {
 						state = State::XCBuildConfigurationObject { id:id.clone() };
 					} else {
 						let assignment = token.trim_end_matches(';');
+
 						if let Some((key, value)) = assignment.split_once(" = ") {
 							// multiline value
 							let value = if value == "(" {
 								let mut value = value.to_string();
+
 								loop {
 									let Some((_next_line_number, next_line)) = iter.next() else {
 										break;
 									};
 
 									value.push_str(next_line);
+
 									value.push('\n');
 
 									if let Some((_, token)) = split_at_identation(next_line) {
@@ -76,6 +82,7 @@ pub fn parse<P:AsRef<Path>>(path:P) -> crate::Result<Pbxproj> {
 										}
 									}
 								}
+
 								value
 							} else {
 								value.trim().to_string()
@@ -109,6 +116,7 @@ pub fn parse<P:AsRef<Path>>(path:P) -> crate::Result<Pbxproj> {
 							build_configurations:Vec::new(),
 						},
 					);
+
 					state = State::XCConfigurationListObject { id:id.to_string() };
 				}
 			},
@@ -127,6 +135,7 @@ pub fn parse<P:AsRef<Path>>(path:P) -> crate::Result<Pbxproj> {
 						let Some((build_configuration_id, comments)) = token.split_once(' ') else {
 							continue;
 						};
+
 						proj.xc_configuration_list.get_mut(id).unwrap().build_configurations.push(
 							BuildConfigurationRef {
 								id:build_configuration_id.to_string(),
@@ -190,10 +199,12 @@ impl Pbxproj {
 		for (number, line) in self.raw_lines.iter().enumerate() {
 			if let Some(new) = self.additions.get(&number) {
 				proj.push_str(new);
+
 				proj.push('\n');
 			}
 
 			proj.push_str(line);
+
 			if number != last_line_number {
 				proj.push('\n');
 			}
@@ -219,6 +230,7 @@ impl Pbxproj {
 				};
 
 				*line = format!("{}{key} = {value};", build_setting.identation);
+
 				self.has_changes = true;
 			}
 		} else {
@@ -226,12 +238,14 @@ impl Pbxproj {
 			else {
 				return;
 			};
+
 			build_configuration.build_settings.push(BuildSettings {
 				identation:last_build_setting.identation.clone(),
 				line_number:last_build_setting.line_number + 1,
 				key:key.to_string(),
 				value:value.to_string(),
 			});
+
 			self.additions.insert(
 				last_build_setting.line_number + 1,
 				format!("{}{key} = {value};", last_build_setting.identation),
@@ -280,6 +294,7 @@ mod tests {
 		let fixtures_path = manifest_dir.join("tests").join("fixtures").join("pbxproj");
 
 		let mut settings = insta::Settings::clone_current();
+
 		settings.set_snapshot_path(fixtures_path.join("snapshots"));
 
 		let _guard = settings.bind_to_scope();
@@ -297,6 +312,7 @@ mod tests {
 		let fixtures_path = manifest_dir.join("tests").join("fixtures").join("pbxproj");
 
 		let mut settings = insta::Settings::clone_current();
+
 		settings.set_snapshot_path(fixtures_path.join("snapshots"));
 
 		let _guard = settings.bind_to_scope();
@@ -305,6 +321,7 @@ mod tests {
 			super::parse(fixtures_path.join("project.pbxproj")).expect("failed to parse pbxproj");
 
 		pbxproj.set_build_settings("DB0E254D0FD84970B57F6410", "PRODUCT_NAME", "\"Tauri Test\"");
+
 		pbxproj.set_build_settings("DB0E254D0FD84970B57F6410", "UNKNOWN", "9283j49238h");
 
 		insta::assert_snapshot!("project-modified.pbxproj", pbxproj.serialize());

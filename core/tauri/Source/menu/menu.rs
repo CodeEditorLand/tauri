@@ -45,6 +45,7 @@ impl<R:Runtime> ContextMenuBase for Menu<R> {
 		position:Option<P>,
 	) -> crate::Result<()> {
 		let position = position.map(Into::into);
+
 		run_item_main_thread!(self, move |self_:Self| {
 			#[cfg(target_os = "macos")]
 			if let Ok(view) = window.ns_view() {
@@ -85,6 +86,7 @@ impl<R:Runtime> Menu<R> {
 
 		let menu = run_main_thread!(handle, || {
 			let menu = muda::Menu::new();
+
 			MenuInner { id:menu.id().clone(), inner:Some(menu), app_handle }
 		})?;
 
@@ -101,6 +103,7 @@ impl<R:Runtime> Menu<R> {
 
 		let menu = run_main_thread!(handle, || {
 			let menu = muda::Menu::with_id(id.clone());
+
 			MenuInner { id, inner:Some(menu), app_handle }
 		})?;
 
@@ -114,7 +117,9 @@ impl<R:Runtime> Menu<R> {
 		items:&[&dyn IsMenuItem<R>],
 	) -> crate::Result<Self> {
 		let menu = Self::new(manager)?;
+
 		menu.append_items(items)?;
+
 		Ok(menu)
 	}
 
@@ -126,7 +131,9 @@ impl<R:Runtime> Menu<R> {
 		items:&[&dyn IsMenuItem<R>],
 	) -> crate::Result<Self> {
 		let menu = Self::with_id(manager, id)?;
+
 		menu.append_items(items)?;
+
 		Ok(menu)
 	}
 
@@ -251,6 +258,7 @@ impl<R:Runtime> Menu<R> {
 	/// [`Submenu`]: super::Submenu
 	pub fn append(&self, item:&dyn IsMenuItem<R>) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().append(kind.inner().inner_muda())
 		})?
@@ -282,6 +290,7 @@ impl<R:Runtime> Menu<R> {
 	/// [`Submenu`]: super::Submenu
 	pub fn prepend(&self, item:&dyn IsMenuItem<R>) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().prepend(kind.inner().inner_muda())
 		})?
@@ -309,6 +318,7 @@ impl<R:Runtime> Menu<R> {
 	/// [`Submenu`]: super::Submenu
 	pub fn insert(&self, item:&dyn IsMenuItem<R>, position:usize) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().insert(kind.inner().inner_muda(), position)
 		})?
@@ -333,6 +343,7 @@ impl<R:Runtime> Menu<R> {
 	/// Remove a menu item from this menu.
 	pub fn remove(&self, item:&dyn IsMenuItem<R>) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().remove(kind.inner().inner_muda())
 		})?

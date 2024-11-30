@@ -13,16 +13,25 @@ pub fn build() {
 
 	// Disable conflicting libraries that aren't hard coded by Rust
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:libvcruntimed.lib");
+
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:vcruntime.lib");
+
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:vcruntimed.lib");
+
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:libcmtd.lib");
+
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:msvcrt.lib");
+
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:msvcrtd.lib");
+
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:libucrt.lib");
+
 	println!("cargo:rustc-link-arg=/NODEFAULTLIB:libucrtd.lib");
 	// Set the libraries we want.
 	println!("cargo:rustc-link-arg=/DEFAULTLIB:libcmt.lib");
+
 	println!("cargo:rustc-link-arg=/DEFAULTLIB:libvcruntime.lib");
+
 	println!("cargo:rustc-link-arg=/DEFAULTLIB:ucrt.lib");
 }
 
@@ -31,6 +40,7 @@ pub fn build() {
 fn override_msvcrt_lib() {
 	// Get the right machine type for the empty library.
 	let arch = std::env::var("CARGO_CFG_TARGET_ARCH");
+
 	let machine:&[u8] = if arch.as_deref() == Ok("x86_64") {
 		&[0x64, 0x86]
 	} else if arch.as_deref() == Ok("x86") {
@@ -38,6 +48,7 @@ fn override_msvcrt_lib() {
 	} else {
 		return;
 	};
+
 	let bytes:&[u8] = &[
 		1, 0, 94, 3, 96, 98, 60, 0, 0, 0, 1, 0, 0, 0, 0, 0, 132, 1, 46, 100, 114, 101, 99, 116,
 		118, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -47,10 +58,14 @@ fn override_msvcrt_lib() {
 
 	// Write the empty "msvcrt.lib" to the output directory.
 	let out_dir = env::var("OUT_DIR").unwrap();
+
 	let path = Path::new(&out_dir).join("msvcrt.lib");
+
 	let f = fs::OpenOptions::new().write(true).create_new(true).open(path);
+
 	if let Ok(mut f) = f {
 		f.write_all(machine).unwrap();
+
 		f.write_all(bytes).unwrap();
 	}
 	// Add the output directory to the native library path.

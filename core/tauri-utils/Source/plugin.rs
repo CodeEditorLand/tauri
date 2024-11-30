@@ -39,6 +39,7 @@ mod build {
 
 			if key.starts_with("DEP_") && key.ends_with(GLOBAL_API_SCRIPT_PATH_KEY) {
 				let script_path = PathBuf::from(value);
+
 				scripts.push(script_path);
 			}
 		}

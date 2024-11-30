@@ -132,13 +132,16 @@ impl<T> fmt::Display for ErrorResponse<T> {
 	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		if let Some(code) = &self.code {
 			write!(f, "[{code}]")?;
+
 			if self.message.is_some() {
 				write!(f, " - ")?;
 			}
 		}
+
 		if let Some(message) = &self.message {
 			write!(f, "{message}")?;
 		}
+
 		Ok(())
 	}
 }
@@ -152,8 +155,11 @@ impl<R:Runtime, C:DeserializeOwned> PluginApi<R, C> {
 	) -> Result<PluginHandle<R>, PluginInvokeError> {
 		if let Some(webview) = self.handle.manager.webviews().values().next() {
 			let (tx, rx) = channel();
+
 			let name = self.name;
+
 			let config = self.raw_config.clone();
+
 			webview
 				.with_webview(move |w| {
 					unsafe {
@@ -164,9 +170,11 @@ impl<R:Runtime, C:DeserializeOwned> PluginApi<R, C> {
 							w.inner() as _,
 						)
 					};
+
 					tx.send(()).unwrap();
 				})
 				.map_err(|_| PluginInvokeError::UnreachableWebview)?;
+
 			rx.recv().unwrap();
 		} else {
 			unsafe {
@@ -178,6 +186,7 @@ impl<R:Runtime, C:DeserializeOwned> PluginApi<R, C> {
 				)
 			};
 		}
+
 		Ok(PluginHandle { name:self.name, handle:self.handle.clone() })
 	}
 
@@ -201,6 +210,7 @@ impl<R:Runtime, C:DeserializeOwned> PluginApi<R, C> {
 		) -> Result<(), JniError> {
 			// instantiate plugin
 			let plugin_class = runtime_handle.find_class(env, activity, plugin_class)?;
+
 			let plugin =
 				env.new_object(plugin_class, "(Landroid/app/Activity;)V", &[activity.into()])?;
 
@@ -216,7 +226,9 @@ impl<R:Runtime, C:DeserializeOwned> PluginApi<R, C> {
 				.l()?;
 
 			let plugin_name = env.new_string(plugin_name)?;
+
 			let config = env.new_string(&serde_json::to_string(plugin_config).unwrap())?;
+
 			env.call_method(
 				plugin_manager,
 				"load",
@@ -237,6 +249,7 @@ impl<R:Runtime, C:DeserializeOwned> PluginApi<R, C> {
 		let runtime_handle = self.handle.runtime_handle.clone();
 
 		let (tx, rx) = channel();
+
 		self.handle
 			.runtime_handle
 			.run_on_android_context(move |env, activity, webview| {
@@ -249,6 +262,7 @@ impl<R:Runtime, C:DeserializeOwned> PluginApi<R, C> {
 					plugin_class,
 					&plugin_config,
 				);
+
 				tx.send(result).unwrap();
 			});
 
@@ -266,6 +280,7 @@ impl<R:Runtime> PluginHandle<R> {
 		payload:impl Serialize,
 	) -> Result<T, PluginInvokeError> {
 		let (tx, rx) = channel();
+
 		run_command(
 			self.name,
 			&self.handle,
@@ -277,6 +292,7 @@ impl<R:Runtime> PluginHandle<R> {
 		)?;
 
 		let response = rx.recv().unwrap();
+
 		match response {
 			Ok(r) => {
 				serde_json::from_value(r).map_err(PluginInvokeError::CannotDeserializeResponse)
@@ -304,6 +320,7 @@ pub(crate) fn run_command<R:Runtime, C:AsRef<str>, F:FnOnce(PluginResponse) + Se
 	};
 
 	let id:i32 = PENDING_PLUGIN_CALLS_ID.fetch_add(1, Ordering::Relaxed);
+
 	PENDING_PLUGIN_CALLS
 		.get_or_init(Default::default)
 		.lock()
@@ -314,6 +331,7 @@ pub(crate) fn run_command<R:Runtime, C:AsRef<str>, F:FnOnce(PluginResponse) + Se
 		extern fn plugin_command_response_handler(id:c_int, success:c_int, payload:*const c_char) {
 			let payload = unsafe {
 				assert!(!payload.is_null());
+
 				CStr::from_ptr(payload)
 			};
 
@@ -321,6 +339,7 @@ pub(crate) fn run_command<R:Runtime, C:AsRef<str>, F:FnOnce(PluginResponse) + Se
 				PENDING_PLUGIN_CALLS.get_or_init(Default::default).lock().unwrap().remove(&id)
 			{
 				let json = payload.to_str().unwrap();
+
 				match serde_json::from_str(json) {
 					Ok(payload) => {
 						handler(if success == 1 { Ok(payload) } else { Err(payload) });
@@ -335,6 +354,7 @@ pub(crate) fn run_command<R:Runtime, C:AsRef<str>, F:FnOnce(PluginResponse) + Se
 		extern fn send_channel_data_handler(id:c_ulonglong, payload:*const c_char) {
 			let payload = unsafe {
 				assert!(!payload.is_null());
+
 				CStr::from_ptr(payload)
 			};
 
@@ -343,6 +363,7 @@ pub(crate) fn run_command<R:Runtime, C:AsRef<str>, F:FnOnce(PluginResponse) + Se
 			{
 				let payload:serde_json::Value =
 					serde_json::from_str(payload.to_str().unwrap()).unwrap();
+
 				let _ = channel.send(payload);
 			}
 		}
@@ -409,7 +430,9 @@ pub(crate) fn run_command<
 	};
 
 	let id:i32 = PENDING_PLUGIN_CALLS_ID.fetch_add(1, Ordering::Relaxed);
+
 	let plugin_name = name.to_string();
+
 	let command = command.as_ref().to_string();
 
 	PENDING_PLUGIN_CALLS

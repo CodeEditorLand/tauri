@@ -46,6 +46,7 @@ impl dyn Resource {
 			// and is safe to cast to `Arc<T>` because of the runtime
 			// check done in `self.is::<T>()`
 			let ptr = self as *const Arc<_> as *const Arc<T>;
+
 			Some(unsafe { &*ptr })
 		} else {
 			None
@@ -75,7 +76,9 @@ pub struct ResourceTable {
 impl ResourceTable {
 	fn new_random_rid() -> u32 {
 		let mut bytes = [0_u8; 4];
+
 		getrandom::getrandom(&mut bytes).expect("failed to get random bytes");
+
 		u32::from_ne_bytes(bytes)
 	}
 
@@ -95,6 +98,7 @@ impl ResourceTable {
 	/// Returns a unique resource ID, which acts as a key for this resource.
 	pub fn add_arc<T:Resource>(&mut self, resource:Arc<T>) -> ResourceId {
 		let resource = resource as Arc<dyn Resource>;
+
 		self.add_arc_dyn(resource)
 	}
 
@@ -108,7 +112,9 @@ impl ResourceTable {
 		let rid = Self::new_random_rid();
 
 		let removed_resource = self.index.insert(rid, resource);
+
 		assert!(removed_resource.is_none());
+
 		rid
 	}
 
@@ -138,6 +144,7 @@ impl ResourceTable {
 	/// Panics if the resource does not exist.
 	pub fn replace<T:Resource>(&mut self, rid:ResourceId, resource:T) {
 		let result = self.index.insert(rid, Arc::new(resource) as Arc<dyn Resource>);
+
 		assert!(result.is_some());
 	}
 
@@ -153,7 +160,9 @@ impl ResourceTable {
 	/// extract the inner value of type `T` from `Arc<T>`.
 	pub fn take<T:Resource>(&mut self, rid:ResourceId) -> crate::Result<Arc<T>> {
 		let resource = self.get::<T>(rid)?;
+
 		self.index.remove(&rid);
+
 		Ok(resource)
 	}
 

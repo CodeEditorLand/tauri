@@ -71,6 +71,7 @@ fn migrate_npm_dependencies(frontend_dir: &Path) -> Result<()> {
       .current_package_version(pkg, frontend_dir)
       .unwrap_or_default()
       .unwrap_or_default();
+
     if version.starts_with('1') {
       install_deps.push(format!("{pkg}@^2.0.0-rc.0"));
     }
@@ -98,7 +99,9 @@ fn migrate_permissions(tauri_dir: &Path) -> Result<()> {
 
   for entry in walkdir::WalkDir::new(tauri_dir.join("capabilities")) {
     let entry = entry?;
+
     let path = entry.path();
+
     if path.extension().map_or(false, |ext| ext == "json") {
       let mut capability = read_to_string(path).context("failed to read capability")?;
       for plugin in core_plugins {
@@ -176,6 +179,7 @@ fn migrate_dependency(dependencies: &mut Table, name: &str, version: &str) {
     .unwrap_or_default()
   {
     log::info!("`{name}` dependency has workspace inheritance enabled. The features array won't be automatically rewritten.");
+
     return;
   }
 

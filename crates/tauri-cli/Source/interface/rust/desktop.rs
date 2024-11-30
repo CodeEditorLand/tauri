@@ -31,7 +31,9 @@ impl DevProcess for DevChild {
     } else if let Some(child) = &self.build_child {
       child.kill()?;
     }
+
     self.manually_killed_app.store(true, Ordering::Relaxed);
+
     Ok(())
   }
 
@@ -83,13 +85,19 @@ pub fn run_dev<F: Fn(Option<i32>, ExitReason) + Send + Sync + 'static>(
     move |status, reason| {
       if status == Some(0) {
         let main_binary_name = main_binary_name.as_deref();
+
         let bin_path = rename_app(bin_path, main_binary_name).expect("failed to rename app");
 
         let mut app = Command::new(bin_path);
+
         app.stdout(os_pipe::dup_stdout().unwrap());
+
         app.stderr(os_pipe::dup_stderr().unwrap());
+
         app.args(run_args);
+
         let app_child = Arc::new(SharedChild::spawn(&mut app).unwrap());
+
         crate::dev::wait_dev_process(
           DevChild {
             manually_killed_app: manually_killed_app_,
@@ -140,10 +148,12 @@ pub fn build(
     let bin_name = bin_path.file_stem().unwrap();
 
     let mut lipo_cmd = Command::new("lipo");
+
     lipo_cmd
       .arg("-create")
       .arg("-output")
       .arg(out_dir.join(bin_name));
+
     for triple in ["aarch64-apple-darwin", "x86_64-apple-darwin"] {
       let mut options = options.clone();
       options.target.replace(triple.into());
@@ -159,6 +169,7 @@ pub fn build(
     }
 
     let lipo_status = lipo_cmd.output_ok()?.status;
+
     if !lipo_status.success() {
       return Err(anyhow::anyhow!(format!(
         "Result of `lipo` command was unsuccessful: {lipo_status}. (Is `lipo` installed?)"
@@ -221,8 +232,11 @@ fn build_dev_app<F: FnOnce(Option<i32>, ExitReason) + Send + 'static>(
   let stderr_lines_ = stderr_lines.clone();
   std::thread::spawn(move || {
     let mut buf = Vec::new();
+
     let mut lines = stderr_lines_.lock().unwrap();
+
     let mut io_stderr = std::io::stderr();
+
     loop {
       buf.clear();
       if let Ok(0) = tauri_utils::io::read_line(&mut stderr, &mut buf) {
@@ -296,6 +310,7 @@ fn build_command(
     if available_targets.is_none() {
       *available_targets = fetch_available_targets();
     }
+
     validate_target(available_targets, target)?;
   }
 
@@ -310,6 +325,7 @@ fn build_command(
   }
   if !features.is_empty() {
     args.push("--features".into());
+
     args.push(features.join(","));
   }
 
@@ -319,6 +335,7 @@ fn build_command(
 
   if let Some(target) = options.target {
     args.push("--target".into());
+
     args.push(target);
   }
 
@@ -332,6 +349,7 @@ fn build_command(
 fn fetch_available_targets() -> Option<Vec<RustupTarget>> {
   if let Ok(output) = Command::new("rustup").args(["target", "list"]).output() {
     let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+
     Some(
       stdout
         .split('\n')
@@ -363,6 +381,7 @@ fn validate_target(
           );
       }
     }
+
     if !available_targets.iter().any(|t| t.name == target) {
       anyhow::bail!("Target {target} does not exist. Please run `rustup target list` to see the available targets.", target = target);
     }
@@ -383,6 +402,7 @@ fn rename_app(bin_path: PathBuf, main_binary_name: Option<&str>) -> crate::Resul
         tauri_utils::display_path(&new_path),
       )
     })?;
+
     Ok(new_path)
   } else {
     Ok(bin_path)

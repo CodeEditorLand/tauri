@@ -19,6 +19,7 @@ pub struct CargoInstallOptions<'a> {
 
 pub fn install_one(options:CargoInstallOptions) -> crate::Result<()> {
 	let mut cargo = Command::new("cargo");
+
 	cargo.arg("add");
 
 	if let Some(version) = options.version {
@@ -54,7 +55,9 @@ pub fn install_one(options:CargoInstallOptions) -> crate::Result<()> {
 	}
 
 	log::info!("Installing Cargo dependency \"{}\"...", options.name);
+
 	let status = cargo.status().context("failed to run `cargo add`")?;
+
 	if !status.success() {
 		anyhow::bail!("Failed to install Cargo dependency");
 	}

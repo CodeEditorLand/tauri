@@ -225,6 +225,7 @@ impl<'de> Deserialize<'de> for TitleBarStyle {
 	where
 		D: Deserializer<'de>, {
 		let s = String::deserialize(deserializer)?;
+
 		Ok(match s.to_lowercase().as_str() {
 			"transparent" => Self::Transparent,
 			"overlay" => Self::Overlay,
@@ -274,6 +275,7 @@ impl<'de> Deserialize<'de> for Theme {
 	where
 		D: Deserializer<'de>, {
 		let s = String::deserialize(deserializer)?;
+
 		Ok(match s.to_lowercase().as_str() {
 			"dark" => Self::Dark,
 			_ => Self::Light,
@@ -321,6 +323,7 @@ impl Default for Env {
 				appdir:std::env::var_os("APPDIR"),
 				args_os,
 			};
+
 			if env.appimage.is_some() || env.appdir.is_some() {
 				// validate that we're actually running on an AppImage
 				// an AppImage is mounted to
@@ -344,6 +347,7 @@ impl Default for Env {
 					);
 				}
 			}
+
 			env
 		}
 		#[cfg(not(target_os = "linux"))]

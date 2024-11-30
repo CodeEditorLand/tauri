@@ -109,6 +109,7 @@ pub fn infer_from_package_json(package_json:&str) -> (Option<Framework>, Option<
 		("@vue/cli", Framework::VueCli, Some(Bundler::Webpack)),
 		("vue", Framework::Vue, Some(Bundler::Vite)),
 	];
+
 	let bundler_map = [
 		("webpack", Bundler::Webpack),
 		("rollup", Bundler::Rollup),

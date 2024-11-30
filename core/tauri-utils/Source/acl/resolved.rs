@@ -133,6 +133,7 @@ impl Resolved {
 				)
 			}) {
 				capability.permissions.remove(core_default_index);
+
 				for plugin in CORE_PLUGINS {
 					capability.permissions.push(PermissionEntry::PermissionRef(
 						format!("{plugin}:default").try_into().unwrap(),
@@ -151,6 +152,7 @@ impl Resolved {
 					} else {
 						let scope_id = if scope.allow.is_some() || scope.deny.is_some() {
 							current_scope_id += 1;
+
 							command_scope.insert(
 								current_scope_id,
 								ResolvedScope {
@@ -158,6 +160,7 @@ impl Resolved {
 									deny:scope.deny.unwrap_or_default(),
 								},
 							);
+
 							Some(current_scope_id)
 						} else {
 							None
@@ -207,10 +210,12 @@ impl Resolved {
 			.into_iter()
 			.map(|(key, scopes)| {
 				let mut resolved_scope = ResolvedScope { allow:Vec::new(), deny:Vec::new() };
+
 				for scope in scopes {
 					if let Some(allow) = scope.allow {
 						resolved_scope.allow.extend(allow);
 					}
+
 					if let Some(deny) = scope.deny {
 						resolved_scope.deny.extend(deny);
 					}
@@ -229,6 +234,7 @@ fn parse_glob_patterns(mut raw:Vec<String>) -> Result<Vec<glob::Pattern>, Error>
 	raw.sort();
 
 	let mut patterns = Vec::new();
+
 	for pattern in raw {
 		patterns.push(glob::Pattern::new(&pattern)?);
 	}
@@ -274,6 +280,7 @@ fn with_resolved_permissions<F:FnMut(ResolvedPermission<'_>) -> Result<(), Error
 			if let Some(allow) = scope.allow.clone() {
 				resolved_scope.allow.get_or_insert_with(Default::default).extend(allow);
 			}
+
 			if let Some(deny) = scope.deny.clone() {
 				resolved_scope.deny.get_or_insert_with(Default::default).extend(deny);
 			}
@@ -283,11 +290,13 @@ fn with_resolved_permissions<F:FnMut(ResolvedPermission<'_>) -> Result<(), Error
 			if let Some(allow) = permission.scope.allow.clone() {
 				resolved_scope.allow.get_or_insert_with(Default::default).extend(allow);
 			}
+
 			if let Some(deny) = permission.scope.deny.clone() {
 				resolved_scope.deny.get_or_insert_with(Default::default).extend(deny);
 			}
 
 			commands.allow.extend(permission.commands.allow.clone());
+
 			commands.deny.extend(permission.commands.deny.clone());
 		}
 
@@ -305,9 +314,11 @@ fn resolve_command(
 	#[cfg(debug_assertions)] referenced_by_permission_identifier:String,
 ) -> Result<(), Error> {
 	let mut contexts = Vec::new();
+
 	if capability.local {
 		contexts.push(ExecutionContext::Local);
 	}
+
 	if let Some(remote) = &capability.remote {
 		contexts.extend(remote.urls.iter().map(|url| {
 			ExecutionContext::Remote {
@@ -395,16 +406,20 @@ mod build {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
+
 	use quote::{quote, ToTokens, TokenStreamExt};
 
 	use super::*;
+
 	use crate::{literal_struct, tokens::*};
 
 	#[cfg(debug_assertions)]
 	impl ToTokens for ResolvedCommandReference {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let capability = str_lit(&self.capability);
+
 			let permission = str_lit(&self.permission);
+
 			literal_struct!(
 				tokens,
 				::tauri::utils::acl::resolved::ResolvedCommandReference,
@@ -423,12 +438,16 @@ mod build {
 
 			let windows = vec_lit(&self.windows, |window| {
 				let w = window.as_str();
+
 				quote!(#w.parse().unwrap())
 			});
+
 			let webviews = vec_lit(&self.webviews, |window| {
 				let w = window.as_str();
+
 				quote!(#w.parse().unwrap())
 			});
+
 			let scope_id = opt_lit(self.scope_id.as_ref());
 
 			#[cfg(debug_assertions)]
@@ -458,7 +477,9 @@ mod build {
 	impl ToTokens for ResolvedScope {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let allow = vec_lit(&self.allow, identity);
+
 			let deny = vec_lit(&self.deny, identity);
+
 			literal_struct!(tokens, ::tauri::utils::acl::resolved::ResolvedScope, allow, deny)
 		}
 	}

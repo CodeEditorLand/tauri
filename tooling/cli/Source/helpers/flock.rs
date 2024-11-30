@@ -47,6 +47,7 @@ impl FileLock {
 	/// Returns the parent path containing this file
 	pub fn parent(&self) -> &Path {
 		assert_ne!(self.state, State::Unlocked);
+
 		self.path.parent().unwrap()
 	}
 }
@@ -120,12 +121,14 @@ fn open(path:&Path, opts:&OpenOptions, state:State, msg:&str) -> Result<FileLock
 		.or_else(|e| {
 			if e.kind() == io::ErrorKind::NotFound && state == State::Exclusive {
 				create_dir_all(path.parent().unwrap())?;
+
 				Ok(opts.open(path)?)
 			} else {
 				Err(anyhow::Error::from(e))
 			}
 		})
 		.with_context(|| format!("failed to open: {}", path.display()))?;
+
 	match state {
 		State::Exclusive => {
 			acquire(msg, path, &|| try_lock_exclusive(&f), &|| lock_exclusive(&f))?;
@@ -135,6 +138,7 @@ fn open(path:&Path, opts:&OpenOptions, state:State, msg:&str) -> Result<FileLock
 		},
 		State::Unlocked => {},
 	}
+
 	Ok(FileLock { f:Some(f), path:path.to_path_buf(), state })
 }
 
@@ -184,15 +188,20 @@ fn acquire(
 		Err(e) => {
 			if !error_contended(&e) {
 				let e = anyhow::Error::from(e);
+
 				let cx = format!("failed to lock file: {}", path.display());
+
 				return Err(e.context(cx));
 			}
 		},
 	}
+
 	let msg = format!("waiting for file lock on {msg}");
+
 	log::info!(action = "Blocking"; "{}", &msg);
 
 	lock_block().with_context(|| format!("failed to lock file: {}", path.display()))?;
+
 	return Ok(());
 
 	#[cfg(all(target_os = "linux", not(target_env = "musl")))]
@@ -206,6 +215,7 @@ fn acquire(
 
 		unsafe {
 			let mut buf:libc::statfs = mem::zeroed();
+
 			let r = libc::statfs(path.as_ptr(), &mut buf);
 
 			r == 0 && buf.f_type as u32 == libc::NFS_SUPER_MAGIC as u32
@@ -256,6 +266,7 @@ mod sys {
 	#[cfg(not(target_os = "solaris"))]
 	fn flock(file:&File, flag:libc::c_int) -> Result<()> {
 		let ret = unsafe { libc::flock(file.as_raw_fd(), flag) };
+
 		if ret < 0 { Err(Error::last_os_error()) } else { Ok(()) }
 	}
 
@@ -310,12 +321,14 @@ mod sys {
 
 	pub(super) fn unlock(file:&File) -> Result<()> {
 		let ret = unsafe { UnlockFile(file.as_raw_handle() as HANDLE, 0, 0, !0, !0) };
+
 		if ret == 0 { Err(Error::last_os_error()) } else { Ok(()) }
 	}
 
 	fn lock_file(file:&File, flags:LOCK_FILE_FLAGS) -> Result<()> {
 		let ret = unsafe {
 			let mut overlapped = mem::zeroed();
+
 			LockFileEx(file.as_raw_handle() as HANDLE, flags, 0, !0, !0, &mut overlapped)
 		};
 

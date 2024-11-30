@@ -58,10 +58,12 @@ pub fn get<R:Runtime>(manager:Arc<AppManager<R>>, label:String) -> UriSchemeProt
 			response
 				.headers_mut()
 				.insert(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"));
+
 			response.headers_mut().insert(
 				ACCESS_CONTROL_EXPOSE_HEADERS,
 				HeaderValue::from_static(TAURI_RESPONSE_HEADER_NAME),
 			);
+
 			responder.respond(response);
 		};
 
@@ -187,6 +189,7 @@ pub fn get<R:Runtime>(manager:Arc<AppManager<R>>, label:String) -> UriSchemeProt
 
 			Method::OPTIONS => {
 				let mut r = http::Response::new(Vec::new().into());
+
 				r.headers_mut()
 					.insert(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"));
 
@@ -198,10 +201,12 @@ pub fn get<R:Runtime>(manager:Arc<AppManager<R>>, label:String) -> UriSchemeProt
 					"only POST and OPTIONS are allowed".as_bytes().to_vec().into(),
 				);
 				*r.status_mut() = StatusCode::METHOD_NOT_ALLOWED;
+
 				r.headers_mut().insert(
 					CONTENT_TYPE,
 					HeaderValue::from_str(mime::TEXT_PLAIN.essence_str()).unwrap(),
 				);
+
 				respond(r);
 			},
 		}
@@ -229,7 +234,9 @@ fn handle_ipc_message<R:Runtime>(request:Request<String>, manager:&AppManager<R>
 			where
 				D: Deserializer<'de>, {
 				let map = std::collections::HashMap::<String, String>::deserialize(deserializer)?;
+
 				let mut headers = http::HeaderMap::default();
+
 				for (key, value) in map {
 					if let (Ok(key), Ok(value)) = (
 						http::header::HeaderName::from_bytes(key.as_bytes()),
@@ -242,6 +249,7 @@ fn handle_ipc_message<R:Runtime>(request:Request<String>, manager:&AppManager<R>
 						)));
 					}
 				}
+
 				Ok(Self(headers))
 			}
 		}
@@ -292,7 +300,9 @@ fn handle_ipc_message<R:Runtime>(request:Request<String>, manager:&AppManager<R>
 						.and_then(|message| {
 							let is_raw = message.payload.content_type()
 								== &mime::APPLICATION_OCTET_STREAM.to_string();
+
 							let payload = crypto_keys.decrypt(message.payload)?;
+
 							Ok(Message {
 								cmd:message.cmd,
 								callback:message.callback,
@@ -313,6 +323,7 @@ fn handle_ipc_message<R:Runtime>(request:Request<String>, manager:&AppManager<R>
 		let message = invoke_message.unwrap_or_else(|| {
 			#[cfg(feature = "tracing")]
 			let _span = tracing::trace_span!("ipc::request::deserialize").entered();
+
 			serde_json::from_str::<Message>(request.body()).map_err(Into::into)
 		});
 
@@ -512,6 +523,7 @@ fn parse_invoke_request<R:Runtime>(
 				crate::utils::pattern::isolation::RawIsolationPayload::try_from(&body)
 					.and_then(|raw| {
 						let content_type = raw.content_type().clone();
+
 						crypto_keys.decrypt(raw).map(|decrypted| {
 							(
 								decrypted,
@@ -551,6 +563,7 @@ fn parse_invoke_request<R:Runtime>(
 			.parse()
 			.map_err(|_| "Tauri callback header value must be a numeric string")?,
 	);
+
 	let error = CallbackFn(
 		parts
 			.headers
@@ -594,10 +607,13 @@ mod tests {
 	use std::str::FromStr;
 
 	use http::header::*;
+
 	use serde_json::json;
+
 	use tauri_macros::generate_context;
 
 	use super::*;
+
 	use crate::{ipc::InvokeBody, manager::AppManager, plugin::PluginStore, StateManager, Wry};
 
 	#[test]
@@ -659,11 +675,17 @@ mod tests {
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.cmd, cmd);
+
 		assert_eq!(invoke_request.callback.0, callback);
+
 		assert_eq!(invoke_request.error.0, error);
+
 		assert_eq!(invoke_request.invoke_key, invoke_key);
+
 		assert_eq!(invoke_request.url, url.parse().unwrap());
+
 		assert_eq!(invoke_request.headers, headers);
+
 		assert_eq!(invoke_request.body, InvokeBody::Raw(body));
 
 		let body = json!({
@@ -672,6 +694,7 @@ mod tests {
 		});
 
 		let mut headers = headers.clone();
+
 		headers
 			.insert(CONTENT_TYPE, HeaderValue::from_str(mime::APPLICATION_JSON.as_ref()).unwrap());
 
@@ -683,6 +706,7 @@ mod tests {
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.headers, headers);
+
 		assert_eq!(invoke_request.body, InvokeBody::Json(body));
 	}
 
@@ -700,6 +724,7 @@ mod tests {
 		};
 
 		let mut nonce = [0u8; 12];
+
 		getrandom::getrandom(&mut nonce).unwrap();
 
 		let body_raw = vec![1, 41, 65, 12, 78];
@@ -779,11 +804,17 @@ mod tests {
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.cmd, cmd);
+
 		assert_eq!(invoke_request.callback.0, callback);
+
 		assert_eq!(invoke_request.error.0, error);
+
 		assert_eq!(invoke_request.invoke_key, invoke_key);
+
 		assert_eq!(invoke_request.url, url.parse().unwrap());
+
 		assert_eq!(invoke_request.headers, headers);
+
 		assert_eq!(invoke_request.body, InvokeBody::Raw(body_raw));
 
 		let mut request = Request::builder().uri(format!("ipc://localhost/{cmd}"));
@@ -796,6 +827,7 @@ mod tests {
 		let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
 		assert_eq!(invoke_request.headers, headers);
+
 		assert_eq!(invoke_request.body, InvokeBody::Json(body_json));
 	}
 }

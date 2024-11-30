@@ -24,17 +24,21 @@ pub fn command() -> Result<()> {
 
 	let manifest_contents =
 		read_to_string(tauri_dir.join("Cargo.toml")).context("failed to read Cargo manifest")?;
+
 	let manifest = toml::from_str::<CargoManifest>(&manifest_contents)
 		.context("failed to parse Cargo manifest")?;
 
 	let workspace_dir = get_workspace_dir()?;
+
 	let lock_path = workspace_dir.join("Cargo.lock");
+
 	let lock = if lock_path.exists() {
 		let lockfile_contents =
 			read_to_string(lock_path).context("failed to read Cargo lockfile")?;
 
 		let lock = toml::from_str::<CargoLock>(&lockfile_contents)
 			.context("failed to parse Cargo lockfile")?;
+
 		Some(lock)
 	} else {
 		None
@@ -43,6 +47,7 @@ pub fn command() -> Result<()> {
 	let tauri_version = crate_version(tauri_dir, Some(&manifest), lock.as_ref(), "tauri")
 		.version
 		.context("failed to get tauri version")?;
+
 	let tauri_version = semver::Version::from_str(&tauri_version)?;
 
 	if tauri_version.major == 1 {

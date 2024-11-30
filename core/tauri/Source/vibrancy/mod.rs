@@ -26,5 +26,6 @@ pub fn set_window_effects<R:Runtime>(
 		#[cfg(windows)]
 		windows::clear_effects(window);
 	}
+
 	Ok(())
 }

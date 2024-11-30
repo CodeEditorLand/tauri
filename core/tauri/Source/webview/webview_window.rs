@@ -115,6 +115,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	/// [the Webview2 issue]: https://github.com/tauri-apps/wry/issues/583
 	pub fn new<L:Into<String>>(manager:&'a M, label:L, url:WebviewUrl) -> Self {
 		let label = label.into();
+
 		Self {
 			window_builder:WindowBuilder::new(manager, &label),
 			webview_builder:WebviewBuilder::new(&label, url),
@@ -201,6 +202,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 		f:F,
 	) -> Self {
 		self.window_builder = self.window_builder.on_menu_event(f);
+
 		self
 	}
 
@@ -255,6 +257,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 		f:F,
 	) -> Self {
 		self.webview_builder = self.webview_builder.on_web_resource_request(f);
+
 		self
 	}
 
@@ -283,6 +286,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	/// ```
 	pub fn on_navigation<F:Fn(&Url) -> bool + Send + 'static>(mut self, f:F) -> Self {
 		self.webview_builder = self.webview_builder.on_navigation(f);
+
 		self
 	}
 
@@ -305,6 +309,7 @@ use tauri::{
 tauri::Builder::default()
   .setup(|app| {
     let handle = app.handle();
+
     let webview_window = WebviewWindowBuilder::new(handle, "core", WebviewUrl::App("index.html".into()))
       .on_download(|webview, event| {
         match event {
@@ -332,6 +337,7 @@ tauri::Builder::default()
 		f:F,
 	) -> Self {
 		self.webview_builder.download_handler.replace(Arc::new(f));
+
 		self
 	}
 
@@ -374,12 +380,14 @@ tauri::Builder::default()
 		self.webview_builder = self
 			.webview_builder
 			.on_page_load(move |webview, payload| f(WebviewWindow { webview }, payload));
+
 		self
 	}
 
 	/// Creates a new window.
 	pub fn build(self) -> crate::Result<WebviewWindow<R>> {
 		let (_window, webview) = self.window_builder.with_webview(self.webview_builder)?;
+
 		Ok(WebviewWindow { webview })
 	}
 }
@@ -391,6 +399,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn menu(mut self, menu:crate::menu::Menu<R>) -> Self {
 		self.window_builder = self.window_builder.menu(menu);
+
 		self
 	}
 
@@ -398,6 +407,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn center(mut self) -> Self {
 		self.window_builder = self.window_builder.center();
+
 		self
 	}
 
@@ -405,6 +415,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn position(mut self, x:f64, y:f64) -> Self {
 		self.window_builder = self.window_builder.position(x, y);
+
 		self
 	}
 
@@ -412,6 +423,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn inner_size(mut self, width:f64, height:f64) -> Self {
 		self.window_builder = self.window_builder.inner_size(width, height);
+
 		self
 	}
 
@@ -419,6 +431,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn min_inner_size(mut self, min_width:f64, min_height:f64) -> Self {
 		self.window_builder = self.window_builder.min_inner_size(min_width, min_height);
+
 		self
 	}
 
@@ -426,6 +439,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn max_inner_size(mut self, max_width:f64, max_height:f64) -> Self {
 		self.window_builder = self.window_builder.max_inner_size(max_width, max_height);
+
 		self
 	}
 
@@ -436,6 +450,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 		constraints:tauri_runtime::window::WindowSizeConstraints,
 	) -> Self {
 		self.window_builder = self.window_builder.inner_size_constraints(constraints);
+
 		self
 	}
 
@@ -445,6 +460,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn resizable(mut self, resizable:bool) -> Self {
 		self.window_builder = self.window_builder.resizable(resizable);
+
 		self
 	}
 
@@ -459,6 +475,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn maximizable(mut self, maximizable:bool) -> Self {
 		self.window_builder = self.window_builder.maximizable(maximizable);
+
 		self
 	}
 
@@ -470,6 +487,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn minimizable(mut self, minimizable:bool) -> Self {
 		self.window_builder = self.window_builder.minimizable(minimizable);
+
 		self
 	}
 
@@ -484,6 +502,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn closable(mut self, closable:bool) -> Self {
 		self.window_builder = self.window_builder.closable(closable);
+
 		self
 	}
 
@@ -491,6 +510,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn title<S:Into<String>>(mut self, title:S) -> Self {
 		self.window_builder = self.window_builder.title(title);
+
 		self
 	}
 
@@ -498,6 +518,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn fullscreen(mut self, fullscreen:bool) -> Self {
 		self.window_builder = self.window_builder.fullscreen(fullscreen);
+
 		self
 	}
 
@@ -510,6 +531,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	)]
 	pub fn focus(mut self) -> Self {
 		self.window_builder = self.window_builder.focused(true);
+
 		self
 	}
 
@@ -517,6 +539,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn focused(mut self, focused:bool) -> Self {
 		self.window_builder = self.window_builder.focused(focused);
+
 		self
 	}
 
@@ -524,6 +547,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn maximized(mut self, maximized:bool) -> Self {
 		self.window_builder = self.window_builder.maximized(maximized);
+
 		self
 	}
 
@@ -531,6 +555,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn visible(mut self, visible:bool) -> Self {
 		self.window_builder = self.window_builder.visible(visible);
+
 		self
 	}
 
@@ -542,6 +567,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn theme(mut self, theme:Option<crate::Theme>) -> Self {
 		self.window_builder = self.window_builder.theme(theme);
+
 		self
 	}
 
@@ -549,6 +575,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn decorations(mut self, decorations:bool) -> Self {
 		self.window_builder = self.window_builder.decorations(decorations);
+
 		self
 	}
 
@@ -556,6 +583,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn always_on_bottom(mut self, always_on_bottom:bool) -> Self {
 		self.window_builder = self.window_builder.always_on_bottom(always_on_bottom);
+
 		self
 	}
 
@@ -563,6 +591,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn always_on_top(mut self, always_on_top:bool) -> Self {
 		self.window_builder = self.window_builder.always_on_top(always_on_top);
+
 		self
 	}
 
@@ -572,6 +601,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	pub fn visible_on_all_workspaces(mut self, visible_on_all_workspaces:bool) -> Self {
 		self.window_builder =
 			self.window_builder.visible_on_all_workspaces(visible_on_all_workspaces);
+
 		self
 	}
 
@@ -579,12 +609,14 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn content_protected(mut self, protected:bool) -> Self {
 		self.window_builder = self.window_builder.content_protected(protected);
+
 		self
 	}
 
 	/// Sets the window icon.
 	pub fn icon(mut self, icon:Image<'a>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.icon(icon)?;
+
 		Ok(self)
 	}
 
@@ -596,6 +628,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn skip_taskbar(mut self, skip:bool) -> Self {
 		self.window_builder = self.window_builder.skip_taskbar(skip);
+
 		self
 	}
 
@@ -611,6 +644,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn shadow(mut self, enable:bool) -> Self {
 		self.window_builder = self.window_builder.shadow(enable);
+
 		self
 	}
 
@@ -628,6 +662,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	/// - **macOS**: This adds the window as a child of parent, see <https://developer.apple.com/documentation/appkit/nswindow/1419152-addchildwindow?language=objc>
 	pub fn parent(mut self, parent:&WebviewWindow<R>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.parent(&parent.webview.window())?;
+
 		Ok(self)
 	}
 
@@ -643,6 +678,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[cfg(windows)]
 	pub fn owner(mut self, owner:&WebviewWindow<R>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.owner(&owner.webview.window())?;
+
 		Ok(self)
 	}
 
@@ -659,6 +695,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn owner_raw(mut self, owner:HWND) -> Self {
 		self.window_builder = self.window_builder.owner_raw(owner);
+
 		self
 	}
 
@@ -672,6 +709,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn parent_raw(mut self, parent:HWND) -> Self {
 		self.window_builder = self.window_builder.parent_raw(parent);
+
 		self
 	}
 
@@ -682,6 +720,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn parent_raw(mut self, parent:*mut std::ffi::c_void) -> Self {
 		self.window_builder = self.window_builder.parent_raw(parent);
+
 		self
 	}
 
@@ -697,6 +736,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	))]
 	pub fn transient_for(mut self, parent:&WebviewWindow<R>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.transient_for(&parent.webview.window())?;
+
 		Ok(self)
 	}
 
@@ -713,6 +753,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn transient_for_raw(mut self, parent:&impl gtk::glib::IsA<gtk::Window>) -> Self {
 		self.window_builder = self.window_builder.transient_for_raw(parent);
+
 		self
 	}
 
@@ -721,6 +762,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn drag_and_drop(mut self, enabled:bool) -> Self {
 		self.window_builder = self.window_builder.drag_and_drop(enabled);
+
 		self
 	}
 
@@ -729,6 +771,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn title_bar_style(mut self, style:crate::TitleBarStyle) -> Self {
 		self.window_builder = self.window_builder.title_bar_style(style);
+
 		self
 	}
 
@@ -737,6 +780,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn hidden_title(mut self, hidden:bool) -> Self {
 		self.window_builder = self.window_builder.hidden_title(hidden);
+
 		self
 	}
 
@@ -751,6 +795,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn tabbing_identifier(mut self, identifier:&str) -> Self {
 		self.window_builder = self.window_builder.tabbing_identifier(identifier);
+
 		self
 	}
 
@@ -765,6 +810,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	/// - **Linux**: Unsupported
 	pub fn effects(mut self, effects:crate::utils::config::WindowEffectsConfig) -> Self {
 		self.window_builder = self.window_builder.effects(effects);
+
 		self
 	}
 }
@@ -776,6 +822,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn accept_first_mouse(mut self, accept:bool) -> Self {
 		self.webview_builder = self.webview_builder.accept_first_mouse(accept);
+
 		self
 	}
 
@@ -817,6 +864,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn initialization_script(mut self, script:&str) -> Self {
 		self.webview_builder = self.webview_builder.initialization_script(script);
+
 		self
 	}
 
@@ -824,6 +872,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn user_agent(mut self, user_agent:&str) -> Self {
 		self.webview_builder = self.webview_builder.user_agent(user_agent);
+
 		self
 	}
 
@@ -842,6 +891,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn additional_browser_args(mut self, additional_args:&str) -> Self {
 		self.webview_builder = self.webview_builder.additional_browser_args(additional_args);
+
 		self
 	}
 
@@ -849,6 +899,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn data_directory(mut self, data_directory:PathBuf) -> Self {
 		self.webview_builder = self.webview_builder.data_directory(data_directory);
+
 		self
 	}
 
@@ -857,6 +908,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn disable_drag_drop_handler(mut self) -> Self {
 		self.webview_builder = self.webview_builder.disable_drag_drop_handler();
+
 		self
 	}
 
@@ -868,6 +920,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn enable_clipboard_access(mut self) -> Self {
 		self.webview_builder = self.webview_builder.enable_clipboard_access();
+
 		self
 	}
 
@@ -879,6 +932,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn incognito(mut self, incognito:bool) -> Self {
 		self.webview_builder = self.webview_builder.incognito(incognito);
+
 		self
 	}
 
@@ -887,6 +941,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn auto_resize(mut self) -> Self {
 		self.webview_builder = self.webview_builder.auto_resize();
+
 		self
 	}
 
@@ -896,6 +951,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn proxy_url(mut self, url:Url) -> Self {
 		self.webview_builder = self.webview_builder.proxy_url(url);
+
 		self
 	}
 
@@ -910,7 +966,9 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 		{
 			self.window_builder = self.window_builder.transparent(transparent);
 		}
+
 		self.webview_builder = self.webview_builder.transparent(transparent);
+
 		self
 	}
 
@@ -928,6 +986,7 @@ impl<'a, R:Runtime, M:Manager<R>> WebviewWindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn zoom_hotkeys_enabled(mut self, enabled:bool) -> Self {
 		self.webview_builder = self.webview_builder.zoom_hotkeys_enabled(enabled);
+
 		self
 	}
 }
@@ -978,6 +1037,7 @@ impl<'de, R:Runtime> CommandArg<'de, R> for WebviewWindow<R> {
 	/// Grabs the [`Window`] from the [`CommandItem`]. This will never fail.
 	fn from_command(command:CommandItem<'de, R>) -> Result<Self, InvokeError> {
 		let webview = command.message.webview();
+
 		if webview.window().is_webview_window() {
 			Ok(Self { webview })
 		} else {

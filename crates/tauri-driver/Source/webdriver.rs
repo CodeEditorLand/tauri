@@ -23,13 +23,16 @@ pub fn native(args: &Args) -> Command {
           "can not find the supplied binary path {}. This is currently required.",
           custom.display()
         );
+
         match current_dir() {
           Ok(cwd) => eprintln!("current working directory: {}", cwd.display()),
           Err(error) => eprintln!("can not find current working directory: {}", error),
         }
+
         std::process::exit(1);
       }
     }
+
     None => match which::which(DRIVER_BINARY) {
       Ok(binary) => binary,
       Err(error) => {
@@ -38,7 +41,9 @@ pub fn native(args: &Args) -> Command {
           You can also pass a custom path with --native-driver",
           DRIVER_BINARY
         );
+
         eprintln!("{:?}", error);
+
         std::process::exit(1);
       }
     },

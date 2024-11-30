@@ -73,10 +73,12 @@ impl DevChild {
 impl DevProcess for DevChild {
   fn kill(&self) -> std::io::Result<()> {
     self.manually_killed_process.store(true, Ordering::Relaxed);
+
     match self.child.kill() {
       Ok(_) => Ok(()),
       Err(e) => {
         self.manually_killed_process.store(false, Ordering::Relaxed);
+
         Err(e)
       }
     }
@@ -225,6 +227,7 @@ fn local_ip_address(force: bool) -> &'static IpAddr {
           let ipaddr = addresses.first().unwrap();
           *ipaddr
         }
+
         _ => {
           let selected = dialoguer::Select::with_theme(&dialoguer::theme::ColorfulTheme::default())
             .with_prompt(
@@ -244,7 +247,9 @@ fn local_ip_address(force: bool) -> &'static IpAddr {
     } else {
       local_ip_address::local_ip().unwrap_or_else(|_| prompt_for_ip())
     };
+
     log::info!("Using {ip} to access the development server.");
+
     ip
   })
 }
@@ -303,6 +308,7 @@ fn use_network_address_for_dev_url(
         }
       } else {
         let mut build = serde_json::Map::new();
+
         build.insert("devUrl".into(), url.to_string().into());
 
         dev_options
@@ -321,7 +327,9 @@ fn use_network_address_for_dev_url(
     let ip = dev_options
       .host
       .unwrap_or_else(|| *local_ip_address(force_ip_prompt));
+
     dev_options.host.replace(ip);
+
     Some(ip)
   } else {
     None
@@ -333,7 +341,9 @@ fn use_network_address_for_dev_url(
 
   if let Some(ip) = ip {
     std::env::set_var("TAURI_DEV_HOST", ip.to_string());
+
     std::env::set_var("TRUNK_SERVE_ADDRESS", ip.to_string());
+
     if ip.is_ipv6() {
       // in this case we can't ping the server for some reason
       dev_url_config.no_dev_server_wait = true;
@@ -348,6 +358,7 @@ fn env_vars() -> HashMap<String, OsString> {
   vars.insert("RUST_LOG_STYLE".into(), "always".into());
   for (k, v) in std::env::vars_os() {
     let k = k.to_string_lossy();
+
     if (k.starts_with("TAURI")
       && k != "TAURI_SIGNING_PRIVATE_KEY"
       && k != "TAURI_SIGNING_PRIVATE_KEY_PASSWORD")
@@ -376,9 +387,11 @@ pub fn write_options(identifier: &str, mut options: CliOptions) -> crate::Result
   let runtime = Runtime::new().unwrap();
   let r: anyhow::Result<(ServerHandle, SocketAddr)> = runtime.block_on(async move {
     let server = ServerBuilder::default().build("127.0.0.1:0").await?;
+
     let addr = server.local_addr()?;
 
     let mut module = RpcModule::new(());
+
     module.register_method("options", move |_, _, _| Some(options.clone()))?;
 
     let handle = server.start(module);
@@ -434,6 +447,7 @@ pub fn get_app(target: Target, config: &TauriConfig, interface: &AppInterface) -
 
   if identifier.is_empty() {
     log::error!("Bundle identifier set in `tauri.conf.json > identifier` cannot be empty");
+
     exit(1);
   }
 
@@ -523,6 +537,7 @@ fn ensure_init(
 
   if !project_outdated_reasons.is_empty() {
     let reason = project_outdated_reasons.join(" and ");
+
     bail!(
         "{} project directory is outdated because {reason}. Please run `tauri {} init` and try again.",
         target.ide_name(),
@@ -540,12 +555,15 @@ fn ensure_gradlew(project_dir: &std::path::Path) -> Result<()> {
   let gradlew_path = project_dir.join("gradlew");
   if let Ok(metadata) = gradlew_path.metadata() {
     let mut permissions = metadata.permissions();
+
     let is_executable = permissions.mode() & 0o111 != 0;
+
     if !is_executable {
       permissions.set_mode(permissions.mode() | 0o111);
       std::fs::set_permissions(&gradlew_path, permissions)
         .context("failed to mark gradlew as executable")?;
     }
+
     std::fs::write(
       &gradlew_path,
       std::fs::read_to_string(&gradlew_path)
@@ -561,6 +579,7 @@ fn ensure_gradlew(project_dir: &std::path::Path) -> Result<()> {
 fn log_finished(outputs: Vec<PathBuf>, kind: &str) {
   if !outputs.is_empty() {
     let mut printable_paths = String::new();
+
     for path in &outputs {
       writeln!(printable_paths, "        {}", path.display()).unwrap();
     }

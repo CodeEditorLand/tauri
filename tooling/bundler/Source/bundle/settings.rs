@@ -677,6 +677,7 @@ impl BundleBinary {
 	#[must_use]
 	pub fn set_src_path(mut self, src_path:Option<String>) -> Self {
 		self.src_path = src_path;
+
 		self
 	}
 
@@ -743,6 +744,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn project_out_directory<P:AsRef<Path>>(mut self, path:P) -> Self {
 		self.project_out_directory.replace(path.as_ref().to_path_buf());
+
 		self
 	}
 
@@ -751,6 +753,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn local_tools_directory<P:AsRef<Path>>(mut self, path:P) -> Self {
 		self.local_tools_directory.replace(path.as_ref().to_path_buf());
+
 		self
 	}
 
@@ -758,6 +761,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn package_types(mut self, package_types:Vec<PackageType>) -> Self {
 		self.package_types = Some(package_types);
+
 		self
 	}
 
@@ -765,6 +769,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn package_settings(mut self, settings:PackageSettings) -> Self {
 		self.package_settings.replace(settings);
+
 		self
 	}
 
@@ -772,6 +777,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn bundle_settings(mut self, settings:BundleSettings) -> Self {
 		self.bundle_settings = settings;
+
 		self
 	}
 
@@ -779,6 +785,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn binaries(mut self, binaries:Vec<BundleBinary>) -> Self {
 		self.binaries = binaries;
+
 		self
 	}
 
@@ -786,6 +793,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn target(mut self, target:String) -> Self {
 		self.target.replace(target);
+
 		self
 	}
 
@@ -794,6 +802,7 @@ impl SettingsBuilder {
 	#[must_use]
 	pub fn log_level(mut self, level:log::Level) -> Self {
 		self.log_level.replace(level);
+
 		self
 	}
 
@@ -910,12 +919,15 @@ impl Settings {
 
 		if let Some(package_types) = &self.package_types {
 			let mut types = vec![];
+
 			for package_type in package_types {
 				let package_type = *package_type;
+
 				if platform_types.clone().into_iter().any(|t| t == package_type) {
 					types.push(package_type);
 				}
 			}
+
 			Ok(types)
 		} else {
 			Ok(platform_types)
@@ -969,15 +981,19 @@ impl Settings {
 
 		for src in self.external_binaries() {
 			let src = src?;
+
 			let dest = path.join(
 				src.file_name()
 					.expect("failed to extract external binary filename")
 					.to_string_lossy()
 					.replace(&format!("-{}", self.target), ""),
 			);
+
 			common::copy_file(&src, &dest)?;
+
 			paths.push(dest);
 		}
+
 		Ok(paths)
 	}
 
@@ -985,9 +1001,12 @@ impl Settings {
 	pub fn copy_resources(&self, path:&Path) -> crate::Result<()> {
 		for resource in self.resource_files().iter() {
 			let resource = resource?;
+
 			let dest = path.join(resource.target());
+
 			common::copy_file(resource.path(), dest)?;
 		}
+
 		Ok(())
 	}
 
@@ -1008,6 +1027,7 @@ impl Settings {
 	/// Returns the authors as a comma-separated string.
 	pub fn authors_comma_separated(&self) -> Option<String> {
 		let names = self.author_names();
+
 		if names.is_empty() { None } else { Some(names.join(", ")) }
 	}
 

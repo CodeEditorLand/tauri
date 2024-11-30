@@ -158,9 +158,12 @@ fn copy_binaries_to_bundle(
   let dest_dir = bundle_directory.join("MacOS");
   for bin in settings.binaries() {
     let bin_path = settings.binary_path(bin);
+
     let dest_path = dest_dir.join(bin.name());
+
     fs_utils::copy_file(&bin_path, &dest_path)
       .with_context(|| format!("Failed to copy binary from {:?}", bin_path))?;
+
     paths.push(dest_path);
   }
   Ok(paths)
@@ -174,6 +177,7 @@ fn copy_custom_files_to_bundle(bundle_directory: &Path, settings: &Settings) -> 
     } else {
       contents_path
     };
+
     if path.is_file() {
       fs_utils::copy_file(path, &bundle_directory.join(contents_path))
         .with_context(|| format!("Failed to copy file {:?} to {:?}", path, contents_path))?;
@@ -246,6 +250,7 @@ fn create_info_plist(
           .iter()
           .map(|association| {
             let mut dict = plist::Dictionary::new();
+
             dict.insert(
               "CFBundleTypeExtensions".into(),
               plist::Value::Array(
@@ -256,6 +261,7 @@ fn create_info_plist(
                   .collect(),
               ),
             );
+
             dict.insert(
               "CFBundleTypeName".into(),
               association
@@ -265,10 +271,12 @@ fn create_info_plist(
                 .to_string()
                 .into(),
             );
+
             dict.insert(
               "CFBundleTypeRole".into(),
               association.role.to_string().into(),
             );
+
             plist::Value::Dictionary(dict)
           })
           .collect(),
@@ -284,6 +292,7 @@ fn create_info_plist(
           .iter()
           .map(|protocol| {
             let mut dict = plist::Dictionary::new();
+
             dict.insert(
               "CFBundleURLSchemes".into(),
               plist::Value::Array(
@@ -294,6 +303,7 @@ fn create_info_plist(
                   .collect(),
               ),
             );
+
             dict.insert(
               "CFBundleURLName".into(),
               protocol
@@ -306,7 +316,9 @@ fn create_info_plist(
                 ))
                 .into(),
             );
+
             dict.insert("CFBundleTypeRole".into(), protocol.role.to_string().into());
+
             plist::Value::Dictionary(dict)
           })
           .collect(),
@@ -322,18 +334,25 @@ fn create_info_plist(
 
   if let Some(exception_domain) = settings.macos().exception_domain.clone() {
     let mut security = plist::Dictionary::new();
+
     let mut domain = plist::Dictionary::new();
+
     domain.insert("NSExceptionAllowsInsecureHTTPLoads".into(), true.into());
+
     domain.insert("NSIncludesSubdomains".into(), true.into());
 
     let mut exception_domains = plist::Dictionary::new();
+
     exception_domains.insert(exception_domain, domain.into());
+
     security.insert("NSExceptionDomains".into(), exception_domains.into());
+
     plist.insert("NSAppTransportSecurity".into(), security.into());
   }
 
   if let Some(user_plist_path) = &settings.macos().info_plist_path {
     let user_plist = plist::Value::from_file(user_plist_path)?;
+
     if let Some(dict) = user_plist.into_dictionary() {
       for (key, value) in dict {
         plist.insert(key, value);
@@ -352,6 +371,7 @@ fn copy_framework_from(dest_dir: &Path, framework: &str, src_dir: &Path) -> crat
   let src_path = src_dir.join(&src_name);
   if src_path.exists() {
     fs_utils::copy_dir(&src_path, &dest_dir.join(&src_name))?;
+
     Ok(true)
   } else {
     Ok(false)
@@ -409,11 +429,13 @@ fn copy_frameworks_to_bundle(
         framework
       )));
     }
+
     if let Some(home_dir) = dirs::home_dir() {
       if copy_framework_from(&dest_dir, framework, &home_dir.join("Library/Frameworks/"))? {
         continue;
       }
     }
+
     if copy_framework_from(&dest_dir, framework, &PathBuf::from("/Library/Frameworks/"))?
       || copy_framework_from(
         &dest_dir,
@@ -423,6 +445,7 @@ fn copy_frameworks_to_bundle(
     {
       continue;
     }
+
     return Err(crate::Error::GenericError(format!(
       "Could not locate framework: {}",
       framework
@@ -477,6 +500,7 @@ fn add_executable_bundle_sign_path(
 fn add_nested_code_sign_path(src_path: &Path, dest_path: &Path, sign_paths: &mut Vec<SignTarget>) {
   for folder_name in NESTED_CODE_FOLDER.iter() {
     let src_folder_path = src_path.join(folder_name);
+
     let dest_folder_path = dest_path.join(folder_name);
 
     if src_folder_path.exists() {
@@ -491,7 +515,9 @@ fn add_nested_code_sign_path(src_path: &Path, dest_path: &Path, sign_paths: &mut
         }
 
         let dest_path = dest_folder_path.join(entry.file_name());
+
         let ext = entry.path().extension();
+
         if entry.path().is_dir() {
           // Bundles, like .app, .framework, .xpc
           if ext == Some(OsStr::new("framework")) {

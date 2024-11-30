@@ -44,11 +44,14 @@ pub fn render<P: AsRef<Path>, D: Serialize>(
   let mut created_dirs = Vec::new();
   render_with_generator(handlebars, data, dir, out_dir, &mut |file_path: PathBuf| {
     let path = out_dir.join(file_path);
+
     let parent = path.parent().unwrap().to_path_buf();
+
     if !created_dirs.contains(&parent) {
       create_dir_all(&parent)?;
       created_dirs.push(parent);
     }
+
     File::create(path).map(Some)
   })
 }
@@ -74,6 +77,7 @@ pub fn render_with_generator<
         file_path.set_extension("toml");
       }
     }
+
     if let Some(mut output_file) = out_file_generator(file_path)? {
       if let Some(utf8) = file.contents_utf8() {
         handlebars

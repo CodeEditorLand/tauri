@@ -31,6 +31,7 @@ impl From<pico_args::Arguments> for Args {
 		// args
 		if args.contains(["-h", "--help"]) {
 			println!("{}", HELP);
+
 			std::process::exit(0);
 		}
 
@@ -38,6 +39,7 @@ impl From<pico_args::Arguments> for Args {
 			Ok(native_driver) => native_driver,
 			Err(e) => {
 				eprintln!("Error while parsing option --native-driver: {}", e);
+
 				std::process::exit(1);
 			},
 		};
@@ -51,9 +53,12 @@ impl From<pico_args::Arguments> for Args {
 
 		// be strict about accepting args, error for anything extraneous
 		let rest = args.finish();
+
 		if !rest.is_empty() {
 			eprintln!("Error: unused arguments left: {:?}", rest);
+
 			eprintln!("{}", HELP);
+
 			std::process::exit(1);
 		}
 

@@ -71,6 +71,7 @@ pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<
     if path.exists() {
       fs::remove_dir_all(path).with_context(|| format!("Failed to remove old {}", dmg_name))?;
     }
+
     fs::create_dir_all(path)
       .with_context(|| format!("Failed to create output directory at {:?}", path))?;
   }
@@ -140,7 +141,9 @@ pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<
 
   if let Some(window_position) = &window_position {
     bundle_dmg_cmd.arg("--window-pos");
+
     bundle_dmg_cmd.arg(&window_position.0);
+
     bundle_dmg_cmd.arg(&window_position.1);
   }
 
@@ -152,12 +155,14 @@ pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<
 
   if let Some(background_path) = &background_path {
     bundle_dmg_cmd.arg("--background");
+
     bundle_dmg_cmd.arg(background_path);
   }
 
   let icns_icon_path = create_icns_file(&output_path, settings)?;
   if let Some(icon) = &icns_icon_path {
     bundle_dmg_cmd.arg("--volicon");
+
     bundle_dmg_cmd.arg(icon);
   }
 
@@ -169,6 +174,7 @@ pub fn bundle_project(settings: &Settings, bundles: &[Bundle]) -> crate::Result<
 
   if let Some(license_path) = &license_path {
     bundle_dmg_cmd.arg("--eula");
+
     bundle_dmg_cmd.arg(license_path);
   }
 

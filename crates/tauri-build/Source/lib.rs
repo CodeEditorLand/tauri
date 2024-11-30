@@ -61,7 +61,9 @@ fn copy_binaries(
 ) -> Result<()> {
   for src in binaries {
     let src = src?;
+
     println!("cargo:rerun-if-changed={}", src.display());
+
     let file_name = src
       .file_name()
       .expect("failed to extract external binary filename")
@@ -76,9 +78,11 @@ fn copy_binaries(
     }
 
     let dest = path.join(file_name);
+
     if dest.exists() {
       fs::remove_file(&dest).unwrap();
     }
+
     copy_file(&src, &dest)?;
   }
   Ok(())
@@ -94,7 +98,9 @@ fn copy_resources(resources: ResourcePaths<'_>, path: &Path) -> Result<()> {
 
     // avoid copying the resource if target is the same as source
     let src = resource.path().canonicalize()?;
+
     let target = path.join(resource.target());
+
     if src != target {
       copy_file(src, target)?;
     }
@@ -128,9 +134,13 @@ fn symlink_file(src: &Path, dst: &Path) -> std::io::Result<()> {
 fn copy_dir(from: &Path, to: &Path) -> Result<()> {
   for entry in walkdir::WalkDir::new(from) {
     let entry = entry?;
+
     debug_assert!(entry.path().starts_with(from));
+
     let rel_path = entry.path().strip_prefix(from)?;
+
     let dest_path = to.join(rel_path);
+
     if entry.file_type().is_symlink() {
       let target = fs::read_link(entry.path())?;
       if entry.path().is_dir() {
@@ -153,6 +163,7 @@ fn copy_framework_from(src_dir: &Path, framework: &str, dest_dir: &Path) -> Resu
   let src_path = src_dir.join(&src_name);
   if src_path.exists() {
     copy_dir(&src_path, &dest_dir.join(&src_name))?;
+
     Ok(true)
   } else {
     Ok(false)
@@ -187,11 +198,13 @@ fn copy_frameworks(dest_dir: &Path, frameworks: &[String]) -> Result<()> {
         framework
       ));
     }
+
     if let Some(home_dir) = dirs::home_dir() {
       if copy_framework_from(&home_dir.join("Library/Frameworks/"), framework, dest_dir)? {
         continue;
       }
     }
+
     if copy_framework_from(&PathBuf::from("/Library/Frameworks/"), framework, dest_dir)?
       || copy_framework_from(
         &PathBuf::from("/Network/Library/Frameworks/"),
@@ -279,6 +292,7 @@ impl WindowsAttributes {
     self
       .window_icon_path
       .replace(window_icon_path.as_ref().into());
+
     self
   }
 
@@ -336,6 +350,7 @@ impl WindowsAttributes {
   #[must_use]
   pub fn app_manifest<S: AsRef<str>>(mut self, manifest: S) -> Self {
     self.app_manifest = Some(manifest.as_ref().to_string());
+
     self
   }
 }
@@ -362,6 +377,7 @@ impl Attributes {
   #[must_use]
   pub fn windows_attributes(mut self, windows_attributes: WindowsAttributes) -> Self {
     self.windows_attributes = windows_attributes;
+
     self
   }
 
@@ -373,6 +389,7 @@ impl Attributes {
   #[must_use]
   pub fn capabilities_path_pattern(mut self, pattern: &'static str) -> Self {
     self.capabilities_path_pattern.replace(pattern);
+
     self
   }
 
@@ -381,6 +398,7 @@ impl Attributes {
   /// See [`InlinedPlugin`] for more information.
   pub fn plugin(mut self, name: &'static str, plugin: InlinedPlugin) -> Self {
     self.inlined_plugins.insert(name, plugin);
+
     self
   }
 
@@ -392,6 +410,7 @@ impl Attributes {
     I: IntoIterator<Item = (&'static str, InlinedPlugin)>,
   {
     self.inlined_plugins.extend(plugins);
+
     self
   }
 
@@ -400,6 +419,7 @@ impl Attributes {
   /// See [`AppManifest`] for more information.
   pub fn app_manifest(mut self, manifest: AppManifest) -> Self {
     self.app_manifest = manifest;
+
     self
   }
 
@@ -408,6 +428,7 @@ impl Attributes {
   #[must_use]
   pub fn codegen(mut self, codegen: codegen::context::CodegenContext) -> Self {
     self.codegen.replace(codegen);
+
     self
   }
 }
@@ -439,13 +460,16 @@ pub fn is_dev() -> bool {
 pub fn build() {
   if let Err(error) = try_build(Attributes::default()) {
     let error = format!("{error:#}");
+
     println!("{error}");
+
     if error.starts_with("unknown field") {
       print!("found an unknown configuration field. This usually means that you are using a CLI version that is newer than `tauri-build` and is incompatible. ");
       println!(
         "Please try updating the Rust crates by running `cargo update` in the Tauri app folder."
       );
     }
+
     std::process::exit(1);
   }
 }
@@ -479,6 +503,7 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
   let mut config = serde_json::from_value(config)?;
   if let Ok(env) = env::var("TAURI_CONFIG") {
     let merge_config: serde_json::Value = serde_json::from_str(&env)?;
+
     json_patch::merge(&mut config, &merge_config);
   }
   let config: Config = serde_json::from_value(config)?;
@@ -566,6 +591,7 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
     BundleResources::List(res) => {
       copy_resources(ResourcePaths::new(res.as_slice(), true), target_dir)?
     }
+
     BundleResources::Map(map) => copy_resources(ResourcePaths::from_map(&map, true), target_dir)?,
   }
 
@@ -573,6 +599,7 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
     if let Some(frameworks) = &config.bundle.macos.frameworks {
       if !frameworks.is_empty() {
         let frameworks_dir = target_dir.parent().unwrap().join("Frameworks");
+
         let _ = fs::remove_dir_all(&frameworks_dir);
         // copy frameworks to the root `target` folder (instead of `target/debug` for instance)
         // because the rpath is set to `@executable_path/../Frameworks`.
@@ -598,6 +625,7 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
 
   if target_triple.contains("windows") {
     use semver::Version;
+
     use tauri_winres::{VersionInfo, WindowsResource};
 
     fn find_icon<F: Fn(&&String) -> bool>(config: &Config, predicate: F, default: &str) -> PathBuf {
@@ -625,7 +653,9 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
     if let Some(version_str) = &config.version {
       if let Ok(v) = Version::parse(version_str) {
         let version = v.major << 48 | v.minor << 32 | v.patch << 16;
+
         res.set_version_info(VersionInfo::FILEVERSION, version);
+
         res.set_version_info(VersionInfo::PRODUCTVERSION, version);
       }
     }
@@ -662,6 +692,7 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
     })?;
 
     let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap();
+
     match target_env.as_str() {
       "gnu" => {
         let target_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
@@ -670,13 +701,16 @@ pub fn try_build(attributes: Attributes) -> Result<()> {
           "aarch64" => Some("arm64"),
           arch => None,
         };
+
         if let Some(target_arch) = target_arch {
           for entry in fs::read_dir(target_dir.join("build"))? {
             let path = entry?.path();
+
             let webview2_loader_path = path
               .join("out")
               .join(target_arch)
               .join("WebView2Loader.dll");
+
             if path.to_string_lossy().contains("webview2-com-sys") && webview2_loader_path.exists()
             {
               fs::copy(webview2_loader_path, target_dir.join("WebView2Loader.dll"))?;

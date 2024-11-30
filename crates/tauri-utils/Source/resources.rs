@@ -152,6 +152,7 @@ impl<'a> ResourcePathsIter<'a> {
     };
 
     self.current_path = Some(normalize(&entry));
+
     self.next_current_path()
   }
 
@@ -164,6 +165,7 @@ impl<'a> ResourcePathsIter<'a> {
     };
 
     self.current_path = Some(normalize(entry.path()));
+
     self.next_current_path()
   }
 
@@ -181,6 +183,7 @@ impl<'a> ResourcePathsIter<'a> {
           // if processing a directory, preserve directory structure under current_dest
           if self.walk_iter.is_some() {
             let current_pattern = self.current_pattern.as_ref().unwrap();
+
             current_dest.join(path.strip_prefix(current_pattern).unwrap_or(path))
           } else if current_dest.components().count() == 0 {
             // if current_dest is empty while processing a file pattern or glob
@@ -233,7 +236,9 @@ impl<'a> ResourcePathsIter<'a> {
 
   fn next_pattern(&mut self) -> Option<crate::Result<Resource>> {
     self.current_pattern = None;
+
     self.current_dest = None;
+
     self.current_path = None;
 
     let pattern = match &mut self.pattern_iter {
@@ -247,6 +252,7 @@ impl<'a> ResourcePathsIter<'a> {
           self.current_dest = Some(resource_relpath(Path::new(dest)));
           pattern
         }
+
         None => return None,
       },
     };
@@ -266,6 +272,7 @@ impl<'a> ResourcePathsIter<'a> {
     }
 
     self.current_path = Some(normalize(Path::new(pattern)));
+
     self.next_current_path()
   }
 }
@@ -329,12 +336,15 @@ mod tests {
 
   fn setup_test_dirs() {
     let mut random = [0; 1];
+
     getrandom::getrandom(&mut random).unwrap();
 
     let temp = std::env::temp_dir();
+
     let temp = temp.join(format!("tauri_resource_paths_iter_test_{}", random[0]));
 
     let _ = fs::remove_dir_all(&temp);
+
     fs::create_dir_all(&temp).unwrap();
 
     std::env::set_current_dir(&temp).unwrap();
@@ -379,6 +389,7 @@ mod tests {
     setup_test_dirs();
 
     let dir = std::env::current_dir().unwrap().join("src-tauri");
+
     let _ = std::env::set_current_dir(dir);
 
     let resources = ResourcePaths::new(
@@ -415,6 +426,7 @@ mod tests {
     ]);
 
     assert_eq!(resources.len(), expected.len());
+
     for resource in expected {
       if !resources.contains(&resource) {
         panic!("{resource:?} was expected but not found in {resources:?}");
@@ -428,6 +440,7 @@ mod tests {
     setup_test_dirs();
 
     let dir = std::env::current_dir().unwrap().join("src-tauri");
+
     let _ = std::env::set_current_dir(dir);
 
     let resources = ResourcePaths::new(
@@ -454,6 +467,7 @@ mod tests {
     ]);
 
     assert_eq!(resources.len(), expected.len());
+
     for resource in expected {
       if !resources.contains(&resource) {
         panic!("{resource:?} was expected but not found in {resources:?}");
@@ -467,6 +481,7 @@ mod tests {
     setup_test_dirs();
 
     let dir = std::env::current_dir().unwrap().join("src-tauri");
+
     let _ = std::env::set_current_dir(dir);
 
     let resources = ResourcePaths::from_map(
@@ -510,6 +525,7 @@ mod tests {
     ]);
 
     assert_eq!(resources.len(), expected.len());
+
     for resource in expected {
       if !resources.contains(&resource) {
         panic!("{resource:?} was expected but not found in {resources:?}");
@@ -523,6 +539,7 @@ mod tests {
     setup_test_dirs();
 
     let dir = std::env::current_dir().unwrap().join("src-tauri");
+
     let _ = std::env::set_current_dir(dir);
 
     let resources = ResourcePaths::from_map(
@@ -549,6 +566,7 @@ mod tests {
     ]);
 
     assert_eq!(resources.len(), expected.len());
+
     for resource in expected {
       if !resources.contains(&resource) {
         panic!("{resource:?} was expected but not found in {resources:?}");
@@ -562,6 +580,7 @@ mod tests {
     setup_test_dirs();
 
     let dir = std::env::current_dir().unwrap().join("src-tauri");
+
     let _ = std::env::set_current_dir(dir);
 
     let resources = ResourcePaths::from_map(
@@ -588,6 +607,7 @@ mod tests {
     assert!(resources
       .iter()
       .any(|r| matches!(r, Err(crate::Error::ResourcePathNotFound(_)))));
+
     assert_eq!(
       resources
         .iter()
@@ -595,9 +615,11 @@ mod tests {
         .count(),
       2
     );
+
     assert!(resources
       .iter()
       .any(|r| matches!(r, Err(crate::Error::NotAllowedToWalkDir(_)))));
+
     assert_eq!(
       resources
         .iter()
@@ -605,9 +627,11 @@ mod tests {
         .count(),
       1
     );
+
     assert!(resources
       .iter()
       .any(|r| matches!(r, Err(crate::Error::GlobPathNotFound(_)))));
+
     assert_eq!(
       resources
         .iter()

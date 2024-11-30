@@ -138,14 +138,17 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let result = run_command(options, noise_level);
+
 	if result.is_err() {
 		crate::dev::kill_before_dev_process();
 	}
+
 	result
 }
 
 fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	let env = env()?;
+
 	let device = if options.open {
 		None
 	} else {
@@ -153,22 +156,26 @@ fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 			Ok(d) => Some(d),
 			Err(e) => {
 				log::error!("{e}");
+
 				None
 			},
 		}
 	};
 
 	let mut dev_options:DevOptions = options.clone().into();
+
 	let target_triple = device
 		.as_ref()
 		.map(|d| d.target().triple.to_string())
 		.unwrap_or_else(|| "aarch64-apple-ios".into());
+
 	dev_options.target = Some(target_triple.clone());
 
 	let tauri_config = get_tauri_config(
 		tauri_utils::platform::Target::Ios,
 		options.config.as_ref().map(|c| &c.0),
 	)?;
+
 	let (interface, config) = {
 		let tauri_config_guard = tauri_config.lock().unwrap();
 
@@ -185,17 +192,21 @@ fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	};
 
 	let tauri_path = tauri_dir();
+
 	set_current_dir(tauri_path).with_context(|| "failed to change current working directory")?;
 
 	ensure_init(&tauri_config, config.app(), config.project_dir(), MobileTarget::Ios)?;
+
 	inject_resources(&config, tauri_config.lock().unwrap().as_ref().unwrap())?;
 
 	let info_plist_path = config.project_dir().join(config.scheme()).join("Info.plist");
+
 	let merged_info_plist = merge_plist(vec![
 		info_plist_path.clone().into(),
 		tauri_path.join("Info.plist").into(),
 		tauri_path.join("Info.ios.plist").into(),
 	])?;
+
 	merged_info_plist.to_file_xml(&info_plist_path)?;
 
 	let mut pbxproj = load_pbxproj(&config)?;
@@ -209,6 +220,7 @@ fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 		&ProjectConfig { code_sign_identity:None, team_id:None, provisioning_profile_uuid:None },
 		!options.release_mode,
 	)?;
+
 	if pbxproj.has_changes() {
 		pbxproj.save()?;
 	}
@@ -218,6 +230,7 @@ fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 
 fn local_ip_address(force:bool) -> &'static IpAddr {
 	static LOCAL_IP:OnceLock<IpAddr> = OnceLock::new();
+
 	LOCAL_IP.get_or_init(|| {
 		let prompt_for_ip = || {
 			let addresses:Vec<IpAddr> = local_ip_address::list_afinet_netifas()
@@ -231,6 +244,7 @@ fn local_ip_address(force:bool) -> &'static IpAddr {
 					}
 				})
 				.collect();
+
 			match addresses.len() {
 				0 => panic!("No external IP detected."),
 				1 => {
@@ -258,7 +272,9 @@ fn local_ip_address(force:bool) -> &'static IpAddr {
 		} else {
 			local_ip_address::local_ip().unwrap_or_else(|_| prompt_for_ip())
 		};
+
 		log::info!("Using {ip} to access the development server.");
+
 		ip
 	})
 }
@@ -284,6 +300,7 @@ fn use_network_address_for_dev_url(
 				.host
 				.unwrap_or_default()
 				.unwrap_or_else(|| *local_ip_address(options.force_ip_prompt));
+
 			log::info!(
 				"Replacing devUrl host with {ip}. {}.",
 				"If your frontend is not listening on that address, try configuring your \
@@ -308,12 +325,14 @@ fn use_network_address_for_dev_url(
 				}
 			} else {
 				let mut build = serde_json::Map::new();
+
 				build.insert("devUrl".into(), url.to_string().into());
 
 				options.config.replace(crate::ConfigValue(serde_json::json!({
 				  "build": build
 				})));
 			}
+
 			reload_config(options.config.as_ref().map(|c| &c.0))?;
 
 			Some(ip)
@@ -325,7 +344,9 @@ fn use_network_address_for_dev_url(
 			.host
 			.unwrap_or_default()
 			.unwrap_or_else(|| *local_ip_address(options.force_ip_prompt));
+
 		dev_options.host.replace(ip);
+
 		Some(ip)
 	} else {
 		None
@@ -333,6 +354,7 @@ fn use_network_address_for_dev_url(
 
 	if let Some(ip) = ip {
 		std::env::set_var("TAURI_DEV_HOST", ip.to_string());
+
 		if ip.is_ipv6() {
 			// in this case we can't ping the server for some reason
 			dev_options.no_dev_server_wait = true;
@@ -366,17 +388,21 @@ fn run_dev(
 	crate::dev::setup(&interface, &mut dev_options, tauri_config.clone())?;
 
 	let app_settings = interface.app_settings();
+
 	let bin_path = app_settings.app_binary_path(&InterfaceOptions {
 		debug:!dev_options.release_mode,
 		target:dev_options.target.clone(),
 		..Default::default()
 	})?;
+
 	let out_dir = bin_path.parent().unwrap();
+
 	let _lock = flock::open_rw(out_dir.join("lock").with_extension("ios"), "iOS")?;
 
 	let set_host = options.host.is_some();
 
 	let open = options.open;
+
 	interface.mobile_dev(
 		MobileOptions {
 			debug:true,
@@ -395,6 +421,7 @@ fn run_dev(
 				config:dev_options.config.clone(),
 				target_device:None,
 			};
+
 			let _handle = write_options(
 				&tauri_config.lock().unwrap().as_ref().unwrap().identifier,
 				cli_options,
@@ -404,12 +431,14 @@ fn run_dev(
 				if !set_host {
 					log::warn!("{PHYSICAL_IPHONE_DEV_WARNING}");
 				}
+
 				open_and_wait(config, &env)
 			} else if let Some(device) = &device {
 				match run(device, options, config, &env) {
 					Ok(c) => Ok(Box::new(c) as Box<dyn DevProcess + Send>),
 					Err(e) => {
 						crate::dev::kill_before_dev_process();
+
 						Err(e)
 					},
 				}
@@ -417,6 +446,7 @@ fn run_dev(
 				if !set_host {
 					log::warn!("{PHYSICAL_IPHONE_DEV_WARNING}");
 				}
+
 				open_and_wait(config, &env)
 			}
 		},

@@ -44,6 +44,7 @@ impl<P:AsRef<Path>> From<P> for AssetKey {
 
 		let buf = if cfg!(windows) {
 			let mut buf = String::new();
+
 			for component in path.components() {
 				match component {
 					Component::RootDir => buf.push('/'),
@@ -54,6 +55,7 @@ impl<P:AsRef<Path>> From<P> for AssetKey {
 					},
 					Component::Normal(s) => {
 						buf.push_str(&s.to_string_lossy());
+
 						buf.push('/')
 					},
 				}
@@ -134,6 +136,7 @@ impl EmbeddedAssets {
 				// with the exception of extremely small files, output should
 				// usually be at least as large as the compressed version.
 				let mut buf = Vec::with_capacity(asdf.len());
+
 				brotli::BrotliDecompress(&mut asdf, &mut buf).map(|()| buf)
 			})
 			.and_then(Result::ok)

@@ -14,6 +14,7 @@ fn get_env_var(name: &str, error: &mut Option<TokenStream2>, function: &ItemFn) 
       let ident = format_ident!("{value}");
       quote!(#ident)
     }
+
     Err(_) => {
       error.replace(
         syn::Error::new(
@@ -65,6 +66,7 @@ pub fn entry_point(_attributes: TokenStream, item: TokenStream) -> TokenStream {
           Ok(t) => t,
           Err(err) => {
             eprintln!("attempt to unwind out of `rust` with err: {:?}", err);
+
             std::process::abort()
           }
         }
@@ -79,6 +81,7 @@ pub fn entry_point(_attributes: TokenStream, item: TokenStream) -> TokenStream {
         {
           ::tauri::android_binding!(#domain, #app_name, _start_app, ::tauri::wry);
         }
+
         stop_unwind(#wrapper_name);
       }
 

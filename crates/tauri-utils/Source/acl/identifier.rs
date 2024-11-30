@@ -172,7 +172,9 @@ impl TryFrom<String> for Identifier {
       .ok_or(Self::Error::InvalidFormat)?;
 
     let mut idx = 0;
+
     let mut separator = None;
+
     for byte in bytes {
       idx += 1; // we already consumed first item
       match prev.next(byte) {
@@ -182,6 +184,7 @@ impl TryFrom<String> for Identifier {
           if separator.is_none() || is_core_identifier {
             // safe to unwrap because idx starts at 1 and cannot go over MAX_IDENTIFIER_LEN
             separator = Some(idx.try_into().unwrap());
+
             prev = ValidByte::Separator
           } else {
             return Err(Self::Error::MultipleSeparators);
@@ -241,29 +244,42 @@ mod tests {
   #[test]
   fn format() {
     assert!(ident("prefix:base").is_ok());
+
     assert!(ident("prefix3:base").is_ok());
+
     assert!(ident("preFix:base").is_ok());
 
     // bad
     assert!(ident("tauri-plugin-prefix:base").is_err());
 
     assert!(ident("-prefix-:-base-").is_err());
+
     assert!(ident("-prefix:base").is_err());
+
     assert!(ident("prefix-:base").is_err());
+
     assert!(ident("prefix:-base").is_err());
+
     assert!(ident("prefix:base-").is_err());
 
     assert!(ident("pre--fix:base--sep").is_err());
+
     assert!(ident("prefix:base--sep").is_err());
+
     assert!(ident("pre--fix:base").is_err());
 
     assert!(ident("prefix::base").is_err());
+
     assert!(ident(":base").is_err());
+
     assert!(ident("prefix:").is_err());
+
     assert!(ident(":prefix:base:").is_err());
+
     assert!(ident("base:").is_err());
 
     assert!(ident("").is_err());
+
     assert!(ident("💩").is_err());
 
     assert!(ident("a".repeat(MAX_LEN_IDENTIFIER + 1)).is_err());
@@ -272,12 +288,14 @@ mod tests {
   #[test]
   fn base() {
     assert_eq!(ident("prefix:base").unwrap().get_base(), "base");
+
     assert_eq!(ident("base").unwrap().get_base(), "base");
   }
 
   #[test]
   fn prefix() {
     assert_eq!(ident("prefix:base").unwrap().get_prefix(), Some("prefix"));
+
     assert_eq!(ident("base").unwrap().get_prefix(), None);
   }
 }

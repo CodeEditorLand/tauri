@@ -30,9 +30,13 @@ impl Parse for ContextItems {
       .unwrap_or_else(|_| Target::current());
 
     let mut root = None;
+
     let mut capabilities = None;
+
     let mut assets = None;
+
     let mut test = false;
+
     let config_file = input.parse::<LitStr>().ok().map(|raw| {
       let _ = input.parse::<Token![,]>();
       let path = PathBuf::from(raw.value());
@@ -60,6 +64,7 @@ impl Parse for ContextItems {
         Meta::Path(p) => {
           root.replace(p);
         }
+
         Meta::NameValue(v) => {
           let ident = v.path.require_ident()?;
           match ident.to_string().as_str() {
@@ -106,6 +111,7 @@ impl Parse for ContextItems {
                 return Err(syn::Error::new(input.span(), "unexpected value for test"));
               }
             }
+
             name => {
               return Err(syn::Error::new(
                 input.span(),
@@ -114,6 +120,7 @@ impl Parse for ContextItems {
             }
           }
         }
+
         Meta::List(_) => {
           return Err(syn::Error::new(input.span(), "unexpected list input"));
         }
@@ -132,10 +139,12 @@ impl Parse for ContextItems {
         .map_err(|e| input.error(e))?,
       root: root.unwrap_or_else(|| {
         let mut segments = Punctuated::new();
+
         segments.push(PathSegment {
           ident: Ident::new("tauri", Span::call_site()),
           arguments: PathArguments::None,
         });
+
         syn::Path {
           leading_colon: Some(Token![::](Span::call_site())),
           segments,

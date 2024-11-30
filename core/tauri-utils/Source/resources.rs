@@ -14,6 +14,7 @@ use walkdir::WalkDir;
 /// should be stored.
 pub fn resource_relpath(path:&Path) -> PathBuf {
 	let mut dest = PathBuf::new();
+
 	for component in path.components() {
 		match component {
 			Component::Prefix(_) => {},
@@ -23,11 +24,13 @@ pub fn resource_relpath(path:&Path) -> PathBuf {
 			Component::Normal(string) => dest.push(string),
 		}
 	}
+
 	dest
 }
 
 fn normalize(path:&Path) -> PathBuf {
 	let mut dest = PathBuf::new();
+
 	for component in path.components() {
 		match component {
 			Component::Prefix(_) => {},
@@ -37,6 +40,7 @@ fn normalize(path:&Path) -> PathBuf {
 			Component::Normal(string) => dest.push(string),
 		}
 	}
+
 	dest
 }
 
@@ -44,6 +48,7 @@ fn normalize(path:&Path) -> PathBuf {
 /// each of them.
 pub fn external_binaries(external_binaries:&[String], target_triple:&str) -> Vec<String> {
 	let mut paths = Vec::new();
+
 	for curr_path in external_binaries {
 		paths.push(format!(
 			"{}-{}{}",
@@ -52,6 +57,7 @@ pub fn external_binaries(external_binaries:&[String], target_triple:&str) -> Vec
 			if target_triple.contains("windows") { ".exe" } else { "" }
 		));
 	}
+
 	paths
 }
 
@@ -143,6 +149,7 @@ impl<'a> ResourcePathsIter<'a> {
 		};
 
 		self.current_path = Some(normalize(&entry));
+
 		self.next_current_path()
 	}
 
@@ -155,6 +162,7 @@ impl<'a> ResourcePathsIter<'a> {
 		};
 
 		self.current_path = Some(normalize(entry.path()));
+
 		self.next_current_path()
 	}
 
@@ -173,6 +181,7 @@ impl<'a> ResourcePathsIter<'a> {
 					// under current_dest
 					if self.walk_iter.is_some() {
 						let current_pattern = self.current_pattern.as_ref().unwrap();
+
 						current_dest.join(path.strip_prefix(current_pattern).unwrap_or(path))
 					} else if current_dest.components().count() == 0 {
 						// if current_dest is empty while processing a file
@@ -217,6 +226,7 @@ impl<'a> ResourcePathsIter<'a> {
 				Some(resource) => Some(resource),
 				None => {
 					self.walk_iter = None;
+
 					self.next()
 				},
 			}
@@ -227,7 +237,9 @@ impl<'a> ResourcePathsIter<'a> {
 
 	fn next_pattern(&mut self) -> Option<crate::Result<Resource>> {
 		self.current_pattern = None;
+
 		self.current_dest = None;
+
 		self.current_path = None;
 
 		let pattern = match &mut self.pattern_iter {
@@ -241,7 +253,9 @@ impl<'a> ResourcePathsIter<'a> {
 				match iter.next() {
 					Some((pattern, dest)) => {
 						self.current_pattern = Some(pattern.clone());
+
 						self.current_dest = Some(resource_relpath(Path::new(dest)));
+
 						pattern
 					},
 					None => return None,
@@ -254,16 +268,19 @@ impl<'a> ResourcePathsIter<'a> {
 				Ok(glob) => Some(glob),
 				Err(error) => return Some(Err(error.into())),
 			};
+
 			match self.next_glob_iter() {
 				Some(r) => return Some(r),
 				None => {
 					self.glob_iter = None;
+
 					return Some(Err(crate::Error::GlobPathNotFound(pattern.clone())));
 				},
 			}
 		}
 
 		self.current_path = Some(normalize(Path::new(pattern)));
+
 		self.next_current_path()
 	}
 }
@@ -327,6 +344,7 @@ mod tests {
 
 	fn setup_test_dirs() {
 		let mut random = [0; 1];
+
 		getrandom::getrandom(&mut random).unwrap();
 
 		let temp = std::env::temp_dir();
@@ -334,6 +352,7 @@ mod tests {
 		let temp = temp.join(format!("tauri_resource_paths_iter_test_{}", random[0]));
 
 		let _ = fs::remove_dir_all(&temp);
+
 		fs::create_dir_all(&temp).unwrap();
 
 		std::env::set_current_dir(&temp).unwrap();
@@ -368,6 +387,7 @@ mod tests {
 
 		for path in paths {
 			fs::create_dir_all(path.parent().unwrap()).unwrap();
+
 			fs::write(path, "").unwrap();
 		}
 	}
@@ -412,6 +432,7 @@ mod tests {
 		]);
 
 		assert_eq!(resources.len(), expected.len());
+
 		for resource in expected {
 			if !resources.contains(&resource) {
 				panic!("{resource:?} was expected but not found in {resources:?}");
@@ -452,6 +473,7 @@ mod tests {
 		]);
 
 		assert_eq!(resources.len(), expected.len());
+
 		for resource in expected {
 			if !resources.contains(&resource) {
 				panic!("{resource:?} was expected but not found in {resources:?}");
@@ -509,6 +531,7 @@ mod tests {
 		]);
 
 		assert_eq!(resources.len(), expected.len());
+
 		for resource in expected {
 			if !resources.contains(&resource) {
 				panic!("{resource:?} was expected but not found in {resources:?}");
@@ -549,6 +572,7 @@ mod tests {
 		]);
 
 		assert_eq!(resources.len(), expected.len());
+
 		for resource in expected {
 			if !resources.contains(&resource) {
 				panic!("{resource:?} was expected but not found in {resources:?}");
@@ -595,6 +619,7 @@ mod tests {
 				.iter()
 				.any(|r| { matches!(r, Err(crate::Error::ResourcePathNotFound(_))) })
 		);
+
 		assert_eq!(
 			resources
 				.iter()
@@ -602,11 +627,13 @@ mod tests {
 				.count(),
 			2
 		);
+
 		assert!(
 			resources
 				.iter()
 				.any(|r| { matches!(r, Err(crate::Error::NotAllowedToWalkDir(_))) })
 		);
+
 		assert_eq!(
 			resources
 				.iter()
@@ -614,7 +641,9 @@ mod tests {
 				.count(),
 			1
 		);
+
 		assert!(resources.iter().any(|r| matches!(r, Err(crate::Error::GlobPathNotFound(_)))));
+
 		assert_eq!(
 			resources
 				.iter()

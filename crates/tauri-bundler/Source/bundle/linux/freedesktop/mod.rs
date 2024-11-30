@@ -59,6 +59,7 @@ pub fn list_icon_files(
   let mut icons = BTreeMap::new();
   for icon_path in settings.icon_files() {
     let icon_path = icon_path?;
+
     if icon_path.extension() != Some(OsStr::new("png")) {
       continue;
     }
@@ -76,6 +77,7 @@ pub fn list_icon_files(
         path: dest_path,
       }
     };
+
     icons.entry(icon).or_insert(icon_path);
   }
 

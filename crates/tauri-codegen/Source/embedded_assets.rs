@@ -179,13 +179,16 @@ impl CspHashes {
     if let Some("js") | Some("mjs") = path.extension().and_then(|os| os.to_str()) {
       if dangerous_disable_asset_csp_modification.can_modify("script-src") {
         let mut hasher = Sha256::new();
+
         hasher.update(
           &std::fs::read(path).map_err(|error| EmbeddedAssetsError::AssetRead {
             path: path.to_path_buf(),
             error,
           })?,
         );
+
         let hash = hasher.finalize();
+
         self.scripts.push(format!(
           "'sha256-{}'",
           base64::engine::general_purpose::STANDARD.encode(hash)
@@ -225,6 +228,7 @@ impl AssetOptions {
   #[must_use]
   pub fn with_csp(mut self) -> Self {
     self.csp = true;
+
     self
   }
 
@@ -232,6 +236,7 @@ impl AssetOptions {
   #[must_use]
   pub fn freeze_prototype(mut self, freeze: bool) -> Self {
     self.freeze_prototype = freeze;
+
     self
   }
 
@@ -241,6 +246,7 @@ impl AssetOptions {
     dangerous_disable_asset_csp_modification: DisabledCspModificationKind,
   ) -> Self {
     self.dangerous_disable_asset_csp_modification = dangerous_disable_asset_csp_modification;
+
     self
   }
 }
@@ -275,7 +281,9 @@ impl EmbeddedAssets {
       move |mut state, (prefix, entry)| {
         let (key, asset) =
           Self::compress_file(&prefix, entry.path(), &mut map, &mut state.csp_hashes)?;
+
         state.assets.insert(key, asset);
+
         Result::<_, EmbeddedAssetsError>::Ok(state)
       },
     )?;
@@ -361,6 +369,7 @@ impl EmbeddedAssets {
       #[cfg(not(feature = "compression"))]
       {
         use std::io::Write;
+
         out_file
           .write_all(&input)
           .map_err(|error| EmbeddedAssetsError::AssetWrite {
@@ -389,6 +398,7 @@ impl EmbeddedAssets {
 impl ToTokens for EmbeddedAssets {
   fn to_tokens(&self, tokens: &mut TokenStream) {
     let mut assets = TokenStream::new();
+
     for (key, (input, output)) in &self.assets {
       let key: &str = key.as_ref();
       let input = input.display().to_string();
@@ -397,11 +407,13 @@ impl ToTokens for EmbeddedAssets {
       // add original asset as a compiler dependency, rely on dead code elimination to clean it up
       assets.append_all(quote!(#key => {
         const _: &[u8] = include_bytes!(#input);
+
         include_bytes!(#output)
       },));
     }
 
     let mut global_hashes = TokenStream::new();
+
     for script_hash in &self.csp_hashes.scripts {
       let hash = script_hash.as_str();
       global_hashes.append_all(quote!(CspHash::Script(#hash),));
@@ -413,11 +425,13 @@ impl ToTokens for EmbeddedAssets {
     }
 
     let mut html_hashes = TokenStream::new();
+
     for (path, hashes) in &self.csp_hashes.inline_scripts {
       let key = path.as_str();
       let mut value = TokenStream::new();
       for script_hash in hashes {
         let hash = script_hash.as_str();
+
         value.append_all(quote!(CspHash::Script(#hash),));
       }
       html_hashes.append_all(quote!(#key => &[#value],));
@@ -427,6 +441,7 @@ impl ToTokens for EmbeddedAssets {
     tokens.append_all(quote! {{
         #[allow(unused_imports)]
         use ::tauri::utils::assets::{CspHash, EmbeddedAssets, phf, phf::phf_map};
+
         EmbeddedAssets::new(phf_map! { #assets }, &[#global_hashes], phf_map! { #html_hashes })
     }});
   }

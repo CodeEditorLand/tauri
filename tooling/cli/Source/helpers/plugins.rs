@@ -74,6 +74,7 @@ pub fn known_plugins() -> HashMap<&'static str, PluginMetadata> {
 	}
 
 	let version_req = version_req();
+
 	for plugin in plugins.values_mut() {
 		plugin.version_req.replace(version_req.clone());
 	}
@@ -83,6 +84,7 @@ pub fn known_plugins() -> HashMap<&'static str, PluginMetadata> {
 
 fn version_req() -> String {
 	let pre = env!("CARGO_PKG_VERSION_PRE");
+
 	if pre.is_empty() {
 		env!("CARGO_PKG_VERSION_MAJOR").to_string()
 	} else {

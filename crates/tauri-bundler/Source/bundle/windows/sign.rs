@@ -244,6 +244,7 @@ pub fn sign<P: AsRef<Path>>(path: P, params: &SignParams) -> crate::Result<()> {
 pub fn try_sign(file_path: &std::path::PathBuf, settings: &Settings) -> crate::Result<()> {
   if settings.can_sign() {
     log::info!(action = "Signing"; "{}", tauri_utils::display_path(file_path));
+
     sign(file_path, &settings.sign_params())?;
   }
   Ok(())

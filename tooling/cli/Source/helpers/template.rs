@@ -37,15 +37,20 @@ pub fn render<P:AsRef<Path>, D:Serialize>(
 	out_dir:P,
 ) -> crate::Result<()> {
 	let out_dir = out_dir.as_ref();
+
 	let mut created_dirs = Vec::new();
+
 	render_with_generator(handlebars, data, dir, out_dir, &mut |file_path:PathBuf| {
 		let path = out_dir.join(file_path);
 
 		let parent = path.parent().unwrap().to_path_buf();
+
 		if !created_dirs.contains(&parent) {
 			create_dir_all(&parent)?;
+
 			created_dirs.push(parent);
 		}
+
 		File::create(path).map(Some)
 	})
 }
@@ -62,6 +67,7 @@ pub fn render_with_generator<
 	out_file_generator:&mut F,
 ) -> crate::Result<()> {
 	let out_dir = out_dir.as_ref();
+
 	for file in dir.files() {
 		let mut file_path = file.path().to_path_buf();
 		// cargo for some reason ignores the /templates folder packaging when it has a
@@ -71,6 +77,7 @@ pub fn render_with_generator<
 				file_path.set_extension("toml");
 			}
 		}
+
 		if let Some(mut output_file) = out_file_generator(file_path)? {
 			if let Some(utf8) = file.contents_utf8() {
 				handlebars
@@ -81,8 +88,10 @@ pub fn render_with_generator<
 			}
 		}
 	}
+
 	for dir in dir.dirs() {
 		render_with_generator(handlebars, data, dir, out_dir, out_file_generator)?;
 	}
+
 	Ok(())
 }

@@ -51,6 +51,7 @@ pub enum Status {
 impl Status {
 	fn color<S:AsRef<str>>(&self, s:S) -> ColoredString {
 		let s = s.as_ref();
+
 		match self {
 			Status::Neutral => s.normal(),
 			Status::Success => s.green(),
@@ -127,6 +128,7 @@ impl Display for SectionItem {
 			.unwrap_or_default();
 
 		let (first, second) = desc.split_once(':').unwrap();
+
 		write!(f, "{} {}:{}", self.status, first.bold(), second)
 	}
 }
@@ -138,6 +140,7 @@ impl SectionItem {
 
 	fn action<F:FnMut() -> ActionResult + 'static>(mut self, action:F) -> Self {
 		self.action = Some(Box::new(action));
+
 		self
 	}
 
@@ -148,22 +151,27 @@ impl SectionItem {
 
 	fn description<S:AsRef<str>>(mut self, description:S) -> Self {
 		self.description = Some(description.as_ref().to_string());
+
 		self
 	}
 
 	fn run_action(&mut self) {
 		let mut res = ActionResult::None;
+
 		if let Some(action) = &mut self.action {
 			res = action();
 		}
+
 		self.apply_action_result(res);
 	}
 
 	fn run_action_if_err(&mut self) {
 		let mut res = ActionResult::None;
+
 		if let Some(action) = &mut self.action_if_err {
 			res = action();
 		}
+
 		self.apply_action_result(res);
 	}
 
@@ -171,6 +179,7 @@ impl SectionItem {
 		match result {
 			ActionResult::Full { description, status } => {
 				self.description = Some(description);
+
 				self.status = status;
 			},
 			ActionResult::Description(description) => {
@@ -192,6 +201,7 @@ impl SectionItem {
 					))
 					.interact()
 					.unwrap_or(false);
+
 				if confirmed {
 					self.run_action_if_err()
 				}
@@ -214,6 +224,7 @@ impl Section<'_> {
 
 		for item in &mut self.items {
 			let s = item.run(self.interactive);
+
 			if s > status {
 				status = s;
 			}
@@ -224,7 +235,9 @@ impl Section<'_> {
 		let status = status.color(status_str);
 
 		println!();
+
 		println!("{} {}", status, self.label.bold().yellow());
+
 		for item in &self.items {
 			if item.description.is_some() {
 				println!("    {item}");
@@ -248,6 +261,7 @@ pub fn command(options:Options) -> Result<()> {
 	let Options { interactive } = options;
 
 	let app_dir = crate::helpers::app_paths::resolve_app_dir();
+
 	let tauri_dir = crate::helpers::app_paths::resolve_tauri_dir();
 
 	if tauri_dir.is_some() {
@@ -263,15 +277,21 @@ pub fn command(options:Options) -> Result<()> {
 	let metadata = version_metadata()?;
 
 	let mut environment = Section { label:"Environment", interactive, items:Vec::new() };
+
 	environment.items.extend(env_system::items());
+
 	environment.items.extend(env_rust::items());
+
 	let items = env_nodejs::items(&metadata);
+
 	environment.items.extend(items);
 
 	let mut packages = Section { label:"Packages", interactive, items:Vec::new() };
+
 	packages
 		.items
 		.extend(packages_rust::items(app_dir.as_ref(), tauri_dir.as_deref()));
+
 	packages
 		.items
 		.extend(packages_nodejs::items(app_dir.as_ref(), package_manager, &metadata));
@@ -283,11 +303,15 @@ pub fn command(options:Options) -> Result<()> {
 	};
 
 	let mut app = Section { label:"App", interactive, items:Vec::new() };
+
 	app.items.extend(app::items(app_dir.as_ref(), tauri_dir.as_deref()));
 
 	environment.display();
+
 	packages.display();
+
 	plugins.display();
+
 	app.display();
 
 	// iOS
@@ -296,7 +320,9 @@ pub fn command(options:Options) -> Result<()> {
 		if let Some(p) = &tauri_dir {
 			if p.join("gen/apple").exists() {
 				let mut ios = Section { label:"iOS", interactive, items:Vec::new() };
+
 				ios.items.extend(ios::items());
+
 				ios.display();
 			}
 		}

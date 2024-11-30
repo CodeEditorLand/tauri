@@ -44,6 +44,7 @@ impl CachedIcon {
 	/// Cache the icon without any manipulation.
 	pub fn new_raw(root:&TokenStream, icon:&Path) -> EmbeddedAssetsResult<Self> {
 		let buf = Self::open(icon);
+
 		Cached::try_from(buf).map(|cache| Self { cache, root:root.clone(), format:IconFormat::Raw })
 	}
 
@@ -86,6 +87,7 @@ impl CachedIcon {
 		}
 
 		let mut rgba = Vec::with_capacity(reader.output_buffer_size());
+
 		while let Ok(Some(row)) = reader.next_row() {
 			rgba.extend(row.data());
 		}
@@ -112,6 +114,7 @@ impl ToTokens for CachedIcon {
 		let cache = &self.cache;
 
 		let raw = quote!(::std::include_bytes!(#cache));
+
 		tokens.append_all(match self.format {
 			IconFormat::Raw => raw,
 			IconFormat::Image { width, height } => {

@@ -83,7 +83,9 @@ pub fn command(mut options:Options) -> Result<()> {
 	};
 
 	let template_target_path = PathBuf::from(options.directory);
+
 	let metadata = crates_metadata()?;
+
 	if std::fs::read_dir(&template_target_path)?.count() > 0 {
 		log::warn!("Plugin dir ({:?}) not empty.", template_target_path);
 	} else {
@@ -122,14 +124,21 @@ pub fn command(mut options:Options) -> Result<()> {
 		let _ = remove_dir_all(&template_target_path);
 
 		let mut handlebars = Handlebars::new();
+
 		handlebars.register_escape_fn(handlebars::no_escape);
 
 		let mut data = BTreeMap::new();
+
 		plugin_name_data(&mut data, &plugin_name);
+
 		data.insert("tauri_dep", to_json(tauri_dep));
+
 		data.insert("tauri_example_dep", to_json(tauri_example_dep));
+
 		data.insert("tauri_build_dep", to_json(tauri_build_dep));
+
 		data.insert("tauri_plugin_dep", to_json(tauri_plugin_dep));
+
 		data.insert("author", to_json(options.author));
 
 		if options.tauri {
@@ -155,6 +164,7 @@ pub fn command(mut options:Options) -> Result<()> {
 			.unwrap();
 
 			data.insert("android_package_id", to_json(&plugin_id));
+
 			Some(plugin_id)
 		} else {
 			None
@@ -163,6 +173,7 @@ pub fn command(mut options:Options) -> Result<()> {
 		let ios_framework = options.ios_framework;
 
 		let mut created_dirs = Vec::new();
+
 		template::render_with_generator(
 			&handlebars,
 			&data,
@@ -170,6 +181,7 @@ pub fn command(mut options:Options) -> Result<()> {
 			&template_target_path,
 			&mut |mut path| {
 				let mut components = path.components();
+
 				let root = components.next().unwrap();
 
 				if let Component::Normal(component) = root {
@@ -212,8 +224,10 @@ pub fn command(mut options:Options) -> Result<()> {
 						"ios-spm" | "ios-xcode" => {
 							let folder_name =
 								components.next().unwrap().as_os_str().to_string_lossy();
+
 							let new_folder_name =
 								folder_name.replace("{{ plugin_name }}", &plugin_name);
+
 							let new_folder_name = OsString::from(&new_folder_name);
 
 							path = [
@@ -234,11 +248,15 @@ pub fn command(mut options:Options) -> Result<()> {
 				}
 
 				let path = template_target_path.join(path);
+
 				let parent = path.parent().unwrap().to_path_buf();
+
 				if !created_dirs.contains(&parent) {
 					create_dir_all(&parent)?;
+
 					created_dirs.push(parent);
 				}
+
 				File::create(path).map(Some)
 			},
 		)
@@ -246,6 +264,7 @@ pub fn command(mut options:Options) -> Result<()> {
 	}
 
 	let permissions_dir = template_target_path.join("permissions");
+
 	std::fs::create_dir(&permissions_dir)
 		.with_context(|| "failed to create `permissions` directory")?;
 
@@ -253,6 +272,7 @@ pub fn command(mut options:Options) -> Result<()> {
 description = "Default permissions for the plugin"
 permissions = ["allow-ping"]
 "#;
+
 	std::fs::write(permissions_dir.join("default.toml"), default_permissions)
 		.with_context(|| "failed to write `permissions/default.toml`")?;
 
@@ -261,8 +281,11 @@ permissions = ["allow-ping"]
 
 pub fn plugin_name_data(data:&mut BTreeMap<&'static str, serde_json::Value>, plugin_name:&str) {
 	data.insert("plugin_name_original", to_json(plugin_name));
+
 	data.insert("plugin_name", to_json(plugin_name.to_kebab_case()));
+
 	data.insert("plugin_name_snake_case", to_json(plugin_name.to_snake_case()));
+
 	data.insert("plugin_name_pascal_case", to_json(plugin_name.to_pascal_case()));
 }
 
@@ -278,29 +301,38 @@ pub fn generate_android_out_file(
 	created_dirs:&mut Vec<PathBuf>,
 ) -> std::io::Result<Option<File>> {
 	let mut iter = path.iter();
+
 	let root = iter.next().unwrap().to_str().unwrap();
+
 	let path = match (root, path.extension().and_then(|o| o.to_str())) {
 		("src", Some("kt")) => {
 			let parent = path.parent().unwrap();
+
 			let file_name = path.file_name().unwrap();
+
 			let out_dir = dest.join(parent).join(package_path);
+
 			out_dir.join(file_name)
 		},
 		_ => dest.join(path),
 	};
 
 	let parent = path.parent().unwrap().to_path_buf();
+
 	if !created_dirs.contains(&parent) {
 		create_dir_all(&parent)?;
+
 		created_dirs.push(parent);
 	}
 
 	let mut options = OpenOptions::new();
+
 	options.write(true);
 
 	#[cfg(unix)]
 	if path.file_name().unwrap() == std::ffi::OsStr::new("gradlew") {
 		use std::os::unix::fs::OpenOptionsExt;
+
 		options.mode(0o755);
 	}
 

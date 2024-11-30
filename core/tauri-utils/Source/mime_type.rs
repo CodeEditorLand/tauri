@@ -41,6 +41,7 @@ impl std::fmt::Display for MimeType {
 			MimeType::Svg => "image/svg+xml",
 			MimeType::Txt => MIMETYPE_PLAIN,
 		};
+
 		write!(f, "{mime}")
 	}
 }
@@ -56,6 +57,7 @@ impl MimeType {
 	/// compatible mimeType with specified fallback for unknown file extensions.
 	pub fn parse_from_uri_with_fallback(uri:&str, fallback:MimeType) -> MimeType {
 		let suffix = uri.split('.').last();
+
 		match suffix {
 			Some("bin") => Self::OctetStream,
 			Some("css" | "less" | "sass" | "styl") => Self::Css,
@@ -114,48 +116,61 @@ mod tests {
 			"https://unpkg.com/browse/bootstrap@4.1.0/dist/css/bootstrap-grid.css",
 		)
 		.to_string();
+
 		assert_eq!(css, "text/css".to_string());
 
 		let csv:String = MimeType::parse_from_uri("https://example.com/random.csv").to_string();
+
 		assert_eq!(csv, "text/csv".to_string());
 
 		let ico:String =
 			MimeType::parse_from_uri("https://icons.duckduckgo.com/ip3/microsoft.com.ico")
 				.to_string();
+
 		assert_eq!(ico, String::from("image/vnd.microsoft.icon"));
 
 		let html:String = MimeType::parse_from_uri("https://tauri.app/index.html").to_string();
+
 		assert_eq!(html, String::from("text/html"));
 
 		let js:String =
 			MimeType::parse_from_uri("https://unpkg.com/react@17.0.1/umd/react.production.min.js")
 				.to_string();
+
 		assert_eq!(js, "text/javascript".to_string());
 
 		let json:String =
 			MimeType::parse_from_uri("https://unpkg.com/browse/react@17.0.1/build-info.json")
 				.to_string();
+
 		assert_eq!(json, String::from("application/json"));
 
 		let jsonld:String = MimeType::parse_from_uri("https:/example.com/hello.jsonld").to_string();
+
 		assert_eq!(jsonld, String::from("application/ld+json"));
 
 		let mjs:String = MimeType::parse_from_uri("https://example.com/bundled.mjs").to_string();
+
 		assert_eq!(mjs, String::from("text/javascript"));
 
 		let mp4:String = MimeType::parse_from_uri("https://example.com/video.mp4").to_string();
+
 		assert_eq!(mp4, String::from("video/mp4"));
 
 		let rtf:String = MimeType::parse_from_uri("https://example.com/document.rtf").to_string();
+
 		assert_eq!(rtf, String::from("application/rtf"));
 
 		let svg:String = MimeType::parse_from_uri("https://example.com/picture.svg").to_string();
+
 		assert_eq!(svg, String::from("image/svg+xml"));
 
 		let txt:String = MimeType::parse_from_uri("https://example.com/file.txt").to_string();
+
 		assert_eq!(txt, String::from("text/plain"));
 
 		let custom_scheme = MimeType::parse_from_uri("wry://tauri.app").to_string();
+
 		assert_eq!(custom_scheme, String::from("text/html"));
 	}
 }

@@ -138,26 +138,34 @@ impl Interface for Rust {
 	fn new(config:&Config, target:Option<String>) -> crate::Result<Self> {
 		let manifest = {
 			let (tx, rx) = sync_channel(1);
+
 			let mut watcher = new_debouncer(Duration::from_secs(1), move |r| {
 				if let Ok(events) = r {
 					let _ = tx.send(events);
 				}
 			})
 			.unwrap();
+
 			watcher
 				.watcher()
 				.watch(&tauri_dir().join("Cargo.toml"), RecursiveMode::Recursive)?;
+
 			let (manifest, _modified) = rewrite_manifest(config)?;
+
 			let now = Instant::now();
+
 			let timeout = Duration::from_secs(2);
+
 			loop {
 				if now.elapsed() >= timeout {
 					break;
 				}
+
 				if rx.try_recv().is_ok() {
 					break;
 				}
 			}
+
 			manifest
 		};
 
@@ -185,6 +193,7 @@ impl Interface for Rust {
 			&mut self.available_targets,
 			self.config_features.clone(),
 		)?;
+
 		Ok(())
 	}
 
@@ -196,6 +205,7 @@ impl Interface for Rust {
 		let on_exit = Arc::new(on_exit);
 
 		let mut run_args = Vec::new();
+
 		dev_options(
 			false,
 			&mut options.args,
@@ -206,21 +216,27 @@ impl Interface for Rust {
 
 		if options.no_watch {
 			let (tx, rx) = sync_channel(1);
+
 			self.run_dev(options, run_args, move |status, reason| {
 				tx.send(()).unwrap();
+
 				on_exit(status, reason)
 			})?;
 
 			rx.recv().unwrap();
+
 			Ok(())
 		} else {
 			let config = options.config.clone().map(|c| c.0);
+
 			let run = Arc::new(|rust:&mut Rust| {
 				let on_exit = on_exit.clone();
+
 				rust.run_dev(options.clone(), run_args.clone(), move |status, reason| {
 					on_exit(status, reason)
 				})
 			});
+
 			self.run_dev_watcher(config, run)
 		}
 	}
@@ -231,6 +247,7 @@ impl Interface for Rust {
 		runner:R,
 	) -> crate::Result<()> {
 		let mut run_args = Vec::new();
+
 		dev_options(
 			true,
 			&mut options.args,
@@ -241,16 +258,20 @@ impl Interface for Rust {
 
 		if options.no_watch {
 			runner(options)?;
+
 			Ok(())
 		} else {
 			let config = options.config.clone().map(|c| c.0);
+
 			let run = Arc::new(|_rust:&mut Rust| runner(options.clone()));
+
 			self.run_dev_watcher(config, run)
 		}
 	}
 
 	fn env(&self) -> HashMap<&str, String> {
 		let mut env = HashMap::new();
+
 		env.insert("TAURI_ENV_TARGET_TRIPLE", self.app_settings.target_triple.clone());
 
 		let target_triple = &self.app_settings.target_triple;
@@ -264,12 +285,15 @@ impl Interface for Rust {
 			[arch, _, host, host_env] => (*arch, *host, Some(*host_env)),
 			_ => {
 				log::warn!("Invalid target triple: {}", target_triple);
+
 				return env;
 			},
 		};
 
 		env.insert("TAURI_ENV_ARCH", arch.into());
+
 		env.insert("TAURI_ENV_PLATFORM", host.into());
+
 		env.insert(
 			"TAURI_ENV_FAMILY",
 			match host {
@@ -293,6 +317,7 @@ impl IgnoreMatcher {
 				return true;
 			}
 		}
+
 		false
 	}
 }
@@ -318,6 +343,7 @@ fn build_ignore_matcher(dir:&Path) -> IgnoreMatcher {
 		.flatten()
 	{
 		let path = entry.path();
+
 		if path.file_name() == Some(OsStr::new(".taurignore")) {
 			let mut ignore_builder = GitignoreBuilder::new(path.parent().unwrap());
 
@@ -342,9 +368,13 @@ fn build_ignore_matcher(dir:&Path) -> IgnoreMatcher {
 
 fn lookup<F:FnMut(FileType, PathBuf)>(dir:&Path, mut f:F) {
 	let mut default_gitignore = std::env::temp_dir();
+
 	default_gitignore.push(".tauri");
+
 	let _ = std::fs::create_dir_all(&default_gitignore);
+
 	default_gitignore.push(".gitignore");
+
 	if !default_gitignore.exists() {
 		if let Ok(mut file) = std::fs::File::create(default_gitignore.clone()) {
 			let _ = file.write_all(crate::dev::TAURI_CLI_BUILTIN_WATCHER_IGNORE_FILE);
@@ -352,11 +382,15 @@ fn lookup<F:FnMut(FileType, PathBuf)>(dir:&Path, mut f:F) {
 	}
 
 	let mut builder = ignore::WalkBuilder::new(dir);
+
 	builder.add_custom_ignore_filename(".taurignore");
+
 	let _ = builder.add_ignore(default_gitignore);
+
 	if let Ok(ignore_file) = std::env::var("TAURI_CLI_WATCHER_IGNORE_FILENAME") {
 		builder.add_ignore(ignore_file);
 	}
+
 	builder.require_git(false).ignore(false).max_depth(Some(1));
 
 	for entry in builder.build().flatten() {
@@ -372,6 +406,7 @@ fn shared_options(
 ) {
 	if mobile {
 		args.push("--lib".into());
+
 		features.get_or_insert(Vec::new()).push("tauri/rustls-tls".into());
 	} else {
 		args.push("--bins".into());
@@ -381,6 +416,7 @@ fn shared_options(
 			.lock()
 			.unwrap()
 			.all_enabled_features(if let Some(f) = features { f } else { &[] });
+
 		if !all_features.contains(&"tauri/rustls-tls".into()) {
 			features.get_or_insert(Vec::new()).push("tauri/native-tls".into());
 		}
@@ -395,7 +431,9 @@ fn dev_options(
 	app_settings:&RustAppSettings,
 ) {
 	let mut dev_args = Vec::new();
+
 	let mut reached_run_args = false;
+
 	for arg in args.clone() {
 		if reached_run_args {
 			run_args.push(arg);
@@ -425,7 +463,9 @@ fn dev_options(
 				}
 			})
 			.collect();
+
 		args.push("--no-default-features".into());
+
 		if !enable_features.is_empty() {
 			features.get_or_insert(Vec::new()).extend(enable_features);
 		}
@@ -437,15 +477,19 @@ fn expand_member_path(path:&Path) -> crate::Result<Vec<PathBuf>> {
 	let Some(path) = path.to_str() else {
 		return Err(anyhow::anyhow!("path is not UTF-8 compatible"));
 	};
+
 	let res = glob(path).with_context(|| format!("could not parse pattern `{}`", &path))?;
+
 	let res = res
 		.map(|p| p.with_context(|| format!("unable to match path to pattern `{}`", &path)))
 		.collect::<Result<Vec<_>, _>>()?;
+
 	Ok(res)
 }
 
 fn get_watch_folders() -> crate::Result<Vec<PathBuf>> {
 	let tauri_path = tauri_dir();
+
 	let workspace_path = get_workspace_dir()?;
 
 	// We always want to watch the main tauri folder.
@@ -454,9 +498,11 @@ fn get_watch_folders() -> crate::Result<Vec<PathBuf>> {
 	// We also try to watch workspace members, no matter if the tauri cargo project
 	// is the workspace root or a workspace member
 	let cargo_settings = CargoSettings::load(&workspace_path)?;
+
 	if let Some(members) = cargo_settings.workspace.and_then(|w| w.members) {
 		for p in members {
 			let p = workspace_path.join(p);
+
 			match expand_member_path(&p) {
 				// Sometimes expand_member_path returns an empty vec, for example if the path
 				// contains `[]` as in `C:/[abc]/project/`. Cargo won't complain unless theres a
@@ -473,6 +519,7 @@ fn get_watch_folders() -> crate::Result<Vec<PathBuf>> {
 					// If this fails cargo itself should fail too. But we still try to keep going
 					// with the unexpanded path.
 					log::error!("Error watching {}: {}", p.display(), err.to_string());
+
 					watch_folders.push(p);
 				},
 			};
@@ -490,6 +537,7 @@ impl Rust {
 		mobile:bool,
 	) {
 		features.get_or_insert(Vec::new()).push("tauri/custom-protocol".into());
+
 		shared_options(mobile, args, features, &self.app_settings);
 	}
 
@@ -536,12 +584,15 @@ impl Rust {
 			}
 		})
 		.unwrap();
+
 		for path in watch_folders {
 			if !ignore_matcher.is_ignore(&path, true) {
 				log::info!("Watching {} for changes...", display_path(&path));
+
 				lookup(&path, |file_type, p| {
 					if p != path {
 						log::debug!("Watching {} for changes...", display_path(&p));
+
 						let _ = watcher.watcher().watch(
 							&p,
 							if file_type.is_dir() {
@@ -565,6 +616,7 @@ impl Rust {
 							if let Ok(config) = reload_config(config.as_ref()) {
 								let (manifest, modified) =
 									rewrite_manifest(config.lock().unwrap().as_ref().unwrap())?;
+
 								if modified {
 									*self.app_settings.manifest.lock().unwrap() = manifest;
 									// no need to run the watcher logic, the manifest was modified
@@ -580,6 +632,7 @@ impl Rust {
 						);
 
 						let mut p = process.lock().unwrap();
+
 						p.kill().with_context(|| "failed to kill app process")?;
 
 						// wait for the process to exit
@@ -613,12 +666,14 @@ impl<'de, T:Deserialize<'de>> serde::de::Deserialize<'de> for MaybeWorkspace<T> 
 	where
 		D: serde::de::Deserializer<'de>, {
 		let value = serde_value::Value::deserialize(deserializer)?;
+
 		if let Ok(workspace) = TomlWorkspaceField::deserialize(serde_value::ValueDeserializer::<
 			D::Error,
 		>::new(value.clone()))
 		{
 			return Ok(MaybeWorkspace::Workspace(workspace));
 		}
+
 		T::deserialize(serde_value::ValueDeserializer::<D::Error>::new(value))
 			.map(MaybeWorkspace::Defined)
 	}
@@ -725,9 +780,11 @@ impl CargoSettings {
 		let mut toml_str = String::new();
 
 		let mut toml_file = File::open(toml_path).with_context(|| "failed to open Cargo.toml")?;
+
 		toml_file
 			.read_to_string(&mut toml_str)
 			.with_context(|| "failed to read Cargo.toml")?;
+
 		toml::from_str(&toml_str)
 			.with_context(|| "failed to parse Cargo.toml")
 			.map_err(Into::into)
@@ -786,6 +843,7 @@ impl<'de> Deserialize<'de> for WindowsUpdateInstallMode {
 	where
 		D: Deserializer<'de>, {
 		let s = String::deserialize(deserializer)?;
+
 		match s.to_lowercase().as_str() {
 			"basicui" => Ok(Self::BasicUi),
 			"quiet" => Ok(Self::Quiet),
@@ -841,6 +899,7 @@ impl AppSettings for RustAppSettings {
 					})?
 					.clone(),
 			)?;
+
 			Some(UpdaterSettings {
 				v1_compatible,
 				pubkey:updater.pubkey,
@@ -863,6 +922,7 @@ impl AppSettings for RustAppSettings {
 			config.plugins.0.get("deep-link").and_then(|c| c.get("desktop").cloned())
 		{
 			let protocols:DesktopDeepLinks = serde_json::from_value(plugin_config.clone())?;
+
 			settings.deep_link_protocols = Some(match protocols {
 				DesktopDeepLinks::One(p) => vec![p],
 				DesktopDeepLinks::List(p) => p,
@@ -894,24 +954,31 @@ impl AppSettings for RustAppSettings {
 
 		if let Some(bins) = &self.cargo_settings.bin {
 			let default_run = self.package_settings.default_run.clone().unwrap_or_default();
+
 			for bin in bins {
 				let name = format!("{}{}", bin.name, binary_extension);
+
 				let is_main = bin.name == self.cargo_package_settings.name
 					|| bin.name.as_str() == default_run;
+
 				binaries.push(BundleBinary::with_path(name, is_main, bin.path.clone()))
 			}
 		}
 
 		let mut bins_path = tauri_dir().to_path_buf();
+
 		bins_path.push("src/bin");
+
 		if let Ok(fs_bins) = std::fs::read_dir(bins_path) {
 			for entry in fs_bins {
 				let path = entry?.path();
+
 				if let Some(name) = path.file_stem() {
 					let bin_exists = binaries.iter().any(|bin| {
 						bin.name() == name
 							|| path.ends_with(bin.src_path().unwrap_or(&"".to_string()))
 					});
+
 					if !bin_exists {
 						binaries.push(BundleBinary::new(
 							format!("{}{}", name.to_string_lossy(), &binary_extension),
@@ -1061,7 +1128,9 @@ impl RustAppSettings {
 					.args(["-vV"])
 					.output()
 					.expect("\"rustc\" could not be found, did you install Rust?");
+
 				let stdout = String::from_utf8_lossy(&output.stdout);
+
 				stdout
 					.split('\n')
 					.find(|l| l.starts_with("host:"))
@@ -1238,13 +1307,16 @@ fn tauri_config_to_bundle_settings(
 					}
 				})
 				.unwrap_or_else(|_| pkgconfig_utils::get_appindicator_library_path());
+
 			match tray_kind {
 				pkgconfig_utils::TrayKind::Ayatana => {
 					depends_deb.push("libayatana-appindicator3-1".into());
+
 					libs.push("libayatana-appindicator3.so.1".into());
 				},
 				pkgconfig_utils::TrayKind::Libappindicator => {
 					depends_deb.push("libappindicator3-1".into());
+
 					libs.push("libappindicator3.so.1".into());
 				},
 			}
@@ -1253,16 +1325,20 @@ fn tauri_config_to_bundle_settings(
 		}
 
 		depends_deb.push("libwebkit2gtk-4.1-0".to_string());
+
 		depends_deb.push("libgtk-3-0".to_string());
 
 		libs.push("libwebkit2gtk-4.1.so.0".into());
+
 		libs.push("libgtk-3.so.0".into());
 
 		for lib in libs {
 			let mut requires = lib;
+
 			if arch64bits {
 				requires.push_str("()(64bit)");
 			}
+
 			depends_rpm.push(requires);
 		}
 	}
@@ -1389,6 +1465,7 @@ fn tauri_config_to_bundle_settings(
 			entitlements:config.macos.entitlements,
 			info_plist_path:{
 				let path = tauri_dir().join("Info.plist");
+
 				if path.exists() { Some(path) } else { None }
 			},
 		},
@@ -1451,13 +1528,18 @@ mod pkgconfig_utils {
 	/// Gets the folder in which a library is located using `pkg-config`.
 	pub fn get_library_path(name:&str) -> Option<String> {
 		let mut cmd = Command::new("pkg-config");
+
 		cmd.env("PKG_CONFIG_ALLOW_SYSTEM_LIBS", "1");
+
 		cmd.arg("--libs-only-L");
+
 		cmd.arg(name);
+
 		if let Ok(output) = cmd.output() {
 			if !output.stdout.is_empty() {
 				// output would be "-L/path/to/library\n"
 				let word = output.stdout[2..].to_vec();
+
 				return Some(String::from_utf8_lossy(&word).trim().to_string());
 			} else {
 				None
@@ -1487,7 +1569,9 @@ mod tests {
 		];
 
 		assert_eq!(get_cargo_option(&args, "--profile"), Some("holla"));
+
 		assert_eq!(get_cargo_option(&args, "--target-dir"), Some("path/to/dir"));
+
 		assert_eq!(get_cargo_option(&args, "--non-existent"), None);
 	}
 
@@ -1504,6 +1588,7 @@ mod tests {
 			],
 			..Default::default()
 		};
+
 		assert_eq!(get_profile(&options), "testing");
 
 		let options = Options {
@@ -1517,6 +1602,7 @@ mod tests {
 			],
 			..Default::default()
 		};
+
 		assert_eq!(get_profile(&options), "customprofile");
 
 		let options = Options {
@@ -1530,6 +1616,7 @@ mod tests {
 			],
 			..Default::default()
 		};
+
 		assert_eq!(get_profile(&options), "dev");
 
 		let options = Options {
@@ -1543,12 +1630,14 @@ mod tests {
 			],
 			..Default::default()
 		};
+
 		assert_eq!(get_profile(&options), "release");
 
 		let options = Options {
 			args:vec!["build".into(), "--".into(), "--profile".into()],
 			..Default::default()
 		};
+
 		assert_eq!(get_profile(&options), "release");
 	}
 
@@ -1575,6 +1664,7 @@ mod tests {
 			get_target_dir(None, &options).unwrap(),
 			current_dir.join("path/to/some/dir/release")
 		);
+
 		assert_eq!(
 			get_target_dir(Some("x86_64-pc-windows-msvc"), &options).unwrap(),
 			current_dir.join("path/to/some/dir/release")
@@ -1602,10 +1692,12 @@ mod tests {
 		#[cfg(windows)]
 		{
 			std::env::set_var("CARGO_TARGET_DIR", "D:\\path\\to\\env\\dir");
+
 			assert_eq!(
 				get_target_dir(None, &options).unwrap(),
 				PathBuf::from("D:\\path\\to\\env\\dir\\release")
 			);
+
 			assert_eq!(
 				get_target_dir(Some("x86_64-pc-windows-msvc"), &options).unwrap(),
 				PathBuf::from("D:\\path\\to\\env\\dir\\x86_64-pc-windows-msvc\\release")
@@ -1615,10 +1707,12 @@ mod tests {
 		#[cfg(not(windows))]
 		{
 			std::env::set_var("CARGO_TARGET_DIR", "/path/to/env/dir");
+
 			assert_eq!(
 				get_target_dir(None, &options).unwrap(),
 				PathBuf::from("/path/to/env/dir/release")
 			);
+
 			assert_eq!(
 				get_target_dir(Some("x86_64-pc-windows-msvc"), &options).unwrap(),
 				PathBuf::from("/path/to/env/dir/x86_64-pc-windows-msvc/release")

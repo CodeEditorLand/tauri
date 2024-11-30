@@ -30,6 +30,7 @@ pub struct Options {
 pub fn command(mut options: Options) -> Result<()> {
   if options.ci && options.password.is_none() {
     log::warn!("Generating new private key without password. For security reasons, we recommend setting a password instead.");
+
     options.password.replace("".into());
   }
   let keypair = generate_key(options.password).expect("Failed to generate key");
@@ -49,6 +50,7 @@ pub fn command(mut options: Options) -> Result<()> {
       "\nYour secret key was generated successfully - Keep it secret!\n{}\n\n",
       keypair.sk
     );
+
     println!(
           "Your public key was generated successfully:\n{}\n\nAdd the public key in your tauri.conf.json\n---------------------------\n",
           keypair.pk

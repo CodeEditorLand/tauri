@@ -18,6 +18,7 @@ mod utils;
 
 fn main() {
 	let tauri_data = &utils::tauri_root_path().join("gh-pages").join("tauri-data.json");
+
 	let tauri_recent = &utils::tauri_root_path().join("gh-pages").join("tauri-recent.json");
 
 	// current data
@@ -25,12 +26,14 @@ fn main() {
 		File::open(utils::target_dir().join("bench.json"))
 			.expect("Unable to read current data file"),
 	);
+
 	let current_data:utils::BenchResult =
 		serde_json::from_reader(current_data_buffer).expect("Unable to read current data buffer");
 
 	// all data's
 	let all_data_buffer =
 		BufReader::new(File::open(tauri_data).expect("Unable to read all data file"));
+
 	let mut all_data:Vec<utils::BenchResult> =
 		serde_json::from_reader(all_data_buffer).expect("Unable to read all data buffer");
 

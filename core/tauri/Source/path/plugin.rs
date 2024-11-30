@@ -20,8 +20,10 @@ use crate::{
 /// from cargo's paths util. <https://github.com/rust-lang/cargo/blob/46fa867ff7043e3a0545bf3def7be904e1497afd/crates/cargo-util/src/paths.rs#L73-L106>
 fn normalize_path(path:&Path) -> PathBuf {
 	let mut components = path.components().peekable();
+
 	let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
 		components.next();
+
 		PathBuf::from(c.as_os_str())
 	} else {
 		PathBuf::new()
@@ -42,6 +44,7 @@ fn normalize_path(path:&Path) -> PathBuf {
 			},
 		}
 	}
+
 	ret
 }
 
@@ -50,8 +53,10 @@ fn normalize_path(path:&Path) -> PathBuf {
 /// <https://github.com/rust-lang/cargo/blob/46fa867ff7043e3a0545bf3def7be904e1497afd/crates/cargo-util/src/paths.rs#L73-L106>
 fn normalize_path_no_absolute(path:&Path) -> PathBuf {
 	let mut components = path.components().peekable();
+
 	let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
 		components.next();
+
 		PathBuf::from(c.as_os_str())
 	} else {
 		PathBuf::new()
@@ -79,13 +84,16 @@ fn normalize_path_no_absolute(path:&Path) -> PathBuf {
 				if !p.is_empty() && !p.ends_with('/') && !p.ends_with('\\') {
 					p.push(MAIN_SEPARATOR);
 				}
+
 				if let Some(c) = c.to_str() {
 					p.push_str(c);
 				}
+
 				ret = PathBuf::from(p);
 			},
 		}
 	}
+
 	ret
 }
 
@@ -110,9 +118,11 @@ pub fn resolve(paths:Vec<String>) -> Result<PathBuf> {
 	// 2. `vec!["/foo/bar", "/tmp/file", "baz"]` will be equal to
 	//    `PathBuf::from("/tmp/file/baz")`
 	let mut path = std::env::current_dir().map_err(Error::CurrentDir)?;
+
 	for p in paths {
 		path.push(p);
 	}
+
 	Ok(dunce::simplified(&normalize_path(&path)).to_path_buf())
 }
 
@@ -136,6 +146,7 @@ pub fn normalize(path:String) -> String {
 		{
 			p.push(MAIN_SEPARATOR);
 		}
+
 		p
 	}
 }
@@ -153,6 +164,7 @@ pub fn join(mut paths:Vec<String>) -> String {
 				if !p.ends_with('/') && !p.ends_with('\\') {
 					p.push(MAIN_SEPARATOR);
 				}
+
 				p.to_string()
 			})
 			.collect::<String>(),
@@ -184,6 +196,7 @@ pub fn extname(path:String) -> Result<String> {
 #[command(root = "crate")]
 pub fn basename(path:&str, ext:Option<&str>) -> Result<String> {
 	let file_name = Path::new(path).file_name().map(|f| f.to_string_lossy());
+
 	match file_name {
 		Some(p) => {
 			let maybe_stripped = if let Some(ext) = ext {
@@ -191,6 +204,7 @@ pub fn basename(path:&str, ext:Option<&str>) -> Result<String> {
 			} else {
 				p.to_string()
 			};
+
 			Ok(maybe_stripped)
 		},
 		None => Err(Error::NoBasename),
@@ -235,6 +249,7 @@ pub(crate) fn init<R:Runtime>() -> TauriPlugin<R> {
 			#[cfg(target_os = "android")]
 			{
 				let handle = _api.register_android_plugin("app.tauri", "PathPlugin")?;
+
 				app.manage(PathResolver(handle));
 			}
 
@@ -254,18 +269,23 @@ mod tests {
 	#[test]
 	fn basename() {
 		let path = "/path/to/some-json-file.json";
+
 		assert_eq!(super::basename(path, Some(".json")).unwrap(), "some-json-file");
 
 		let path = "/path/to/some-json-file.json";
+
 		assert_eq!(super::basename(path, Some("json")).unwrap(), "some-json-file.");
 
 		let path = "/path/to/some-json-file.html.json";
+
 		assert_eq!(super::basename(path, Some(".json")).unwrap(), "some-json-file.html");
 
 		let path = "/path/to/some-json-file.json.json";
+
 		assert_eq!(super::basename(path, Some(".json")).unwrap(), "some-json-file.json");
 
 		let path = "/path/to/some-json-file.json.html";
+
 		assert_eq!(super::basename(path, Some(".json")).unwrap(), "some-json-file.json.html");
 	}
 }

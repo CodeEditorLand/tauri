@@ -110,6 +110,7 @@ mod windows {
 	}
 
 	const CLASS_NAME:PCWSTR = w!("TAURI_DRAG_RESIZE_BORDERS");
+
 	const WINDOW_NAME:PCWSTR = w!("TAURI_DRAG_RESIZE_WINDOW");
 
 	pub fn attach_resize_handler(hwnd:isize) {
@@ -138,6 +139,7 @@ mod windows {
 		unsafe { RegisterClassExW(&class) };
 
 		let mut rect = RECT::default();
+
 		unsafe { GetClientRect(parent, &mut rect).unwrap() };
 
 		let width = rect.right - rect.left;
@@ -208,8 +210,10 @@ mod windows {
 				);
 			} else {
 				let mut rect = RECT::default();
+
 				if GetClientRect(parent, &mut rect).is_ok() {
 					let width = rect.right - rect.left;
+
 					let height = rect.bottom - rect.top;
 
 					let _ = SetWindowPos(
@@ -241,15 +245,19 @@ mod windows {
 				let Ok(parent) = GetParent(child) else {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				};
+
 				let style = GetWindowLongPtrW(parent, GWL_STYLE);
+
 				let style = WINDOW_STYLE(style as u32);
 
 				let is_resizable = (style & WS_SIZEBOX).0 != 0;
+
 				if !is_resizable {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
 
 				let mut rect = RECT::default();
+
 				if GetWindowRect(child, &mut rect).is_err() {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
@@ -257,7 +265,9 @@ mod windows {
 				let (cx, cy) = (GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
 
 				let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
+
 				let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
+
 				let border_y = GetSystemMetrics(SM_CYFRAME) + padded_border;
 
 				let res = hit_test(
@@ -278,15 +288,19 @@ mod windows {
 				let Ok(parent) = GetParent(child) else {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				};
+
 				let style = GetWindowLongPtrW(parent, GWL_STYLE);
+
 				let style = WINDOW_STYLE(style as u32);
 
 				let is_resizable = (style & WS_SIZEBOX).0 != 0;
+
 				if !is_resizable {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
 
 				let mut rect = RECT::default();
+
 				if GetWindowRect(child, &mut rect).is_err() {
 					return DefWindowProcW(child, msg, wparam, lparam);
 				}
@@ -294,7 +308,9 @@ mod windows {
 				let (cx, cy) = (GET_X_LPARAM(lparam) as i32, GET_Y_LPARAM(lparam) as i32);
 
 				let padded_border = GetSystemMetrics(SM_CXPADDEDBORDER);
+
 				let border_x = GetSystemMetrics(SM_CXFRAME) + padded_border;
+
 				let border_y = GetSystemMetrics(SM_CYFRAME) + padded_border;
 
 				let res = hit_test(
@@ -349,7 +365,9 @@ mod windows {
 		let hrgn1 = CreateRectRgn(0, 0, width, height);
 
 		let hrgn2 = CreateRectRgn(border_x, border_y, width - border_x, height - border_y);
+
 		CombineRgn(hrgn1, hrgn1, hrgn2, RGN_DIFF);
+
 		SetWindowRgn(hwnd, hrgn1, true);
 	}
 
@@ -358,7 +376,9 @@ mod windows {
 			length:std::mem::size_of::<WINDOWPLACEMENT>() as u32,
 			..WINDOWPLACEMENT::default()
 		};
+
 		unsafe { GetWindowPlacement(window, &mut placement)? };
+
 		Ok(placement.showCmd == SW_MAXIMIZE.0 as u32)
 	}
 
@@ -405,6 +425,7 @@ mod gtk {
 			glib::Propagation,
 			prelude::*,
 		};
+
 		use wry::WebViewExtUnix;
 
 		let webview = webview.webview();
@@ -422,14 +443,19 @@ mod gtk {
 					if let Some(window) = webview.parent().and_then(|w| w.parent()) {
 						// Safe to unwrap unless this is not from tao
 						let window:gtk::Window = window.downcast().unwrap();
+
 						if !window.is_decorated() && window.is_resizable() && !window.is_maximized()
 						{
 							if let Some(window) = window.window() {
 								let (root_x, root_y) = event.root();
+
 								let (window_x, window_y) = window.position();
+
 								let (client_x, client_y) =
 									(root_x - window_x as f64, root_y - window_y as f64);
+
 								let border = window.scale_factor() * BORDERLESS_RESIZE_INSET;
+
 								let edge = hit_test(
 									0.0,
 									0.0,
@@ -471,14 +497,18 @@ mod gtk {
 			if let Some(window) = webview.parent().and_then(|w| w.parent()) {
 				// Safe to unwrap unless this is not from tao
 				let window:gtk::Window = window.downcast().unwrap();
+
 				if !window.is_decorated() && window.is_resizable() && !window.is_maximized() {
 					if let Some(window) = window.window() {
 						if let Some((root_x, root_y)) = event.root_coords() {
 							if let Some(device) = event.device() {
 								let (window_x, window_y) = window.position();
+
 								let (client_x, client_y) =
 									(root_x - window_x as f64, root_y - window_y as f64);
+
 								let border = window.scale_factor() * BORDERLESS_RESIZE_INSET;
+
 								let edge = hit_test(
 									0.0,
 									0.0,

@@ -64,14 +64,18 @@ pub fn calculate_window_center_position(
   #[cfg(windows)]
   {
     use ::windows::Win32::Graphics::Gdi::{GetMonitorInfoW, HMONITOR, MONITORINFO};
+
     use tao::platform::windows::MonitorHandleExtWindows;
 
     let mut monitor_info = MONITORINFO {
       cbSize: std::mem::size_of::<MONITORINFO>() as u32,
       ..Default::default()
     };
+
     let hmonitor = target_monitor.hmonitor();
+
     let status = unsafe { GetMonitorInfoW(HMONITOR(hmonitor as _), &mut monitor_info) };
+
     if status.into() {
       let available_width = monitor_info.rcWork.right - monitor_info.rcWork.left;
       let available_height = monitor_info.rcWork.bottom - monitor_info.rcWork.top;

@@ -36,11 +36,13 @@ impl TomlOrJson {
 				j.get("platforms").and_then(|k| {
 					if let Some(array) = k.as_array() {
 						let mut items = Vec::new();
+
 						for item in array {
 							if let Some(s) = item.as_str() {
 								items.push(s);
 							}
 						}
+
 						Some(items)
 					} else {
 						None
@@ -56,6 +58,7 @@ impl TomlOrJson {
 				let permissions = t.entry("permissions").or_insert_with(|| {
 					toml_edit::Item::Value(toml_edit::Value::Array(toml_edit::Array::new()))
 				});
+
 				if let Some(permissions) = permissions.as_array_mut() {
 					permissions.push(identifier)
 				};
@@ -66,6 +69,7 @@ impl TomlOrJson {
 					let permissions = o
 						.entry("permissions")
 						.or_insert_with(|| serde_json::Value::Array(Vec::new()));
+
 					if let Some(permissions) = permissions.as_array_mut() {
 						permissions.push(serde_json::Value::String(identifier))
 					};
@@ -116,6 +120,7 @@ pub fn command(options:Options) -> Result<()> {
 	};
 
 	let capabilities_dir = dir.join("capabilities");
+
 	if !capabilities_dir.exists() {
 		anyhow::bail!(
 			"Couldn't find capabilities directory at {}",
@@ -124,6 +129,7 @@ pub fn command(options:Options) -> Result<()> {
 	}
 
 	let known_plugins = crate::helpers::plugins::known_plugins();
+
 	let known_plugin = options
 		.identifier
 		.split_once(':')
@@ -134,6 +140,7 @@ pub fn command(options:Options) -> Result<()> {
 		.filter(|e| e.file_type().map(|e| e.is_file()).unwrap_or_default())
 		.filter_map(|e| {
 			let path = e.path();
+
 			capability_from_path(&path).and_then(|capability| {
 				match &options.capability {
 					Some(c) => (c == capability.identifier()).then_some((capability, path)),
@@ -182,11 +189,14 @@ pub fn command(options:Options) -> Result<()> {
 
 		if capabilities.is_empty() {
 			let identifier = format!("{target_name}-capability");
+
 			let capability_path = capabilities_dir.join(target_name).with_extension("json");
+
 			log::info!(
 				"Capability matching platforms {expected_platforms:?} not found, creating {}",
 				capability_path.display()
 			);
+
 			capabilities.push((
 				TomlOrJson::Json(serde_json::json!({
 				  "identifier": identifier,
@@ -211,6 +221,7 @@ pub fn command(options:Options) -> Result<()> {
 				.iter()
 				.map(|(c, p)| {
 					let id = c.identifier();
+
 					if id.is_empty() {
 						dunce::simplified(p).to_str().unwrap_or_default()
 					} else {
@@ -237,7 +248,9 @@ pub fn command(options:Options) -> Result<()> {
 
 	for (capability, path) in &mut capabilities {
 		capability.insert_permission(options.identifier.clone());
+
 		std::fs::write(&*path, capability.to_string()?)?;
+
 		log::info!(action = "Added"; "permission `{}` to `{}` at {}", options.identifier, capability.identifier(), dunce::simplified(path).display());
 	}
 

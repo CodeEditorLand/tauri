@@ -27,9 +27,13 @@ trait CommandExt {
 impl CommandExt for Command {
   fn piped(&mut self) -> std::io::Result<ExitStatus> {
     self.stdin(os_pipe::dup_stdin()?);
+
     self.stdout(os_pipe::dup_stdout()?);
+
     self.stderr(os_pipe::dup_stderr()?);
+
     let program = self.get_program().to_string_lossy().into_owned();
+
     log::debug!(action = "Running"; "Command `{} {}`", program, self.get_args().map(|arg| arg.to_string_lossy()).fold(String::new(), |acc, arg| format!("{acc} {arg}")));
 
     self.status().map_err(Into::into)
@@ -129,6 +133,7 @@ pub fn notarize(
       "Finished with status {} for id {} ({})",
       submit_output.status, submit_output.id, submit_output.message
     );
+
     if submit_output.status == "Accepted" {
       println!("Notarizing {}", log_message);
       staple_app(app_bundle_path.to_path_buf())?;
@@ -208,7 +213,9 @@ impl NotarytoolCmdExt for Command {
         let key_path = match key {
           ApiKey::Raw(k) => {
             let key_path = temp_dir.join("AuthKey.p8");
+
             std::fs::write(&key_path, k)?;
+
             key_path
           }
           ApiKey::Path(p) => p.to_owned(),

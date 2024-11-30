@@ -26,6 +26,7 @@ pub struct Options {
 
 fn completions_for(shell:Shell, manager:&'static str, cmd:Command) -> Vec<u8> {
 	let tauri = cmd.name("tauri");
+
 	let mut command = if manager == "npm" || manager == "bun" {
 		Command::new(manager)
 			.bin_name(manager)
@@ -35,7 +36,9 @@ fn completions_for(shell:Shell, manager:&'static str, cmd:Command) -> Vec<u8> {
 	};
 
 	let mut buf = Vec::new();
+
 	generate(shell, &mut command, manager, &mut buf);
+
 	buf
 }
 
@@ -43,6 +46,7 @@ fn get_completions(shell:Shell, cmd:Command) -> Result<String> {
 	let completions = if shell == Shell::Bash {
 		let mut completions =
 			String::from_utf8_lossy(&completions_for(shell, "cargo", cmd)).into_owned();
+
 		for manager in PKG_MANAGERS {
 			completions.push_str(&format!(
 				"complete -F _cargo -o bashdefault -o default {} tauri\n",
@@ -55,6 +59,7 @@ fn get_completions(shell:Shell, cmd:Command) -> Result<String> {
 				}
 			));
 		}
+
 		completions
 	} else {
 		let mut buffer = String::new();
@@ -77,6 +82,7 @@ fn get_completions(shell:Shell, cmd:Command) -> Result<String> {
 			};
 
 			buffer.push_str(&completions);
+
 			buffer.push('\n');
 		}
 
@@ -90,6 +96,7 @@ pub fn command(options:Options, cmd:Command) -> Result<()> {
 	log::info!("Generating completion file for {}...", options.shell);
 
 	let completions = get_completions(options.shell, cmd)?;
+
 	if let Some(output) = options.output {
 		write(output, completions).context("failed to write to output path")?;
 	} else {

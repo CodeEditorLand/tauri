@@ -51,6 +51,7 @@ impl ConfigMetadata {
 				}
 			}
 		}
+
 		None
 	}
 }
@@ -115,6 +116,7 @@ pub fn custom_sign_settings(
 	match config {
 		CustomSignCommandConfig::Command(command) => {
 			let mut tokens = command.split(' ');
+
 			tauri_bundler::CustomSignCommandSettings {
 				cmd:tokens.next().unwrap().to_string(), // split always has at least one element
 				args:tokens.map(String::from).collect(),
@@ -128,6 +130,7 @@ pub fn custom_sign_settings(
 
 fn config_handle() -> &'static ConfigHandle {
 	static CONFIG_HANDLE:OnceLock<ConfigHandle> = OnceLock::new();
+
 	CONFIG_HANDLE.get_or_init(Default::default)
 }
 
@@ -142,23 +145,30 @@ fn get_internal(
 	}
 
 	let tauri_dir = super::app_paths::tauri_dir();
+
 	let (mut config, config_path) =
 		tauri_utils::config::parse::parse_value(target, tauri_dir.join("tauri.conf.json"))?;
+
 	let config_file_name = config_path.file_name().unwrap().to_string_lossy();
+
 	let mut extensions = HashMap::new();
 
 	if let Some((platform_config, config_path)) =
 		tauri_utils::config::parse::read_platform(target, tauri_dir.to_path_buf())?
 	{
 		merge(&mut config, &platform_config);
+
 		extensions
 			.insert(config_path.file_name().unwrap().to_str().unwrap().into(), platform_config);
 	}
 
 	if let Some(merge_config) = merge_config {
 		let merge_config_str = serde_json::to_string(&merge_config).unwrap();
+
 		set_var("TAURI_CONFIG", merge_config_str);
+
 		merge(&mut config, merge_config);
+
 		extensions.insert(MERGE_CONFIG_EXTENSION_NAME.into(), merge_config.clone());
 	};
 
@@ -170,15 +180,18 @@ fn get_internal(
 		let schema = jsonschema::JSONSchema::compile(&schema).unwrap();
 
 		let result = schema.validate(&config);
+
 		if let Err(errors) = result {
 			for error in errors {
 				let path = error.instance_path.clone().into_vec().join(" > ");
+
 				if path.is_empty() {
 					log::error!("`{}` error: {}", config_file_name, error);
 				} else {
 					log::error!("`{}` error on `{}`: {}", config_file_name, path, error);
 				}
 			}
+
 			if !reload {
 				exit(1);
 			}
@@ -189,7 +202,9 @@ fn get_internal(
 	// from a path relative to the config path so we actually need to change the
 	// current working directory here
 	let current_dir = current_dir()?;
+
 	set_current_dir(config_path.parent().unwrap())?;
+
 	let config:Config = serde_json::from_value(config)?;
 	// revert to previous working directory
 	set_current_dir(current_dir)?;
@@ -212,6 +227,7 @@ pub fn get(target:Target, merge_config:Option<&serde_json::Value>) -> crate::Res
 
 pub fn reload(merge_config:Option<&serde_json::Value>) -> crate::Result<ConfigHandle> {
 	let target = config_handle().lock().unwrap().as_ref().map(|conf| conf.target);
+
 	if let Some(target) = target {
 		get_internal(merge_config, true, target)
 	} else {
@@ -222,12 +238,16 @@ pub fn reload(merge_config:Option<&serde_json::Value>) -> crate::Result<ConfigHa
 /// merges the loaded config with the given value
 pub fn merge_with(merge_config:&serde_json::Value) -> crate::Result<ConfigHandle> {
 	let handle = config_handle();
+
 	if let Some(config_metadata) = &mut *handle.lock().unwrap() {
 		let merge_config_str = serde_json::to_string(merge_config).unwrap();
+
 		set_var("TAURI_CONFIG", merge_config_str);
 
 		let mut value = serde_json::to_value(config_metadata.inner.clone())?;
+
 		merge(&mut value, merge_config);
+
 		config_metadata.inner = serde_json::from_value(value)?;
 
 		Ok(handle.clone())

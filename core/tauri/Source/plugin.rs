@@ -298,6 +298,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	where
 		F: Fn(Invoke<R>) -> bool + Send + Sync + 'static, {
 		self.invoke_handler = Box::new(invoke_handler);
+
 		self
 	}
 
@@ -339,6 +340,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	#[must_use]
 	pub fn js_init_script(mut self, js_init_script:String) -> Self {
 		self.js_init_script = Some(js_init_script);
+
 		self
 	}
 
@@ -377,6 +379,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 			+ Send
 			+ 'static, {
 		self.setup.replace(Box::new(setup));
+
 		self
 	}
 
@@ -405,6 +408,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	where
 		F: Fn(&Webview<R>, &Url) -> bool + Send + 'static, {
 		self.on_navigation = Box::new(on_navigation);
+
 		self
 	}
 
@@ -436,6 +440,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	where
 		F: FnMut(&Webview<R>, &PageLoadPayload<'_>) + Send + 'static, {
 		self.on_page_load = Box::new(on_page_load);
+
 		self
 	}
 
@@ -462,6 +467,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	where
 		F: FnMut(Window<R>) + Send + 'static, {
 		self.on_window_ready = Box::new(on_window_ready);
+
 		self
 	}
 
@@ -488,6 +494,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	where
 		F: FnMut(Webview<R>) + Send + 'static, {
 		self.on_webview_ready = Box::new(on_webview_ready);
+
 		self
 	}
 
@@ -519,6 +526,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	where
 		F: FnMut(&AppHandle<R>, &RunEvent) + Send + 'static, {
 		self.on_event = Box::new(on_event);
+
 		self
 	}
 
@@ -546,6 +554,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	where
 		F: FnOnce(AppHandle<R>) + Send + 'static, {
 		self.on_drop.replace(Box::new(on_drop));
+
 		self
 	}
 
@@ -600,6 +609,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 				}),
 			}),
 		);
+
 		self
 	}
 
@@ -654,6 +664,7 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	) -> Self {
 		self.uri_scheme_protocols
 			.insert(uri_scheme.into(), Arc::new(UriSchemeProtocol { protocol:Box::new(protocol) }));
+
 		self
 	}
 
@@ -722,6 +733,7 @@ impl<R:Runtime, C:DeserializeOwned> Plugin<R> for TauriPlugin<R, C> {
 		config:JsonValue,
 	) -> Result<(), Box<dyn std::error::Error>> {
 		self.app.replace(app.clone());
+
 		if let Some(s) = self.setup.take() {
 			(s)(
 				app,
@@ -743,6 +755,7 @@ impl<R:Runtime, C:DeserializeOwned> Plugin<R> for TauriPlugin<R, C> {
 		for (uri_scheme, protocol) in &self.uri_scheme_protocols {
 			app.manager.webview.register_uri_scheme_protocol(uri_scheme, protocol.clone())
 		}
+
 		Ok(())
 	}
 
@@ -774,6 +787,7 @@ pub(crate) struct PluginStore<R:Runtime> {
 impl<R:Runtime> fmt::Debug for PluginStore<R> {
 	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		let plugins:Vec<&str> = self.store.iter().map(|plugins| plugins.name()).collect();
+
 		f.debug_struct("PluginStore").field("plugins", &plugins).finish()
 	}
 }
@@ -788,17 +802,22 @@ impl<R:Runtime> PluginStore<R> {
 	/// Returns `true` if a plugin with the same name is already in the store.
 	pub fn register(&mut self, plugin:Box<dyn Plugin<R>>) -> bool {
 		let len = self.store.len();
+
 		self.store.retain(|p| p.name() != plugin.name());
 
 		let result = len != self.store.len();
+
 		self.store.push(plugin);
+
 		result
 	}
 
 	/// Removes the plugin with the given name from the store.
 	pub fn unregister(&mut self, plugin:&'static str) -> bool {
 		let len = self.store.len();
+
 		self.store.retain(|p| p.name() != plugin);
+
 		len != self.store.len()
 	}
 
@@ -835,6 +854,7 @@ impl<R:Runtime> PluginStore<R> {
 		self.store.iter_mut().for_each(|plugin| {
 			#[cfg(feature = "tracing")]
 			let _span = tracing::trace_span!("plugin::hooks::created", name = plugin.name()).entered();
+
 			plugin.window_created(window.clone())
 		})
 	}
@@ -848,10 +868,12 @@ impl<R:Runtime> PluginStore<R> {
 		for plugin in self.store.iter_mut() {
 			#[cfg(feature = "tracing")]
 			let _span = tracing::trace_span!("plugin::hooks::on_navigation", name = plugin.name()).entered();
+
 			if !plugin.on_navigation(webview, url) {
 				return false;
 			}
 		}
+
 		true
 	}
 
@@ -860,6 +882,7 @@ impl<R:Runtime> PluginStore<R> {
 		self.store.iter_mut().for_each(|plugin| {
 			#[cfg(feature = "tracing")]
 			let _span = tracing::trace_span!("plugin::hooks::on_page_load", name = plugin.name()).entered();
+
 			plugin.on_page_load(webview, payload)
 		})
 	}
@@ -879,10 +902,13 @@ impl<R:Runtime> PluginStore<R> {
 			if p.name() == plugin {
 				#[cfg(feature = "tracing")]
 				let _span = tracing::trace_span!("plugin::hooks::ipc", name = plugin).entered();
+
 				return p.extend_api(invoke);
 			}
 		}
+
 		invoke.resolver.reject(format!("plugin {plugin} not found"));
+
 		true
 	}
 }
@@ -938,6 +964,7 @@ impl<'de> Deserialize<'de> for PermissionState {
 	where
 		D: Deserializer<'de>, {
 		let s = <String as Deserialize>::deserialize(deserializer)?;
+
 		match s.to_lowercase().as_str() {
 			"granted" => Ok(Self::Granted),
 			"denied" => Ok(Self::Denied),

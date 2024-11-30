@@ -184,6 +184,7 @@ pub fn read_from(
   let mut config: Value = parse_value(target, root_dir.join("tauri.conf.json"))?.0;
   if let Some((platform_config, path)) = read_platform(target, root_dir)? {
     merge(&mut config, &platform_config);
+
     Ok((config, Some(path)))
   } else {
     Ok((config, None))
@@ -200,6 +201,7 @@ pub fn read_platform(
   let platform_config_path = root_dir.join(ConfigFormat::Json.into_platform_file_name(target));
   if does_supported_file_name_exist(target, &platform_config_path) {
     let (platform_config, path): (Value, PathBuf) = parse_value(target, platform_config_path)?;
+
     Ok(Some((platform_config, path)))
   } else {
     Ok(None)

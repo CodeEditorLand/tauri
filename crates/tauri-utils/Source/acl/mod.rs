@@ -265,12 +265,15 @@ impl FromStr for RemoteUrlPattern {
 
   fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
     let mut init = urlpattern::UrlPatternInit::parse_constructor_string::<regex::Regex>(s, None)?;
+
     if init.search.as_ref().map(|p| p.is_empty()).unwrap_or(true) {
       init.search.replace("*".to_string());
     }
+
     if init.hash.as_ref().map(|p| p.is_empty()).unwrap_or(true) {
       init.hash.replace("*".to_string());
     }
+
     if init
       .pathname
       .as_ref()
@@ -279,7 +282,9 @@ impl FromStr for RemoteUrlPattern {
     {
       init.pathname.replace("*".to_string());
     }
+
     let pattern = urlpattern::UrlPattern::parse(init, Default::default())?;
+
     Ok(Self(Arc::new(pattern), s.to_string()))
   }
 }
@@ -336,33 +341,45 @@ mod tests {
     let pattern: RemoteUrlPattern = "http://*".parse().unwrap();
 
     assert!(pattern.test(&"http://tauri.app/path".parse().unwrap()));
+
     assert!(pattern.test(&"http://tauri.app/path?q=1".parse().unwrap()));
 
     assert!(pattern.test(&"http://localhost/path".parse().unwrap()));
+
     assert!(pattern.test(&"http://localhost/path?q=1".parse().unwrap()));
 
     let pattern: RemoteUrlPattern = "http://*.tauri.app".parse().unwrap();
 
     assert!(!pattern.test(&"http://tauri.app/path".parse().unwrap()));
+
     assert!(!pattern.test(&"http://tauri.app/path?q=1".parse().unwrap()));
+
     assert!(pattern.test(&"http://api.tauri.app/path".parse().unwrap()));
+
     assert!(pattern.test(&"http://api.tauri.app/path?q=1".parse().unwrap()));
+
     assert!(!pattern.test(&"http://localhost/path".parse().unwrap()));
+
     assert!(!pattern.test(&"http://localhost/path?q=1".parse().unwrap()));
   }
 
   #[test]
   fn url_pattern_path_wildcard() {
     let pattern: RemoteUrlPattern = "http://localhost/*".parse().unwrap();
+
     assert!(pattern.test(&"http://localhost/path".parse().unwrap()));
+
     assert!(pattern.test(&"http://localhost/path?q=1".parse().unwrap()));
   }
 
   #[test]
   fn url_pattern_scheme_wildcard() {
     let pattern: RemoteUrlPattern = "*://localhost".parse().unwrap();
+
     assert!(pattern.test(&"http://localhost/path".parse().unwrap()));
+
     assert!(pattern.test(&"https://localhost/path?q=1".parse().unwrap()));
+
     assert!(pattern.test(&"custom://localhost/path".parse().unwrap()));
   }
 }
@@ -385,6 +402,7 @@ mod build_ {
         Self::Local => {
           quote! { #prefix::Local }
         }
+
         Self::Remote { url } => {
           let url = url.as_str();
           quote! { #prefix::Remote { url: #url.parse().unwrap() } }
@@ -413,6 +431,7 @@ mod build_ {
     fn to_tokens(&self, tokens: &mut TokenStream) {
       let version = opt_lit_owned(self.version.as_ref().map(|v| {
         let v = v.get();
+
         quote!(::core::num::NonZeroU64::new(#v).unwrap())
       }));
       let identifier = str_lit(&self.identifier);

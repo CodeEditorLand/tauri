@@ -75,19 +75,27 @@ pub fn tauri_root_path() -> PathBuf { bench_root_path().parent().unwrap().to_pat
 #[allow(dead_code)]
 pub fn run_collect(cmd:&[&str]) -> (String, String) {
 	let mut process_builder = Command::new(cmd[0]);
+
 	process_builder
 		.args(&cmd[1..])
 		.stdin(Stdio::piped())
 		.stdout(Stdio::piped())
 		.stderr(Stdio::piped());
+
 	let prog = process_builder.spawn().expect("failed to spawn script");
+
 	let Output { stdout, stderr, status } =
 		prog.wait_with_output().expect("failed to wait on child");
+
 	let stdout = String::from_utf8_lossy(&stdout).to_string();
+
 	let stderr = String::from_utf8_lossy(&stderr).to_string();
+
 	if !status.success() {
 		eprintln!("stdout: <<<{}>>>", stdout);
+
 		eprintln!("stderr: <<<{}>>>", stderr);
+
 		panic!("Unexpected exit code: {:?}", status.code());
 	}
 	(stdout, stderr)
@@ -96,15 +104,19 @@ pub fn run_collect(cmd:&[&str]) -> (String, String) {
 #[allow(dead_code)]
 pub fn parse_max_mem(file_path:&str) -> Option<u64> {
 	let file = fs::File::open(file_path).unwrap();
+
 	let output = BufReader::new(file);
+
 	let mut highest:u64 = 0;
 	// MEM 203.437500 1621617192.4123
 	for line in output.lines().map_while(Result::ok) {
 		// split line by space
 		let split = line.split(' ').collect::<Vec<_>>();
+
 		if split.len() == 3 {
 			// mprof generate result in MB
 			let current_bytes = str::parse::<f64>(split[1]).unwrap() as u64 * 1024 * 1024;
+
 			if current_bytes > highest {
 				highest = current_bytes;
 			}
@@ -126,6 +138,7 @@ pub fn parse_strace_output(output:&str) -> HashMap<String, StraceOutput> {
 
 	let mut lines =
 		output.lines().filter(|line| !line.is_empty() && !line.contains("detached ..."));
+
 	let count = lines.clone().count();
 
 	if count < 4 {
@@ -133,6 +146,7 @@ pub fn parse_strace_output(output:&str) -> HashMap<String, StraceOutput> {
 	}
 
 	let total_line = lines.next_back().unwrap();
+
 	lines.next_back(); // Drop separator
 	let data_lines = lines.skip(2);
 
@@ -195,9 +209,13 @@ pub fn parse_strace_output(output:&str) -> HashMap<String, StraceOutput> {
 #[allow(dead_code)]
 pub fn run(cmd:&[&str]) {
 	let mut process_builder = Command::new(cmd[0]);
+
 	process_builder.args(&cmd[1..]).stdin(Stdio::piped());
+
 	let mut prog = process_builder.spawn().expect("failed to spawn script");
+
 	let status = prog.wait().expect("failed to wait on child");
+
 	if !status.success() {
 		panic!("Unexpected exit code: {:?}", status.code());
 	}
@@ -206,13 +224,16 @@ pub fn run(cmd:&[&str]) {
 #[allow(dead_code)]
 pub fn read_json(filename:&str) -> Result<Value> {
 	let f = fs::File::open(filename)?;
+
 	Ok(serde_json::from_reader(f)?)
 }
 
 #[allow(dead_code)]
 pub fn write_json(filename:&str, value:&Value) -> Result<()> {
 	let f = fs::File::create(filename)?;
+
 	serde_json::to_writer(f, value)?;
+
 	Ok(())
 }
 
@@ -220,12 +241,14 @@ pub fn write_json(filename:&str, value:&Value) -> Result<()> {
 pub fn download_file(url:&str, filename:PathBuf) {
 	if !url.starts_with("http:") && !url.starts_with("https:") {
 		fs::copy(url, filename).unwrap();
+
 		return;
 	}
 
 	// Downloading with curl this saves us from adding
 	// a Rust HTTP client dependency.
 	println!("Downloading {}", url);
+
 	let status = Command::new("curl")
 		.arg("-L")
 		.arg("-s")
@@ -236,5 +259,6 @@ pub fn download_file(url:&str, filename:PathBuf) {
 		.unwrap();
 
 	assert!(status.success());
+
 	assert!(filename.exists());
 }

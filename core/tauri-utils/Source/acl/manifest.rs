@@ -118,19 +118,25 @@ mod build {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
+
 	use quote::{quote, ToTokens, TokenStreamExt};
 
 	use super::*;
+
 	use crate::{literal_struct, tokens::*};
 
 	impl ToTokens for DefaultPermission {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let version = opt_lit_owned(self.version.as_ref().map(|v| {
 				let v = v.get();
+
 				quote!(::core::num::NonZeroU64::new(#v).unwrap())
 			}));
+
 			let description = opt_str_lit(self.description.as_ref());
+
 			let permissions = vec_lit(&self.permissions, str_lit);
+
 			literal_struct!(
 				tokens,
 				::tauri::utils::acl::plugin::DefaultPermission,

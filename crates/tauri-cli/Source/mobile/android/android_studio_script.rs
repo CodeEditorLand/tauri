@@ -50,8 +50,11 @@ pub fn command(options: Options) -> Result<()> {
 
   let (config, metadata, cli_options) = {
     let tauri_config_guard = tauri_config.lock().unwrap();
+
     let tauri_config_ = tauri_config_guard.as_ref().unwrap();
+
     let cli_options = read_options(&tauri_config_.identifier);
+
     let (config, metadata) = get_config(
       &get_app(
         MobileTarget::Android,
@@ -178,7 +181,9 @@ fn adb_forward_port(
     );
 
     let max = 5;
+
     let mut count = 0;
+
     loop {
       std::thread::sleep(std::time::Duration::from_secs(1));
 
@@ -198,6 +203,7 @@ fn adb_forward_port(
     Some((target_device.id.clone(), target_device.name.clone()))
   } else if devices.len() == 1 {
     let device = devices.first().unwrap();
+
     Some((device.serial_no().to_string(), device.name().to_string()))
   } else if devices.len() > 1 {
     anyhow::bail!("Multiple Android devices are connected ({}), please disconnect devices you do not intend to use so Tauri can determine which to use",
@@ -225,6 +231,7 @@ fn adb_forward_port(
           );
           already_forwarded = true;
         }
+
         break;
       }
     }

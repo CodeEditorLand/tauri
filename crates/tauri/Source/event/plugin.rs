@@ -30,6 +30,7 @@ impl<'de> Deserialize<'de> for EventName {
     D: Deserializer<'de>,
   {
     let event_id = String::deserialize(deserializer)?;
+
     if is_event_name_valid(&event_id) {
       Ok(EventName(event_id))
     } else {
@@ -54,6 +55,7 @@ impl<'de> Deserialize<'de> for WebviewLabel {
     D: Deserializer<'de>,
   {
     let event_id = String::deserialize(deserializer)?;
+
     if is_label_valid(&event_id) {
       Ok(WebviewLabel(event_id))
     } else {

@@ -28,10 +28,13 @@ impl<R: Runtime> IconMenuItem<R> {
     A: AsRef<str>,
   {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.as_ref().to_owned();
+
     let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
+
     let icon = match icon {
       Some(i) => Some(i.try_into()?),
       None => None,
@@ -68,11 +71,15 @@ impl<R: Runtime> IconMenuItem<R> {
     A: AsRef<str>,
   {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let id = id.into();
+
     let text = text.as_ref().to_owned();
+
     let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
+
     let icon = match icon {
       Some(i) => Some(i.try_into()?),
       None => None,
@@ -110,10 +117,13 @@ impl<R: Runtime> IconMenuItem<R> {
     A: AsRef<str>,
   {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.as_ref().to_owned();
+
     let icon = native_icon.map(Into::into);
+
     let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
 
     let item = run_main_thread!(handle, || {
@@ -150,11 +160,15 @@ impl<R: Runtime> IconMenuItem<R> {
     A: AsRef<str>,
   {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let id = id.into();
+
     let text = text.as_ref().to_owned();
+
     let icon = native_icon.map(Into::into);
+
     let accelerator = accelerator.and_then(|s| s.as_ref().parse().ok());
 
     let item = run_main_thread!(handle, || {
@@ -190,6 +204,7 @@ impl<R: Runtime> IconMenuItem<R> {
   /// for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
   pub fn set_text<S: AsRef<str>>(&self, text: S) -> crate::Result<()> {
     let text = text.as_ref().to_string();
+
     run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_text(text))
   }
 
@@ -206,6 +221,7 @@ impl<R: Runtime> IconMenuItem<R> {
   /// Set this menu item accelerator.
   pub fn set_accelerator<S: AsRef<str>>(&self, accelerator: Option<S>) -> crate::Result<()> {
     let accel = accelerator.and_then(|s| s.as_ref().parse().ok());
+
     run_item_main_thread!(self, |self_: Self| {
       (*self_.0).as_ref().set_accelerator(accel)
     })?
@@ -218,6 +234,7 @@ impl<R: Runtime> IconMenuItem<R> {
       Some(i) => Some(i.try_into()?),
       None => None,
     };
+
     run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_icon(icon))
   }
 

@@ -181,6 +181,7 @@ mod test {
   #[test]
   fn test_serialize_js() {
     assert_eq!(serialize_js(&()).unwrap(), "null");
+
     assert_eq!(serialize_js(&5i32).unwrap(), "5");
 
     #[derive(serde::Serialize)]
@@ -189,6 +190,7 @@ mod test {
     }
 
     let raw_str = "T".repeat(MIN_JSON_PARSE_LEN);
+
     assert_eq!(serialize_js(&raw_str).unwrap(), format!("\"{raw_str}\""));
 
     assert_eq!(
@@ -218,11 +220,14 @@ mod test {
         .replace('\\', "\\\\")
         .replace('\'', "\\'")
     );
+
     let escape_single_quoted_json_test =
       serialize_to_javascript::Serialized::new(&dangerous_json, &Default::default()).into_string();
 
     let result = r#"JSON.parse('{"test":"don\\\\🚀🐱‍👤\\\\\'t forget to escape me!🚀🐱‍👤","te🚀🐱‍👤st2":"don\'t forget to escape me!","test3":"\\\\🚀🐱‍👤\\\\\\\\\'\'\'\\\\\\\\🚀🐱‍👤\\\\\\\\🚀🐱‍👤\\\\\'\'\'\'\'"}')"#;
+
     assert_eq!(definitely_escaped_dangerous_json, result);
+
     assert_eq!(escape_single_quoted_json_test, result);
   }
 
@@ -231,6 +236,7 @@ mod test {
   fn qc_formatting(f: CallbackFn, a: String) -> bool {
     // call format callback
     let fc = format(f, &a).unwrap();
+
     fc.contains(&format!(
       r#"window["_{}"](JSON.parse('{}'))"#,
       f.0,
@@ -246,6 +252,7 @@ mod test {
   #[quickcheck]
   fn qc_format_res(result: Result<String, String>, c: CallbackFn, ec: CallbackFn) -> bool {
     let resp = format_result(result.clone(), c, ec).expect("failed to format callback result");
+
     let (function, value) = match result {
       Ok(v) => (c, v),
       Err(e) => (ec, e),
@@ -261,7 +268,9 @@ mod test {
   #[test]
   fn test_serialize_js_raw() {
     assert_eq!(serialize_js_raw("null").unwrap(), "null");
+
     assert_eq!(serialize_js_raw("5").unwrap(), "5");
+
     assert_eq!(
       serialize_js_raw("{ \"x\": [1, 2, 3] }").unwrap(),
       "{ \"x\": [1, 2, 3] }"
@@ -273,6 +282,7 @@ mod test {
     }
 
     let raw_str = "T".repeat(MIN_JSON_PARSE_LEN);
+
     assert_eq!(
       serialize_js_raw(format!("\"{raw_str}\"")).unwrap(),
       format!("\"{raw_str}\"")
@@ -302,11 +312,14 @@ mod test {
         .replace('\\', "\\\\")
         .replace('\'', "\\'")
     );
+
     let escape_single_quoted_json_test =
       serialize_to_javascript::Serialized::new(&dangerous_json, &Default::default()).into_string();
 
     let result = r#"JSON.parse('{"test":"don\\\\🚀🐱‍👤\\\\\'t forget to escape me!🚀🐱‍👤","te🚀🐱‍👤st2":"don\'t forget to escape me!","test3":"\\\\🚀🐱‍👤\\\\\\\\\'\'\'\\\\\\\\🚀🐱‍👤\\\\\\\\🚀🐱‍👤\\\\\'\'\'\'\'"}')"#;
+
     assert_eq!(definitely_escaped_dangerous_json, result);
+
     assert_eq!(escape_single_quoted_json_test, result);
   }
 
@@ -316,6 +329,7 @@ mod test {
     let a = a.0;
     // call format callback
     let fc = format_raw(f, a.clone()).unwrap();
+
     fc.contains(&format!(r#"window["_{}"](JSON.parse('{}'))"#, f.0, a))
       || fc.contains(&format!(r#"window["_{}"]({})"#, f.0, a))
   }
@@ -324,7 +338,9 @@ mod test {
   #[quickcheck]
   fn qc_format_raw_res(result: Result<JsonStr, JsonStr>, c: CallbackFn, ec: CallbackFn) -> bool {
     let result = result.map(|v| v.0).map_err(|e| e.0);
+
     let resp = format_result_raw(result.clone(), c, ec).expect("failed to format callback result");
+
     let (function, value) = match result {
       Ok(v) => (c, v),
       Err(e) => (ec, e),

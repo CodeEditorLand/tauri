@@ -109,6 +109,7 @@ async fn schema_file_for_version(version: Version) -> anyhow::Result<String> {
   let cache_key = format!("https://schema.tauri.app/config/{version}");
   if let Some(mut cached) = cache.get(cache_key.clone(), true).await? {
     console_log!("Serving schema for {version} from cache");
+
     return cached.text().await.map_err(Into::into);
   }
 

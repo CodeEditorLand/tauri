@@ -21,6 +21,7 @@ where
     Ok(initial)
   } else {
     let theme = dialoguer::theme::ColorfulTheme::default();
+
     let mut builder = dialoguer::Input::with_theme(&theme)
       .with_prompt(prompt)
       .allow_empty(allow_empty);

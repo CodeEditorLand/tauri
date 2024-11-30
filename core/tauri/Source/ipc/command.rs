@@ -74,6 +74,7 @@ impl<'de, D:Deserialize<'de>, R:Runtime> CommandArg<'de, R> for D {
 		let arg = command.key;
 		#[cfg(feature = "tracing")]
 		let _span = tracing::trace_span!("ipc::request::deserialize_arg", arg = arg).entered();
+
 		Self::deserialize(command).map_err(|e| crate::Error::InvalidArgs(name, arg, e).into())
 	}
 }
@@ -99,6 +100,7 @@ macro_rules! pass {
             self.name, self.key
           )))
         }
+
         InvokeBody::Json(v) => {
           match v.get(self.key) {
             Some(value) => value.$fn($($arg),*),
@@ -310,6 +312,7 @@ pub mod private {
 		#[inline(always)]
 		fn async_kind(&self) -> FutureTag { FutureTag }
 	}
+
 	impl<T:IpcResponse, F:Future<Output = T>> FutureKind for &F {}
 
 	impl FutureTag {

@@ -19,21 +19,29 @@ use crate::helpers::config::Config;
 
 pub trait DevProcess {
 	fn kill(&self) -> std::io::Result<()>;
+
 	fn try_wait(&self) -> std::io::Result<Option<ExitStatus>>;
+
 	fn wait(&self) -> std::io::Result<ExitStatus>;
+
 	fn manually_killed_process(&self) -> bool;
 }
 
 pub trait AppSettings {
 	fn get_package_settings(&self) -> tauri_bundler::PackageSettings;
+
 	fn get_bundle_settings(
 		&self,
 		config:&Config,
 		features:&[String],
 	) -> crate::Result<tauri_bundler::BundleSettings>;
+
 	fn app_binary_path(&self, options:&Options) -> crate::Result<PathBuf>;
+
 	fn get_binaries(&self, target:&str) -> crate::Result<Vec<tauri_bundler::BundleBinary>>;
+
 	fn app_name(&self) -> Option<String>;
+
 	fn lib_name(&self) -> Option<String>;
 
 	fn get_bundler_settings(
@@ -46,6 +54,7 @@ pub trait AppSettings {
 		let no_default_features = options.args.contains(&"--no-default-features".into());
 
 		let mut enabled_features = options.features.clone().unwrap_or_default();
+
 		if !no_default_features {
 			enabled_features.push("default".into());
 		}
@@ -90,14 +99,19 @@ pub trait Interface: Sized {
 	type AppSettings: AppSettings;
 
 	fn new(config:&Config, target:Option<String>) -> crate::Result<Self>;
+
 	fn app_settings(&self) -> Arc<Self::AppSettings>;
+
 	fn env(&self) -> HashMap<&str, String>;
+
 	fn build(&mut self, options:Options) -> crate::Result<()>;
+
 	fn dev<F:Fn(Option<i32>, ExitReason) + Send + Sync + 'static>(
 		&mut self,
 		options:Options,
 		on_exit:F,
 	) -> crate::Result<()>;
+
 	fn mobile_dev<R:Fn(MobileOptions) -> crate::Result<Box<dyn DevProcess + Send>>>(
 		&mut self,
 		options:MobileOptions,

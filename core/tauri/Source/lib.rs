@@ -303,19 +303,25 @@ pub fn log_stdout() {
 	};
 
 	let mut logpipe:[RawFd; 2] = Default::default();
+
 	unsafe {
 		libc::pipe(logpipe.as_mut_ptr());
+
 		libc::dup2(logpipe[1], libc::STDOUT_FILENO);
+
 		libc::dup2(logpipe[1], libc::STDERR_FILENO);
 	}
+
 	thread::spawn(move || unsafe {
 		let file = File::from_raw_fd(logpipe[0]);
 
 		let mut reader = BufReader::new(file);
 
 		let mut buffer = String::new();
+
 		loop {
 			buffer.clear();
+
 			if let Ok(len) = reader.read_line(&mut buffer) {
 				if len == 0 {
 					break;
@@ -456,6 +462,7 @@ pub struct Context<R:Runtime> {
 impl<R:Runtime> fmt::Debug for Context<R> {
 	fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result {
 		let mut d = f.debug_struct("Context");
+
 		d.field("config", &self.config)
 			.field("default_window_icon", &self.default_window_icon)
 			.field("app_icon", &self.app_icon)
@@ -990,6 +997,7 @@ pub(crate) mod sealed {
 	use std::sync::Arc;
 
 	use super::Runtime;
+
 	use crate::{app::AppHandle, manager::AppManager};
 
 	/// A running [`Runtime`] or a dispatcher to it.
@@ -1007,8 +1015,11 @@ pub(crate) mod sealed {
 	/// Managed handle to the application runtime.
 	pub trait ManagerBase<R:Runtime> {
 		fn manager(&self) -> &AppManager<R>;
+
 		fn manager_owned(&self) -> Arc<AppManager<R>>;
+
 		fn runtime(&self) -> RuntimeOrDispatch<'_, R>;
+
 		fn managed_app_handle(&self) -> &AppHandle<R>;
 	}
 }
@@ -1022,6 +1033,7 @@ macro_rules! run_main_thread {
 
 		let task = move || {
 			let f = $ex;
+
 			let _ = tx.send(f());
 		};
 		$handle.run_on_main_thread(task).and_then(|_| {
@@ -1069,6 +1081,7 @@ mod tests {
 	use cargo_toml::Manifest;
 
 	static MANIFEST:OnceLock<Manifest> = OnceLock::new();
+
 	const CHECKED_FEATURES:&str =
 		include_str!(concat!(env!("OUT_DIR"), "/checked_features"));
 
@@ -1076,6 +1089,7 @@ mod tests {
 		MANIFEST.get_or_init(|| {
 			let manifest_dir =
 				PathBuf::from(var("CARGO_MANIFEST_DIR").unwrap());
+
 			Manifest::from_path(manifest_dir.join("Cargo.toml"))
 				.expect("failed to parse Cargo manifest")
 		})
@@ -1103,6 +1117,7 @@ mod tests {
 		let checked_features = CHECKED_FEATURES.split(',');
 
 		let manifest = get_manifest();
+
 		for checked_feature in checked_features {
 			if !manifest.features.iter().any(|(f, _)| f == checked_feature) {
 				panic!(
@@ -1119,6 +1134,7 @@ mod test_utils {
 	use proptest::prelude::*;
 
 	pub fn assert_send<T:Send>() {}
+
 	pub fn assert_sync<T:Sync>() {}
 
 	#[allow(dead_code)]
@@ -1157,12 +1173,16 @@ mod z85 {
 		assert_eq!(bytes.len() % 4, 0);
 
 		let mut buf = String::with_capacity(bytes.len() * 5 / 4);
+
 		for chunk in bytes.chunks_exact(4) {
 			let mut chars = [0u8; 5];
+
 			let mut chunk =
 				u32::from_be_bytes(chunk.try_into().unwrap()) as usize;
+
 			for byte in chars.iter_mut().rev() {
 				*byte = TABLE[chunk % 85];
+
 				chunk /= 85;
 			}
 
@@ -1191,6 +1211,8 @@ mod z85 {
 /// [Z85]: https://rfc.zeromq.org/spec/32/
 pub(crate) fn generate_invoke_key() -> Result<String> {
 	let mut bytes = [0u8; 16];
+
 	getrandom::getrandom(&mut bytes)?;
+
 	Ok(z85::encode(&bytes))
 }

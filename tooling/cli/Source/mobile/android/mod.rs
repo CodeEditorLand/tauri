@@ -85,9 +85,11 @@ enum Commands {
 
 pub fn command(cli:Cli, verbosity:u8) -> Result<()> {
 	let noise_level = NoiseLevel::from_occurrences(verbosity as u64);
+
 	match cli.command {
 		Commands::Init(options) => {
 			crate::helpers::app_paths::resolve();
+
 			init_command(MobileTarget::Android, options.ci, false, options.skip_targets_install)?
 		},
 		Commands::Dev(options) => dev::command(options, noise_level)?,
@@ -105,6 +107,7 @@ pub fn get_config(
 	cli_options:&CliOptions,
 ) -> (AndroidConfig, AndroidMetadata) {
 	let mut android_options = cli_options.clone();
+
 	if let Some(features) = features {
 		android_options.features.get_or_insert(Vec::new()).extend_from_slice(features);
 	}
@@ -126,6 +129,7 @@ pub fn get_config(
 		min_sdk_version:Some(config.bundle.android.min_sdk_version),
 		..Default::default()
 	};
+
 	let config = AndroidConfig::from_raw(app.clone(), Some(raw)).unwrap();
 
 	let metadata = AndroidMetadata {
@@ -136,13 +140,16 @@ pub fn get_config(
 	};
 
 	set_var("WRY_ANDROID_PACKAGE", app.android_identifier_escape_kotlin_keyword());
+
 	set_var("WRY_ANDROID_LIBRARY", app.lib_name());
+
 	set_var("TAURI_ANDROID_PROJECT_PATH", config.project_dir());
 
 	let src_main_dir = config
 		.project_dir()
 		.join("app/src/main")
 		.join(format!("java/{}", app.identifier().replace('.', "/"),));
+
 	if config.project_dir().exists() {
 		if src_main_dir.exists() {
 			let _ = create_dir(src_main_dir.join("generated"));
@@ -154,9 +161,11 @@ pub fn get_config(
 				 recreate the Android project.",
 				src_main_dir.display()
 			);
+
 			exit(1);
 		}
 	}
+
 	set_var("WRY_ANDROID_KOTLIN_FILES_OUT_DIR", src_main_dir.join("generated"));
 
 	(config, metadata)
@@ -164,6 +173,7 @@ pub fn get_config(
 
 fn env() -> Result<Env> {
 	let env = super::env()?;
+
 	cargo_mobile2::android::env::Env::from_env(env).map_err(Into::into)
 }
 
@@ -178,6 +188,7 @@ fn delete_codegen_vars() {
 fn adb_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 	let device_list = adb::device_list(env)
 		.map_err(|cause| anyhow::anyhow!("Failed to detect connected Android devices: {cause}"))?;
+
 	if !device_list.is_empty() {
 		let device = if let Some(t) = target {
 			let (device, score) = device_list
@@ -190,6 +201,7 @@ fn adb_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>>
         .max_by_key(|(_, score)| *score)
         // we already checked the list is not empty
         .unwrap();
+
 			if score > MIN_DEVICE_MATCH_SCORE {
 				device
 			} else {
@@ -204,6 +216,7 @@ fn adb_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>>
 				"Device",
 			)
 			.map_err(|cause| anyhow::anyhow!("Failed to prompt for Android device: {cause}"))?;
+
 			device_list.into_iter().nth(index).unwrap()
 		} else {
 			device_list.into_iter().next().unwrap()
@@ -214,6 +227,7 @@ fn adb_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>>
 			device,
 			device.target().triple,
 		);
+
 		Ok(device)
 	} else {
 		Err(anyhow::anyhow!("No connected Android devices detected"))
@@ -222,6 +236,7 @@ fn adb_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>>
 
 fn emulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<emulator::Emulator> {
 	let emulator_list = emulator::avd_list(env).unwrap_or_default();
+
 	if !emulator_list.is_empty() {
 		let emulator = if let Some(t) = target {
 			let (device, score) = emulator_list
@@ -234,6 +249,7 @@ fn emulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<emulator::Emulato
         .max_by_key(|(_, score)| *score)
         // we already checked the list is not empty
         .unwrap();
+
 			if score > MIN_DEVICE_MATCH_SCORE {
 				device
 			} else {
@@ -250,6 +266,7 @@ fn emulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<emulator::Emulato
 			.map_err(|cause| {
 				anyhow::anyhow!("Failed to prompt for Android Emulator device: {cause}")
 			})?;
+
 			emulator_list.into_iter().nth(index).unwrap()
 		} else {
 			emulator_list.into_iter().next().unwrap()
@@ -266,15 +283,20 @@ fn device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 		Ok(device)
 	} else {
 		let emulator = emulator_prompt(env, target)?;
+
 		log::info!("Starting emulator {}", emulator.name());
+
 		emulator.start_detached(env)?;
 
 		let mut tries = 0;
+
 		loop {
 			sleep(Duration::from_secs(2));
+
 			if let Ok(device) = adb_device_prompt(env, Some(emulator.name())) {
 				return Ok(device);
 			}
+
 			if tries >= 3 {
 				log::info!(
 					"Waiting for emulator to start... (maybe the emulator is unauthorized or \
@@ -283,6 +305,7 @@ fn device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 			} else {
 				log::info!("Waiting for emulator to start...");
 			}
+
 			tries += 1;
 		}
 	}
@@ -294,9 +317,11 @@ fn detect_target_ok<'a>(env:&Env) -> Option<&'a Target<'a>> {
 
 fn open_and_wait(config:&AndroidConfig, env:&Env) -> ! {
 	log::info!("Opening Android Studio");
+
 	if let Err(e) = os::open_file_with("Android Studio", config.project_dir(), &env.base) {
 		log::error!("{}", e);
 	}
+
 	loop {
 		sleep(Duration::from_secs(24 * 60 * 60));
 	}
@@ -304,6 +329,7 @@ fn open_and_wait(config:&AndroidConfig, env:&Env) -> ! {
 
 fn inject_resources(config:&AndroidConfig, tauri_config:&TauriConfig) -> Result<()> {
 	let asset_dir = config.project_dir().join("app/src/main").join(DEFAULT_ASSET_DIR);
+
 	create_dir_all(&asset_dir)?;
 
 	write(asset_dir.join("tauri.conf.json"), serde_json::to_string(&tauri_config)?)?;
@@ -313,10 +339,13 @@ fn inject_resources(config:&AndroidConfig, tauri_config:&TauriConfig) -> Result<
 		Some(BundleResources::Map(map)) => Some(ResourcePaths::from_map(map, true)),
 		None => None,
 	};
+
 	if let Some(resources) = resources {
 		for resource in resources.iter() {
 			let resource = resource?;
+
 			let dest = asset_dir.join(resource.target());
+
 			crate::helpers::fs::copy_file(resource.path(), dest)?;
 		}
 	}
@@ -329,10 +358,12 @@ fn configure_cargo(env:&mut Env, config:&AndroidConfig) -> Result<()> {
 		let config = target.generate_cargo_config(config, env)?;
 
 		let target_var_name = target.triple.replace('-', "_").to_uppercase();
+
 		if let Some(linker) = config.linker {
 			env.base
 				.insert_env_var(format!("CARGO_TARGET_{target_var_name}_LINKER"), linker.into());
 		}
+
 		env.base.insert_env_var(
 			format!("CARGO_TARGET_{target_var_name}_RUSTFLAGS"),
 			config.rustflags.join(" ").into(),

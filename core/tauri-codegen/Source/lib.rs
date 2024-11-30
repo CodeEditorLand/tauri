@@ -64,6 +64,7 @@ pub enum CodegenConfigError {
 pub fn get_config(path:&Path) -> Result<(Config, PathBuf), CodegenConfigError> {
 	let path = if path.is_relative() {
 		let cwd = std::env::current_dir().map_err(CodegenConfigError::CurrentDir)?;
+
 		Cow::Owned(cwd.join(path))
 	} else {
 		Cow::Borrowed(path)
@@ -92,12 +93,14 @@ pub fn get_config(path:&Path) -> Result<(Config, PathBuf), CodegenConfigError> {
 	if let Ok(env) = std::env::var("TAURI_CONFIG") {
 		let merge_config:serde_json::Value =
 			serde_json::from_str(&env).map_err(CodegenConfigError::FormatInline)?;
+
 		json_patch::merge(&mut config, &merge_config);
 	}
 
 	// Set working directory to where `tauri.config.json` is, so that relative
 	// paths in it are parsed correctly.
 	let old_cwd = std::env::current_dir().map_err(CodegenConfigError::CurrentDir)?;
+
 	std::env::set_current_dir(parent.clone()).map_err(CodegenConfigError::CurrentDir)?;
 
 	let config = serde_json::from_value(config)?;
@@ -111,15 +114,19 @@ pub fn get_config(path:&Path) -> Result<(Config, PathBuf), CodegenConfigError> {
 /// Create a blake3 checksum of the passed bytes.
 fn checksum(bytes:&[u8]) -> Result<String, fmt::Error> {
 	let mut hasher = vendor::blake3_reference::Hasher::default();
+
 	hasher.update(bytes);
 
 	let mut bytes = [0u8; 32];
+
 	hasher.finalize(&mut bytes);
 
 	let mut hex = String::with_capacity(2 * bytes.len());
+
 	for b in bytes {
 		write!(hex, "{b:02x}")?;
 	}
+
 	Ok(hex)
 }
 
@@ -154,6 +161,7 @@ impl TryFrom<Vec<u8>> for Cached {
 impl ToTokens for Cached {
 	fn to_tokens(&self, tokens:&mut TokenStream) {
 		let path = &self.checksum;
+
 		tokens.append_all(quote!(::std::concat!(::std::env!("OUT_DIR"), "/", #path)))
 	}
 }

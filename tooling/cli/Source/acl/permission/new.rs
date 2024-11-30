@@ -50,6 +50,7 @@ pub fn command(options:Options) -> Result<()> {
 	};
 
 	let allow:Vec<String> = options.allow.map(FromIterator::from_iter).unwrap_or_default();
+
 	let deny:Vec<String> = options.deny.map(FromIterator::from_iter).unwrap_or_default();
 
 	let permission = Permission {
@@ -68,7 +69,9 @@ pub fn command(options:Options) -> Result<()> {
 				Some(t) => t,
 				None => std::env::current_dir()?,
 			};
+
 			let permissions_dir = dir.join("permissions");
+
 			permissions_dir.join(format!(
 				"{}.{}",
 				permission.identifier,
@@ -81,6 +84,7 @@ pub fn command(options:Options) -> Result<()> {
 		let msg = format!("Permission already exists at {}", dunce::simplified(&path).display());
 
 		let overwrite = prompts::confirm(&format!("{msg}, overwrite?"), Some(false))?;
+
 		if overwrite {
 			std::fs::remove_file(&path)?;
 		} else {

@@ -14,6 +14,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// Separator menu item
   pub fn separator<M: Manager<R>>(manager: &M) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let item = run_main_thread!(handle, || {
@@ -31,6 +32,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// Copy menu item
   pub fn copy<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -50,6 +52,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// Cut menu item
   pub fn cut<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -69,6 +72,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// Paste menu item
   pub fn paste<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -88,6 +92,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// SelectAll menu item
   pub fn select_all<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -111,6 +116,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Windows / Linux:** Unsupported.
   pub fn undo<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -133,6 +139,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Windows / Linux:** Unsupported.
   pub fn redo<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -156,6 +163,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Linux:** Unsupported.
   pub fn minimize<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -179,6 +187,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Linux:** Unsupported.
   pub fn maximize<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -202,6 +211,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Windows / Linux:** Unsupported.
   pub fn fullscreen<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -225,6 +235,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Linux:** Unsupported.
   pub fn hide<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -248,6 +259,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Linux:** Unsupported.
   pub fn hide_others<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -271,6 +283,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Windows / Linux:** Unsupported.
   pub fn show_all<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -294,6 +307,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Linux:** Unsupported.
   pub fn close_window<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -317,6 +331,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Linux:** Unsupported.
   pub fn quit<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -340,6 +355,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
     metadata: Option<AboutMetadata<'_>>,
   ) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -368,6 +384,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// - **Windows / Linux:** Unsupported.
   pub fn services<M: Manager<R>>(manager: &M, text: Option<&str>) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let text = text.map(|t| t.to_owned());
@@ -399,6 +416,7 @@ impl<R: Runtime> PredefinedMenuItem<R> {
   /// for this menu item. To display a `&` without assigning a mnemenonic, use `&&`.
   pub fn set_text<S: AsRef<str>>(&self, text: S) -> crate::Result<()> {
     let text = text.as_ref().to_string();
+
     run_item_main_thread!(self, |self_: Self| (*self_.0).as_ref().set_text(text))
   }
 

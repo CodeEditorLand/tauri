@@ -22,6 +22,7 @@ impl Scopes {
   pub fn allow_directory<P: AsRef<Path>>(&self, path: P, recursive: bool) -> crate::Result<()> {
     #[cfg(feature = "protocol-asset")]
     self.asset_protocol.allow_directory(path, recursive)?;
+
     Ok(())
   }
 
@@ -29,6 +30,7 @@ impl Scopes {
   pub fn allow_file<P: AsRef<Path>>(&self, path: P) -> crate::Result<()> {
     #[cfg(feature = "protocol-asset")]
     self.asset_protocol.allow_file(path)?;
+
     Ok(())
   }
 
@@ -36,6 +38,7 @@ impl Scopes {
   pub fn forbid_file<P: AsRef<Path>>(&self, path: P) -> crate::Result<()> {
     #[cfg(feature = "protocol-asset")]
     self.asset_protocol.forbid_file(path)?;
+
     Ok(())
   }
 }

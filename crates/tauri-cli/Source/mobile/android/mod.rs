@@ -87,6 +87,7 @@ pub fn command(cli: Cli, verbosity: u8) -> Result<()> {
         options.skip_targets_install,
       )?
     }
+
     Commands::Dev(options) => dev::command(options, noise_level)?,
     Commands::Build(options) => build::command(options, noise_level)?,
     Commands::AndroidStudioScript(options) => android_studio_script::command(options)?,
@@ -218,6 +219,7 @@ fn adb_device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a
       device,
       device.target().triple,
     );
+
     Ok(device)
   } else {
     Err(anyhow::anyhow!("No connected Android devices detected"))
@@ -268,9 +270,13 @@ fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
     Ok(device)
   } else {
     let emulator = emulator_prompt(env, target)?;
+
     log::info!("Starting emulator {}", emulator.name());
+
     emulator.start_detached(env)?;
+
     let mut tries = 0;
+
     loop {
       sleep(Duration::from_secs(2));
       if let Ok(device) = adb_device_prompt(env, Some(emulator.name())) {
@@ -331,13 +337,16 @@ fn inject_resources(config: &AndroidConfig, tauri_config: &TauriConfig) -> Resul
 fn configure_cargo(env: &mut Env, config: &AndroidConfig) -> Result<()> {
   for target in Target::all().values() {
     let config = target.generate_cargo_config(config, env)?;
+
     let target_var_name = target.triple.replace('-', "_").to_uppercase();
+
     if let Some(linker) = config.linker {
       env.base.insert_env_var(
         format!("CARGO_TARGET_{target_var_name}_LINKER"),
         linker.into(),
       );
     }
+
     env.base.insert_env_var(
       format!("CARGO_TARGET_{target_var_name}_RUSTFLAGS"),
       config.rustflags.join(" ").into(),

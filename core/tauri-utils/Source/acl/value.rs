@@ -141,9 +141,11 @@ mod build {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
+
 	use quote::{quote, ToTokens, TokenStreamExt};
 
 	use super::*;
+
 	use crate::tokens::*;
 
 	impl ToTokens for Number {
@@ -171,15 +173,18 @@ mod build {
 				Value::Number(number) => quote! { #prefix::Number(#number) },
 				Value::String(str) => {
 					let s = str_lit(str);
+
 					quote! { #prefix::String(#s) }
 				},
 				Value::List(vec) => {
 					let items = vec_lit(vec, identity);
+
 					quote! { #prefix::List(#items) }
 				},
 				Value::Map(map) => {
 					let map =
 						map_lit(quote! { ::std::collections::BTreeMap }, map, str_lit, identity);
+
 					quote! { #prefix::Map(#map) }
 				},
 			});

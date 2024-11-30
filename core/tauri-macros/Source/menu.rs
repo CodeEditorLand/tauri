@@ -39,6 +39,7 @@ impl Parse for NegatedIdent {
 		let negated_token = input.parse::<Token![!]>();
 
 		let ident:Ident = input.parse()?;
+
 		Ok(NegatedIdent { negated:negated_token.is_ok(), ident })
 	}
 }
@@ -89,9 +90,12 @@ pub fn do_menu_item(input:DoMenuItemInput) -> TokenStream {
 	}
 
 	let has_negated = kinds.iter().any(|n| n.is_negated());
+
 	if has_negated {
 		kinds.extend(defaults);
+
 		kinds.sort_by(|a, b| a.ident.cmp(&b.ident));
+
 		kinds.dedup_by(|a, b| a.ident == b.ident);
 	}
 

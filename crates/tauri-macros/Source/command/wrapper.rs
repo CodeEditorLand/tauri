@@ -49,11 +49,13 @@ impl Parse for WrapperAttributes {
     };
 
     let attrs = Punctuated::<WrapperAttributeKind, Token![,]>::parse_terminated(input)?;
+
     for attr in attrs {
       match attr {
         WrapperAttributeKind::Meta(Meta::List(_)) => {
           return Err(syn::Error::new(input.span(), "unexpected list input"));
         }
+
         WrapperAttributeKind::Meta(Meta::NameValue(v)) => {
           if v.path.is_ident("rename_all") {
             if let Expr::Lit(ExprLit {
@@ -84,17 +86,20 @@ impl Parse for WrapperAttributes {
                 quote!($crate)
               } else {
                 let ident = Ident::new(&lit, Span::call_site());
+
                 quote!(#ident)
               };
             }
           }
         }
+
         WrapperAttributeKind::Meta(Meta::Path(_)) => {
           return Err(syn::Error::new(
             input.span(),
             "unexpected input, expected one of `rename_all`, `root`, `async`",
           ));
         }
+
         WrapperAttributeKind::Async => {
           wrapper_attributes.execution_context = ExecutionContext::Async;
         }
@@ -167,6 +172,7 @@ pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
           syn::Type::Path(path) => {
             // Check if the type contains a lifetime argument
             let last = path.path.segments.last().unwrap();
+
             if let syn::PathArguments::AngleBracketed(args) = &last.arguments {
               if args
                 .args
@@ -199,8 +205,11 @@ pub fn wrapper(attributes: TokenStream, item: TokenStream) -> TokenStream {
               const _: () = if false {
                 #diagnostic
                 trait AsyncCommandMustReturnResult {}
+
                 impl<A, B> AsyncCommandMustReturnResult for ::std::result::Result<A, B> {}
+
                 let _check: #return_type = unreachable!();
+
                 let _: &dyn AsyncCommandMustReturnResult = &_check;
               };
             };
@@ -315,7 +324,9 @@ fn body_async(
       let span = tracing::debug_span!("ipc::request::run");
       #resolver.respond_async_serialized(async move {
         let result = $path(#(#args?),*);
+
         let kind = (&result).async_kind();
+
         kind.future(result).await
       }
       .instrument(span));
@@ -326,7 +337,9 @@ fn body_async(
     quote! {
       #resolver.respond_async_serialized(async move {
         let result = $path(#(#args?),*);
+
         let kind = (&result).async_kind();
+
         kind.future(result).await
       });
       return true;
@@ -367,8 +380,11 @@ fn body_blocking(
   Ok(quote! {
     #maybe_span
     let result = $path(#(match #args #match_body),*);
+
     let kind = (&result).blocking_kind();
+
     kind.block(result, #resolver);
+
     return true;
   })
 }
@@ -444,6 +460,7 @@ fn parse_arg(
     ArgumentCase::Camel => {
       key = key.to_lower_camel_case();
     }
+
     ArgumentCase::Snake => {
       key = key.to_snake_case();
     }
@@ -493,7 +510,9 @@ fn cross_command(bin: &str) -> std::process::Command {
   #[cfg(target_os = "windows")]
   let cmd = {
     let mut cmd = std::process::Command::new("cmd");
+
     cmd.arg("/c").arg(bin);
+
     cmd
   };
   #[cfg(not(target_os = "windows"))]

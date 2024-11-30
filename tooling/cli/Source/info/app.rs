@@ -14,12 +14,15 @@ use crate::helpers::framework;
 
 pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionItem> {
 	let mut items = Vec::new();
+
 	if tauri_dir.is_some() {
 		if let Ok(config) = crate::helpers::config::get(Target::current(), None) {
 			let config_guard = config.lock().unwrap();
+
 			let config = config_guard.as_ref().unwrap();
 
 			let bundle_or_build = if config.bundle.active { "bundle" } else { "build" };
+
 			items.push(SectionItem::new().description(format!("build-type: {bundle_or_build}")));
 
 			let csp = config
@@ -29,6 +32,7 @@ pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionIt
 				.clone()
 				.map(|c| c.to_string())
 				.unwrap_or_else(|| "unset".to_string());
+
 			items.push(SectionItem::new().description(format!("CSP: {csp}")));
 
 			if let Some(frontend_dist) = &config.build.frontend_dist {

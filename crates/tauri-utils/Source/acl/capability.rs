@@ -61,10 +61,12 @@ impl<'de> Deserialize<'de> for PermissionEntry {
     UntaggedEnumVisitor::new()
       .string(|string| {
         let de = string.into_deserializer();
+
         Identifier::deserialize(de).map(Self::PermissionRef)
       })
       .map(|map| {
         let ext_perm = map.deserialize::<ExtendedPermissionStruct>()?;
+
         Ok(Self::ExtendedPermission {
           identifier: ext_perm.identifier,
           scope: ext_perm.scope,
@@ -261,9 +263,12 @@ impl CapabilityFile {
   /// Load the given capability file.
   pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, super::Error> {
     let path = path.as_ref();
+
     let capability_file =
       std::fs::read_to_string(path).map_err(|e| super::Error::ReadFile(e, path.into()))?;
+
     let ext = path.extension().unwrap().to_string_lossy().to_string();
+
     let file: Self = match ext.as_str() {
       "toml" => toml::from_str(&capability_file)?,
       "json" => serde_json::from_str(&capability_file)?,
@@ -271,6 +276,7 @@ impl CapabilityFile {
       "json5" => json5::from_str(&capability_file)?,
       _ => return Err(super::Error::UnknownCapabilityFormat(ext)),
     };
+
     Ok(file)
   }
 }
@@ -289,6 +295,7 @@ impl<'de> Deserialize<'de> for CapabilityFile {
         }
 
         let value: serde_json::Map<String, serde_json::Value> = map.deserialize()?;
+
         if value.contains_key("capabilities") {
           serde_json::from_value::<CapabilityNamedList>(value.into())
             .map(|named| Self::NamedList {
@@ -344,6 +351,7 @@ mod build {
         Self::PermissionRef(id) => {
           quote! { #prefix::PermissionRef(#id) }
         }
+
         Self::ExtendedPermission { identifier, scope } => {
           quote! { #prefix::ExtendedPermission {
             identifier: #identifier,
@@ -390,7 +398,9 @@ mod tests {
   #[test]
   fn permission_entry_de() {
     let identifier = Identifier::try_from("plugin:perm".to_string()).unwrap();
+
     let identifier_json = serde_json::to_string(&identifier).unwrap();
+
     assert_eq!(
       serde_json::from_str::<PermissionEntry>(&identifier_json).unwrap(),
       PermissionEntry::PermissionRef(identifier.clone())
@@ -425,6 +435,7 @@ mod tests {
       permissions: vec![],
       platforms: None,
     };
+
     let capability_json = serde_json::to_string(&capability).unwrap();
 
     assert_eq!(

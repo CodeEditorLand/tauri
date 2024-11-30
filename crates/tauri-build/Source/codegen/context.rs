@@ -46,6 +46,7 @@ impl CodegenContext {
   #[must_use]
   pub fn config_path(mut self, config_path: impl Into<PathBuf>) -> Self {
     self.config_path = config_path.into();
+
     self
   }
 
@@ -63,6 +64,7 @@ impl CodegenContext {
   #[must_use]
   pub fn out_file(mut self, filename: PathBuf) -> Self {
     self.out_file = filename;
+
     self
   }
 
@@ -73,6 +75,7 @@ impl CodegenContext {
       .capabilities
       .get_or_insert_with(Default::default)
       .push(path.as_ref().to_path_buf());
+
     self
   }
 
@@ -87,6 +90,7 @@ impl CodegenContext {
     match &config.build.frontend_dist {
       Some(FrontendDist::Directory(p)) => {
         let dist_path = config_parent.join(p);
+
         if dist_path.exists() {
           println!("cargo:rerun-if-changed={}", dist_path.display());
         }
@@ -101,12 +105,14 @@ impl CodegenContext {
       }
       _ => (),
     }
+
     for icon in &config.bundle.icon {
       println!(
         "cargo:rerun-if-changed={}",
         config_parent.join(icon).display()
       );
     }
+
     if let Some(tray_icon) = config.app.tray_icon.as_ref().map(|t| &t.icon_path) {
       println!(
         "cargo:rerun-if-changed={}",
@@ -144,6 +150,7 @@ impl CodegenContext {
     let parent = out.parent().with_context(|| {
       "`Codegen` could not find the parent to `out_file` while creating the file"
     })?;
+
     create_dir_all(parent)?;
 
     let mut file = File::create(&out).map(BufWriter::new).with_context(|| {

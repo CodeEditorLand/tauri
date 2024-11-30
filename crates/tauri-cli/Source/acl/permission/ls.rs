@@ -30,6 +30,7 @@ pub fn command(options: Options) -> Result<()> {
 
   if acl_manifests_path.exists() {
     let plugin_manifest_json = read_to_string(&acl_manifests_path)?;
+
     let acl = serde_json::from_str::<BTreeMap<String, Manifest>>(&plugin_manifest_json)?;
 
     for (key, manifest) in acl {

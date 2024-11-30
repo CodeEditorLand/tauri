@@ -66,6 +66,7 @@ fn lookup<F: Fn(&PathBuf) -> bool>(dir: &Path, checker: F) -> Option<PathBuf> {
 
   for entry in builder.build().flatten() {
     let path = dir.join(entry.path());
+
     if checker(&path) {
       return Some(path);
     }
@@ -116,6 +117,7 @@ pub fn resolve_tauri_dir() -> Option<PathBuf> {
 pub fn resolve() {
   TAURI_DIR.set(resolve_tauri_dir().unwrap_or_else(|| {
     let env_var_name = env_tauri_app_path().is_some().then(|| format!("`{ENV_TAURI_APP_PATH}`"));
+
     panic!("Couldn't recognize the {} folder as a Tauri project. It must contain a `{}`, `{}` or `{}` file in any subfolder.",
       env_var_name.as_deref().unwrap_or("current"),
       ConfigFormat::Json.into_file_name(),

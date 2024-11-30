@@ -112,9 +112,11 @@ impl SubmenuPayload {
     } else {
       SubmenuBuilder::new(webview, self.text)
     };
+
     if let Some(enabled) = self.enabled {
       builder = builder.enabled(enabled);
     }
+
     for item in self.items {
       builder = item.with_item(webview, resources_table, |i| Ok(builder.item(i)))?;
     }
@@ -140,9 +142,11 @@ impl CheckMenuItemPayload {
     } else {
       CheckMenuItemBuilder::new(self.text)
     };
+
     if let Some(accelerator) = self.accelerator {
       builder = builder.accelerator(accelerator);
     }
+
     if let Some(enabled) = self.enabled {
       builder = builder.enabled(enabled);
     }
@@ -192,12 +196,15 @@ impl IconMenuItemPayload {
     } else {
       IconMenuItemBuilder::new(self.text)
     };
+
     if let Some(accelerator) = self.accelerator {
       builder = builder.accelerator(accelerator);
     }
+
     if let Some(enabled) = self.enabled {
       builder = builder.enabled(enabled);
     }
+
     builder = match self.icon {
       Icon::Native(native_icon) => builder.native_icon(native_icon),
       Icon::Icon(icon) => builder.icon(icon.into_img(resources_table)?.as_ref().clone()),
@@ -235,9 +242,11 @@ impl MenuItemPayload {
     } else {
       MenuItemBuilder::new(self.text)
     };
+
     if let Some(accelerator) = self.accelerator {
       builder = builder.accelerator(accelerator);
     }
+
     if let Some(enabled) = self.enabled {
       builder = builder.enabled(enabled);
     }
@@ -291,6 +300,7 @@ impl PredefinedMenuItemPayload {
           Some(m) => Some(m.into_metadata(resources_table)?),
           None => None,
         };
+
         PredefinedMenuItem::about(webview, self.text.as_deref(), metadata)
       }
       Predefined::Services => PredefinedMenuItem::services(webview, self.text.as_deref()),
@@ -467,12 +477,14 @@ fn append<R: Runtime>(
         item.with_item(&webview, &resources_table, |i| menu.append(i))?;
       }
     }
+
     ItemKind::Submenu => {
       let submenu = resources_table.get::<Submenu<R>>(rid)?;
       for item in items {
         item.with_item(&webview, &resources_table, |i| submenu.append(i))?;
       }
     }
+
     _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
   };
 
@@ -494,12 +506,14 @@ fn prepend<R: Runtime>(
         item.with_item(&webview, &resources_table, |i| menu.prepend(i))?;
       }
     }
+
     ItemKind::Submenu => {
       let submenu = resources_table.get::<Submenu<R>>(rid)?;
       for item in items {
         item.with_item(&webview, &resources_table, |i| submenu.prepend(i))?;
       }
     }
+
     _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
   };
 
@@ -520,16 +534,20 @@ fn insert<R: Runtime>(
       let menu = resources_table.get::<Menu<R>>(rid)?;
       for item in items {
         item.with_item(&webview, &resources_table, |i| menu.insert(i, position))?;
+
         position += 1
       }
     }
+
     ItemKind::Submenu => {
       let submenu = resources_table.get::<Submenu<R>>(rid)?;
       for item in items {
         item.with_item(&webview, &resources_table, |i| submenu.insert(i, position))?;
+
         position += 1
       }
     }
+
     _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
   };
 
@@ -550,11 +568,13 @@ fn remove<R: Runtime>(
       let menu = resources_table.get::<Menu<R>>(rid)?;
       do_menu_item!(resources_table, item_rid, item_kind, |i| menu.remove(&*i))?;
     }
+
     ItemKind::Submenu => {
       let submenu = resources_table.get::<Submenu<R>>(rid)?;
       do_menu_item!(resources_table, item_rid, item_kind, |i| submenu
         .remove(&*i))?;
     }
+
     _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
   };
 
@@ -564,6 +584,7 @@ fn remove<R: Runtime>(
 macro_rules! make_item_resource {
   ($resources_table:ident, $item:ident) => {{
     let id = $item.id().clone();
+
     let (rid, kind) = match $item {
       MenuItemKind::MenuItem(i) => ($resources_table.add(i), ItemKind::MenuItem),
       MenuItemKind::Submenu(i) => ($resources_table.add(i), ItemKind::Submenu),
@@ -590,12 +611,14 @@ fn remove_at<R: Runtime>(
         return Ok(Some(make_item_resource!(resources_table, item)));
       }
     }
+
     ItemKind::Submenu => {
       let submenu = resources_table.get::<Submenu<R>>(rid)?;
       if let Some(item) = submenu.remove_at(position)? {
         return Ok(Some(make_item_resource!(resources_table, item)));
       }
     }
+
     _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
   };
 
@@ -638,12 +661,14 @@ fn get<R: Runtime>(
         return Ok(Some(make_item_resource!(resources_table, item)));
       }
     }
+
     ItemKind::Submenu => {
       let submenu = resources_table.get::<Submenu<R>>(rid)?;
       if let Some(item) = submenu.get(&id) {
         return Ok(Some(make_item_resource!(resources_table, item)));
       }
     }
+
     _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
   };
 
@@ -665,13 +690,16 @@ async fn popup<R: Runtime>(
 
   if let Some(window) = window {
     let resources_table = webview.resources_table();
+
     match kind {
       ItemKind::Menu => {
         let menu = resources_table.get::<Menu<R>>(rid)?;
+
         menu.popup_inner(window, at)?;
       }
       ItemKind::Submenu => {
         let submenu = resources_table.get::<Submenu<R>>(rid)?;
+
         submenu.popup_inner(window, at)?;
       }
       _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
@@ -702,7 +730,9 @@ async fn set_as_app_menu<R: Runtime>(
   let menu = resources_table.get::<Menu<R>>(rid)?;
   if let Some(menu) = menu.set_as_app_menu()? {
     let id = menu.id().clone();
+
     let rid = resources_table.add(menu);
+
     return Ok(Some((rid, id)));
   }
   Ok(None)
@@ -721,7 +751,9 @@ async fn set_as_window_menu<R: Runtime>(
 
   if let Some(window) = window {
     let mut resources_table = webview.resources_table();
+
     let menu = resources_table.get::<Menu<R>>(rid)?;
+
     if let Some(menu) = menu.set_as_window_menu(&window)? {
       let id = menu.id().clone();
       let rid = resources_table.add(menu);
@@ -800,7 +832,9 @@ fn set_as_windows_menu_for_nsapp<R: Runtime>(
   #[cfg(target_os = "macos")]
   {
     let resources_table = webview.resources_table();
+
     let submenu = resources_table.get::<Submenu<R>>(rid)?;
+
     submenu.set_as_help_menu_for_nsapp()?;
   }
 
@@ -817,7 +851,9 @@ fn set_as_help_menu_for_nsapp<R: Runtime>(
   #[cfg(target_os = "macos")]
   {
     let resources_table = webview.resources_table();
+
     let submenu = resources_table.get::<Submenu<R>>(rid)?;
+
     submenu.set_as_help_menu_for_nsapp()?;
   }
 
@@ -859,6 +895,7 @@ fn set_icon<R: Runtime>(
     Some(Icon::Icon(icon)) => {
       icon_item.set_icon(Some(icon.into_img(&resources_table)?.as_ref().clone()))
     }
+
     None => {
       icon_item.set_icon(None)?;
       icon_item.set_native_icon(None)?;

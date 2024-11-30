@@ -76,9 +76,11 @@ fn push_pattern<P:AsRef<Path>, F:Fn(&str) -> Result<Pattern, glob::PatternError>
 	f:F,
 ) -> crate::Result<()> {
 	let path:PathBuf = pattern.as_ref().components().collect();
+
 	list.insert(f(&path.to_string_lossy())?);
 
 	let mut path = path;
+
 	let mut checked_path = None;
 
 	// attempt to canonicalize parents in case we have a path like
@@ -103,6 +105,7 @@ fn push_pattern<P:AsRef<Path>, F:Fn(&str) -> Result<Pattern, glob::PatternError>
 
 		// get the last component of the path as an OsStr
 		let last = path.iter().next_back().map(PathBuf::from);
+
 		if let Some(mut p) = last {
 			// remove the last component of the path
 			// so the next iteration checks its parent
@@ -134,6 +137,7 @@ impl Scope {
 		scope:&FsScope,
 	) -> crate::Result<Self> {
 		let mut allowed_patterns = HashSet::new();
+
 		for path in scope.allowed_paths() {
 			if let Ok(path) = manager.path().parse(path) {
 				push_pattern(&mut allowed_patterns, path, Pattern::new)?;
@@ -141,6 +145,7 @@ impl Scope {
 		}
 
 		let mut forbidden_patterns = HashSet::new();
+
 		if let Some(forbidden_paths) = scope.forbidden_paths() {
 			for path in forbidden_paths {
 				if let Ok(path) = manager.path().parse(path) {
@@ -186,7 +191,9 @@ impl Scope {
 	/// Listen to an event on this scope.
 	pub fn listen<F:Fn(&Event) + Send + 'static>(&self, f:F) -> ScopeEventId {
 		let id = self.next_event_id();
+
 		self.listen_with_id(id, f);
+
 		id
 	}
 
@@ -201,11 +208,15 @@ impl Scope {
 		let handler = std::cell::Cell::new(Some(f));
 
 		let id = self.next_event_id();
+
 		self.listen_with_id(id, move |event| {
 			listerners.lock().unwrap().remove(&id);
+
 			let handler = handler.take().expect("attempted to call handler more than once");
+
 			handler(event)
 		});
+
 		id
 	}
 
@@ -216,6 +227,7 @@ impl Scope {
 		let listeners = self.event_listeners.lock().unwrap();
 
 		let handlers = listeners.values();
+
 		for listener in handlers {
 			listener(&event);
 		}
@@ -238,7 +250,9 @@ impl Scope {
 				escaped_pattern_with(p, if recursive { "**" } else { "*" })
 			})?;
 		}
+
 		self.emit(Event::PathAllowed(path.to_path_buf()));
+
 		Ok(())
 	}
 
@@ -248,8 +262,11 @@ impl Scope {
 	/// the Tauri API to read the contents of this file.
 	pub fn allow_file<P:AsRef<Path>>(&self, path:P) -> crate::Result<()> {
 		let path = path.as_ref();
+
 		push_pattern(&mut self.allowed_patterns.lock().unwrap(), path, escaped_pattern)?;
+
 		self.emit(Event::PathAllowed(path.to_path_buf()));
+
 		Ok(())
 	}
 
@@ -269,7 +286,9 @@ impl Scope {
 				escaped_pattern_with(p, if recursive { "**" } else { "*" })
 			})?;
 		}
+
 		self.emit(Event::PathForbidden(path.to_path_buf()));
+
 		Ok(())
 	}
 
@@ -279,8 +298,11 @@ impl Scope {
 	/// denied **always**.
 	pub fn forbid_file<P:AsRef<Path>>(&self, path:P) -> crate::Result<()> {
 		let path = path.as_ref();
+
 		push_pattern(&mut self.forbidden_patterns.lock().unwrap(), path, escaped_pattern)?;
+
 		self.emit(Event::PathForbidden(path.to_path_buf()));
+
 		Ok(())
 	}
 
@@ -305,6 +327,7 @@ impl Scope {
 
 		if let Ok(path) = path {
 			let path:PathBuf = path.components().collect();
+
 			let forbidden = self
 				.forbidden_patterns
 				.lock()
@@ -321,6 +344,7 @@ impl Scope {
 					.unwrap()
 					.iter()
 					.any(|p| p.matches_path_with(&path, self.match_options));
+
 				allowed
 			}
 		} else {
@@ -367,15 +391,21 @@ mod tests {
 		#[cfg(unix)]
 		{
 			scope.allow_directory("/home/tauri/**", false).unwrap();
+
 			assert!(scope.is_allowed("/home/tauri/**"));
+
 			assert!(scope.is_allowed("/home/tauri/**/file"));
+
 			assert!(!scope.is_allowed("/home/tauri/anyfile"));
 		}
 		#[cfg(windows)]
 		{
 			scope.allow_directory("C:\\home\\tauri\\**", false).unwrap();
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\**"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\**\\file"));
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\anyfile"));
 		}
 
@@ -383,15 +413,21 @@ mod tests {
 		#[cfg(unix)]
 		{
 			scope.allow_file("/home/tauri/**").unwrap();
+
 			assert!(scope.is_allowed("/home/tauri/**"));
+
 			assert!(!scope.is_allowed("/home/tauri/**/file"));
+
 			assert!(!scope.is_allowed("/home/tauri/anyfile"));
 		}
 		#[cfg(windows)]
 		{
 			scope.allow_file("C:\\home\\tauri\\**").unwrap();
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\**"));
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\**\\file"));
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\anyfile"));
 		}
 
@@ -399,21 +435,33 @@ mod tests {
 		#[cfg(unix)]
 		{
 			scope.allow_directory("/home/tauri", true).unwrap();
+
 			scope.forbid_directory("/home/tauri/**", false).unwrap();
+
 			assert!(!scope.is_allowed("/home/tauri/**"));
+
 			assert!(!scope.is_allowed("/home/tauri/**/file"));
+
 			assert!(scope.is_allowed("/home/tauri/**/inner/file"));
+
 			assert!(scope.is_allowed("/home/tauri/inner/folder/anyfile"));
+
 			assert!(scope.is_allowed("/home/tauri/anyfile"));
 		}
 		#[cfg(windows)]
 		{
 			scope.allow_directory("C:\\home\\tauri", true).unwrap();
+
 			scope.forbid_directory("C:\\home\\tauri\\**", false).unwrap();
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\**"));
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\**\\file"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\**\\inner\\file"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\inner\\folder\\anyfile"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\anyfile"));
 		}
 
@@ -421,19 +469,29 @@ mod tests {
 		#[cfg(unix)]
 		{
 			scope.allow_directory("/home/tauri", true).unwrap();
+
 			scope.forbid_file("/home/tauri/**").unwrap();
+
 			assert!(!scope.is_allowed("/home/tauri/**"));
+
 			assert!(scope.is_allowed("/home/tauri/**/file"));
+
 			assert!(scope.is_allowed("/home/tauri/**/inner/file"));
+
 			assert!(scope.is_allowed("/home/tauri/anyfile"));
 		}
 		#[cfg(windows)]
 		{
 			scope.allow_directory("C:\\home\\tauri", true).unwrap();
+
 			scope.forbid_file("C:\\home\\tauri\\**").unwrap();
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\**"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\**\\file"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\**\\inner\\file"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\anyfile"));
 		}
 
@@ -441,17 +499,25 @@ mod tests {
 		#[cfg(unix)]
 		{
 			scope.allow_directory("/home/tauri", false).unwrap();
+
 			assert!(scope.is_allowed("/home/tauri/**"));
+
 			assert!(!scope.is_allowed("/home/tauri/**/file"));
+
 			assert!(!scope.is_allowed("/home/tauri/**/inner/file"));
+
 			assert!(scope.is_allowed("/home/tauri/anyfile"));
 		}
 		#[cfg(windows)]
 		{
 			scope.allow_directory("C:\\home\\tauri", false).unwrap();
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\**"));
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\**\\file"));
+
 			assert!(!scope.is_allowed("C:\\home\\tauri\\**\\inner\\file"));
+
 			assert!(scope.is_allowed("C:\\home\\tauri\\anyfile"));
 		}
 	}

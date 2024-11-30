@@ -25,6 +25,7 @@ pub fn native(args:&Args) -> Command {
 					"can not find the supplied binary path {}. This is currently required.",
 					custom.display()
 				);
+
 				match current_dir() {
 					Ok(cwd) => {
 						eprintln!("current working directory: {}", cwd.display())
@@ -33,6 +34,7 @@ pub fn native(args:&Args) -> Command {
 						eprintln!("can not find current working directory: {}", error)
 					},
 				}
+
 				std::process::exit(1);
 			}
 		},
@@ -45,7 +47,9 @@ pub fn native(args:&Args) -> Command {
 						 also pass a custom path with --native-driver",
 						DRIVER_BINARY
 					);
+
 					eprintln!("{:?}", error);
+
 					std::process::exit(1);
 				},
 			}
@@ -53,9 +57,12 @@ pub fn native(args:&Args) -> Command {
 	};
 
 	let mut cmd = Command::new(native_binary);
+
 	cmd.env("TAURI_AUTOMATION", "true"); // 1.x
 	cmd.env("TAURI_WEBVIEW_AUTOMATION", "true"); // 2.x
 	cmd.arg(format!("--port={}", args.native_port));
+
 	cmd.arg(format!("--host={}", args.native_host));
+
 	cmd
 }

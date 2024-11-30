@@ -99,6 +99,7 @@ impl CapabilityBuilder {
 	/// Allows this capability to be used by a remote URL.
 	pub fn remote(mut self, url:String) -> Self {
 		self.0.remote.get_or_insert_with(Default::default).urls.push(url);
+
 		self
 	}
 
@@ -106,42 +107,49 @@ impl CapabilityBuilder {
 	/// `true`.
 	pub fn local(mut self, local:bool) -> Self {
 		self.0.local = local;
+
 		self
 	}
 
 	/// Link this capability to the given window label.
 	pub fn window(mut self, window:impl Into<String>) -> Self {
 		self.0.windows.push(window.into());
+
 		self
 	}
 
 	/// Link this capability to the a list of window labels.
 	pub fn windows(mut self, windows:impl IntoIterator<Item = impl Into<String>>) -> Self {
 		self.0.windows.extend(windows.into_iter().map(|w| w.into()));
+
 		self
 	}
 
 	/// Link this capability to the given webview label.
 	pub fn webview(mut self, webview:impl Into<String>) -> Self {
 		self.0.webviews.push(webview.into());
+
 		self
 	}
 
 	/// Link this capability to the a list of window labels.
 	pub fn webviews(mut self, webviews:impl IntoIterator<Item = impl Into<String>>) -> Self {
 		self.0.webviews.extend(webviews.into_iter().map(|w| w.into()));
+
 		self
 	}
 
 	/// Add a new permission to this capability.
 	pub fn permission(mut self, permission:impl Into<String>) -> Self {
 		let permission = permission.into();
+
 		self.0.permissions.push(PermissionEntry::PermissionRef(
 			permission
 				.clone()
 				.try_into()
 				.unwrap_or_else(|_| panic!("invalid permission identifier '{permission}'")),
 		));
+
 		self
 	}
 
@@ -174,6 +182,7 @@ impl CapabilityBuilder {
 		self.0
 			.permissions
 			.push(PermissionEntry::ExtendedPermission { identifier, scope });
+
 		self
 	}
 
@@ -182,6 +191,7 @@ impl CapabilityBuilder {
 	/// By default all platforms are applied.
 	pub fn platform(mut self, platform:Target) -> Self {
 		self.0.platforms.get_or_insert_with(Default::default).push(platform);
+
 		self
 	}
 
@@ -190,6 +200,7 @@ impl CapabilityBuilder {
 	/// By default all platforms are applied.
 	pub fn platforms(mut self, platforms:impl IntoIterator<Item = Target>) -> Self {
 		self.0.platforms.get_or_insert_with(Default::default).extend(platforms);
+
 		self
 	}
 }
@@ -206,6 +217,7 @@ impl RuntimeAuthority {
 			.keys()
 			.map(|key| (*key, <TypeMap![Send + Sync]>::new()))
 			.collect();
+
 		Self {
 			acl,
 			allowed_commands:resolved_acl.allowed_commands,
@@ -236,6 +248,7 @@ impl RuntimeAuthority {
 	/// Adds the given capability to the runtime authority.
 	pub fn add_capability(&mut self, capability:impl RuntimeCapability) -> crate::Result<()> {
 		let mut capabilities = BTreeMap::new();
+
 		match capability.build() {
 			CapabilityFile::Capability(c) => {
 				capabilities.insert(c.identifier.clone(), c);
@@ -257,6 +270,7 @@ impl RuntimeAuthority {
 			let global_scope_entry = self.scope_manager.global_scope.entry(plugin).or_default();
 
 			global_scope_entry.allow.extend(global_scope.allow);
+
 			global_scope_entry.deny.extend(global_scope.deny);
 
 			self.scope_manager.global_scope_cache = Default::default();
@@ -265,6 +279,7 @@ impl RuntimeAuthority {
 		// denied commands
 		for (cmd_key, resolved_cmds) in resolved.denied_commands {
 			let entry = self.denied_commands.entry(cmd_key).or_default();
+
 			entry.extend(resolved_cmds);
 		}
 
@@ -277,7 +292,9 @@ impl RuntimeAuthority {
 
 					let command_scope_entry =
 						self.scope_manager.command_scope.entry(scope_id).or_default();
+
 					command_scope_entry.allow.extend(command_scope.allow.clone());
+
 					command_scope_entry.deny.extend(command_scope.deny.clone());
 
 					self.scope_manager.command_cache.remove(&scope_id);
@@ -285,6 +302,7 @@ impl RuntimeAuthority {
 			}
 
 			let entry = self.allowed_commands.entry(cmd_key).or_default();
+
 			entry.extend(resolved_cmds);
 		}
 
@@ -320,6 +338,7 @@ impl RuntimeAuthority {
 				let mut s = "allowed on: ".to_string();
 
 				let last_index = resolved.len() - 1;
+
 				for (index, cmd) in resolved.iter().enumerate() {
 					let windows = cmd
 						.windows
@@ -327,6 +346,7 @@ impl RuntimeAuthority {
 						.map(|w| format!("\"{}\"", w.as_str()))
 						.collect::<Vec<_>>()
 						.join(", ");
+
 					let webviews = cmd
 						.webviews
 						.iter()
@@ -384,6 +404,7 @@ impl RuntimeAuthority {
 					}
 				}
 			}
+
 			false
 		}
 
@@ -412,6 +433,7 @@ impl RuntimeAuthority {
 					.iter()
 					.filter(|cmd| origin.matches(&cmd.context))
 					.collect::<Vec<&ResolvedCommand>>();
+
 				if resolved_matching_origin
 					.iter()
 					.any(|cmd| cmd.webviews.iter().any(|w| w.matches(webview)))
@@ -443,11 +465,13 @@ impl RuntimeAuthority {
 							permissions_referencing_command.push("default".into());
 						}
 					}
+
 					for set in manifest.permission_sets.values() {
 						if has_permissions_allowing_command(manifest, set, command_name) {
 							permissions_referencing_command.push(set.identifier.clone());
 						}
 					}
+
 					for permission in manifest.permissions.values() {
 						if permission.commands.allow.contains(&command_name.into()) {
 							permissions_referencing_command.push(permission.identifier.clone());
@@ -495,6 +519,7 @@ impl RuntimeAuthority {
 										format!("[remote: {}]", url.as_str())
 									},
 								};
+
 								format!(
 									"- context: {context}, referenced by: capability: {}, \
 									 permission: {}",
@@ -539,6 +564,7 @@ impl RuntimeAuthority {
 					})
 					.cloned()
 					.collect::<Vec<_>>();
+
 				if resolved_cmds.is_empty() { None } else { Some(resolved_cmds) }
 			})
 		}
@@ -587,8 +613,10 @@ impl<'a, R:Runtime, T:ScopeObject> CommandArg<'a, R> for CommandScope<T> {
 			.acl
 			.as_ref()
 			.map(|resolved| resolved.iter().filter_map(|cmd| cmd.scope_id).collect::<Vec<_>>());
+
 		if let Some(scope_ids) = scope_ids {
 			let mut allow = Vec::new();
+
 			let mut deny = Vec::new();
 
 			for scope_id in scope_ids {
@@ -608,6 +636,7 @@ impl<'a, R:Runtime, T:ScopeObject> CommandArg<'a, R> for CommandScope<T> {
 				for s in scope.allows() {
 					allow.push(s.clone());
 				}
+
 				for s in scope.denies() {
 					deny.push(s.clone());
 				}
@@ -691,6 +720,7 @@ impl ScopeManager {
 			Some(cached) => Ok(cached.clone()),
 			None => {
 				let mut allow = Vec::new();
+
 				let mut deny = Vec::new();
 
 				if let Some(global_scope) = self.global_scope.get(key) {
@@ -700,6 +730,7 @@ impl ScopeManager {
 								.map_err(|e| crate::Error::CannotDeserializeScope(Box::new(e)))?,
 						));
 					}
+
 					for denied in &global_scope.deny {
 						deny.push(Arc::new(
 							T::deserialize(app, denied.clone())
@@ -709,7 +740,9 @@ impl ScopeManager {
 				}
 
 				let scope = ScopeValue { allow:Arc::new(allow), deny:Arc::new(deny) };
+
 				self.global_scope_cache.set(scope.clone());
+
 				Ok(scope)
 			},
 		}
@@ -721,6 +754,7 @@ impl ScopeManager {
 		key:&ScopeKey,
 	) -> crate::Result<ScopeValue<T>> {
 		let cache = self.command_cache.get(key).unwrap();
+
 		match cache.try_get::<ScopeValue<T>>() {
 			Some(cached) => Ok(cached.clone()),
 			None => {
@@ -730,6 +764,7 @@ impl ScopeManager {
 					.unwrap_or_else(|| panic!("missing command scope for key {key}"));
 
 				let mut allow = Vec::new();
+
 				let mut deny = Vec::new();
 
 				for allowed in &resolved_scope.allow {
@@ -738,6 +773,7 @@ impl ScopeManager {
 							.map_err(|e| crate::Error::CannotDeserializeScope(Box::new(e)))?,
 					));
 				}
+
 				for denied in &resolved_scope.deny {
 					deny.push(Arc::new(
 						T::deserialize(app, denied.clone())
@@ -748,6 +784,7 @@ impl ScopeManager {
 				let value = ScopeValue { allow:Arc::new(allow), deny:Arc::new(deny) };
 
 				let _ = cache.set(value.clone());
+
 				Ok(value)
 			},
 		}
@@ -757,12 +794,14 @@ impl ScopeManager {
 #[cfg(test)]
 mod tests {
 	use glob::Pattern;
+
 	use tauri_utils::acl::{
 		resolved::{Resolved, ResolvedCommand},
 		ExecutionContext,
 	};
 
 	use super::RuntimeAuthority;
+
 	use crate::ipc::Origin;
 
 	#[test]

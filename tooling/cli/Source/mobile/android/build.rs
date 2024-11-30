@@ -114,18 +114,21 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 				.unwrap_or(Target::DEFAULT_KEY),
 		)
 		.unwrap();
+
 	build_options.target = Some(first_target.triple.into());
 
 	let tauri_config = get_tauri_config(
 		tauri_utils::platform::Target::Android,
 		options.config.as_ref().map(|c| &c.0),
 	)?;
+
 	let (interface, config, metadata) = {
 		let tauri_config_guard = tauri_config.lock().unwrap();
 
 		let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
 		let interface = AppInterface::new(tauri_config_, build_options.target.clone())?;
+
 		interface.build_options(&mut Vec::new(), &mut build_options.features, true);
 
 		let app = get_app(MobileTarget::Android, tauri_config_, &interface);
@@ -138,11 +141,13 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	let profile = if options.debug { Profile::Debug } else { Profile::Release };
 
 	let tauri_path = tauri_dir();
+
 	set_current_dir(tauri_path).with_context(|| "failed to change current working directory")?;
 
 	ensure_init(&tauri_config, config.app(), config.project_dir(), MobileTarget::Android)?;
 
 	let mut env = env()?;
+
 	configure_cargo(&mut env, &config)?;
 
 	crate::build::setup(&interface, &mut build_options, tauri_config.clone(), true)?;
@@ -151,6 +156,7 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	first_target.build(&config, &metadata, &env, noise_level, true, profile)?;
 
 	let open = options.open;
+
 	let _handle = run_build(
 		interface,
 		options,
@@ -183,6 +189,7 @@ fn run_build(
 	if !(options.apk || options.aab) {
 		// if the user didn't specify the format to build, we'll do both
 		options.apk = true;
+
 		options.aab = true;
 	}
 
@@ -193,8 +200,11 @@ fn run_build(
 	};
 
 	let app_settings = interface.app_settings();
+
 	let bin_path = app_settings.app_binary_path(&interface_options)?;
+
 	let out_dir = bin_path.parent().unwrap();
+
 	let _lock = flock::open_rw(out_dir.join("lock").with_extension("android"), "Android")?;
 
 	let cli_options = CliOptions {
@@ -206,6 +216,7 @@ fn run_build(
 		config:build_options.config.clone(),
 		target_device:None,
 	};
+
 	let handle =
 		write_options(&tauri_config.lock().unwrap().as_ref().unwrap().identifier, cli_options)?;
 
@@ -238,6 +249,7 @@ fn run_build(
 	};
 
 	log_finished(apk_outputs, "APK");
+
 	log_finished(aab_outputs, "AAB");
 
 	Ok(handle)
@@ -263,8 +275,10 @@ fn get_targets_or_all<'a>(targets:Vec<String>) -> Result<Vec<&'a Target<'a>>> {
 					possible_targets
 				)
 			})?;
+
 			outs.push(target);
 		}
+
 		Ok(outs)
 	}
 }

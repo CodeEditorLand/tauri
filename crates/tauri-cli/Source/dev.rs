@@ -140,7 +140,9 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
         (Some(script), cwd.map(Into::into), wait)
       }
     };
+
     let cwd = script_cwd.unwrap_or_else(|| frontend_dir().clone());
+
     if let Some(before_dev) = script {
       log::info!(action = "Running"; "BeforeDevCommand (`{}`)", before_dev);
       let mut env = command_env(true);
@@ -149,22 +151,26 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
       #[cfg(windows)]
       let mut command = {
         let mut command = Command::new("cmd");
+
         command
           .arg("/S")
           .arg("/C")
           .arg(&before_dev)
           .current_dir(cwd)
           .envs(env);
+
         command
       };
       #[cfg(not(windows))]
       let mut command = {
         let mut command = Command::new("sh");
+
         command
           .arg("-c")
           .arg(&before_dev)
           .current_dir(cwd)
           .envs(env);
+
         command
       };
 
@@ -176,6 +182,7 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
             if cfg!(windows) { "cmd /S /C" } else { "sh -c" }
           )
         })?;
+
         if !status.success() {
           bail!(
             "beforeDevCommand `{}` failed with exit code {}",
@@ -185,12 +192,16 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
         }
       } else {
         command.stdin(Stdio::piped());
+
         command.stdout(os_pipe::dup_stdout()?);
+
         command.stderr(os_pipe::dup_stderr()?);
 
         let child = SharedChild::spawn(&mut command)
           .unwrap_or_else(|_| panic!("failed to run `{before_dev}`"));
+
         let child = Arc::new(child);
+
         let child_ = child.clone();
 
         std::thread::spawn(move || {
@@ -199,11 +210,13 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
             .expect("failed to wait on \"beforeDevCommand\"");
           if !(status.success() || KILL_BEFORE_DEV_FLAG.get().unwrap().load(Ordering::Relaxed)) {
             log::error!("The \"beforeDevCommand\" terminated with a non-zero status code.");
+
             exit(status.code().unwrap_or(1));
           }
         });
 
         BEFORE_DEV.set(Mutex::new(child)).unwrap();
+
         KILL_BEFORE_DEV_FLAG.set(AtomicBool::default()).unwrap();
 
         let _ = ctrlc::set_handler(move || {
@@ -259,7 +272,9 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
           .unwrap_or_else(|| Ipv4Addr::new(127, 0, 0, 1).into());
 
         let server_url = builtin_dev_server::start(path, ip, options.port)?;
+
         let server_url = format!("http://{server_url}");
+
         dev_url = Some(server_url.parse().unwrap());
 
         if let Some(c) = &mut options.config {
@@ -302,10 +317,12 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
           addrs = (domain, port).to_socket_addrs()?;
           addrs.as_slice()
         }
+
         url::Host::Ipv4(ip) => {
           addr = (ip, port).into();
           std::slice::from_ref(&addr)
         }
+
         url::Host::Ipv6(ip) => {
           addr = (ip, port).into();
           std::slice::from_ref(&addr)
@@ -325,11 +342,14 @@ pub fn setup(interface: &AppInterface, options: &mut Options, config: ConfigHand
         if i % 3 == 1 {
           log::warn!("Waiting for your frontend dev server to start on {url}...",);
         }
+
         i += 1;
+
         if i == max_attempts {
           log::error!("Could not connect to `{url}` after {}s. Please make sure that is the URL to your dev server.", i * sleep_interval.as_secs());
           exit(1);
         }
+
         std::thread::sleep(sleep_interval);
       }
     }
@@ -351,6 +371,7 @@ pub fn wait_dev_process<
       .ok()
       .and_then(|status| status.code())
       .or(Some(1));
+
     on_exit(
       code,
       if child.manually_killed_process() {
@@ -368,6 +389,7 @@ pub fn on_app_exit(code: Option<i32>, reason: ExitReason, exit_on_panic: bool, n
       && (exit_on_panic || matches!(reason, ExitReason::NormalExit)))
   {
     kill_before_dev_process();
+
     exit(code.unwrap_or(0));
   }
 }
@@ -375,10 +397,13 @@ pub fn on_app_exit(code: Option<i32>, reason: ExitReason, exit_on_panic: bool, n
 pub fn kill_before_dev_process() {
   if let Some(child) = BEFORE_DEV.get() {
     let child = child.lock().unwrap();
+
     let kill_before_dev_flag = KILL_BEFORE_DEV_FLAG.get().unwrap();
+
     if kill_before_dev_flag.load(Ordering::Relaxed) {
       return;
     }
+
     kill_before_dev_flag.store(true, Ordering::Relaxed);
     #[cfg(windows)]
     {
@@ -411,6 +436,7 @@ pub fn kill_before_dev_process() {
         .arg(child.id().to_string())
         .output();
     }
+
     let _ = child.kill();
   }
 }

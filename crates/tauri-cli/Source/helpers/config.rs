@@ -54,6 +54,7 @@ impl ConfigMetadata {
         }
       }
     }
+
     None
   }
 }
@@ -124,6 +125,7 @@ pub fn custom_sign_settings(
         args: tokens.map(String::from).collect(),
       }
     }
+
     CustomSignCommandConfig::CommandWithOptions { cmd, args } => {
       tauri_bundler::CustomSignCommandSettings { cmd, args }
     }
@@ -155,6 +157,7 @@ fn get_internal(
     tauri_utils::config::parse::read_platform(target, tauri_dir.to_path_buf())?
   {
     merge(&mut config, &platform_config);
+
     extensions.insert(
       config_path.file_name().unwrap().to_str().unwrap().into(),
       platform_config,
@@ -163,8 +166,11 @@ fn get_internal(
 
   if let Some(merge_config) = merge_config {
     let merge_config_str = serde_json::to_string(&merge_config).unwrap();
+
     set_var("TAURI_CONFIG", merge_config_str);
+
     merge(&mut config, merge_config);
+
     extensions.insert(MERGE_CONFIG_EXTENSION_NAME.into(), merge_config.clone());
   };
 
@@ -172,11 +178,15 @@ fn get_internal(
     || config_path.extension() == Some(OsStr::new("json5"))
   {
     let schema: JsonValue = serde_json::from_str(include_str!("../../config.schema.json"))?;
+
     let schema = jsonschema::JSONSchema::compile(&schema).unwrap();
+
     let result = schema.validate(&config);
+
     if let Err(errors) = result {
       for error in errors {
         let path = error.instance_path.clone().into_vec().join(" > ");
+
         if path.is_empty() {
           log::error!("`{}` error: {}", config_file_name, error);
         } else {
@@ -241,10 +251,13 @@ pub fn merge_with(merge_config: &serde_json::Value) -> crate::Result<ConfigHandl
   let handle = config_handle();
   if let Some(config_metadata) = &mut *handle.lock().unwrap() {
     let merge_config_str = serde_json::to_string(merge_config).unwrap();
+
     set_var("TAURI_CONFIG", merge_config_str);
 
     let mut value = serde_json::to_value(config_metadata.inner.clone())?;
+
     merge(&mut value, merge_config);
+
     config_metadata.inner = serde_json::from_value(value)?;
 
     Ok(handle.clone())

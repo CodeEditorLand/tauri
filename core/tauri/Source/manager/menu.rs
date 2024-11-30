@@ -64,11 +64,13 @@ impl<R:Runtime> MenuManager<R> {
 		#[cfg_attr(target_os = "macos", allow(unused_variables, unreachable_code))]
 		if let Some(menu) = &window_menu {
 			let menu = menu.menu.clone();
+
 			Some(move |raw:tauri_runtime::window::RawWindow<'_>| {
 				#[cfg(target_os = "windows")]
 				{
 					let theme =
 						theme.map(crate::menu::map_to_menu_theme).unwrap_or(muda::MenuTheme::Auto);
+
 					let _ = menu.inner().init_for_hwnd_with_theme(raw.hwnd as _, theme);
 				}
 				#[cfg(any(

@@ -45,7 +45,9 @@ pub fn list_icon_files(
 	data_dir:&Path,
 ) -> crate::Result<BTreeMap<Icon, PathBuf>> {
 	let base_dir = data_dir.join("usr/share/icons/hicolor");
+
 	let main_binary_name = settings.main_binary_name()?;
+
 	let get_dest_path = |width:u32, height:u32, is_high_density:bool| {
 		base_dir.join(format!(
 			"{}x{}{}/apps/{}.png",
@@ -55,21 +57,30 @@ pub fn list_icon_files(
 			main_binary_name
 		))
 	};
+
 	let mut icons = BTreeMap::new();
+
 	for icon_path in settings.icon_files() {
 		let icon_path = icon_path?;
+
 		if icon_path.extension() != Some(OsStr::new("png")) {
 			continue;
 		}
 		// Put file in scope so that it's closed when copying it
 		let icon = {
 			let decoder = PngDecoder::new(BufReader::new(File::open(&icon_path)?))?;
+
 			let width = decoder.dimensions().0;
+
 			let height = decoder.dimensions().1;
+
 			let is_high_density = common::is_retina(&icon_path);
+
 			let dest_path = get_dest_path(width, height, is_high_density);
+
 			Icon { width, height, is_high_density, path:dest_path }
 		};
+
 		icons.entry(icon).or_insert(icon_path);
 	}
 
@@ -79,6 +90,7 @@ pub fn list_icon_files(
 /// Generate the icon files and store them under the `data_dir`.
 pub fn copy_icon_files(settings:&Settings, data_dir:&Path) -> crate::Result<Vec<Icon>> {
 	let icons = list_icon_files(settings, data_dir)?;
+
 	for (icon, src) in &icons {
 		common::copy_file(src, &icon.path)?;
 	}
@@ -95,15 +107,23 @@ pub fn generate_desktop_file(
 	data_dir:&Path,
 ) -> crate::Result<(PathBuf, PathBuf)> {
 	let bin_name = settings.main_binary_name()?;
+
 	let product_name = settings.product_name();
+
 	let desktop_file_name = format!("{product_name}.desktop");
+
 	let path = PathBuf::from("usr/share/applications").join(desktop_file_name);
+
 	let dest_path = PathBuf::from("/").join(&path);
+
 	let file_path = data_dir.join(&path);
+
 	let file = &mut common::create_file(&file_path)?;
 
 	let mut handlebars = Handlebars::new();
+
 	handlebars.register_escape_fn(handlebars::no_escape);
+
 	if let Some(template) = custom_template_path {
 		handlebars
 			.register_template_string("main.desktop", read_to_string(template)?)

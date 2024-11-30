@@ -176,6 +176,7 @@ mod tests {
   #[test]
   fn error_is_send_sync() {
     crate::test_utils::assert_send::<super::Error>();
+
     crate::test_utils::assert_sync::<super::Error>();
   }
 }

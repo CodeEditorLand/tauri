@@ -76,6 +76,7 @@ pub fn command(options:Options) -> Result<()> {
 
 		if let Some(port) = dev_url.and_then(|url| url.port_or_known_default()) {
 			let forward = format!("tcp:{port}");
+
 			log::info!("Forwarding port {port} with adb");
 
 			let devices = adb::device_list(&env).unwrap_or_default();
@@ -97,6 +98,7 @@ pub fn command(options:Options) -> Result<()> {
 				)?;
 			} else if devices.len() == 1 {
 				let device = devices.first().unwrap();
+
 				run_adb_reverse(&env, device.serial_no(), &forward, &forward).with_context(
 					|| {
 						format!(
@@ -141,14 +143,17 @@ pub fn command(options:Options) -> Result<()> {
 
 fn validate_lib(path:&Path) -> Result<()> {
 	let so_bytes = std::fs::read(path)?;
+
 	let elf = elf::ElfBytes::<elf::endian::AnyEndian>::minimal_parse(&so_bytes)
 		.context("failed to parse ELF")?;
+
 	let (symbol_table, string_table) = elf
 		.dynamic_symbol_table()
 		.context("failed to read dynsym section")?
 		.context("missing dynsym tables")?;
 
 	let mut symbols = Vec::new();
+
 	for s in symbol_table.iter() {
 		if let Ok(symbol) = string_table.get(s.st_name as usize) {
 			symbols.push(symbol);

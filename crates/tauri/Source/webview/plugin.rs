@@ -92,6 +92,7 @@ mod desktop_commands {
     options: WindowConfig,
   ) -> crate::Result<()> {
     WebviewWindowBuilder::from_config(&app, &options)?.build()?;
+
     Ok(())
   }
   #[cfg(not(feature = "unstable"))]
@@ -114,8 +115,11 @@ mod desktop_commands {
       .ok_or(crate::Error::WindowNotFound)?;
 
     let x = options.x;
+
     let y = options.y;
+
     let width = options.width;
+
     let height = options.height;
 
     let builder = crate::webview::WebviewBuilder::from_webview_config(label, options);
@@ -213,9 +217,11 @@ mod desktop_commands {
     window: String,
   ) -> crate::Result<()> {
     let webview = get_webview(webview, label)?;
+
     if let Some(window) = webview.manager.get_window(&window) {
       webview.reparent(&window)?;
     }
+
     Ok(())
   }
 
@@ -226,11 +232,13 @@ mod desktop_commands {
     label: Option<String>,
   ) -> crate::Result<()> {
     let webview = get_webview(webview, label)?;
+
     if webview.is_devtools_open() {
       webview.close_devtools();
     } else {
       webview.open_devtools();
     }
+
     Ok(())
   }
 }
@@ -297,6 +305,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             #[cfg(any(debug_assertions, feature = "devtools"))]
             desktop_commands::internal_toggle_devtools,
           ]);
+
         handler(invoke)
       }
       #[cfg(mobile)]
@@ -304,6 +313,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         invoke
           .resolver
           .reject("Webview API not available on mobile");
+
         true
       }
     })

@@ -46,6 +46,7 @@ fn run_strace_benchmarks(new_data:&mut utils::BenchResult) -> Result<()> {
 	use std::io::Read;
 
 	let mut thread_count = HashMap::<String, u64>::new();
+
 	let mut syscall_count = HashMap::<String, u64>::new();
 
 	for (name, example_exe) in get_all_benchmarks() {
@@ -64,6 +65,7 @@ fn run_strace_benchmarks(new_data:&mut utils::BenchResult) -> Result<()> {
 			.wait()?;
 
 		let mut output = String::new();
+
 		file.as_file_mut().read_to_string(&mut output)?;
 
 		let strace_result = utils::parse_strace_output(&output);
@@ -74,11 +76,14 @@ fn run_strace_benchmarks(new_data:&mut utils::BenchResult) -> Result<()> {
 			+ strace_result.get("clone3").map(|d| d.calls).unwrap_or(0);
 
 		let total = strace_result.get("total").unwrap().calls;
+
 		thread_count.insert(name.to_string(), clone);
+
 		syscall_count.insert(name.to_string(), total);
 	}
 
 	new_data.thread_count = thread_count;
+
 	new_data.syscall_count = syscall_count;
 
 	Ok(())
@@ -105,7 +110,9 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 			.spawn()?;
 
 		let proc_result = proc.wait_with_output()?;
+
 		println!("{:?}", proc_result);
+
 		results.insert(name.to_string(), utils::parse_max_mem(benchmark_file).unwrap());
 	}
 
@@ -114,6 +121,7 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 
 fn rlib_size(target_dir:&std::path::Path, prefix:&str) -> u64 {
 	let mut size = 0;
+
 	let mut seen = std::collections::HashSet::new();
 
 	for entry in std::fs::read_dir(target_dir.join("deps")).unwrap() {
@@ -122,18 +130,24 @@ fn rlib_size(target_dir:&std::path::Path, prefix:&str) -> u64 {
 		let os_str = entry.file_name();
 
 		let name = os_str.to_str().unwrap();
+
 		if name.starts_with(prefix) && name.ends_with(".rlib") {
 			let start = name.split('-').next().unwrap().to_string();
+
 			if seen.contains(&start) {
 				println!("skip {}", name);
 			} else {
 				seen.insert(start);
+
 				size += entry.metadata().unwrap().len();
+
 				println!("check size {} {}", name, size);
 			}
 		}
 	}
+
 	assert!(size > 0);
+
 	size
 }
 
@@ -141,12 +155,15 @@ fn get_binary_sizes(target_dir:&Path) -> Result<HashMap<String, u64>> {
 	let mut sizes = HashMap::<String, u64>::new();
 
 	let wry_size = rlib_size(target_dir, "libwry");
+
 	println!("wry {} bytes", wry_size);
+
 	sizes.insert("wry_rlib".to_string(), wry_size);
 
 	// add size for all EXEC_TIME_BENCHMARKS
 	for (name, example_exe) in get_all_benchmarks() {
 		let meta = std::fs::metadata(example_exe).unwrap();
+
 		sizes.insert(name.to_string(), meta.len());
 	}
 
@@ -177,26 +194,37 @@ const TARGETS:&[(&str, &[&str])] = &[
 
 fn cargo_deps() -> HashMap<String, usize> {
 	let mut results = HashMap::new();
+
 	for (os, targets) in TARGETS {
 		for target in *targets {
 			let mut cmd = Command::new("cargo");
+
 			cmd.arg("tree");
+
 			cmd.arg("--no-dedupe");
+
 			cmd.args(["--edges", "normal"]);
+
 			cmd.args(["--prefix", "none"]);
+
 			cmd.args(["--target", target]);
+
 			cmd.current_dir(utils::tauri_root_path());
 
 			let full_deps = cmd.output().expect("failed to run cargo tree").stdout;
+
 			let full_deps = String::from_utf8(full_deps).expect("cargo tree output not utf-8");
+
 			let count = full_deps.lines().collect::<HashSet<_>>().len() - 1; // output includes wry itself
 
 			// set the count to the highest count seen for this OS
 			let existing = results.entry(os.to_string()).or_default();
 			*existing = count.max(*existing);
+
 			assert!(count > 10); // sanity check
 		}
 	}
+
 	results
 }
 
@@ -204,6 +232,7 @@ const RESULT_KEYS:&[&str] = &["mean", "stddev", "user", "system", "min", "max"];
 
 fn run_exec_time(target_dir:&Path) -> Result<HashMap<String, HashMap<String, f64>>> {
 	let benchmark_file = target_dir.join("hyperfine_results.json");
+
 	let benchmark_file = benchmark_file.to_str().unwrap();
 
 	let mut command =
@@ -219,7 +248,9 @@ fn run_exec_time(target_dir:&Path) -> Result<HashMap<String, HashMap<String, f64
 	utils::run(&command.iter().map(|s| s.as_ref()).collect::<Vec<_>>());
 
 	let mut results = HashMap::<String, HashMap<String, f64>>::new();
+
 	let hyperfine_results = utils::read_json(benchmark_file)?;
+
 	for ((name, _), data) in get_all_benchmarks().iter().zip(
 		hyperfine_results
 			.as_object()
@@ -230,6 +261,7 @@ fn run_exec_time(target_dir:&Path) -> Result<HashMap<String, HashMap<String, f64
 			.unwrap(),
 	) {
 		let data = data.as_object().unwrap().clone();
+
 		results.insert(
 			name.to_string(),
 			data.into_iter()
@@ -261,7 +293,9 @@ fn main() -> Result<()> {
 
 	let format =
 		time::format_description::parse("[year]-[month]-[day]T[hour]:[minute]:[second]Z").unwrap();
+
 	let now = time::OffsetDateTime::now_utc();
+
 	let mut new_data = utils::BenchResult {
 		created_at:now.format(&format).unwrap(),
 		sha1:utils::run_collect(&["git", "rev-parse", "HEAD"]).0.trim().to_string(),
@@ -273,11 +307,14 @@ fn main() -> Result<()> {
 
 	if cfg!(target_os = "linux") {
 		run_strace_benchmarks(&mut new_data)?;
+
 		new_data.max_memory = run_max_mem_benchmark()?;
 	}
 
 	println!("===== <BENCHMARK RESULTS>");
+
 	serde_json::to_writer_pretty(std::io::stdout(), &new_data)?;
+
 	println!("\n===== </BENCHMARK RESULTS>");
 
 	if let Some(filename) = target_dir.join("bench.json").to_str() {

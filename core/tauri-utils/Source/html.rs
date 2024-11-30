@@ -63,6 +63,7 @@ fn serialize_node_ref_internal<S:Serializer>(
 				Some(template_root) => template_root.children(),
 				None => node.children(),
 			};
+
 			for child in children {
 				serialize_node_ref_internal(&child, serializer, TraversalScope::IncludeNode)?
 			}
@@ -70,6 +71,7 @@ fn serialize_node_ref_internal<S:Serializer>(
 			if *scope == TraversalScope::IncludeNode {
 				serializer.end_elem(element.name.clone())?
 			}
+
 			Ok(())
 		},
 
@@ -77,6 +79,7 @@ fn serialize_node_ref_internal<S:Serializer>(
 			for child in node.children() {
 				serialize_node_ref_internal(&child, serializer, TraversalScope::IncludeNode)?
 			}
+
 			Ok(())
 		},
 
@@ -93,6 +96,7 @@ fn serialize_node_ref_internal<S:Serializer>(
 		},
 		(TraversalScope::IncludeNode, NodeData::ProcessingInstruction(contents)) => {
 			let contents = contents.borrow();
+
 			serializer
 				.write_processing_instruction(&contents.0, &contents.1)
 				.map_err(Into::into)
@@ -103,11 +107,14 @@ fn serialize_node_ref_internal<S:Serializer>(
 /// Serializes the node to HTML.
 pub fn serialize_node(node:&NodeRef) -> Vec<u8> {
 	let mut u8_vec = Vec::new();
+
 	let mut ser = HtmlSerializer::new(
 		&mut u8_vec,
 		SerializeOpts { traversal_scope:TraversalScope::IncludeNode, ..Default::default() },
 	);
+
 	serialize_node_ref_internal(node, &mut ser, TraversalScope::IncludeNode).unwrap();
+
 	u8_vec
 }
 
@@ -120,7 +127,9 @@ fn with_head<F:FnOnce(&NodeRef)>(document:&NodeRef, f:F) {
 	} else {
 		let node =
 			NodeRef::new_element(QualName::new(None, ns!(html), LocalName::from("head")), None);
+
 		f(&node);
+
 		document.prepend(node)
 	}
 }
@@ -129,6 +138,7 @@ fn inject_nonce(document:&NodeRef, selector:&str, token:&str) {
 	if let Ok(elements) = document.select(selector) {
 		for target in elements {
 			let node = target.as_node();
+
 			let element = node.as_element().unwrap();
 
 			let mut attrs = element.attributes.borrow_mut();
@@ -136,6 +146,7 @@ fn inject_nonce(document:&NodeRef, selector:&str, token:&str) {
 			if attrs.get("nonce").is_some() {
 				continue;
 			}
+
 			attrs.insert("nonce", token.into());
 		}
 	}
@@ -149,6 +160,7 @@ pub fn inject_nonce_token(
 	if dangerous_disable_asset_csp_modification.can_modify("script-src") {
 		inject_nonce(document, "script[src^='http']", SCRIPT_NONCE_TOKEN);
 	}
+
 	if dangerous_disable_asset_csp_modification.can_modify("style-src") {
 		inject_nonce(document, "style", STYLE_NONCE_TOKEN);
 	}
@@ -226,6 +238,7 @@ pub fn inject_codegen_isolation_script(document:&NodeRef) {
 				Attribute { prefix:None, value:SCRIPT_NONCE_TOKEN.into() },
 			)],
 		);
+
 		script.append(NodeRef::new_text(
 			IsolationJavascriptCodegen {}
 				.render_default(&Default::default())
@@ -245,6 +258,7 @@ pub fn inline_isolation(document:&NodeRef, dir:&Path) {
 	for script in document.select("script[src]").expect("unable to parse document for scripts") {
 		let src = {
 			let attributes = script.attributes.borrow();
+
 			attributes
 				.get(LocalName::from("src"))
 				.expect("script with src attribute has no src value")
@@ -252,6 +266,7 @@ pub fn inline_isolation(document:&NodeRef, dir:&Path) {
 		};
 
 		let mut path = PathBuf::from(src);
+
 		if path.has_root() {
 			path = path
 				.strip_prefix("/")
@@ -262,9 +277,11 @@ pub fn inline_isolation(document:&NodeRef, dir:&Path) {
 		}
 
 		let file = std::fs::read_to_string(dir.join(path)).expect("unable to find isolation file");
+
 		script.as_node().append(NodeRef::new_text(file));
 
 		let mut attributes = script.attributes.borrow_mut();
+
 		attributes.remove(LocalName::from("src"));
 	}
 }
@@ -276,10 +293,14 @@ mod tests {
 	#[test]
 	fn csp() {
 		let htmls = vec!["<html><head></head></html>".to_string(), "<html></html>".to_string()];
+
 		for html in htmls {
 			let document = kuchiki::parse_html().one(html);
+
 			let csp = "csp-string";
+
 			super::inject_csp(&document, csp);
+
 			assert_eq!(
 				document.to_string(),
 				format!(

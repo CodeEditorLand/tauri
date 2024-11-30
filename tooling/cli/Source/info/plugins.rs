@@ -40,12 +40,16 @@ pub fn items(
 
 			for p in helpers::plugins::known_plugins().keys() {
 				let dep = format!("tauri-plugin-{p}");
+
 				let crate_version =
 					crate_version(tauri_dir, manifest.as_ref(), lock.as_ref(), &dep);
+
 				if !crate_version.has_version() {
 					continue;
 				}
+
 				let item = packages_rust::rust_section_item(&dep, crate_version);
+
 				items.push(item);
 
 				let Some(app_dir) = app_dir else {
@@ -60,6 +64,7 @@ pub fn items(
 					app_dir.clone(),
 					package_manager,
 				);
+
 				items.push(item);
 			}
 		}

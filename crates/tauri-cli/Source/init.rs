@@ -214,29 +214,40 @@ pub fn command(mut options: Options) -> Result<()> {
     };
 
     let _ = remove_dir_all(&template_target_path);
+
     let mut handlebars = Handlebars::new();
+
     handlebars.register_escape_fn(handlebars::no_escape);
 
     let mut data = BTreeMap::new();
+
     data.insert("tauri_dep", to_json(tauri_dep));
+
     if options.tauri_path.is_some() {
       data.insert("patch_tauri_dep", to_json(true));
     }
+
     data.insert("tauri_build_dep", to_json(tauri_build_dep));
+
     data.insert(
       "frontend_dist",
       to_json(options.frontend_dist.as_deref().unwrap_or("../dist")),
     );
+
     data.insert("dev_url", to_json(options.dev_url));
+
     data.insert(
       "app_name",
       to_json(options.app_name.as_deref().unwrap_or("Tauri App")),
     );
+
     data.insert(
       "window_title",
       to_json(options.window_title.as_deref().unwrap_or("Tauri")),
     );
+
     data.insert("before_dev_command", to_json(options.before_dev_command));
+
     data.insert(
       "before_build_command",
       to_json(options.before_build_command),
@@ -248,6 +259,7 @@ pub fn command(mut options: Options) -> Result<()> {
         .expect("Failed to render tauri.conf.json template"),
     )
     .unwrap();
+
     if option_env!("TARGET") == Some("node") {
       let mut dir = current_dir().expect("failed to read cwd");
       let mut count = 0;
@@ -257,6 +269,7 @@ pub fn command(mut options: Options) -> Result<()> {
       // only go up three folders max
       while count <= 2 {
         let test_path = dir.join(cli_path);
+
         if test_path.exists() {
           let mut node_module_path = PathBuf::from("..");
           for _ in 0..count {
@@ -267,7 +280,9 @@ pub fn command(mut options: Options) -> Result<()> {
           cli_node_module_path.replace(node_module_path);
           break;
         }
+
         count += 1;
+
         match dir.parent() {
           Some(parent) => {
             dir = parent.to_path_buf();
@@ -278,6 +293,7 @@ pub fn command(mut options: Options) -> Result<()> {
 
       if let Some(cli_node_module_path) = cli_node_module_path {
         let mut map = serde_json::Map::default();
+
         map.insert(
           "$schema".into(),
           serde_json::Value::String(
@@ -287,7 +303,9 @@ pub fn command(mut options: Options) -> Result<()> {
               .replace('\\', "/"),
           ),
         );
+
         let merge_config = serde_json::Value::Object(map);
+
         json_patch::merge(&mut config, &merge_config);
       }
     }

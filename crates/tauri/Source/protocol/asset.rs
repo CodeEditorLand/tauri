@@ -40,11 +40,13 @@ fn get_response(
 
   if let Err(e) = SafePathBuf::new(path.clone().into()) {
     log::error!("asset protocol path \"{}\" is not valid: {}", path, e);
+
     return resp.status(403).body(Vec::new().into()).map_err(Into::into);
   }
 
   if !scope.is_allowed(&path) {
     log::error!("asset protocol not configured to allow the path: {}", path);
+
     return resp.status(403).body(Vec::new().into()).map_err(Into::into);
   }
 
@@ -86,6 +88,7 @@ fn get_response(
     .and_then(|r| r.to_str().map(|r| r.to_string()).ok())
   {
     resp = resp.header(ACCEPT_RANGES, "bytes");
+
     resp = resp.header(ACCESS_CONTROL_EXPOSE_HEADERS, "content-range");
 
     let not_satisfiable = || {
@@ -130,8 +133,11 @@ fn get_response(
 
       let buf = crate::async_runtime::safe_block_on(async move {
         let mut buf = Vec::with_capacity(nbytes as usize);
+
         file.seek(SeekFrom::Start(start)).await?;
+
         file.take(nbytes).read_to_end(&mut buf).await?;
+
         Ok::<Vec<u8>, anyhow::Error>(buf)
       })?;
 
@@ -152,6 +158,7 @@ fn get_response(
           } else {
             // adjust end byte for MAX_LEN
             end = start + (end - start).min(len - start).min(MAX_LEN - 1);
+
             Some((start, end))
           }
         })
@@ -203,6 +210,7 @@ fn get_response(
   } else if request.method() == http::Method::HEAD {
     // if the HEAD method is used, we should not return a body
     resp = resp.header(CONTENT_LENGTH, len);
+
     resp.body(Vec::new().into())
   } else {
     // avoid reading the file if we already read it
@@ -212,11 +220,15 @@ fn get_response(
     } else {
       crate::async_runtime::safe_block_on(async move {
         let mut local_buf = Vec::with_capacity(len as usize);
+
         file.read_to_end(&mut local_buf).await?;
+
         Ok::<Vec<u8>, anyhow::Error>(local_buf)
       })?
     };
+
     resp = resp.header(CONTENT_LENGTH, len);
+
     resp.body(buf.into())
   };
 

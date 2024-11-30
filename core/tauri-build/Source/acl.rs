@@ -77,6 +77,7 @@ impl InlinedPlugin {
 	/// command name in snake_case.
 	pub fn commands(mut self, commands:&'static [&'static str]) -> Self {
 		self.commands = commands;
+
 		self
 	}
 
@@ -89,6 +90,7 @@ impl InlinedPlugin {
 	/// By default it is `./permissions/$plugin-name/**/*`
 	pub fn permissions_path_pattern(mut self, pattern:&'static str) -> Self {
 		self.permissions_path_pattern.replace(pattern);
+
 		self
 	}
 
@@ -98,6 +100,7 @@ impl InlinedPlugin {
 	/// permissions directory, see [`Self::permissions_path_pattern`].
 	pub fn default_permission(mut self, default:DefaultPermissionRule) -> Self {
 		self.default.replace(default);
+
 		self
 	}
 }
@@ -124,6 +127,7 @@ impl AppManifest {
 	/// command name in snake_case.
 	pub fn commands(mut self, commands:&'static [&'static str]) -> Self {
 		self.commands = commands;
+
 		self
 	}
 
@@ -135,6 +139,7 @@ impl AppManifest {
 	/// By default it is `./permissions/**/*` ignoring any [`InlinedPlugin`].
 	pub fn permissions_path_pattern(mut self, pattern:&'static str) -> Self {
 		self.permissions_path_pattern.replace(pattern);
+
 		self
 	}
 }
@@ -144,6 +149,7 @@ fn capabilities_schema(acl_manifests:&BTreeMap<String, Manifest>) -> RootSchema 
 
 	fn schema_from(key:&str, id:&str, description:Option<&str>) -> Schema {
 		let command_name = if key == APP_ACL_KEY { id.to_string() } else { format!("{key}:{id}") };
+
 		Schema::Object(SchemaObject {
 			metadata:Some(Box::new(Metadata {
 				description:description.as_ref().map(|d| format!("{command_name} -> {d}")),
@@ -179,11 +185,15 @@ fn capabilities_schema(acl_manifests:&BTreeMap<String, Manifest>) -> RootSchema 
 
 	if let Some(Schema::Object(obj)) = schema.definitions.get_mut("Identifier") {
 		obj.object = None;
+
 		obj.instance_type = None;
+
 		obj.metadata.as_mut().map(|metadata| {
 			metadata.description.replace("Permission identifier".to_string());
+
 			metadata
 		});
+
 		obj.subschemas.replace(Box::new(SubschemaValidation {
 			one_of:Some(permission_schemas),
 			..Default::default()
@@ -218,16 +228,19 @@ fn capabilities_schema(acl_manifests:&BTreeMap<String, Manifest>) -> RootSchema 
 					definitions.push(global_scope_schema_def.definitions);
 
 					let mut required = BTreeSet::new();
+
 					required.insert("identifier".to_string());
 
 					let mut object = ObjectValidation { required, ..Default::default() };
 
 					let mut permission_schemas = Vec::new();
+
 					permission_schemas.push(schema_from(
 						key,
 						"default",
 						manifest.default_permission.as_ref().map(|d| d.description.as_ref()),
 					));
+
 					for set in manifest.permission_sets.values() {
 						permission_schemas.push(schema_from(
 							key,
@@ -235,6 +248,7 @@ fn capabilities_schema(acl_manifests:&BTreeMap<String, Manifest>) -> RootSchema 
 							Some(&set.description),
 						));
 					}
+
 					for permission in manifest.permissions.values() {
 						permission_schemas.push(schema_from(
 							key,
@@ -252,7 +266,9 @@ fn capabilities_schema(acl_manifests:&BTreeMap<String, Manifest>) -> RootSchema 
 					});
 
 					object.properties.insert("identifier".to_string(), identifier_schema);
+
 					object.properties.insert("allow".to_string(), global_scope_schema.clone());
+
 					object.properties.insert("deny".to_string(), global_scope_schema);
 
 					global_scope_one_of.push(Schema::Object(SchemaObject {
@@ -265,6 +281,7 @@ fn capabilities_schema(acl_manifests:&BTreeMap<String, Manifest>) -> RootSchema 
 
 			if !global_scope_one_of.is_empty() {
 				scope_extended_schema_obj.object = None;
+
 				scope_extended_schema_obj.subschemas.replace(Box::new(SubschemaValidation {
 					one_of:Some(global_scope_one_of),
 					..Default::default()
@@ -282,11 +299,15 @@ fn capabilities_schema(acl_manifests:&BTreeMap<String, Manifest>) -> RootSchema 
 
 pub fn generate_schema(acl_manifests:&BTreeMap<String, Manifest>, target:Target) -> Result<()> {
 	let schema = capabilities_schema(acl_manifests);
+
 	let schema_str = serde_json::to_string_pretty(&schema).unwrap();
+
 	let out_dir = PathBuf::from(CAPABILITIES_SCHEMA_FOLDER_PATH);
+
 	create_dir_all(&out_dir).context("unable to create schema output directory")?;
 
 	let schema_path = out_dir.join(format!("{target}-{CAPABILITIES_SCHEMA_FILE_NAME}"));
+
 	if schema_str != read_to_string(&schema_path).unwrap_or_default() {
 		write(&schema_path, schema_str)?;
 
@@ -305,32 +326,41 @@ pub fn generate_schema(acl_manifests:&BTreeMap<String, Manifest>, target:Target)
 pub fn save_capabilities(capabilities:&BTreeMap<String, Capability>) -> Result<PathBuf> {
 	let capabilities_path =
 		PathBuf::from(CAPABILITIES_SCHEMA_FOLDER_PATH).join(CAPABILITIES_FILE_NAME);
+
 	let capabilities_json = serde_json::to_string(&capabilities)?;
+
 	if capabilities_json != read_to_string(&capabilities_path).unwrap_or_default() {
 		std::fs::write(&capabilities_path, capabilities_json)?;
 	}
+
 	Ok(capabilities_path)
 }
 
 pub fn save_acl_manifests(acl_manifests:&BTreeMap<String, Manifest>) -> Result<PathBuf> {
 	let acl_manifests_path =
 		PathBuf::from(CAPABILITIES_SCHEMA_FOLDER_PATH).join(ACL_MANIFESTS_FILE_NAME);
+
 	let acl_manifests_json = serde_json::to_string(&acl_manifests)?;
+
 	if acl_manifests_json != read_to_string(&acl_manifests_path).unwrap_or_default() {
 		std::fs::write(&acl_manifests_path, acl_manifests_json)?;
 	}
+
 	Ok(acl_manifests_path)
 }
 
 pub fn get_manifests_from_plugins() -> Result<BTreeMap<String, Manifest>> {
 	let permission_map =
 		tauri_utils::acl::build::read_permissions().context("failed to read plugin permissions")?;
+
 	let mut global_scope_map = tauri_utils::acl::build::read_global_scope_schemas()
 		.context("failed to read global scope schemas")?;
 
 	let mut processed = BTreeMap::new();
+
 	for (plugin_name, permission_files) in permission_map {
 		let manifest = Manifest::new(permission_files, global_scope_map.remove(&plugin_name));
+
 		processed.insert(plugin_name, manifest);
 	}
 
@@ -345,6 +375,7 @@ pub fn inline_plugins(
 
 	for (name, plugin) in inlined_plugins {
 		let plugin_out_dir = out_dir.join("plugins").join(name);
+
 		create_dir_all(&plugin_out_dir)?;
 
 		let mut permission_files = if plugin.commands.is_empty() {
@@ -363,6 +394,7 @@ pub fn inline_plugins(
 					DefaultPermissionRule::Allow(permissions) => permissions,
 				}
 			});
+
 			if let Some(default_permissions) = default_permissions {
 				let default_permission_toml = format!(
 					r###"# Automatically generated - DO NOT EDIT!
@@ -401,9 +433,11 @@ permissions = [{default_permissions}]
 			)?);
 		} else {
 			let default_permissions_path = Path::new("permissions").join(name);
+
 			if default_permissions_path.exists() {
 				println!("cargo:rerun-if-changed={}", default_permissions_path.display());
 			}
+
 			permission_files.extend(tauri_utils::acl::build::define_permissions(
 				&default_permissions_path.join("**").join("*").to_string_lossy(),
 				name,
@@ -413,6 +447,7 @@ permissions = [{default_permissions}]
 		}
 
 		let manifest = tauri_utils::acl::manifest::Manifest::new(permission_files, None);
+
 		acl_manifests.insert(name.into(), manifest);
 	}
 
@@ -425,19 +460,23 @@ pub fn app_manifest_permissions(
 	inlined_plugins:&HashMap<&'static str, InlinedPlugin>,
 ) -> Result<Manifest> {
 	let app_out_dir = out_dir.join("app-manifest");
+
 	create_dir_all(&app_out_dir)?;
+
 	let pkg_name = "__app__";
 
 	let mut permission_files = if manifest.commands.is_empty() {
 		Vec::new()
 	} else {
 		let autogenerated_path = Path::new("./permissions/autogenerated");
+
 		tauri_utils::acl::build::autogenerate_command_permissions(
 			autogenerated_path,
 			manifest.commands,
 			"",
 			false,
 		);
+
 		tauri_utils::acl::build::define_permissions(
 			&autogenerated_path.join("*").to_string_lossy(),
 			pkg_name,
@@ -455,6 +494,7 @@ pub fn app_manifest_permissions(
 		)?);
 	} else {
 		let default_permissions_path = Path::new("permissions");
+
 		if default_permissions_path.exists() {
 			println!("cargo:rerun-if-changed={}", default_permissions_path.display());
 		}
@@ -500,6 +540,7 @@ pub fn validate_capabilities(
 			let permission_id = permission_entry.identifier();
 
 			let key = permission_id.get_prefix().unwrap_or(APP_ACL_KEY);
+
 			let permission_name = permission_id.get_base();
 
 			if key == "core" && permission_name == "default" {
@@ -519,15 +560,19 @@ pub fn validate_capabilities(
 
 			if !permission_exists {
 				let mut available_permissions = Vec::new();
+
 				for (key, manifest) in acl_manifests {
 					let prefix =
 						if key == APP_ACL_KEY { "".to_string() } else { format!("{key}:") };
+
 					if manifest.default_permission.is_some() {
 						available_permissions.push(format!("{prefix}default"));
 					}
+
 					for p in manifest.permissions.keys() {
 						available_permissions.push(format!("{prefix}{p}"));
 					}
+
 					for p in manifest.permission_sets.keys() {
 						available_permissions.push(format!("{prefix}{p}"));
 					}

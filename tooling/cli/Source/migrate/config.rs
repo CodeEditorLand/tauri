@@ -22,6 +22,7 @@ pub fn migrate(tauri_dir:&Path) -> Result<MigratedConfig> {
 		tauri_utils_v1::config::parse::parse_value(tauri_dir.join("tauri.conf.json"))
 	{
 		let migrated = migrate_config(&mut config)?;
+
 		if config_path.extension().map_or(false, |ext| ext == "toml") {
 			fs::write(&config_path, toml::to_string_pretty(&config)?)?;
 		} else {
@@ -32,10 +33,13 @@ pub fn migrate(tauri_dir:&Path) -> Result<MigratedConfig> {
 			.into_iter()
 			.map(|p| PermissionEntry::PermissionRef(p.to_string().try_into().unwrap()))
 			.collect();
+
 		permissions.extend(migrated.permissions.clone());
 
 		let capabilities_path = config_path.parent().unwrap().join("capabilities");
+
 		fs::create_dir_all(&capabilities_path)?;
+
 		fs::write(
 			capabilities_path.join("migrated.json"),
 			serde_json::to_string_pretty(&Capability {
@@ -67,6 +71,7 @@ fn migrate_config(config:&mut Value) -> Result<MigratedConfig> {
 
 	if let Some(config) = config.as_object_mut() {
 		process_package_metadata(config);
+
 		process_build(config);
 
 		let mut plugins = config
@@ -80,8 +85,11 @@ fn migrate_config(config:&mut Value) -> Result<MigratedConfig> {
 			// allowlist
 			if let Some(allowlist) = tauri_config.remove("allowlist") {
 				let allowlist = process_allowlist(tauri_config, allowlist)?;
+
 				let permissions = allowlist_to_permissions(allowlist);
+
 				migrated.plugins = plugins_from_permissions(&permissions);
+
 				migrated.permissions = permissions;
 			}
 
@@ -128,6 +136,7 @@ fn migrate_config(config:&mut Value) -> Result<MigratedConfig> {
 				.or_insert_with(|| Value::Object(Default::default()))
 				.as_object_mut()
 				.unwrap();
+
 			if !bundle_config.contains_key("createUpdaterArtifacts") {
 				bundle_config.insert("createUpdaterArtifacts".to_owned(), "v1Compatible".into());
 			}
@@ -180,16 +189,19 @@ fn process_build(config:&mut Map<String, Value>) {
 		{
 			build_config.insert(key.into(), dist_dir);
 		}
+
 		if let Some((dev_path, key)) = build_config
 			.remove("devPath")
 			.map(|v| (v, "devUrl"))
 			.or_else(|| build_config.remove("dev-path").map(|v| (v, "dev-url")))
 		{
 			let is_url = url::Url::parse(dev_path.as_str().unwrap_or_default()).is_ok();
+
 			if is_url {
 				build_config.insert(key.into(), dev_path);
 			}
 		}
+
 		if let Some((with_global_tauri, key)) = build_config
 			.remove("withGlobalTauri")
 			.map(|v| (v, "withGlobalTauri"))
@@ -259,6 +271,7 @@ fn process_bundle(config:&mut Map<String, Value>, migrated:&MigratedConfig) {
 							license_file = Some(license_path);
 						}
 					}
+
 					if let Some(nsis) = windows.get_mut("nsis").and_then(|v| v.as_object_mut()) {
 						if let Some(license_path) = nsis.remove("license") {
 							license_file = Some(license_path);
@@ -285,6 +298,7 @@ fn process_bundle(config:&mut Map<String, Value>, migrated:&MigratedConfig) {
 					}
 				}
 			}
+
 			if let Some(license_file) = license_file {
 				bundle_config.insert("licenseFile".into(), license_file);
 			}
@@ -297,6 +311,7 @@ fn process_bundle(config:&mut Map<String, Value>, migrated:&MigratedConfig) {
 						*target == serde_json::Value::String("updater".to_owned())
 					}) {
 						targets.remove(index);
+
 						true
 					} else {
 						false
@@ -305,6 +320,7 @@ fn process_bundle(config:&mut Map<String, Value>, migrated:&MigratedConfig) {
 					// targets: "updater"
 					if target == "updater" {
 						bundle_config.remove("targets");
+
 						true
 					} else {
 						// note that target == "all" is the default from the v1 tauri CLI
@@ -315,6 +331,7 @@ fn process_bundle(config:&mut Map<String, Value>, migrated:&MigratedConfig) {
 				} else {
 					false
 				};
+
 				if should_migrate {
 					bundle_config
 						.insert("createUpdaterArtifacts".to_owned(), "v1Compatible".into());
@@ -333,6 +350,7 @@ fn process_security(security:&mut Map<String, Value>) -> Result<()> {
 			csp_value
 		} else {
 			let mut csp:tauri_utils_v1::config::Csp = serde_json::from_value(csp_value)?;
+
 			match &mut csp {
 				tauri_utils_v1::config::Csp::Policy(csp) => {
 					if csp.contains("connect-src") {
@@ -356,6 +374,7 @@ fn process_security(security:&mut Map<String, Value>) -> Result<()> {
 					}
 				},
 			}
+
 			serde_json::to_value(csp)?
 		};
 
@@ -369,6 +388,7 @@ fn process_security(security:&mut Map<String, Value>) -> Result<()> {
 	{
 		println!("dangerous remote domain IPC access config ({dangerous_remote_domain_ipc_access:?}) no longer exists, see documentation for capabilities and remote access: https://v2.tauri.app/security/capabilities/#remote-api-access")
 	}
+
 	security
 		.remove("dangerousUseHttpScheme")
 		.or_else(|| security.remove("dangerous-use-http-scheme"));
@@ -390,11 +410,14 @@ fn process_allowlist(
 			.unwrap();
 
 		let mut asset_protocol = Map::new();
+
 		asset_protocol
 			.insert("scope".into(), serde_json::to_value(allowlist.protocol.asset_scope.clone())?);
+
 		if allowlist.protocol.asset {
 			asset_protocol.insert("enable".into(), true.into());
 		}
+
 		security.insert("assetProtocol".into(), asset_protocol.into());
 	}
 
@@ -416,6 +439,7 @@ fn allowlist_to_permissions(
 				$permissions_list.push(PermissionEntry::PermissionRef(
 					$associated_permission.to_string().try_into().unwrap(),
 				));
+
 				true
 			} else {
 				false
@@ -427,18 +451,28 @@ fn allowlist_to_permissions(
 
 	// fs
 	permissions!(allowlist, permissions, fs, read_file => "fs:allow-read-file");
+
 	permissions!(allowlist, permissions, fs, write_file => "fs:allow-write-file");
+
 	permissions!(allowlist, permissions, fs, read_dir => "fs:allow-read-dir");
+
 	permissions!(allowlist, permissions, fs, copy_file => "fs:allow-copy-file");
+
 	permissions!(allowlist, permissions, fs, create_dir => "fs:allow-mkdir");
+
 	permissions!(allowlist, permissions, fs, remove_dir => "fs:allow-remove");
+
 	permissions!(allowlist, permissions, fs, remove_file => "fs:allow-remove");
+
 	permissions!(allowlist, permissions, fs, rename_file => "fs:allow-rename");
+
 	permissions!(allowlist, permissions, fs, exists => "fs:allow-exists");
+
 	let (fs_allowed, fs_denied) = match allowlist.fs.scope {
 		tauri_utils_v1::config::FsAllowlistScope::AllowedPaths(paths) => (paths, Vec::new()),
 		tauri_utils_v1::config::FsAllowlistScope::Scope { allow, deny, .. } => (allow, deny),
 	};
+
 	if !(fs_allowed.is_empty() && fs_denied.is_empty()) {
 		let fs_allowed = fs_allowed
 			.into_iter()
@@ -449,6 +483,7 @@ fn allowlist_to_permissions(
 			.into_iter()
 			.map(|p| AclValue::String(p.to_string_lossy().into()))
 			.collect::<Vec<_>>();
+
 		permissions.push(PermissionEntry::ExtendedPermission {
 			identifier:"fs:scope".to_string().try_into().unwrap(),
 			scope:Scopes {
@@ -460,37 +495,69 @@ fn allowlist_to_permissions(
 
 	// window
 	permissions!(allowlist, permissions, window, create => "core:window:allow-create");
+
 	permissions!(allowlist, permissions, window, center => "core:window:allow-center");
+
 	permissions!(allowlist, permissions, window, request_user_attention => "core:window:allow-request-user-attention");
+
 	permissions!(allowlist, permissions, window, set_resizable => "core:window:allow-set-resizable");
+
 	permissions!(allowlist, permissions, window, set_maximizable => "core:window:allow-set-maximizable");
+
 	permissions!(allowlist, permissions, window, set_minimizable => "core:window:allow-set-minimizable");
+
 	permissions!(allowlist, permissions, window, set_closable => "core:window:allow-set-closable");
+
 	permissions!(allowlist, permissions, window, set_title => "core:window:allow-set-title");
+
 	permissions!(allowlist, permissions, window, maximize => "core:window:allow-maximize");
+
 	permissions!(allowlist, permissions, window, unmaximize => "core:window:allow-unmaximize");
+
 	permissions!(allowlist, permissions, window, minimize => "core:window:allow-minimize");
+
 	permissions!(allowlist, permissions, window, unminimize => "core:window:allow-unminimize");
+
 	permissions!(allowlist, permissions, window, show => "core:window:allow-show");
+
 	permissions!(allowlist, permissions, window, hide => "core:window:allow-hide");
+
 	permissions!(allowlist, permissions, window, close => "core:window:allow-close");
+
 	permissions!(allowlist, permissions, window, set_decorations => "core:window:allow-set-decorations");
+
 	permissions!(allowlist, permissions, window, set_always_on_top => "core:window:allow-set-always-on-top");
+
 	permissions!(allowlist, permissions, window, set_content_protected => "core:window:allow-set-content-protected");
+
 	permissions!(allowlist, permissions, window, set_size => "core:window:allow-set-size");
+
 	permissions!(allowlist, permissions, window, set_min_size => "core:window:allow-set-min-size");
+
 	permissions!(allowlist, permissions, window, set_max_size => "core:window:allow-set-max-size");
+
 	permissions!(allowlist, permissions, window, set_position => "core:window:allow-set-position");
+
 	permissions!(allowlist, permissions, window, set_fullscreen => "core:window:allow-set-fullscreen");
+
 	permissions!(allowlist, permissions, window, set_focus => "core:window:allow-set-focus");
+
 	permissions!(allowlist, permissions, window, set_icon => "core:window:allow-set-icon");
+
 	permissions!(allowlist, permissions, window, set_skip_taskbar => "core:window:allow-set-skip-taskbar");
+
 	permissions!(allowlist, permissions, window, set_cursor_grab => "core:window:allow-set-cursor-grab");
+
 	permissions!(allowlist, permissions, window, set_cursor_visible => "core:window:allow-set-cursor-visible");
+
 	permissions!(allowlist, permissions, window, set_cursor_icon => "core:window:allow-set-cursor-icon");
+
 	permissions!(allowlist, permissions, window, set_cursor_position => "core:window:allow-set-cursor-position");
+
 	permissions!(allowlist, permissions, window, set_ignore_cursor_events => "core:window:allow-set-ignore-cursor-events");
+
 	permissions!(allowlist, permissions, window, start_dragging => "core:window:allow-start-dragging");
+
 	permissions!(allowlist, permissions, window, print => "core:webview:allow-print");
 
 	// shell
@@ -525,9 +592,13 @@ fn allowlist_to_permissions(
 	}
 	// dialog
 	permissions!(allowlist, permissions, dialog, open => "dialog:allow-open");
+
 	permissions!(allowlist, permissions, dialog, save => "dialog:allow-save");
+
 	permissions!(allowlist, permissions, dialog, message => "dialog:allow-message");
+
 	permissions!(allowlist, permissions, dialog, ask => "dialog:allow-ask");
+
 	permissions!(allowlist, permissions, dialog, confirm => "dialog:allow-confirm");
 
 	// http
@@ -541,7 +612,9 @@ fn allowlist_to_permissions(
 			.into_iter()
 			.map(|p| {
 				let mut map = BTreeMap::new();
+
 				map.insert("url".to_string(), AclValue::String(p.to_string()));
+
 				AclValue::Map(map)
 			})
 			.collect::<Vec<_>>();
@@ -556,27 +629,41 @@ fn allowlist_to_permissions(
 	permissions!(allowlist, permissions, notification, all => "notification:default");
 	// global-shortcut
 	permissions!(allowlist, permissions, global_shortcut, all => "global-shortcut:allow-is-registered");
+
 	permissions!(allowlist, permissions, global_shortcut, all => "global-shortcut:allow-register");
+
 	permissions!(allowlist, permissions, global_shortcut, all => "global-shortcut:allow-register-all");
+
 	permissions!(allowlist, permissions, global_shortcut, all => "global-shortcut:allow-unregister");
+
 	permissions!(allowlist, permissions, global_shortcut, all => "global-shortcut:allow-unregister-all");
 	// os
 	permissions!(allowlist, permissions, os, all => "os:allow-platform");
+
 	permissions!(allowlist, permissions, os, all => "os:allow-version");
+
 	permissions!(allowlist, permissions, os, all => "os:allow-os-type");
+
 	permissions!(allowlist, permissions, os, all => "os:allow-family");
+
 	permissions!(allowlist, permissions, os, all => "os:allow-arch");
+
 	permissions!(allowlist, permissions, os, all => "os:allow-exe-extension");
+
 	permissions!(allowlist, permissions, os, all => "os:allow-locale");
+
 	permissions!(allowlist, permissions, os, all => "os:allow-hostname");
 	// process
 	permissions!(allowlist, permissions, process, relaunch => "process:allow-restart");
+
 	permissions!(allowlist, permissions, process, exit => "process:allow-exit");
 	// clipboard
 	permissions!(allowlist, permissions, clipboard, read_text => "clipboard-manager:allow-read-text");
+
 	permissions!(allowlist, permissions, clipboard, write_text => "clipboard-manager:allow-write-text");
 	// app
 	permissions!(allowlist, permissions, app, show => "core:app:allow-app-show");
+
 	permissions!(allowlist, permissions, app, hide => "core:app:allow-app-hide");
 
 	permissions
@@ -586,6 +673,7 @@ fn process_cli(plugins:&mut Map<String, Value>, cli:Value) -> Result<()> {
 	if let Some(cli) = cli.as_object() {
 		plugins.insert("cli".into(), serde_json::to_value(cli)?);
 	}
+
 	Ok(())
 }
 
@@ -607,6 +695,7 @@ fn process_updater(
 				|| updater.get("pubkey").is_some()
 			{
 				plugins.insert("updater".into(), serde_json::to_value(updater)?);
+
 				migrated.plugins.insert("updater".to_string());
 			}
 		}
@@ -632,9 +721,11 @@ fn plugins_from_permissions(permissions:&Vec<PermissionEntry>) -> HashSet<String
 
 	for permission in permissions {
 		let permission = permission.identifier().get();
+
 		for plugin in KNOWN_PLUGINS {
 			if permission.starts_with(plugin) {
 				plugins.insert(plugin.to_string());
+
 				break;
 			}
 		}
@@ -647,6 +738,7 @@ fn plugins_from_permissions(permissions:&Vec<PermissionEntry>) -> HashSet<String
 mod test {
 	fn migrate(original:&serde_json::Value) -> serde_json::Value {
 		let mut migrated = original.clone();
+
 		super::migrate_config(&mut migrated).expect("failed to migrate config");
 
 		if let Err(e) = serde_json::from_value::<tauri_utils::config::Config>(migrated.clone()) {
@@ -754,14 +846,17 @@ mod test {
 			migrated["plugins"]["updater"]["endpoints"],
 			original["tauri"]["updater"]["endpoints"]
 		);
+
 		assert_eq!(
 			migrated["plugins"]["updater"]["pubkey"],
 			original["tauri"]["updater"]["pubkey"]
 		);
+
 		assert_eq!(
 			migrated["plugins"]["updater"]["windows"]["installMode"],
 			original["tauri"]["updater"]["windows"]["installMode"]
 		);
+
 		assert_eq!(
 			migrated["plugins"]["updater"]["windows"]["installerArgs"],
 			original["tauri"]["updater"]["windows"]["installerArgs"]
@@ -775,10 +870,12 @@ mod test {
 			migrated["app"]["security"]["assetProtocol"]["enable"],
 			original["tauri"]["allowlist"]["protocol"]["asset"]
 		);
+
 		assert_eq!(
 			migrated["app"]["security"]["assetProtocol"]["scope"]["allow"],
 			original["tauri"]["allowlist"]["protocol"]["assetScope"]["allow"]
 		);
+
 		assert_eq!(
 			migrated["app"]["security"]["assetProtocol"]["scope"]["deny"],
 			original["tauri"]["allowlist"]["protocol"]["assetScope"]["deny"]
@@ -801,10 +898,12 @@ mod test {
 			migrated["bundle"]["licenseFile"],
 			original["tauri"]["bundle"]["macOS"]["license"]
 		);
+
 		assert_eq!(
 			migrated["bundle"]["licenseFile"],
 			original["tauri"]["bundle"]["windows"]["wix"]["license"]
 		);
+
 		assert_eq!(
 			migrated["bundle"]["licenseFile"],
 			original["tauri"]["bundle"]["windows"]["nsis"]["license"]
@@ -812,6 +911,7 @@ mod test {
 
 		// bundle appimage and deb
 		assert_eq!(migrated["bundle"]["linux"]["deb"], original["tauri"]["bundle"]["deb"]);
+
 		assert_eq!(
 			migrated["bundle"]["linux"]["appimage"],
 			original["tauri"]["bundle"]["appimage"]
@@ -819,12 +919,16 @@ mod test {
 
 		// app information
 		assert_eq!(migrated["productName"], original["package"]["productName"]);
+
 		assert_eq!(migrated["version"], original["package"]["version"]);
+
 		assert_eq!(migrated["identifier"], original["tauri"]["bundle"]["identifier"]);
 
 		// build object
 		assert_eq!(migrated["build"]["frontendDist"], original["build"]["distDir"]);
+
 		assert_eq!(migrated["build"]["devUrl"], original["build"]["devPath"]);
+
 		assert_eq!(migrated["app"]["withGlobalTauri"], original["build"]["withGlobalTauri"]);
 	}
 
@@ -839,6 +943,7 @@ mod test {
 		});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["plugins"]["updater"], serde_json::Value::Null);
 	}
 
@@ -854,6 +959,7 @@ mod test {
 		});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(
 			migrated["plugins"]["updater"]["pubkey"],
 			original["tauri"]["updater"]["pubkey"]
@@ -863,6 +969,7 @@ mod test {
 	#[test]
 	fn can_migrate_default_config() {
 		let original = serde_json::to_value(tauri_utils_v1::config::Config::default()).unwrap();
+
 		migrate(&original);
 	}
 
@@ -870,6 +977,7 @@ mod test {
 	fn can_migrate_api_example_config() {
 		let original =
 			serde_json::from_str(include_str!("./fixtures/api-example.tauri.conf.json")).unwrap();
+
 		migrate(&original);
 	}
 
@@ -877,6 +985,7 @@ mod test {
 	fn can_migrate_cli_template_config() {
 		let original =
 			serde_json::from_str(include_str!("./fixtures/cli-template.tauri.conf.json")).unwrap();
+
 		migrate(&original);
 	}
 
@@ -885,6 +994,7 @@ mod test {
 		let original = serde_json::json!({});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], serde_json::Value::Null);
 
 		let original = serde_json::json!({
@@ -896,6 +1006,7 @@ mod test {
 		});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
 
 		let original = serde_json::json!({
@@ -907,13 +1018,16 @@ mod test {
 		});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
+
 		assert_eq!(migrated["bundle"]["targets"].as_array(), Some(&vec!["nsis".into()]));
 
 		let original =
 			serde_json::from_str(include_str!("./fixtures/cli-template.tauri.conf.json")).unwrap();
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], serde_json::Value::Null);
 
 		let original = serde_json::json!({
@@ -925,7 +1039,9 @@ mod test {
 		});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], serde_json::Value::Null);
+
 		assert_eq!(migrated["bundle"]["targets"], "all");
 
 		let original = serde_json::json!({
@@ -940,7 +1056,9 @@ mod test {
 		});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
+
 		assert_eq!(migrated["bundle"]["targets"], "all");
 
 		let original = serde_json::json!({
@@ -952,7 +1070,9 @@ mod test {
 		});
 
 		let migrated = migrate(&original);
+
 		assert_eq!(migrated["bundle"]["createUpdaterArtifacts"], "v1Compatible");
+
 		assert_eq!(migrated["bundle"].get("targets"), None);
 	}
 
@@ -974,6 +1094,7 @@ mod test {
 			migrated["app"]["security"]["csp"]["default-src"],
 			original["tauri"]["security"]["csp"]["default-src"]
 		);
+
 		assert!(
 			migrated["app"]["security"]["csp"]["connect-src"]
 				.as_array()
@@ -1001,6 +1122,7 @@ mod test {
 			migrated["app"]["security"]["csp"]["default-src"],
 			original["tauri"]["security"]["csp"]["default-src"]
 		);
+
 		assert_eq!(
 			migrated["app"]["security"]["csp"]["connect-src"]
 				.as_str()
@@ -1038,6 +1160,7 @@ mod test {
 
 		let original_connect_src =
 			original["tauri"]["security"]["csp"]["connect-src"].as_array().unwrap();
+
 		assert!(
 			migrated_connect_src
 				.iter()
@@ -1059,6 +1182,7 @@ mod test {
 		let migrated = migrate(&original);
 
 		assert!(migrated["build"].get("devUrl").is_none());
+
 		assert_eq!(migrated["build"]["distDir"], original["build"]["frontendDist"]);
 	}
 

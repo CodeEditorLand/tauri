@@ -180,10 +180,12 @@ mod tests {
   #[test]
   fn empty_password_is_valid() {
     let path = std::env::temp_dir().join("minisign-password-text.txt");
+
     std::fs::write(&path, b"TAURI").expect("failed to write test file");
 
     let secret_key =
       super::secret_key(PRIVATE_KEY, Some("".into())).expect("failed to resolve secret key");
+
     super::sign_file(&secret_key, &path).expect("failed to sign file");
   }
 }

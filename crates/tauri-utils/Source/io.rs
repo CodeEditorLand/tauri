@@ -25,9 +25,11 @@ pub fn read_line<R: BufRead + ?Sized>(r: &mut R, buf: &mut Vec<u8>) -> std::io::
           buf.extend_from_slice(&available[..end]);
           (true, end)
         }
+
         None => match memchr::memchr(b'\r', available) {
           Some(i) => {
             let end = i + 1;
+
             buf.extend_from_slice(&available[..end]);
             (true, end)
           }
@@ -38,8 +40,11 @@ pub fn read_line<R: BufRead + ?Sized>(r: &mut R, buf: &mut Vec<u8>) -> std::io::
         },
       }
     };
+
     r.consume(used);
+
     read += used;
+
     if done || used == 0 {
       return Ok(read);
     }

@@ -104,9 +104,11 @@ pub fn command(options:Options) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let r = command_internal(options);
+
 	if r.is_err() {
 		kill_before_dev_process();
 	}
+
 	r
 }
 
@@ -125,7 +127,9 @@ fn command_internal(mut options:Options) -> Result<()> {
 	setup(&interface, &mut options, config)?;
 
 	let exit_on_panic = options.exit_on_panic;
+
 	let no_watch = options.no_watch;
+
 	interface.dev(options.into(), move |status, reason| {
 		on_app_exit(status, reason, exit_on_panic, no_watch)
 	})
@@ -133,6 +137,7 @@ fn command_internal(mut options:Options) -> Result<()> {
 
 pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle) -> Result<()> {
 	let tauri_path = tauri_dir();
+
 	set_current_dir(tauri_path).with_context(|| "failed to change current working directory")?;
 
 	if let Some(before_dev) =
@@ -147,21 +152,28 @@ pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle)
 		};
 
 		let cwd = script_cwd.unwrap_or_else(|| app_dir().clone());
+
 		if let Some(before_dev) = script {
 			log::info!(action = "Running"; "BeforeDevCommand (`{}`)", before_dev);
+
 			let mut env = command_env(true);
+
 			env.extend(interface.env());
 
 			#[cfg(windows)]
 			let mut command = {
 				let mut command = Command::new("cmd");
+
 				command.arg("/S").arg("/C").arg(&before_dev).current_dir(cwd).envs(env);
+
 				command
 			};
 			#[cfg(not(windows))]
 			let mut command = {
 				let mut command = Command::new("sh");
+
 				command.arg("-c").arg(&before_dev).current_dir(cwd).envs(env);
+
 				command
 			};
 
@@ -173,6 +185,7 @@ pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle)
 						if cfg!(windows) { "cmd /S /C" } else { "sh -c" }
 					)
 				})?;
+
 				if !status.success() {
 					bail!(
 						"beforeDevCommand `{}` failed with exit code {}",
@@ -182,31 +195,39 @@ pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle)
 				}
 			} else {
 				command.stdin(Stdio::piped());
+
 				command.stdout(os_pipe::dup_stdout()?);
+
 				command.stderr(os_pipe::dup_stderr()?);
 
 				let child = SharedChild::spawn(&mut command)
 					.unwrap_or_else(|_| panic!("failed to run `{before_dev}`"));
+
 				let child = Arc::new(child);
+
 				let child_ = child.clone();
 
 				std::thread::spawn(move || {
 					let status = child_.wait().expect("failed to wait on \"beforeDevCommand\"");
+
 					if !(status.success()
 						|| KILL_BEFORE_DEV_FLAG.get().unwrap().load(Ordering::Relaxed))
 					{
 						log::error!(
 							"The \"beforeDevCommand\" terminated with a non-zero status code."
 						);
+
 						exit(status.code().unwrap_or(1));
 					}
 				});
 
 				BEFORE_DEV.set(Mutex::new(child)).unwrap();
+
 				KILL_BEFORE_DEV_FLAG.set(AtomicBool::default()).unwrap();
 
 				let _ = ctrlc::set_handler(move || {
 					kill_before_dev_process();
+
 					exit(130);
 				});
 			}
@@ -228,12 +249,15 @@ pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle)
 		.features
 		.clone()
 		.unwrap_or_default();
+
 	if let Some(features) = &options.features {
 		cargo_features.extend(features.clone());
 	}
 
 	let mut dev_url = config.lock().unwrap().as_ref().unwrap().build.dev_url.clone();
+
 	let frontend_dist = config.lock().unwrap().as_ref().unwrap().build.frontend_dist.clone();
+
 	if !options.no_dev_server && dev_url.is_none() {
 		if let Some(FrontendDist::Directory(path)) = &frontend_dist {
 			if path.exists() {
@@ -242,7 +266,9 @@ pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle)
 				let ip = options.host.unwrap_or_else(|| Ipv4Addr::new(127, 0, 0, 1).into());
 
 				let server_url = builtin_dev_server::start(path, ip, options.port)?;
+
 				let server_url = format!("http://{server_url}");
+
 				dev_url = Some(server_url.parse().unwrap());
 
 				if let Some(c) = &mut options.config {
@@ -269,29 +295,41 @@ pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle)
 	if !options.no_dev_server_wait {
 		if let Some(url) = dev_url {
 			let host = url.host().unwrap_or_else(|| panic!("No host name in the URL"));
+
 			let port = url
 				.port_or_known_default()
 				.unwrap_or_else(|| panic!("No port number in the URL"));
+
 			let addrs;
+
 			let addr;
+
 			let addrs = match host {
 				url::Host::Domain(domain) => {
 					use std::net::ToSocketAddrs;
+
 					addrs = (domain, port).to_socket_addrs()?;
+
 					addrs.as_slice()
 				},
 				url::Host::Ipv4(ip) => {
 					addr = (ip, port).into();
+
 					std::slice::from_ref(&addr)
 				},
 				url::Host::Ipv6(ip) => {
 					addr = (ip, port).into();
+
 					std::slice::from_ref(&addr)
 				},
 			};
+
 			let mut i = 0;
+
 			let sleep_interval = std::time::Duration::from_secs(2);
+
 			let timeout_duration = std::time::Duration::from_secs(1);
+
 			let max_attempts = 90;
 			'waiting: loop {
 				for addr in addrs.iter() {
@@ -303,15 +341,19 @@ pub fn setup(interface:&AppInterface, options:&mut Options, config:ConfigHandle)
 				if i % 3 == 1 {
 					log::warn!("Waiting for your frontend dev server to start on {url}...",);
 				}
+
 				i += 1;
+
 				if i == max_attempts {
 					log::error!(
 						"Could not connect to `{url}` after {}s. Please make sure that is the URL \
 						 to your dev server.",
 						i * sleep_interval.as_secs()
 					);
+
 					exit(1);
 				}
+
 				std::thread::sleep(sleep_interval);
 			}
 		}
@@ -329,6 +371,7 @@ pub fn wait_dev_process<
 ) {
 	std::thread::spawn(move || {
 		let code = child.wait().ok().and_then(|status| status.code()).or(Some(1));
+
 		on_exit(
 			code,
 			if child.manually_killed_process() {
@@ -346,6 +389,7 @@ pub fn on_app_exit(code:Option<i32>, reason:ExitReason, exit_on_panic:bool, no_w
 			&& (exit_on_panic || matches!(reason, ExitReason::NormalExit)))
 	{
 		kill_before_dev_process();
+
 		exit(code.unwrap_or(0));
 	}
 }
@@ -355,9 +399,11 @@ pub fn kill_before_dev_process() {
 		let child = child.lock().unwrap();
 
 		let kill_before_dev_flag = KILL_BEFORE_DEV_FLAG.get().unwrap();
+
 		if kill_before_dev_flag.load(Ordering::Relaxed) {
 			return;
 		}
+
 		kill_before_dev_flag.store(true, Ordering::Relaxed);
 		#[cfg(windows)]
 		{
@@ -365,6 +411,7 @@ pub fn kill_before_dev_process() {
 				|_| "powershell.exe".to_string(),
 				|p| format!("{p}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"),
 			);
+
 			let _ = Command::new(powershell_path)
 				.arg("-NoProfile")
 				.arg("-Command")
@@ -380,20 +427,28 @@ pub fn kill_before_dev_process() {
 		#[cfg(unix)]
 		{
 			use std::io::Write;
+
 			let mut kill_children_script_path = std::env::temp_dir();
+
 			kill_children_script_path.push("tauri-stop-dev-processes.sh");
 
 			if !kill_children_script_path.exists() {
 				if let Ok(mut file) = std::fs::File::create(&kill_children_script_path) {
 					use std::os::unix::fs::PermissionsExt;
+
 					let _ = file.write_all(KILL_CHILDREN_SCRIPT);
+
 					let mut permissions = file.metadata().unwrap().permissions();
+
 					permissions.set_mode(0o770);
+
 					let _ = file.set_permissions(permissions);
 				}
 			}
+
 			let _ = Command::new(&kill_children_script_path).arg(child.id().to_string()).output();
 		}
+
 		let _ = child.kill();
 	}
 }

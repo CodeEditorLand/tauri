@@ -188,9 +188,11 @@ pub fn is_configuration_file(target:Target, path:&Path) -> bool {
 /// [JSON Merge Patch (RFC 7396)]: https://datatracker.ietf.org/doc/html/rfc7396.
 pub fn read_from(target:Target, root_dir:PathBuf) -> Result<Value, ConfigError> {
 	let mut config:Value = parse_value(target, root_dir.join("tauri.conf.json"))?.0;
+
 	if let Some((platform_config, _)) = read_platform(target, root_dir)? {
 		merge(&mut config, &platform_config);
 	}
+
 	Ok(config)
 }
 
@@ -203,8 +205,10 @@ pub fn read_platform(
 	root_dir:PathBuf,
 ) -> Result<Option<(Value, PathBuf)>, ConfigError> {
 	let platform_config_path = root_dir.join(ConfigFormat::Json.into_platform_file_name(target));
+
 	if does_supported_file_name_exist(target, &platform_config_path) {
 		let (platform_config, path):(Value, PathBuf) = parse_value(target, platform_config_path)?;
+
 		Ok(Some((platform_config, path)))
 	} else {
 		Ok(None)
@@ -217,10 +221,13 @@ pub fn read_platform(
 /// format, in this case JSON with `.json`.
 pub fn does_supported_file_name_exist(target:Target, path:impl Into<PathBuf>) -> bool {
 	let path = path.into();
+
 	let source_file_name = path.file_name().unwrap().to_str().unwrap();
+
 	let lookup_platform_config = ENABLED_FORMATS
 		.iter()
 		.any(|format| source_file_name == format.into_platform_file_name(target));
+
 	ENABLED_FORMATS.iter().any(|format| {
 		path.with_file_name(if lookup_platform_config {
 			format.into_platform_file_name(target)
@@ -256,6 +263,7 @@ pub fn parse_value(
 
 fn do_parse<D:DeserializeOwned>(target:Target, path:PathBuf) -> Result<(D, PathBuf), ConfigError> {
 	let file_name = path.file_name().map(OsStr::to_string_lossy).unwrap_or_default();
+
 	let lookup_platform_config = ENABLED_FORMATS
 		.iter()
 		.any(|format| file_name == format.into_platform_file_name(target));
@@ -265,6 +273,7 @@ fn do_parse<D:DeserializeOwned>(target:Target, path:PathBuf) -> Result<(D, PathB
 	} else {
 		ConfigFormat::Json5.into_file_name()
 	});
+
 	let toml = path.with_file_name(if lookup_platform_config {
 		ConfigFormat::Toml.into_platform_file_name(target)
 	} else {
@@ -299,6 +308,7 @@ fn do_parse<D:DeserializeOwned>(target:Target, path:PathBuf) -> Result<(D, PathB
 		#[cfg(feature = "config-json5")]
 		{
 			let raw = read_to_string(&json5)?;
+
 			do_parse_json5(&raw, &json5).map(|config| (config, json5))
 		}
 
@@ -311,6 +321,7 @@ fn do_parse<D:DeserializeOwned>(target:Target, path:PathBuf) -> Result<(D, PathB
 		#[cfg(feature = "config-toml")]
 		{
 			let raw = read_to_string(&toml)?;
+
 			do_parse_toml(&raw, &toml).map(|config| (config, toml))
 		}
 

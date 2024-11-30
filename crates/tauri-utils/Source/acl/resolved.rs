@@ -85,10 +85,13 @@ impl Resolved {
     target: Target,
   ) -> Result<Self, Error> {
     let mut allowed_commands = BTreeMap::new();
+
     let mut denied_commands = BTreeMap::new();
 
     let mut current_scope_id = 0;
+
     let mut command_scope = BTreeMap::new();
+
     let mut global_scope: BTreeMap<String, Vec<Scopes>> = BTreeMap::new();
 
     // resolve commands
@@ -169,6 +172,7 @@ impl Resolved {
           allow: Vec::new(),
           deny: Vec::new(),
         };
+
         for scope in scopes {
           if let Some(allow) = scope.allow {
             resolved_scope.allow.extend(allow);
@@ -285,6 +289,7 @@ fn with_resolved_permissions<F: FnMut(ResolvedPermission<'_>) -> Result<(), Erro
             .get_or_insert_with(Default::default)
             .extend(allow);
         }
+
         if let Some(deny) = scope.deny.clone() {
           resolved_scope
             .deny
@@ -380,6 +385,7 @@ fn get_permission_set_permissions<'a>(
     // in the dialog manifest so we check if `perm` still have a prefix (i.e `fs:`)
     // and if so, we resolve this prefix from `acl` first before proceeding
     let id = Identifier::try_from(perm.clone()).expect("invalid identifier in permission set?");
+
     let (manifest, permission_id, key, permission_name) =
       if let Some((new_key, manifest)) = id.get_prefix().and_then(|k| acl.get(k).map(|m| (k, m))) {
         (manifest, &id, new_key, id.get_base())
@@ -461,10 +467,12 @@ mod build {
 
       let windows = vec_lit(&self.windows, |window| {
         let w = window.as_str();
+
         quote!(#w.parse().unwrap())
       });
       let webviews = vec_lit(&self.webviews, |window| {
         let w = window.as_str();
+
         quote!(#w.parse().unwrap())
       });
       let scope_id = opt_lit(self.scope_id.as_ref());
@@ -635,37 +643,63 @@ mod tests {
     .into();
 
     let permissions = get_permissions(&id("fs:default"), &acl).unwrap();
+
     assert_eq!(permissions.len(), 2);
+
     assert_eq!(permissions[0].key, "fs");
+
     assert_eq!(permissions[0].permission_name, "read");
+
     assert_eq!(permissions[1].key, "fs");
+
     assert_eq!(permissions[1].permission_name, "exist");
 
     let permissions = get_permissions(&id("fs:rm"), &acl).unwrap();
+
     assert_eq!(permissions.len(), 1);
+
     assert_eq!(permissions[0].key, "fs");
+
     assert_eq!(permissions[0].permission_name, "rm");
 
     let permissions = get_permissions(&id("http:fetch-with-cancel"), &acl).unwrap();
+
     assert_eq!(permissions.len(), 2);
+
     assert_eq!(permissions[0].key, "http");
+
     assert_eq!(permissions[0].permission_name, "fetch");
+
     assert_eq!(permissions[1].key, "http");
+
     assert_eq!(permissions[1].permission_name, "fetch-cancel");
 
     let permissions = get_permissions(&id("dialog:extra"), &acl).unwrap();
+
     assert_eq!(permissions.len(), 6);
+
     assert_eq!(permissions[0].key, "dialog");
+
     assert_eq!(permissions[0].permission_name, "save");
+
     assert_eq!(permissions[1].key, "fs");
+
     assert_eq!(permissions[1].permission_name, "read");
+
     assert_eq!(permissions[2].key, "fs");
+
     assert_eq!(permissions[2].permission_name, "exist");
+
     assert_eq!(permissions[3].key, "fs");
+
     assert_eq!(permissions[3].permission_name, "write");
+
     assert_eq!(permissions[4].key, "http");
+
     assert_eq!(permissions[4].permission_name, "fetch");
+
     assert_eq!(permissions[5].key, "http");
+
     assert_eq!(permissions[5].permission_name, "fetch-cancel");
   }
 }

@@ -52,18 +52,21 @@ impl<'a> IconMenuItemBuilder<'a> {
   /// Set the id for this menu item.
   pub fn id<I: Into<MenuId>>(mut self, id: I) -> Self {
     self.id.replace(id.into());
+
     self
   }
 
   /// Set the enabled state for this menu item.
   pub fn enabled(mut self, enabled: bool) -> Self {
     self.enabled = enabled;
+
     self
   }
 
   /// Set the accelerator for this menu item.
   pub fn accelerator<S: AsRef<str>>(mut self, accelerator: S) -> Self {
     self.accelerator.replace(accelerator.as_ref().to_string());
+
     self
   }
 
@@ -73,7 +76,9 @@ impl<'a> IconMenuItemBuilder<'a> {
   /// so calling one of them, will reset the other.
   pub fn icon(mut self, icon: Image<'a>) -> Self {
     self.icon.replace(icon);
+
     self.native_icon = None;
+
     self
   }
 
@@ -83,7 +88,9 @@ impl<'a> IconMenuItemBuilder<'a> {
   /// so calling one of them, will reset the other.
   pub fn native_icon(mut self, icon: NativeIcon) -> Self {
     self.native_icon.replace(icon);
+
     self.icon = None;
+
     self
   }
 

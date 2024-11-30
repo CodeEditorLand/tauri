@@ -235,6 +235,7 @@ const CARGO_OUTPUT_DIRECTORIES:&[&str] = &["debug", "release", "custom-profile"]
 #[cfg(test)]
 fn is_cargo_output_directory(path:&std::path::Path) -> bool {
 	let last_component = path.components().last().unwrap().as_os_str().to_str().unwrap();
+
 	CARGO_OUTPUT_DIRECTORIES.iter().any(|dirname| &last_component == dirname)
 }
 
@@ -261,6 +262,7 @@ pub fn resource_dir(package_info:&PackageInfo, env:&Env) -> crate::Result<PathBu
 	#[cfg(not(target_os = "android"))]
 	{
 		let exe = current_exe()?;
+
 		resource_dir_from(exe, package_info, env)
 	}
 }
@@ -278,9 +280,11 @@ fn resource_dir_from<P:AsRef<std::path::Path>>(
 	env:&Env,
 ) -> crate::Result<PathBuf> {
 	let exe_dir = exe.as_ref().parent().expect("failed to get exe directory");
+
 	let curr_dir = exe_dir.display().to_string();
 
 	let parts:Vec<&str> = curr_dir.split(std::path::MAIN_SEPARATOR).collect();
+
 	let len = parts.len();
 
 	// Check if running from the Cargo output directory, which means it's an
@@ -310,6 +314,7 @@ fn resource_dir_from<P:AsRef<std::path::Path>>(
 				.map_err(Into::into)
 		} else if let Some(appdir) = &env.appdir {
 			let appdir:&std::path::Path = appdir.as_ref();
+
 			Ok(PathBuf::from(format!(
 				"{}/usr/lib/{}",
 				appdir.display(),
@@ -337,6 +342,7 @@ fn resource_dir_from<P:AsRef<std::path::Path>>(
 #[cfg(feature = "build")]
 mod build {
 	use proc_macro2::TokenStream;
+
 	use quote::{quote, ToTokens, TokenStreamExt};
 
 	use super::*;
@@ -377,16 +383,19 @@ mod tests {
 		let path = PathBuf::from("/path/to/target/aarch64-apple-darwin/debug/app");
 
 		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+
 		assert_eq!(resource_dir, path.parent().unwrap());
 
 		let path = PathBuf::from("/path/to/target/custom-profile/app");
 
 		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+
 		assert_eq!(resource_dir, path.parent().unwrap());
 
 		let path = PathBuf::from("/path/to/target/release/app");
 
 		let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+
 		assert_eq!(resource_dir, path.parent().unwrap());
 
 		let path = PathBuf::from("/path/to/target/unknown-profile/app");

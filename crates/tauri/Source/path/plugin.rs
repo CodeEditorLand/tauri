@@ -19,6 +19,7 @@ fn normalize_path(path: &Path) -> PathBuf {
   let mut components = path.components().peekable();
   let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
     components.next();
+
     PathBuf::from(c.as_os_str())
   } else {
     PathBuf::new()
@@ -49,6 +50,7 @@ fn normalize_path_no_absolute(path: &Path) -> PathBuf {
   let mut components = path.components().peekable();
   let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
     components.next();
+
     PathBuf::from(c.as_os_str())
   } else {
     PathBuf::new()
@@ -75,9 +77,11 @@ fn normalize_path_no_absolute(path: &Path) -> PathBuf {
         if !p.is_empty() && !p.ends_with('/') && !p.ends_with('\\') {
           p.push(MAIN_SEPARATOR);
         }
+
         if let Some(c) = c.to_str() {
           p.push_str(c);
         }
+
         ret = PathBuf::from(p);
       }
     }
@@ -127,6 +131,7 @@ pub fn normalize(path: String) -> String {
     if (path.ends_with('/') || path.ends_with('\\')) && (!p.ends_with('/') || !p.ends_with('\\')) {
       p.push(MAIN_SEPARATOR);
     }
+
     p
   }
 }
@@ -144,6 +149,7 @@ pub fn join(mut paths: Vec<String>) -> String {
         if !p.ends_with('/') && !p.ends_with('\\') {
           p.push(MAIN_SEPARATOR);
         }
+
         p.to_string()
       })
       .collect::<String>(),
@@ -191,6 +197,7 @@ pub fn basename(path: &str, ext: Option<&str>) -> Result<String> {
       };
       Ok(maybe_stripped)
     }
+
     None => Err(Error::NoBasename),
   }
 }
@@ -235,6 +242,7 @@ pub(crate) fn init<R: Runtime>() -> TauriPlugin<R> {
       #[cfg(target_os = "android")]
       {
         let handle = _api.register_android_plugin("app.tauri", "PathPlugin")?;
+
         app.manage(PathResolver(handle));
       }
 
@@ -254,30 +262,35 @@ mod tests {
   #[test]
   fn basename() {
     let path = "/path/to/some-json-file.json";
+
     assert_eq!(
       super::basename(path, Some(".json")).unwrap(),
       "some-json-file"
     );
 
     let path = "/path/to/some-json-file.json";
+
     assert_eq!(
       super::basename(path, Some("json")).unwrap(),
       "some-json-file."
     );
 
     let path = "/path/to/some-json-file.html.json";
+
     assert_eq!(
       super::basename(path, Some(".json")).unwrap(),
       "some-json-file.html"
     );
 
     let path = "/path/to/some-json-file.json.json";
+
     assert_eq!(
       super::basename(path, Some(".json")).unwrap(),
       "some-json-file.json"
     );
 
     let path = "/path/to/some-json-file.json.html";
+
     assert_eq!(
       super::basename(path, Some(".json")).unwrap(),
       "some-json-file.json.html"

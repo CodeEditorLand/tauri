@@ -60,6 +60,7 @@ pub fn download_webview2_offline_installer(base_path: &Path, arch: &str) -> crat
   let file_path = dir_path.join(filename);
   if !file_path.exists() {
     create_dir_all(dir_path)?;
+
     std::fs::write(&file_path, download(url)?)?;
   }
   Ok(file_path)

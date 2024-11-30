@@ -82,8 +82,11 @@ pub fn command(options: Options) -> Result<()> {
 
   let (config, metadata, cli_options) = {
     let tauri_config_guard = tauri_config.lock().unwrap();
+
     let tauri_config_ = tauri_config_guard.as_ref().unwrap();
+
     let cli_options = read_options(&tauri_config_.identifier);
+
     let (config, metadata) = get_config(
       &get_app(
         MobileTarget::Ios,
@@ -128,12 +131,14 @@ pub fn command(options: Options) -> Result<()> {
     let macos_sdk_root = options
       .sdk_root
       .join("../../../../MacOSX.platform/Developer/SDKs/MacOSX.sdk");
+
     if !macos_sdk_root.is_dir() {
       return Err(anyhow::anyhow!(
         "Invalid SDK root {}",
         macos_sdk_root.display()
       ));
     }
+
     format!("-isysroot {}", macos_sdk_root.display())
   };
 
@@ -190,11 +195,17 @@ pub fn command(options: Options) -> Result<()> {
     )?;
 
     let cflags = format!("CFLAGS_{}", env_triple);
+
     let cxxflags = format!("CFLAGS_{}", env_triple);
+
     let objc_include_path = format!("OBJC_INCLUDE_PATH_{}", env_triple);
+
     let mut target_env = host_env.clone();
+
     target_env.insert(cflags.as_ref(), isysroot.as_ref());
+
     target_env.insert(cxxflags.as_ref(), isysroot.as_ref());
+
     target_env.insert(objc_include_path.as_ref(), include_dir.as_ref());
 
     let target = if macos {
@@ -207,6 +218,7 @@ pub fn command(options: Options) -> Result<()> {
         )
       })?
     };
+
     target.compile_lib(
       &config,
       &metadata,
@@ -224,6 +236,7 @@ pub fn command(options: Options) -> Result<()> {
     })?;
 
     let lib_path = out_dir.join(format!("lib{}.a", config.app().lib_name()));
+
     if !lib_path.exists() {
       return Err(anyhow::anyhow!("Library not found at {}. Make sure your Cargo.toml file has a [lib] block with `crate-type = [\"staticlib\", \"cdylib\", \"lib\"]`", lib_path.display()));
     }
@@ -231,7 +244,9 @@ pub fn command(options: Options) -> Result<()> {
     validate_lib(&lib_path)?;
 
     let project_dir = config.project_dir();
+
     let externals_lib_dir = project_dir.join(format!("Externals/{arch}/{}", profile.as_str()));
+
     std::fs::create_dir_all(&externals_lib_dir)?;
 
     // backwards compatible lib output file name
@@ -264,10 +279,13 @@ fn validate_lib(path: &Path) -> Result<()> {
     let Ok(mut entry) = entry else {
       continue;
     };
+
     let mut obj_bytes = Vec::new();
+
     entry.read_to_end(&mut obj_bytes)?;
 
     let file = object::File::parse(&*obj_bytes)?;
+
     for symbol in file.symbols() {
       let Ok(name) = symbol.name() else {
         continue;

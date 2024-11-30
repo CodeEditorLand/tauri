@@ -125,8 +125,10 @@ impl ResourceDirectory {
 		let mut files = String::from("");
 
 		let mut file_ids = Vec::new();
+
 		for file in self.files {
 			file_ids.push(file.id.clone());
+
 			files.push_str(
         format!(
           r#"<Component Id="{id}" Guid="{guid}" Win64="$(var.Win64)" KeyPath="yes"><File Id="PathFile_{id}" Source="{path}" /></Component>"#,
@@ -136,14 +138,19 @@ impl ResourceDirectory {
         ).as_str()
       );
 		}
+
 		let mut directories = String::from("");
+
 		for directory in self.directories {
 			let (wix_string, ids) = directory.get_wix_data()?;
+
 			for id in ids {
 				file_ids.push(id)
 			}
+
 			directories.push_str(wix_string.as_str());
 		}
+
 		let wix_string = if self.name.is_empty() {
 			format!("{}{}", files, directories)
 		} else {
@@ -166,7 +173,9 @@ fn copy_icon(settings:&Settings, filename:&str, path:&Path) -> crate::Result<Pat
 	let base_dir = settings.project_out_directory();
 
 	let resource_dir = base_dir.join("resources");
+
 	fs::create_dir_all(&resource_dir)?;
+
 	let icon_target_path = resource_dir.join(filename);
 
 	let icon_path = std::env::current_dir()?.join(path);
@@ -210,6 +219,7 @@ fn generate_package_guid(settings:&Settings) -> Uuid {
 /// Generates a GUID.
 fn generate_guid(key:&[u8]) -> Uuid {
 	let namespace = Uuid::from_bytes(UUID_NAMESPACE);
+
 	Uuid::new_v5(&namespace, key)
 }
 
@@ -226,10 +236,13 @@ pub fn get_and_extract_wix(path:&Path) -> crate::Result<()> {
 
 fn clear_env_for_wix(cmd:&mut Command) {
 	cmd.env_clear();
+
 	let required_vars:Vec<std::ffi::OsString> =
 		vec!["SYSTEMROOT".into(), "TMP".into(), "TEMP".into()];
+
 	for (k, v) in std::env::vars_os() {
 		let k = k.to_ascii_uppercase();
+
 		if required_vars.contains(&k) || k.to_string_lossy().starts_with("TAURI") {
 			cmd.env(k, v);
 		}
@@ -240,18 +253,22 @@ fn clear_env_for_wix(cmd:&mut Command) {
 // format
 pub fn convert_version(version_str:&str) -> anyhow::Result<String> {
 	let version = semver::Version::parse(version_str).context("invalid app version")?;
+
 	if version.major > 255 {
 		bail!("app version major number cannot be greater than 255");
 	}
+
 	if version.minor > 255 {
 		bail!("app version minor number cannot be greater than 255");
 	}
+
 	if version.patch > 65535 {
 		bail!("app version patch number cannot be greater than 65535");
 	}
 
 	if !version.build.is_empty() {
 		let build = version.build.parse::<u64>();
+
 		if build.map(|b| b <= 65535).unwrap_or_default() {
 			return Ok(format!(
 				"{}.{}.{}.{}",
@@ -267,6 +284,7 @@ pub fn convert_version(version_str:&str) -> anyhow::Result<String> {
 
 	if !version.pre.is_empty() {
 		let pre = version.pre.parse::<u64>();
+
 		if pre.is_ok() && pre.unwrap() <= 65535 {
 			return Ok(format!(
 				"{}.{}.{}.{}",
@@ -315,12 +333,17 @@ fn run_candle(
 	let candle_exe = wix_toolset_path.join("candle.exe");
 
 	log::info!(action = "Running"; "candle for {:?}", wxs_file_path);
+
 	let mut cmd = Command::new(candle_exe);
+
 	for ext in extensions {
 		cmd.arg("-ext");
+
 		cmd.arg(ext);
 	}
+
 	clear_env_for_wix(&mut cmd);
+
 	cmd.args(&args)
 		.current_dir(cwd)
 		.output_ok()
@@ -345,11 +368,15 @@ fn run_light(
 	args.extend(arguments);
 
 	let mut cmd = Command::new(light_exe);
+
 	for ext in extensions {
 		cmd.arg("-ext");
+
 		cmd.arg(ext);
 	}
+
 	clear_env_for_wix(&mut cmd);
+
 	cmd.args(&args)
 		.current_dir(build_path)
 		.output_ok()
@@ -386,6 +413,7 @@ pub fn build_wix_app_installer(
 	if output_path.exists() {
 		fs::remove_dir_all(&output_path)?;
 	}
+
 	fs::create_dir_all(&output_path)?;
 
 	let mut data = BTreeMap::new();
@@ -407,6 +435,7 @@ pub fn build_wix_app_installer(
 	};
 
 	data.insert("install_webview", to_json(true));
+
 	data.insert(
 		"webview_installer_args",
 		to_json(if silent_webview_install { "/silent" } else { "" }),
@@ -418,6 +447,7 @@ pub fn build_wix_app_installer(
 		},
 		WebviewInstallMode::DownloadBootstrapper { silent: _ } => {
 			data.insert("download_bootstrapper", to_json(true));
+
 			data.insert(
 				"webview_installer_args",
 				to_json(if silent_webview_install { "&apos;/silent&apos;," } else { "" }),
@@ -425,11 +455,13 @@ pub fn build_wix_app_installer(
 		},
 		WebviewInstallMode::EmbedBootstrapper { silent: _ } => {
 			let webview2_bootstrapper_path = download_webview2_bootstrapper(&output_path)?;
+
 			data.insert("webview2_bootstrapper_path", to_json(webview2_bootstrapper_path));
 		},
 		WebviewInstallMode::OfflineInstaller { silent: _ } => {
 			let webview2_installer_path =
 				download_webview2_offline_installer(&output_path.join(arch), arch)?;
+
 			data.insert("webview2_installer_path", to_json(webview2_installer_path));
 		},
 	}
@@ -439,6 +471,7 @@ pub fn build_wix_app_installer(
 			data.insert("license", to_json(license));
 		} else {
 			let license_contents = fs::read_to_string(license)?;
+
 			let license_rtf = format!(
 				r#"{{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{{\fonttbl{{\f0\fnil\fcharset0 Calibri;}}}}
 {{\*\generator Riched20 10.0.18362}}\viewkind4\uc1
@@ -447,8 +480,11 @@ pub fn build_wix_app_installer(
 "#,
 				license_contents.replace('\n', "\\par ")
 			);
+
 			let rtf_output_path = settings.project_out_directory().join("wix").join("LICENSE.rtf");
+
 			std::fs::write(&rtf_output_path, license_rtf)?;
+
 			data.insert("license", to_json(rtf_output_path));
 		}
 	}
@@ -460,15 +496,23 @@ pub fn build_wix_app_installer(
 		settings.windows().wix.as_ref().map(|w| w.language.clone()).unwrap_or_default();
 
 	data.insert("product_name", to_json(settings.product_name()));
+
 	data.insert("version", to_json(app_version));
+
 	data.insert("long_description", to_json(settings.long_description().unwrap_or_default()));
+
 	data.insert("homepage", to_json(settings.homepage_url()));
+
 	let bundle_id = settings.bundle_identifier();
+
 	let manufacturer = settings
 		.publisher()
 		.unwrap_or_else(|| bundle_id.split('.').nth(1).unwrap_or(bundle_id));
+
 	data.insert("bundle_id", to_json(bundle_id));
+
 	data.insert("manufacturer", to_json(manufacturer));
+
 	let upgrade_code = Uuid::new_v5(
 		&Uuid::NAMESPACE_DNS,
 		format!("{}.exe.app.x64", &settings.product_name()).as_bytes(),
@@ -476,46 +520,62 @@ pub fn build_wix_app_installer(
 	.to_string();
 
 	data.insert("upgrade_code", to_json(upgrade_code.as_str()));
+
 	let product_code =
 		Uuid::new_v5(&Uuid::NAMESPACE_DNS, settings.bundle_identifier().as_bytes()).to_string();
+
 	data.insert("product_code", to_json(product_code.as_str()));
+
 	data.insert("allow_downgrades", to_json(settings.windows().allow_downgrades));
 
 	let path_guid = generate_package_guid(settings).to_string();
+
 	data.insert("path_component_guid", to_json(path_guid.as_str()));
 
 	let shortcut_guid = generate_package_guid(settings).to_string();
+
 	data.insert("shortcut_guid", to_json(shortcut_guid.as_str()));
 
 	let binaries = generate_binaries_data(settings)?;
 
 	let binaries_json = to_json(binaries);
+
 	data.insert("binaries", binaries_json);
 
 	let resources = generate_resource_data(settings)?;
+
 	let mut resources_wix_string = String::from("");
+
 	let mut files_ids = Vec::new();
+
 	for (_, dir) in resources {
 		let (wix_string, ids) = dir.get_wix_data()?;
+
 		resources_wix_string.push_str(wix_string.as_str());
+
 		for id in ids {
 			files_ids.push(id);
 		}
 	}
 
 	data.insert("resources", to_json(resources_wix_string));
+
 	data.insert("resource_file_ids", to_json(files_ids));
 
 	let merge_modules = get_merge_modules(settings)?;
+
 	data.insert("merge_modules", to_json(merge_modules));
 
 	// Note: `main_binary_name` is not used in our template but we keep it as it is
 	// potentially useful for custom temples
 	let main_binary_name = settings.main_binary_name()?;
+
 	data.insert("main_binary_name", to_json(main_binary_name));
 
 	let main_binary = settings.main_binary()?;
+
 	let main_binary_path = settings.binary_path(main_binary);
+
 	data.insert("main_binary_path", to_json(main_binary_path));
 
 	// copy icon from `settings.windows().icon_path` folder to resource folder near
@@ -525,28 +585,41 @@ pub fn build_wix_app_installer(
 	data.insert("icon_path", to_json(icon_path));
 
 	let mut fragment_paths = Vec::new();
+
 	let mut handlebars = Handlebars::new();
+
 	handlebars.register_escape_fn(handlebars::no_escape);
+
 	let mut custom_template_path = None;
+
 	let mut enable_elevated_update_task = false;
 
 	if let Some(wix) = &settings.windows().wix {
 		data.insert("component_group_refs", to_json(&wix.component_group_refs));
+
 		data.insert("component_refs", to_json(&wix.component_refs));
+
 		data.insert("feature_group_refs", to_json(&wix.feature_group_refs));
+
 		data.insert("feature_refs", to_json(&wix.feature_refs));
+
 		data.insert("merge_refs", to_json(&wix.merge_refs));
+
 		fragment_paths.clone_from(&wix.fragment_paths);
+
 		enable_elevated_update_task = wix.enable_elevated_update_task;
+
 		custom_template_path.clone_from(&wix.template);
 
 		if let Some(banner_path) = &wix.banner_path {
 			let filename = banner_path.file_name().unwrap().to_string_lossy().into_owned();
+
 			data.insert("banner_path", to_json(copy_icon(settings, &filename, banner_path)?));
 		}
 
 		if let Some(dialog_image_path) = &wix.dialog_image_path {
 			let filename = dialog_image_path.file_name().unwrap().to_string_lossy().into_owned();
+
 			data.insert(
 				"dialog_image_path",
 				to_json(copy_icon(settings, &filename, dialog_image_path)?),
@@ -560,6 +633,7 @@ pub fn build_wix_app_installer(
 
 	if let Some(protocols) = settings.deep_link_protocols() {
 		let schemes = protocols.iter().flat_map(|p| &p.schemes).collect::<Vec<_>>();
+
 		data.insert("deep_link_protocols", to_json(schemes));
 	}
 
@@ -591,6 +665,7 @@ pub fn build_wix_app_installer(
 		let mut skip_uac_task = Handlebars::new();
 
 		let xml = include_str!("../templates/update-task.xml");
+
 		skip_uac_task
 			.register_template_string("update.xml", xml)
 			.map_err(|e| e.to_string())
@@ -599,13 +674,16 @@ pub fn build_wix_app_installer(
 		let temp_xml_path = output_path.join("update.xml");
 
 		let update_content = skip_uac_task.render("update.xml", &data)?;
+
 		fs::write(temp_xml_path, update_content)?;
 
 		// Create the Powershell script to install the task
 		let mut skip_uac_task_installer = Handlebars::new();
+
 		skip_uac_task_installer.register_escape_fn(handlebars::no_escape);
 
 		let xml = include_str!("../templates/install-task.ps1");
+
 		skip_uac_task_installer
 			.register_template_string("install-task.ps1", xml)
 			.map_err(|e| e.to_string())
@@ -614,13 +692,16 @@ pub fn build_wix_app_installer(
 		let temp_ps1_path = output_path.join("install-task.ps1");
 
 		let install_script_content = skip_uac_task_installer.render("install-task.ps1", &data)?;
+
 		fs::write(temp_ps1_path, install_script_content)?;
 
 		// Create the Powershell script to uninstall the task
 		let mut skip_uac_task_uninstaller = Handlebars::new();
+
 		skip_uac_task_uninstaller.register_escape_fn(handlebars::no_escape);
 
 		let xml = include_str!("../templates/uninstall-task.ps1");
+
 		skip_uac_task_uninstaller
 			.register_template_string("uninstall-task.ps1", xml)
 			.map_err(|e| e.to_string())
@@ -630,39 +711,47 @@ pub fn build_wix_app_installer(
 
 		let install_script_content =
 			skip_uac_task_uninstaller.render("uninstall-task.ps1", &data)?;
+
 		fs::write(temp_ps1_path, install_script_content)?;
 
 		data.insert("enable_elevated_update_task", to_json(true));
 	}
 
 	let main_wxs_path = output_path.join("main.wxs");
+
 	fs::write(main_wxs_path, handlebars.render("main.wxs", &data)?)?;
 
 	let mut candle_inputs = vec![("main.wxs".into(), Vec::new())];
 
 	let current_dir = std::env::current_dir()?;
+
 	let extension_regex = Regex::new("\"http://schemas.microsoft.com/wix/(\\w+)\"")?;
+
 	for fragment_path in fragment_paths {
 		let fragment_path = current_dir.join(fragment_path);
 
 		let fragment = fs::read_to_string(&fragment_path)?;
 
 		let mut extensions = Vec::new();
+
 		for cap in extension_regex.captures_iter(&fragment) {
 			extensions.push(wix_toolset_path.join(format!("Wix{}.dll", &cap[1])));
 		}
+
 		candle_inputs.push((fragment_path, extensions));
 	}
 
 	let mut fragment_extensions = HashSet::new();
 	// Default extensions
 	fragment_extensions.insert(wix_toolset_path.join("WixUIExtension.dll"));
+
 	fragment_extensions.insert(wix_toolset_path.join("WixUtilExtension.dll"));
 
 	for (path, extensions) in candle_inputs {
 		for ext in &extensions {
 			fragment_extensions.insert(ext.clone());
 		}
+
 		run_candle(settings, wix_toolset_path, &output_path, path, extensions)?;
 	}
 
@@ -695,6 +784,7 @@ pub fn build_wix_app_installer(
 		let mut unset_locale_strings = String::new();
 
 		let prefix_len = "<String ".len();
+
 		for locale_string in locale_strings.split('\n').filter(|s| !s.is_empty()) {
 			// strip `<String ` prefix and `>{value}</String` suffix.
 			let id = locale_string
@@ -702,6 +792,7 @@ pub fn build_wix_app_installer(
 				.skip(prefix_len)
 				.take(locale_string.find('>').unwrap() - prefix_len)
 				.collect::<String>();
+
 			if !locale_contents.contains(&id) {
 				unset_locale_strings.push_str(locale_string);
 			}
@@ -713,6 +804,7 @@ pub fn build_wix_app_installer(
 		let locale_path = output_path.join("locale.wxl");
 		{
 			let mut fileout = File::create(&locale_path).expect("Failed to create locale file");
+
 			fileout.write_all(locale_contents.as_bytes())?;
 		}
 
@@ -734,6 +826,7 @@ pub fn build_wix_app_installer(
 
 		let msi_path =
 			app_installer_output_path(settings, &language, settings.version_string(), updater)?;
+
 		fs::create_dir_all(msi_path.parent().unwrap())?;
 
 		log::info!(action = "Running"; "light to produce {}", display_path(&msi_path));
@@ -745,6 +838,7 @@ pub fn build_wix_app_installer(
 			&(fragment_extensions.clone().into_iter().collect()),
 			&msi_output_path,
 		)?;
+
 		fs::rename(&msi_output_path, &msi_path)?;
 
 		if settings.can_sign() {
@@ -761,9 +855,13 @@ pub fn build_wix_app_installer(
 /// bundling.
 fn generate_binaries_data(settings:&Settings) -> crate::Result<Vec<Binary>> {
 	let mut binaries = Vec::new();
+
 	let cwd = std::env::current_dir()?;
+
 	let tmp_dir = std::env::temp_dir();
+
 	let regex = Regex::new(r"[^\w\d\.]")?;
+
 	for src in settings.external_binaries() {
 		let src = src?;
 
@@ -776,6 +874,7 @@ fn generate_binaries_data(settings:&Settings) -> crate::Result<Vec<Binary>> {
 			.replace(&format!("-{}", settings.target()), "");
 
 		let dest = tmp_dir.join(&dest_filename);
+
 		std::fs::copy(binary_path, &dest)?;
 
 		binaries.push(Binary {
@@ -813,7 +912,9 @@ struct MergeModule {
 
 fn get_merge_modules(settings:&Settings) -> crate::Result<Vec<MergeModule>> {
 	let mut merge_modules = Vec::new();
+
 	let regex = Regex::new(r"[^\w\d\.]")?;
+
 	for msm in glob::glob(
 		settings
 			.project_out_directory()
@@ -830,17 +931,20 @@ fn get_merge_modules(settings:&Settings) -> crate::Result<Vec<MergeModule>> {
 			.to_os_string()
 			.into_string()
 			.expect("failed to convert merge module filename to string");
+
 		merge_modules.push(MergeModule {
 			name:regex.replace_all(&filename, "").to_string(),
 			path:path.to_string_lossy().to_string(),
 		});
 	}
+
 	Ok(merge_modules)
 }
 
 /// Generates the data required for the resource bundling on wix
 fn generate_resource_data(settings:&Settings) -> crate::Result<ResourceMap> {
 	let mut resources = ResourceMap::new();
+
 	let cwd = std::env::current_dir()?;
 
 	let mut added_resources = Vec::new();
@@ -906,10 +1010,13 @@ fn generate_resource_data(settings:&Settings) -> crate::Result<ResourceMap> {
 				.to_os_string()
 				.into_string()
 				.expect("failed to read resource folder name");
+
 			path.push_str(directory_name.as_str());
+
 			path.push(std::path::MAIN_SEPARATOR);
 
 			let index = directory_entry.directories.iter().position(|f| f.path == path);
+
 			match index {
 				Some(i) => directory_entry = directory_entry.directories.get_mut(i).unwrap(),
 				None => {
@@ -919,22 +1026,26 @@ fn generate_resource_data(settings:&Settings) -> crate::Result<ResourceMap> {
 						directories:vec![],
 						files:vec![],
 					});
+
 					directory_entry = directory_entry.directories.iter_mut().last().unwrap();
 				},
 			}
 		}
+
 		directory_entry.add_file(resource_entry);
 	}
 
 	let mut dlls = Vec::new();
 
 	let out_dir = settings.project_out_directory();
+
 	for dll in glob::glob(out_dir.join("*.dll").to_string_lossy().to_string().as_str())? {
 		let path = dll?;
 
 		let resource_path = dunce::simplified(&path);
 
 		let relative_path = path.strip_prefix(out_dir).unwrap().to_string_lossy().into_owned();
+
 		if !added_resources.iter().any(|r| r.ends_with(&relative_path)) {
 			dlls.push(ResourceFile {
 				id:format!("I{}", Uuid::new_v4().as_simple()),

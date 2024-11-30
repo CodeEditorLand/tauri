@@ -84,11 +84,13 @@ impl Manifest {
 
       for permission in permission_file.permission {
         let key = permission.identifier.clone();
+
         manifest.permissions.insert(key, permission);
       }
 
       for set in permission_file.set {
         let key = set.identifier.clone();
+
         manifest.permission_sets.insert(key, set);
       }
     }
@@ -139,6 +141,7 @@ mod build {
     fn to_tokens(&self, tokens: &mut TokenStream) {
       let version = opt_lit_owned(self.version.as_ref().map(|v| {
         let v = v.get();
+
         quote!(::core::num::NonZeroU64::new(#v).unwrap())
       }));
       let description = opt_str_lit(self.description.as_ref());

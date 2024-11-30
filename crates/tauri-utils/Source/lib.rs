@@ -195,6 +195,7 @@ impl<'de> Deserialize<'de> for TitleBarStyle {
     D: Deserializer<'de>,
   {
     let s = String::deserialize(deserializer)?;
+
     Ok(match s.to_lowercase().as_str() {
       "transparent" => Self::Transparent,
       "overlay" => Self::Overlay,
@@ -243,6 +244,7 @@ impl<'de> Deserialize<'de> for Theme {
     D: Deserializer<'de>,
   {
     let s = String::deserialize(deserializer)?;
+
     Ok(match s.to_lowercase().as_str() {
       "dark" => Self::Dark,
       _ => Self::Light,

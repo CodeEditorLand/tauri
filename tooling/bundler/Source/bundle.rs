@@ -56,6 +56,7 @@ pub struct Bundle {
 /// Returns the list of paths where the bundles can be found.
 pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 	let mut package_types = settings.package_types()?;
+
 	if package_types.is_empty() {
 		return Ok(Vec::new());
 	}
@@ -82,14 +83,17 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 		if settings.can_sign() {
 			for bin in settings.binaries() {
 				let bin_path = settings.binary_path(bin);
+
 				windows::sign::try_sign(&bin_path, settings)?;
 			}
 
 			// Sign the sidecar binaries
 			for bin in settings.external_binaries() {
 				let path = bin?;
+
 				let skip = std::env::var("TAURI_SKIP_SIDECAR_SIGNATURE_CHECK")
 					.map_or(false, |v| v == "true");
+
 				if skip {
 					continue;
 				}
@@ -97,6 +101,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 				#[cfg(windows)]
 				if windows::sign::verify(&path)? {
 					log::info!("sidecar at \"{}\" already signed. Skipping...", path.display());
+
 					continue;
 				}
 
@@ -113,6 +118,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 	}
 
 	let mut bundles = Vec::<Bundle>::new();
+
 	for package_type in &package_types {
 		// bundle was already built! e.g. DMG already built .app
 		if bundles.iter().any(|b| b.package_type == *package_type) {
@@ -129,12 +135,14 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 			#[cfg(target_os = "macos")]
 			PackageType::Dmg => {
 				let bundled = macos::dmg::bundle_project(settings, &bundles)?;
+
 				if !bundled.app.is_empty() {
 					bundles.push(Bundle {
 						package_type:PackageType::MacOsBundle,
 						bundle_paths:bundled.app,
 					});
 				}
+
 				bundled.dmg
 			},
 
@@ -150,6 +158,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 			PackageType::AppImage => linux::appimage::bundle_project(settings)?,
 			_ => {
 				log::warn!("ignoring {}", package_type.short_name());
+
 				continue;
 			},
 		};
@@ -172,6 +181,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 			}
 		}) {
 			let updater_paths = updater_bundle::bundle_project(settings, &bundles)?;
+
 			bundles.push(Bundle { package_type:PackageType::Updater, bundle_paths:updater_paths });
 		} else if updater.v1_compatible
 			|| !package_types.iter().any(|package_type| {
@@ -186,6 +196,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 				 targets were built. Please enable one of these targets: app, appimage, msi, nsis"
 			);
 		}
+
 		if updater.v1_compatible {
 			log::warn!(
 				"Legacy v1 compatible updater is deprecated and will be removed in v3, change \
@@ -207,6 +218,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 			{
 				for app_bundle_path in &app_bundle_paths {
 					log::info!(action = "Cleaning"; "{}", app_bundle_path.display());
+
 					match app_bundle_path.is_dir() {
 						true => std::fs::remove_dir_all(app_bundle_path),
 						false => std::fs::remove_file(app_bundle_path),
@@ -227,10 +239,13 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 		.iter()
 		.filter(|b| b.package_type != PackageType::Updater)
 		.collect::<Vec<_>>();
+
 	let finished_bundles = bundles_wo_updater.len();
+
 	let pluralised = if finished_bundles == 1 { "bundle" } else { "bundles" };
 
 	let mut printable_paths = String::new();
+
 	for bundle in &bundles {
 		for path in &bundle.bundle_paths {
 			let note = if bundle.package_type == crate::PackageType::Updater {
@@ -238,7 +253,9 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<Bundle>> {
 			} else {
 				""
 			};
+
 			let path_display = display_path(path);
+
 			writeln!(printable_paths, "        {path_display}{note}").unwrap();
 		}
 	}

@@ -105,30 +105,35 @@ impl CapabilityBuilder {
       .get_or_insert_with(Default::default)
       .urls
       .push(url);
+
     self
   }
 
   /// Whether this capability is applied on local app URLs or not. Defaults to `true`.
   pub fn local(mut self, local: bool) -> Self {
     self.0.local = local;
+
     self
   }
 
   /// Link this capability to the given window label.
   pub fn window(mut self, window: impl Into<String>) -> Self {
     self.0.windows.push(window.into());
+
     self
   }
 
   /// Link this capability to the a list of window labels.
   pub fn windows(mut self, windows: impl IntoIterator<Item = impl Into<String>>) -> Self {
     self.0.windows.extend(windows.into_iter().map(|w| w.into()));
+
     self
   }
 
   /// Link this capability to the given webview label.
   pub fn webview(mut self, webview: impl Into<String>) -> Self {
     self.0.webviews.push(webview.into());
+
     self
   }
 
@@ -138,18 +143,21 @@ impl CapabilityBuilder {
       .0
       .webviews
       .extend(webviews.into_iter().map(|w| w.into()));
+
     self
   }
 
   /// Add a new permission to this capability.
   pub fn permission(mut self, permission: impl Into<String>) -> Self {
     let permission = permission.into();
+
     self.0.permissions.push(PermissionEntry::PermissionRef(
       permission
         .clone()
         .try_into()
         .unwrap_or_else(|_| panic!("invalid permission identifier '{permission}'")),
     ));
+
     self
   }
 
@@ -161,6 +169,7 @@ impl CapabilityBuilder {
     denied: Vec<T>,
   ) -> Self {
     let permission = permission.into();
+
     let identifier = permission
       .clone()
       .try_into()
@@ -174,6 +183,7 @@ impl CapabilityBuilder {
           .into()
       })
       .collect();
+
     let denied_scope = denied
       .into_iter()
       .map(|a| {
@@ -182,6 +192,7 @@ impl CapabilityBuilder {
           .into()
       })
       .collect();
+
     let scope = Scopes {
       allow: Some(allowed_scope),
       deny: Some(denied_scope),
@@ -191,6 +202,7 @@ impl CapabilityBuilder {
       .0
       .permissions
       .push(PermissionEntry::ExtendedPermission { identifier, scope });
+
     self
   }
 
@@ -203,6 +215,7 @@ impl CapabilityBuilder {
       .platforms
       .get_or_insert_with(Default::default)
       .push(platform);
+
     self
   }
 
@@ -215,6 +228,7 @@ impl CapabilityBuilder {
       .platforms
       .get_or_insert_with(Default::default)
       .extend(platforms);
+
     self
   }
 }
@@ -233,6 +247,7 @@ impl RuntimeAuthority {
       .keys()
       .map(|key| (*key, StateManager::new()))
       .collect();
+
     Self {
       acl,
       allowed_commands: resolved_acl.allowed_commands,
@@ -265,6 +280,7 @@ impl RuntimeAuthority {
   /// Adds the given capability to the runtime authority.
   pub fn add_capability(&mut self, capability: impl RuntimeCapability) -> crate::Result<()> {
     let mut capabilities = BTreeMap::new();
+
     match capability.build() {
       CapabilityFile::Capability(c) => {
         capabilities.insert(c.identifier.clone(), c);
@@ -365,6 +381,7 @@ impl RuntimeAuthority {
         let mut s = "allowed on: ".to_string();
 
         let last_index = resolved.len() - 1;
+
         for (index, cmd) in resolved.iter().enumerate() {
           let windows = cmd
             .windows
@@ -455,6 +472,7 @@ impl RuntimeAuthority {
           .iter()
           .filter(|cmd| origin.matches(&cmd.context))
           .collect::<Vec<&ResolvedCommand>>();
+
         if resolved_matching_origin
           .iter()
           .any(|cmd| cmd.webviews.iter().any(|w| w.matches(webview)))
@@ -531,6 +549,7 @@ impl RuntimeAuthority {
                   ExecutionContext::Local => "[local]".to_string(),
                   ExecutionContext::Remote { url } => format!("[remote: {}]", url.as_str()),
                 };
+
                 format!(
                   "- context: {context}, referenced by: capability: {}, permission: {}",
                   resolved.referenced_by.capability,
@@ -573,6 +592,7 @@ impl RuntimeAuthority {
           })
           .cloned()
           .collect::<Vec<_>>();
+
         if resolved_cmds.is_empty() {
           None
         } else {
@@ -622,6 +642,7 @@ impl<T: ScopeObject> CommandScope<T> {
     scope_ids: Vec<u64>,
   ) -> crate::Result<Self> {
     let mut allow = Vec::new();
+
     let mut deny = Vec::new();
 
     for scope_id in scope_ids {
@@ -727,6 +748,7 @@ impl<'a, R: Runtime, T: ScopeObject> CommandArg<'a, R> for CommandScope<T> {
         .filter_map(|cmd| cmd.scope_id)
         .collect::<Vec<_>>()
     });
+
     if let Some(scope_ids) = scope_ids {
       CommandScope::resolve(&command.message.webview, scope_ids).map_err(Into::into)
     } else {
@@ -857,6 +879,7 @@ impl ScopeManager {
       Some(cached) => Ok(cached.inner().clone()),
       None => {
         let mut allow = Vec::new();
+
         let mut deny = Vec::new();
 
         if let Some(global_scope) = self.global_scope.get(key) {
@@ -878,7 +901,9 @@ impl ScopeManager {
           allow: Arc::new(allow),
           deny: Arc::new(deny),
         };
+
         self.global_scope_cache.set(scope.clone());
+
         Ok(scope)
       }
     }
@@ -890,6 +915,7 @@ impl ScopeManager {
     key: &ScopeKey,
   ) -> crate::Result<ScopeValue<T>> {
     let cache = self.command_cache.get(key).unwrap();
+
     match cache.try_get::<ScopeValue<T>>() {
       Some(cached) => Ok(cached.inner().clone()),
       None => {
@@ -899,6 +925,7 @@ impl ScopeManager {
           .unwrap_or_else(|| panic!("missing command scope for key {key}"));
 
         let mut allow = Vec::new();
+
         let mut deny = Vec::new();
 
         for allowed in &resolved_scope.allow {
@@ -907,6 +934,7 @@ impl ScopeManager {
               |e| crate::Error::CannotDeserializeScope(Box::new(e)),
             )?));
         }
+
         for denied in &resolved_scope.deny {
           deny
             .push(Arc::new(T::deserialize(app, denied.clone()).map_err(
@@ -920,6 +948,7 @@ impl ScopeManager {
         };
 
         let _ = cache.set(value.clone());
+
         Ok(value)
       }
     }
@@ -941,13 +970,16 @@ mod tests {
   #[test]
   fn window_glob_pattern_matches() {
     let command = "my-command";
+
     let window = "main-*";
+
     let webview = "other-*";
 
     let resolved_cmd = vec![ResolvedCommand {
       windows: vec![Pattern::new(window).unwrap()],
       ..Default::default()
     }];
+
     let allowed_commands = [(command.to_string(), resolved_cmd.clone())]
       .into_iter()
       .collect();
@@ -974,7 +1006,9 @@ mod tests {
   #[test]
   fn webview_glob_pattern_matches() {
     let command = "my-command";
+
     let window = "other-*";
+
     let webview = "main-*";
 
     let resolved_cmd = vec![ResolvedCommand {
@@ -982,6 +1016,7 @@ mod tests {
       webviews: vec![Pattern::new(webview).unwrap()],
       ..Default::default()
     }];
+
     let allowed_commands = [(command.to_string(), resolved_cmd.clone())]
       .into_iter()
       .collect();
@@ -1008,8 +1043,11 @@ mod tests {
   #[test]
   fn remote_domain_matches() {
     let url = "https://tauri.app";
+
     let command = "my-command";
+
     let window = "main";
+
     let webview = "main";
 
     let resolved_cmd = vec![ResolvedCommand {
@@ -1019,6 +1057,7 @@ mod tests {
       },
       ..Default::default()
     }];
+
     let allowed_commands = [(command.to_string(), resolved_cmd.clone())]
       .into_iter()
       .collect();
@@ -1047,8 +1086,11 @@ mod tests {
   #[test]
   fn remote_domain_glob_pattern_matches() {
     let url = "http://tauri.*";
+
     let command = "my-command";
+
     let window = "main";
+
     let webview = "main";
 
     let resolved_cmd = vec![ResolvedCommand {
@@ -1058,6 +1100,7 @@ mod tests {
       },
       ..Default::default()
     }];
+
     let allowed_commands = [(command.to_string(), resolved_cmd.clone())]
       .into_iter()
       .collect();
@@ -1086,13 +1129,16 @@ mod tests {
   #[test]
   fn remote_context_denied() {
     let command = "my-command";
+
     let window = "main";
+
     let webview = "main";
 
     let resolved_cmd = vec![ResolvedCommand {
       windows: vec![Pattern::new(window).unwrap()],
       ..Default::default()
     }];
+
     let allowed_commands = [(command.to_string(), resolved_cmd)].into_iter().collect();
 
     let authority = RuntimeAuthority::new(
@@ -1118,9 +1164,13 @@ mod tests {
   #[test]
   fn denied_command_takes_precendence() {
     let command = "my-command";
+
     let window = "main";
+
     let webview = "main";
+
     let windows = vec![Pattern::new(window).unwrap()];
+
     let allowed_commands = [(
       command.to_string(),
       vec![ResolvedCommand {
@@ -1130,6 +1180,7 @@ mod tests {
     )]
     .into_iter()
     .collect();
+
     let denied_commands = [(
       command.to_string(),
       vec![ResolvedCommand {
@@ -1160,10 +1211,15 @@ mod tests {
     use tauri_utils::acl::manifest::Manifest;
 
     let plugin_name = "myplugin";
+
     let command_allowed_on_window = "my-command-window";
+
     let command_allowed_on_webview_window = "my-command-webview-window";
+
     let window = "main-*";
+
     let webview = "webview-*";
+
     let remote_url = "http://localhost:8080";
 
     let referenced_by = tauri_utils::acl::resolved::ResolvedCommandReference {
@@ -1176,12 +1232,14 @@ mod tests {
       referenced_by: referenced_by.clone(),
       ..Default::default()
     };
+
     let resolved_webview_window_cmd = ResolvedCommand {
       windows: vec![Pattern::new(window).unwrap()],
       webviews: vec![Pattern::new(webview).unwrap()],
       referenced_by: referenced_by.clone(),
       ..Default::default()
     };
+
     let resolved_webview_window_remote_cmd = ResolvedCommand {
       windows: vec![Pattern::new(window).unwrap()],
       webviews: vec![Pattern::new(webview).unwrap()],

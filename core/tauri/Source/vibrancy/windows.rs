@@ -18,6 +18,7 @@ use crate::{
 
 pub fn apply_effects(window:impl HasWindowHandle, effects:WindowEffectsConfig) {
 	let WindowEffectsConfig { effects, color, .. } = effects;
+
 	let effect =
 		if let Some(effect) =
 			effects.iter().find(|e| {
@@ -50,6 +51,8 @@ pub fn apply_effects(window:impl HasWindowHandle, effects:WindowEffectsConfig) {
 
 pub fn clear_effects(window:impl HasWindowHandle) {
 	window_vibrancy::clear_blur(&window);
+
 	window_vibrancy::clear_acrylic(&window);
+
 	window_vibrancy::clear_mica(&window);
 }

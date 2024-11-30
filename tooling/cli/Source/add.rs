@@ -39,6 +39,7 @@ pub struct Options {
 
 pub fn command(options:Options) -> Result<()> {
 	crate::helpers::app_paths::resolve();
+
 	run(options)
 }
 
@@ -50,13 +51,17 @@ pub fn run(options:Options) -> Result<()> {
 		.unwrap_or((&options.plugin, None));
 
 	let plugin_snake_case = plugin.replace('-', "_");
+
 	let crate_name = format!("tauri-plugin-{plugin}");
+
 	let npm_name = format!("@tauri-apps/plugin-{plugin}");
 
 	let mut plugins = crate::helpers::plugins::known_plugins();
+
 	let metadata = plugins.remove(plugin).unwrap_or_default();
 
 	let app_dir = resolve_app_dir();
+
 	let tauri_dir = tauri_dir();
 
 	let target_str = metadata
@@ -69,6 +74,7 @@ pub fn run(options:Options) -> Result<()> {
 		});
 
 	let cargo_version_req = version.or(metadata.version_req.as_deref());
+
 	let npm_version_req = version
 		.map(ToString::to_string)
 		.or(metadata.version_req.as_ref().map(|v| format!("^{v}")));
@@ -106,6 +112,7 @@ pub fn run(options:Options) -> Result<()> {
 					anyhow::bail!("Only one of --tag, --rev and --branch can be specified")
 				},
 			};
+
 			manager.install(&[npm_spec], tauri_dir)?;
 		}
 
@@ -125,14 +132,17 @@ pub fn run(options:Options) -> Result<()> {
 	} else {
 		"init()"
 	};
+
 	let plugin_init = format!(".plugin(tauri_plugin_{plugin_snake_case}::{plugin_init_fn})");
 
 	let re = Regex::new(r"(tauri\s*::\s*Builder\s*::\s*default\(\))(\s*)")?;
+
 	for file in [tauri_dir.join("src/main.rs"), tauri_dir.join("src/lib.rs")] {
 		let contents = std::fs::read_to_string(&file)?;
 
 		if contents.contains(&plugin_init) {
 			log::info!("Plugin initialization code already found on {}", file.display());
+
 			return Ok(());
 		}
 
@@ -140,11 +150,13 @@ pub fn run(options:Options) -> Result<()> {
 			let out = re.replace(&contents, format!("$1$2{plugin_init}$2"));
 
 			log::info!("Adding plugin to {}", file.display());
+
 			std::fs::write(file, out.as_bytes())?;
 
 			if !options.no_fmt {
 				// reformat code with rustfmt
 				log::info!("Running `cargo fmt`...");
+
 				let _ = Command::new("cargo").arg("fmt").current_dir(tauri_dir).status();
 			}
 

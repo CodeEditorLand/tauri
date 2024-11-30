@@ -239,7 +239,9 @@ impl<R: Runtime> TrayIconBuilder<R> {
   ///   Setting an empty [`Menu`](crate::menu::Menu) is enough.
   pub fn with_id<I: Into<TrayIconId>>(id: I) -> Self {
     let mut builder = Self::new();
+
     builder.inner = builder.inner.with_id(id);
+
     builder
   }
 
@@ -250,6 +252,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
   /// - **Linux**: once a menu is set, it cannot be removed or replaced but you can change its content.
   pub fn menu<M: ContextMenu>(mut self, menu: &M) -> Self {
     self.inner = self.inner.with_menu(menu.inner_context_owned());
+
     self
   }
 
@@ -261,9 +264,11 @@ impl<R: Runtime> TrayIconBuilder<R> {
   ///   Setting an empty [`Menu`](crate::menu::Menu) is enough.
   pub fn icon(mut self, icon: Image<'_>) -> Self {
     let icon = icon.try_into().ok();
+
     if let Some(icon) = icon {
       self.inner = self.inner.with_icon(icon);
     }
+
     self
   }
 
@@ -274,6 +279,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
   /// - **Linux:** Unsupported.
   pub fn tooltip<S: AsRef<str>>(mut self, s: S) -> Self {
     self.inner = self.inner.with_tooltip(s);
+
     self
   }
 
@@ -289,6 +295,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
   /// - **Windows:** Unsupported.
   pub fn title<S: AsRef<str>>(mut self, title: S) -> Self {
     self.inner = self.inner.with_title(title);
+
     self
   }
 
@@ -298,12 +305,14 @@ impl<R: Runtime> TrayIconBuilder<R> {
   /// be `$XDG_RUNTIME_DIR/tray-icon` or `$TEMP/tray-icon`.
   pub fn temp_dir_path<P: AsRef<Path>>(mut self, s: P) -> Self {
     self.inner = self.inner.with_temp_dir_path(s);
+
     self
   }
 
   /// Use the icon as a [template](https://developer.apple.com/documentation/appkit/nsimage/1520017-template?language=objc). **macOS only**.
   pub fn icon_as_template(mut self, is_template: bool) -> Self {
     self.inner = self.inner.with_icon_as_template(is_template);
+
     self
   }
 
@@ -318,6 +327,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
   )]
   pub fn menu_on_left_click(mut self, enable: bool) -> Self {
     self.inner = self.inner.with_menu_on_left_click(enable);
+
     self
   }
 
@@ -328,6 +338,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
   /// - **Linux:** Unsupported.
   pub fn show_menu_on_left_click(mut self, enable: bool) -> Self {
     self.inner = self.inner.with_menu_on_left_click(enable);
+
     self
   }
 
@@ -340,6 +351,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
     f: F,
   ) -> Self {
     self.on_menu_event.replace(Box::new(f));
+
     self
   }
 
@@ -349,6 +361,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
     f: F,
   ) -> Self {
     self.on_tray_icon_event.replace(Box::new(f));
+
     self
   }
 
@@ -368,6 +381,7 @@ impl<R: Runtime> TrayIconBuilder<R> {
     let unsafe_builder = UnsafeSend(self.inner);
 
     let (tx, rx) = std::sync::mpsc::channel();
+
     let unsafe_tray = manager
       .app_handle()
       .run_on_main_thread(move || {
@@ -502,6 +516,7 @@ impl<R: Runtime> TrayIcon<R> {
       Some(i) => Some(i.try_into()?),
       None => None,
     };
+
     run_item_main_thread!(self, |self_: Self| self_.inner.set_icon(icon))?.map_err(Into::into)
   }
 
@@ -523,6 +538,7 @@ impl<R: Runtime> TrayIcon<R> {
   /// - **Linux:** Unsupported
   pub fn set_tooltip<S: AsRef<str>>(&self, tooltip: Option<S>) -> crate::Result<()> {
     let s = tooltip.map(|s| s.as_ref().to_string());
+
     run_item_main_thread!(self, |self_: Self| self_.inner.set_tooltip(s))?.map_err(Into::into)
   }
 
@@ -538,6 +554,7 @@ impl<R: Runtime> TrayIcon<R> {
   /// - **Windows:** Unsupported
   pub fn set_title<S: AsRef<str>>(&self, title: Option<S>) -> crate::Result<()> {
     let s = title.map(|s| s.as_ref().to_string());
+
     run_item_main_thread!(self, |self_: Self| self_.inner.set_title(s))
   }
 
@@ -555,6 +572,7 @@ impl<R: Runtime> TrayIcon<R> {
     let p = path.map(|p| p.as_ref().to_path_buf());
     #[cfg(target_os = "linux")]
     run_item_main_thread!(self, |self_: Self| self_.inner.set_temp_dir_path(p))?;
+
     Ok(())
   }
 
@@ -564,6 +582,7 @@ impl<R: Runtime> TrayIcon<R> {
     run_item_main_thread!(self, |self_: Self| {
       self_.inner.set_icon_as_template(is_template)
     })?;
+
     Ok(())
   }
 
@@ -578,6 +597,7 @@ impl<R: Runtime> TrayIcon<R> {
     run_item_main_thread!(self, |self_: Self| {
       self_.inner.set_show_menu_on_left_click(enable)
     })?;
+
     Ok(())
   }
 
@@ -609,6 +629,7 @@ mod tests {
     // NOTE: if this test is ever changed, you probably need to change `TrayIconEvent` in JS as well
 
     use super::*;
+
     let event = TrayIconEvent::Click {
       button: MouseButton::Left,
       button_state: MouseButtonState::Down,
@@ -621,6 +642,7 @@ mod tests {
     };
 
     let value = serde_json::to_value(&event).unwrap();
+
     assert_eq!(
       value,
       serde_json::json!({

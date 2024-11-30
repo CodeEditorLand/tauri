@@ -55,10 +55,12 @@ fn new<R: Runtime>(
     match kind {
       ItemKind::Menu => {
         let menu = resources_table.get::<Menu<R>>(rid)?;
+
         builder = builder.menu(&*menu);
       }
       ItemKind::Submenu => {
         let submenu = resources_table.get::<Submenu<R>>(rid)?;
+
         builder = builder.menu(&*submenu);
       }
       _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),
@@ -103,6 +105,7 @@ fn get_by_id<R: Runtime>(
   let tray = app.tray_by_id(id);
   let maybe_rid = tray.map(|tray| {
     let mut resources_table = webview.resources_table();
+
     resources_table.add(tray)
   });
   Ok(maybe_rid)
@@ -144,10 +147,12 @@ fn set_menu<R: Runtime>(
     match kind {
       ItemKind::Menu => {
         let menu = resources_table.get::<Menu<R>>(rid)?;
+
         tray.set_menu(Some((*menu).clone()))?;
       }
       ItemKind::Submenu => {
         let submenu = resources_table.get::<Submenu<R>>(rid)?;
+
         tray.set_menu(Some((*submenu).clone()))?;
       }
       _ => return Err(anyhow::anyhow!("unexpected menu item kind").into()),

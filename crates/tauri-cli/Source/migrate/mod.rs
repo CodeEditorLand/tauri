@@ -31,8 +31,10 @@ pub fn command() -> Result<()> {
   let lock_path = workspace_dir.join("Cargo.lock");
   let lock = if lock_path.exists() {
     let lockfile_contents = read_to_string(lock_path).context("failed to read Cargo lockfile")?;
+
     let lock =
       toml::from_str::<CargoLock>(&lockfile_contents).context("failed to parse Cargo lockfile")?;
+
     Some(lock)
   } else {
     None

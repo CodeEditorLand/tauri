@@ -142,6 +142,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>) -> UriSchemeProtocolHandler 
                 }),
               );
             }
+
             Err(e) => {
               respond(
                 http::Response::builder()
@@ -170,6 +171,7 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>) -> UriSchemeProtocolHandler 
 
       Method::OPTIONS => {
         let mut r = http::Response::new(Vec::new().into());
+
         r.headers_mut()
           .insert(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"));
 
@@ -184,10 +186,12 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>) -> UriSchemeProtocolHandler 
             .into(),
         );
         *r.status_mut() = StatusCode::METHOD_NOT_ALLOWED;
+
         r.headers_mut().insert(
           CONTENT_TYPE,
           HeaderValue::from_str(mime::TEXT_PLAIN.essence_str()).unwrap(),
         );
+
         respond(r);
       }
     }
@@ -216,7 +220,9 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
         D: Deserializer<'de>,
       {
         let map = std::collections::HashMap::<String, String>::deserialize(deserializer)?;
+
         let mut headers = http::HeaderMap::default();
+
         for (key, value) in map {
           if let (Ok(key), Ok(value)) = (
             http::header::HeaderName::from_bytes(key.as_bytes()),
@@ -229,6 +235,7 @@ fn handle_ipc_message<R: Runtime>(request: Request<String>, manager: &AppManager
             )));
           }
         }
+
         Ok(Self(headers))
       }
     }
@@ -578,6 +585,7 @@ mod tests {
   #[test]
   fn parse_invoke_request() {
     let context = generate_context!("test/fixture/src-tauri/tauri.conf.json", crate, test = true);
+
     let manager: AppManager<Wry> = AppManager::with_handlers(
       context,
       PluginStore::default(),
@@ -597,10 +605,15 @@ mod tests {
     );
 
     let cmd = "write_something";
+
     let url = "tauri://localhost";
+
     let invoke_key = "1234ahdsjkl123";
+
     let callback = 12378123;
+
     let error = 6243;
+
     let headers = HeaderMap::from_iter(vec![
       (
         CONTENT_TYPE,
@@ -625,15 +638,23 @@ mod tests {
     *request.headers_mut().unwrap() = headers.clone();
 
     let body = vec![123, 31, 45];
+
     let request = request.body(body.clone()).unwrap();
+
     let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
     assert_eq!(invoke_request.cmd, cmd);
+
     assert_eq!(invoke_request.callback.0, callback);
+
     assert_eq!(invoke_request.error.0, error);
+
     assert_eq!(invoke_request.invoke_key, invoke_key);
+
     assert_eq!(invoke_request.url, url.parse().unwrap());
+
     assert_eq!(invoke_request.headers, headers);
+
     assert_eq!(invoke_request.body, InvokeBody::Raw(body));
 
     let body = json!({
@@ -642,6 +663,7 @@ mod tests {
     });
 
     let mut headers = headers.clone();
+
     headers.insert(
       CONTENT_TYPE,
       HeaderValue::from_str(mime::APPLICATION_JSON.as_ref()).unwrap(),
@@ -651,9 +673,11 @@ mod tests {
     *request.headers_mut().unwrap() = headers.clone();
 
     let request = request.body(serde_json::to_vec(&body).unwrap()).unwrap();
+
     let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
     assert_eq!(invoke_request.headers, headers);
+
     assert_eq!(invoke_request.body, InvokeBody::Json(body));
   }
 
@@ -671,10 +695,13 @@ mod tests {
     };
 
     let mut nonce = [0u8; 12];
+
     getrandom::getrandom(&mut nonce).unwrap();
 
     let body_raw = vec![1, 41, 65, 12, 78];
+
     let body_bytes = crypto_keys.aes_gcm().encrypt(&nonce, &body_raw).unwrap();
+
     let isolation_payload_raw = json!({
       "nonce": nonce,
       "payload": body_bytes,
@@ -685,10 +712,12 @@ mod tests {
       "key": 1,
       "anotherKey": "string"
     });
+
     let body_bytes = crypto_keys
       .aes_gcm()
       .encrypt(&nonce, &serde_json::to_vec(&body_json).unwrap())
       .unwrap();
+
     let isolation_payload_json = json!({
       "nonce": nonce,
       "payload": body_bytes,
@@ -714,9 +743,13 @@ mod tests {
     );
 
     let cmd = "write_something";
+
     let url = "tauri://localhost";
+
     let invoke_key = "1234ahdsjkl123";
+
     let callback = 12378123;
+
     let error = 6243;
 
     let headers = HeaderMap::from_iter(vec![
@@ -741,25 +774,38 @@ mod tests {
 
     let mut request = Request::builder().uri(format!("ipc://localhost/{cmd}"));
     *request.headers_mut().unwrap() = headers.clone();
+
     let body = serde_json::to_vec(&isolation_payload_raw).unwrap();
+
     let request = request.body(body).unwrap();
+
     let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
     assert_eq!(invoke_request.cmd, cmd);
+
     assert_eq!(invoke_request.callback.0, callback);
+
     assert_eq!(invoke_request.error.0, error);
+
     assert_eq!(invoke_request.invoke_key, invoke_key);
+
     assert_eq!(invoke_request.url, url.parse().unwrap());
+
     assert_eq!(invoke_request.headers, headers);
+
     assert_eq!(invoke_request.body, InvokeBody::Raw(body_raw));
 
     let mut request = Request::builder().uri(format!("ipc://localhost/{cmd}"));
     *request.headers_mut().unwrap() = headers.clone();
+
     let body = serde_json::to_vec(&isolation_payload_json).unwrap();
+
     let request = request.body(body).unwrap();
+
     let invoke_request = super::parse_invoke_request(&manager, request).unwrap();
 
     assert_eq!(invoke_request.headers, headers);
+
     assert_eq!(invoke_request.body, InvokeBody::Json(body_json));
   }
 }

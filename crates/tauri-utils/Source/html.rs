@@ -125,7 +125,9 @@ fn with_head<F: FnOnce(&NodeRef)>(document: &NodeRef, f: F) {
       QualName::new(None, ns!(html), LocalName::from("head")),
       None,
     );
+
     f(&node);
+
     document.prepend(node)
   }
 }
@@ -244,6 +246,7 @@ pub fn inject_codegen_isolation_script(document: &NodeRef) {
         },
       )],
     );
+
     script.append(NodeRef::new_text(
       IsolationJavascriptCodegen {}
         .render_default(&Default::default())
@@ -273,6 +276,7 @@ pub fn inline_isolation(document: &NodeRef, dir: &Path) {
     };
 
     let mut path = PathBuf::from(src);
+
     if path.has_root() {
       path = path
         .strip_prefix("/")
@@ -281,9 +285,11 @@ pub fn inline_isolation(document: &NodeRef, dir: &Path) {
     }
 
     let file = std::fs::read_to_string(dir.join(path)).expect("unable to find isolation file");
+
     script.as_node().append(NodeRef::new_text(file));
 
     let mut attributes = script.attributes.borrow_mut();
+
     attributes.remove(LocalName::from("src"));
   }
 }
@@ -298,6 +304,7 @@ mod tests {
       "<html><head></head></html>".to_string(),
       "<html></html>".to_string(),
     ];
+
     for html in htmls {
       let document = kuchiki::parse_html().one(html);
       let csp = "csp-string";

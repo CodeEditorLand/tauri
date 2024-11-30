@@ -46,6 +46,7 @@ impl FileLock {
   /// Returns the parent path containing this file
   pub fn parent(&self) -> &Path {
     assert_ne!(self.state, State::Unlocked);
+
     self.path.parent().unwrap()
   }
 }
@@ -134,6 +135,7 @@ fn open(path: &Path, opts: &OpenOptions, state: State, msg: &str) -> Result<File
     .or_else(|e| {
       if e.kind() == io::ErrorKind::NotFound && state == State::Exclusive {
         create_dir_all(path.parent().unwrap())?;
+
         Ok(opts.open(path)?)
       } else {
         Err(anyhow::Error::from(e))
@@ -146,9 +148,11 @@ fn open(path: &Path, opts: &OpenOptions, state: State, msg: &str) -> Result<File
         lock_exclusive(&f)
       })?;
     }
+
     State::Shared => {
       acquire(msg, path, &|| try_lock_shared(&f), &|| lock_shared(&f))?;
     }
+
     State::Unlocked => {}
   }
   Ok(FileLock {
@@ -204,7 +208,9 @@ fn acquire(
     Err(e) => {
       if !error_contended(&e) {
         let e = anyhow::Error::from(e);
+
         let cx = format!("failed to lock file: {}", path.display());
+
         return Err(e.context(cx));
       }
     }
@@ -218,7 +224,9 @@ fn acquire(
   #[cfg(all(target_os = "linux", not(target_env = "musl")))]
   fn is_on_nfs_mount(path: &Path) -> bool {
     use std::ffi::CString;
+
     use std::mem;
+
     use std::os::unix::prelude::*;
 
     let path = match CString::new(path.as_os_str().as_bytes()) {
@@ -284,6 +292,7 @@ mod sys {
   #[cfg(not(target_os = "solaris"))]
   fn flock(file: &File, flag: libc::c_int) -> Result<()> {
     let ret = unsafe { libc::flock(file.as_raw_fd(), flag) };
+
     if ret < 0 {
       Err(Error::last_os_error())
     } else {
@@ -340,6 +349,7 @@ mod sys {
 
   pub(super) fn unlock(file: &File) -> Result<()> {
     let ret = unsafe { UnlockFile(file.as_raw_handle() as HANDLE, 0, 0, !0, !0) };
+
     if ret == 0 {
       Err(Error::last_os_error())
     } else {

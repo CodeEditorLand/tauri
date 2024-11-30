@@ -57,9 +57,11 @@ const JS_EXTENSIONS:&[&str] = &["js", "mjs", "jsx", "ts", "mts", "tsx"];
 /// Returns a list of paths that could not be migrated
 pub fn migrate(app_dir:&Path, tauri_dir:&Path) -> Result<()> {
 	let mut new_npm_packages = Vec::new();
+
 	let mut new_cargo_packages = Vec::new();
 
 	let pre = env!("CARGO_PKG_VERSION_PRE");
+
 	let npm_version = if pre.is_empty() {
 		format!("{}.0.0", env!("CARGO_PKG_VERSION_MAJOR"))
 	} else {
@@ -80,6 +82,7 @@ pub fn migrate(app_dir:&Path, tauri_dir:&Path) -> Result<()> {
 	for pkg in ["@tauri-apps/cli", "@tauri-apps/api"] {
 		let version =
 			pm.current_package_version(pkg, app_dir).unwrap_or_default().unwrap_or_default();
+
 		if version.starts_with("1") {
 			new_npm_packages.push(format!("{pkg}@^{npm_version}"));
 		}
@@ -88,15 +91,19 @@ pub fn migrate(app_dir:&Path, tauri_dir:&Path) -> Result<()> {
 	for entry in walk_builder(app_dir).build().flatten() {
 		if entry.file_type().map(|t| t.is_file()).unwrap_or_default() {
 			let path = entry.path();
+
 			let ext = path.extension().unwrap_or_default();
+
 			if JS_EXTENSIONS.iter().any(|e| e == &ext) {
 				let js_contents = std::fs::read_to_string(path)?;
+
 				let new_contents = migrate_imports(
 					path,
 					&js_contents,
 					&mut new_cargo_packages,
 					&mut new_npm_packages,
 				)?;
+
 				if new_contents != js_contents {
 					fs::write(path, new_contents)
 						.with_context(|| format!("Error writing {}", path.display()))?;
@@ -106,14 +113,18 @@ pub fn migrate(app_dir:&Path, tauri_dir:&Path) -> Result<()> {
 	}
 
 	new_npm_packages.sort();
+
 	new_npm_packages.dedup();
+
 	if !new_npm_packages.is_empty() {
 		pm.install(&new_npm_packages, app_dir)
 			.context("Error installing new npm packages")?;
 	}
 
 	new_cargo_packages.sort();
+
 	new_cargo_packages.dedup();
+
 	if !new_cargo_packages.is_empty() {
 		cargo::install(&new_cargo_packages, Some(tauri_dir))
 			.context("Error installing new Cargo packages")?;
@@ -131,8 +142,11 @@ fn migrate_imports<'a>(
 	let mut magic_js_source = MagicString::new(js_source);
 
 	let source_type = SourceType::from_path(path).unwrap();
+
 	let allocator = Allocator::default();
+
 	let ret = Parser::new(&allocator, js_source, source_type).parse();
+
 	if !ret.errors.is_empty() {
 		anyhow::bail!("failed to parse {} as valid Javascript/Typescript file", path.display())
 	}
@@ -140,6 +154,7 @@ fn migrate_imports<'a>(
 	let mut program = ret.program;
 
 	let mut stmts_to_add = Vec::new();
+
 	let mut imports_to_add = Vec::new();
 
 	for import in program.body.iter_mut() {
@@ -169,10 +184,14 @@ fn migrate_imports<'a>(
 
 				// if module was pluginified, add to packages
 				let module = module.split_once("plugin-");
+
 				if let Some((_, module)) = module {
 					let js_plugin = format!("@tauri-apps/plugin-{module}");
+
 					let cargo_crate = format!("tauri-plugin-{module}");
+
 					new_npm_packages.push(js_plugin);
+
 					new_cargo_packages.push(cargo_crate);
 				}
 			}
@@ -195,6 +214,7 @@ fn migrate_imports<'a>(
 						// ```
 						"appWindow" if module == "@tauri-apps/api/window" => {
 							stmts_to_add.push("\nconst appWindow = getCurrentWebviewWindow()");
+
 							Some("getCurrentWebviewWindow")
 						},
 
@@ -212,13 +232,18 @@ fn migrate_imports<'a>(
 								&& module == "@tauri-apps/api" =>
 						{
 							let js_plugin:&str = MODULES_MAP[&format!("@tauri-apps/api/{import}")];
+
 							let (_, plugin_name) = js_plugin.split_once("plugin-").unwrap();
+
 							let cargo_crate = format!("tauri-plugin-{plugin_name}");
+
 							new_npm_packages.push(js_plugin.to_string());
+
 							new_cargo_packages.push(cargo_crate);
 
 							if specifier.local.name.as_str() != import {
 								let local = &specifier.local.name;
+
 								imports_to_add.push(format!(
 									"\nimport {import} as {local} from \"{js_plugin}\""
 								));
@@ -226,6 +251,7 @@ fn migrate_imports<'a>(
 								imports_to_add
 									.push(format!("\nimport {import} from \"{js_plugin}\""));
 							};
+
 							None
 						},
 
@@ -260,9 +286,12 @@ fn migrate_imports<'a>(
 
 						// find the next comma or the bracket ending the import
 						let start = specifier.span.start as usize;
+
 						let sliced = &js_source[start..];
+
 						let comma_or_bracket =
 							sliced.chars().find_position(|&c| c == ',' || c == '}');
+
 						let end = match comma_or_bracket {
 							Some((n, ',')) => n + start + 1,
 							Some((_, '}')) => specifier.span.end as _,
@@ -341,12 +370,19 @@ function App() {
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setGreetMsg(await invoke("greet", { name }));
+
     await open();
+
     await dialog.save();
+
     await convertFileSrc("");
+
     const a = appWindow.label;
+
     superCli.getMatches();
+
     clipboard.readText();
+
     fs.exists("");
   }
 
@@ -413,12 +449,19 @@ function App() {
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setGreetMsg(await invoke("greet", { name }));
+
     await open();
+
     await dialog.save();
+
     await convertFileSrc("");
+
     const a = appWindow.label;
+
     superCli.getMatches();
+
     clipboard.readText();
+
     fs.exists("");
   }
 

@@ -33,6 +33,7 @@ macro_rules! literal_struct {
 /// manually.
 pub fn str_lit(s:impl AsRef<str>) -> TokenStream {
 	let s = s.as_ref();
+
 	quote! { #s.into() }
 }
 
@@ -77,6 +78,7 @@ pub fn vec_lit<Raw, Tokens>(
 where
 	Tokens: ToTokens, {
 	let items = list.into_iter().map(map);
+
 	quote! { vec![#(#items),*] }
 }
 
@@ -85,12 +87,14 @@ where
 /// e.g. `"Hello World" -> String::from("Hello World").
 pub fn path_buf_lit(s:impl AsRef<Path>) -> TokenStream {
 	let s = s.as_ref().to_string_lossy().into_owned();
+
 	quote! { ::std::path::PathBuf::from(#s) }
 }
 
 /// Creates a `Url` constructor `TokenStream`.
 pub fn url_lit(url:&Url) -> TokenStream {
 	let url = url.as_str();
+
 	quote! { #url.parse().unwrap() }
 }
 
@@ -112,12 +116,15 @@ where
 	FuncKey: Fn(Key) -> TokenStreamKey,
 	FuncValue: Fn(Value) -> TokenStreamValue, {
 	let ident = quote::format_ident!("map");
+
 	let map = map.into_iter();
 
 	if map.len() > 0 {
 		let items = map.map(|(key, value)| {
 			let key = map_key(key);
+
 			let value = map_value(value);
+
 			quote! { #ident.insert(#key, #value); }
 		});
 
@@ -135,17 +142,21 @@ where
 pub fn json_value_number_lit(num:&serde_json::Number) -> TokenStream {
 	// See <https://docs.rs/serde_json/1/serde_json/struct.Number.html> for guarantees
 	let prefix = quote! { ::serde_json::Value };
+
 	if num.is_u64() {
 		// guaranteed u64
 		let num = num.as_u64().unwrap();
+
 		quote! { #prefix::Number(#num.into()) }
 	} else if num.is_i64() {
 		// guaranteed i64
 		let num = num.as_i64().unwrap();
+
 		quote! { #prefix::Number(#num.into()) }
 	} else if num.is_f64() {
 		// guaranteed f64
 		let num = num.as_f64().unwrap();
+
 		quote! { #prefix::Number(::serde_json::Number::from_f64(#num).unwrap(/* safe to unwrap, guaranteed f64 */)) }
 	} else {
 		// invalid number
@@ -163,14 +174,17 @@ pub fn json_value_lit(jv:&JsonValue) -> TokenStream {
 		JsonValue::Number(number) => json_value_number_lit(number),
 		JsonValue::String(str) => {
 			let s = str_lit(str);
+
 			quote! { #prefix::String(#s) }
 		},
 		JsonValue::Array(vec) => {
 			let items = vec.iter().map(json_value_lit);
+
 			quote! { #prefix::Array(vec![#(#items),*]) }
 		},
 		JsonValue::Object(map) => {
 			let map = map_lit(quote! { ::serde_json::Map }, map, str_lit, json_value_lit);
+
 			quote! { #prefix::Object(#map) }
 		},
 	}

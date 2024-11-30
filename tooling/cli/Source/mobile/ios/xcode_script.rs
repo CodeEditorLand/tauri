@@ -71,6 +71,7 @@ pub fn command(options:Options) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let profile = profile_from_configuration(&options.configuration);
+
 	let macos = macos_from_platform(&options.platform);
 
 	let tauri_config = get_tauri_config(tauri_utils::platform::Target::Ios, None)?;
@@ -90,6 +91,7 @@ pub fn command(options:Options) -> Result<()> {
 		);
 		(config, metadata, cli_options)
 	};
+
 	ensure_init(&tauri_config, config.app(), config.project_dir(), MobileTarget::Ios)?;
 
 	if let Some(config) = &cli_options.config {
@@ -104,7 +106,9 @@ pub fn command(options:Options) -> Result<()> {
 			options.sdk_root.display(),
 		));
 	}
+
 	let include_dir = options.sdk_root.join("usr/include");
+
 	if !include_dir.is_dir() {
 		return Err(anyhow::anyhow!(
 			"Include dir was invalid. {} doesn't exist or isn't a directory",
@@ -116,9 +120,11 @@ pub fn command(options:Options) -> Result<()> {
 	let macos_isysroot = {
 		let macos_sdk_root =
 			options.sdk_root.join("../../../../MacOSX.platform/Developer/SDKs/MacOSX.sdk");
+
 		if !macos_sdk_root.is_dir() {
 			return Err(anyhow::anyhow!("Invalid SDK root {}", macos_sdk_root.display()));
 		}
+
 		format!("-isysroot {}", macos_sdk_root.display())
 	};
 
@@ -127,12 +133,15 @@ pub fn command(options:Options) -> Result<()> {
 	host_env.insert("RUST_BACKTRACE", "1".as_ref());
 
 	host_env.insert("CFLAGS_x86_64_apple_darwin", macos_isysroot.as_ref());
+
 	host_env.insert("CXXFLAGS_x86_64_apple_darwin", macos_isysroot.as_ref());
 
 	host_env.insert("OBJC_INCLUDE_PATH_x86_64_apple_darwin", include_dir.as_os_str());
 
 	host_env.insert("FRAMEWORK_SEARCH_PATHS", options.framework_search_paths.as_ref());
+
 	host_env.insert("GCC_PREPROCESSOR_DEFINITIONS", options.gcc_preprocessor_definitions.as_ref());
+
 	host_env.insert("HEADER_SEARCH_PATHS", options.header_search_paths.as_ref());
 
 	let macos_target = Target::macos();
@@ -170,8 +179,11 @@ pub fn command(options:Options) -> Result<()> {
 		let objc_include_path = format!("OBJC_INCLUDE_PATH_{}", env_triple);
 
 		let mut target_env = host_env.clone();
+
 		target_env.insert(cflags.as_ref(), isysroot.as_ref());
+
 		target_env.insert(cxxflags.as_ref(), isysroot.as_ref());
+
 		target_env.insert(objc_include_path.as_ref(), include_dir.as_ref());
 
 		let target = if macos {
@@ -181,6 +193,7 @@ pub fn command(options:Options) -> Result<()> {
 				anyhow::anyhow!("Arch specified by Xcode was invalid. {} isn't a known arch", arch)
 			})?
 		};
+
 		target.compile_lib(
 			&config,
 			&metadata,
@@ -200,6 +213,7 @@ pub fn command(options:Options) -> Result<()> {
 		let out_dir = bin_path.parent().unwrap();
 
 		let lib_path = out_dir.join(format!("lib{}.a", config.app().lib_name()));
+
 		if !lib_path.exists() {
 			return Err(anyhow::anyhow!(
 				"Library not found at {}. Make sure your Cargo.toml file has a [lib] block with \
@@ -213,6 +227,7 @@ pub fn command(options:Options) -> Result<()> {
 		let project_dir = config.project_dir();
 
 		let externals_lib_dir = project_dir.join(format!("Externals/{arch}/{}", profile.as_str()));
+
 		std::fs::create_dir_all(&externals_lib_dir)?;
 
 		// backwards compatible lib output file name
@@ -235,6 +250,7 @@ pub fn command(options:Options) -> Result<()> {
 
 		std::fs::copy(lib_path, externals_lib_dir.join(lib_output_file_name))?;
 	}
+
 	Ok(())
 }
 
@@ -247,13 +263,16 @@ fn validate_lib(path:&Path) -> Result<()> {
 		};
 
 		let mut obj_bytes = Vec::new();
+
 		entry.read_to_end(&mut obj_bytes)?;
 
 		let file = object::File::parse(&*obj_bytes)?;
+
 		for symbol in file.symbols() {
 			let Ok(name) = symbol.name() else {
 				continue;
 			};
+
 			if name.contains("start_app") {
 				return Ok(());
 			}

@@ -69,26 +69,34 @@ impl FromStr for AppCategory {
 	fn from_str(input:&str) -> Result<AppCategory, Self::Err> {
 		// Canonicalize input:
 		let mut input = input.to_ascii_lowercase();
+
 		if input.starts_with(MACOS_APP_CATEGORY_PREFIX) {
 			input = input.split_at(MACOS_APP_CATEGORY_PREFIX.len()).1.to_string();
 		}
+
 		input = input.replace(' ', "");
+
 		input = input.replace('-', "");
 
 		// Find best match:
 		let mut best_confidence = 0.0;
 
 		let mut best_category:Option<AppCategory> = None;
+
 		for &(string, category) in CATEGORY_STRINGS.iter() {
 			if input == string {
 				return Ok(category);
 			}
+
 			let confidence = strsim::jaro_winkler(&input, string);
+
 			if confidence >= CONFIDENCE_THRESHOLD && confidence > best_confidence {
 				best_confidence = confidence;
+
 				best_category = Some(category);
 			}
 		}
+
 		Err(best_category.map(AppCategory::canonical))
 	}
 }
@@ -265,7 +273,9 @@ impl<'d> serde::de::Visitor<'d> for AppCategoryVisitor {
 			Ok(category) => Ok(category),
 			Err(did_you_mean) => {
 				self.did_you_mean = did_you_mean;
+
 				let unexp = serde::de::Unexpected::Str(value);
+
 				Err(serde::de::Error::invalid_value(unexp, &self))
 			},
 		}
@@ -358,21 +368,25 @@ mod tests {
 	fn category_from_string_ok() {
 		// Canonical name of category works:
 		assert_eq!(AppCategory::from_str("Education"), Ok(AppCategory::Education));
+
 		assert_eq!(AppCategory::from_str("Developer Tool"), Ok(AppCategory::DeveloperTool));
 		// Lowercase, spaces, and hyphens are fine:
 		assert_eq!(AppCategory::from_str(" puzzle  game "), Ok(AppCategory::PuzzleGame));
+
 		assert_eq!(AppCategory::from_str("Role-playing game"), Ok(AppCategory::RolePlayingGame));
 		// Using macOS LSApplicationCategoryType value is fine:
 		assert_eq!(
 			AppCategory::from_str("public.app-category.developer-tools"),
 			Ok(AppCategory::DeveloperTool)
 		);
+
 		assert_eq!(
 			AppCategory::from_str("public.app-category.role-playing-games"),
 			Ok(AppCategory::RolePlayingGame)
 		);
 		// Using GNOME category name is fine:
 		assert_eq!(AppCategory::from_str("Development"), Ok(AppCategory::DeveloperTool));
+
 		assert_eq!(AppCategory::from_str("LogicGame"), Ok(AppCategory::PuzzleGame));
 		// Using common abbreviations is fine:
 		assert_eq!(AppCategory::from_str("RPG"), Ok(AppCategory::RolePlayingGame));
@@ -381,13 +395,16 @@ mod tests {
 	#[test]
 	fn category_from_string_did_you_mean() {
 		assert_eq!(AppCategory::from_str("gaming"), Err(Some("Game")));
+
 		assert_eq!(AppCategory::from_str("photos"), Err(Some("Photography")));
+
 		assert_eq!(AppCategory::from_str("strategery"), Err(Some("Strategy Game")));
 	}
 
 	#[test]
 	fn category_from_string_totally_wrong() {
 		assert_eq!(AppCategory::from_str("fhqwhgads"), Err(None));
+
 		assert_eq!(AppCategory::from_str("WHARRGARBL"), Err(None));
 	}
 
@@ -440,6 +457,7 @@ mod tests {
 		// macOS app bundle LSApplicationCategoryType.
 		for &value in values.iter() {
 			let category = AppCategory::from_str(value).expect(value);
+
 			assert_eq!(category.macos_application_category_type(), value);
 		}
 	}

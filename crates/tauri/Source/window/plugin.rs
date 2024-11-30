@@ -33,6 +33,7 @@ mod desktop_commands {
   #[command(root = "crate")]
   pub async fn create<R: Runtime>(app: AppHandle<R>, options: WindowConfig) -> crate::Result<()> {
     WindowBuilder::from_config(&app, &options)?.build()?;
+
     Ok(())
   }
 
@@ -156,6 +157,7 @@ mod desktop_commands {
     value: Option<crate::image::JsImage>,
   ) -> crate::Result<()> {
     let window = get_window(window, label)?;
+
     let resources_table = webview.resources_table();
 
     let value = match value {
@@ -174,7 +176,9 @@ mod desktop_commands {
     value: crate::image::JsImage,
   ) -> crate::Result<()> {
     let window = get_window(window, label)?;
+
     let resources_table = webview.resources_table();
+
     window
       .set_icon(value.into_img(&resources_table)?.as_ref().clone())
       .map_err(Into::into)
@@ -186,10 +190,12 @@ mod desktop_commands {
     label: Option<String>,
   ) -> crate::Result<()> {
     let window = get_window(window, label)?;
+
     match window.is_maximized()? {
       true => window.unmaximize()?,
       false => window.maximize()?,
     };
+
     Ok(())
   }
 
@@ -199,12 +205,14 @@ mod desktop_commands {
     label: Option<String>,
   ) -> crate::Result<()> {
     let window = get_window(window, label)?;
+
     if window.is_resizable()? {
       match window.is_maximized()? {
         true => window.unmaximize()?,
         false => window.maximize()?,
       };
     }
+
     Ok(())
   }
 
@@ -216,6 +224,7 @@ mod desktop_commands {
     y: f64,
   ) -> crate::Result<Option<Monitor>> {
     let window = get_window(window, label)?;
+
     window.monitor_from_point(x, y)
   }
 }
@@ -326,11 +335,13 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             desktop_commands::toggle_maximize,
             desktop_commands::internal_toggle_maximize,
           ]);
+
         handler(invoke)
       }
       #[cfg(mobile)]
       {
         invoke.resolver.reject("Window API not available on mobile");
+
         true
       }
     })

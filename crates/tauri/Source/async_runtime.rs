@@ -85,6 +85,7 @@ impl Runtime {
   /// Gets a reference to the [`TokioRuntime`].
   pub fn inner(&self) -> &TokioRuntime {
     let Self::Tokio(r) = self;
+
     r
   }
 
@@ -104,6 +105,7 @@ impl Runtime {
     match self {
       Self::Tokio(r) => {
         let _guard = r.enter();
+
         JoinHandle::Tokio(tokio::spawn(task))
       }
     }
@@ -139,6 +141,7 @@ impl<T> JoinHandle<T> {
   /// Gets a reference to the [`TokioJoinHandle`].
   pub fn inner(&self) -> &TokioJoinHandle<T> {
     let Self::Tokio(t) = self;
+
     t
   }
 
@@ -174,6 +177,7 @@ impl RuntimeHandle {
   /// Gets a reference to the [`TokioHandle`].
   pub fn inner(&self) -> &TokioHandle {
     let Self::Tokio(h) = self;
+
     h
   }
 
@@ -197,6 +201,7 @@ impl RuntimeHandle {
     match self {
       Self::Tokio(h) => {
         let _guard = h.enter();
+
         JoinHandle::Tokio(tokio::spawn(task))
       }
     }
@@ -292,10 +297,13 @@ where
 {
   if let Ok(handle) = tokio::runtime::Handle::try_current() {
     let (tx, rx) = std::sync::mpsc::sync_channel(1);
+
     let handle_ = handle.clone();
+
     handle.spawn_blocking(move || {
       tx.send(handle_.block_on(task)).unwrap();
     });
+
     rx.recv().unwrap()
   } else {
     block_on(task)
@@ -309,6 +317,7 @@ mod tests {
   #[tokio::test]
   async fn runtime_spawn() {
     let join = spawn(async { 5 });
+
     assert_eq!(join.await.unwrap(), 5);
   }
 
@@ -320,25 +329,31 @@ mod tests {
   #[tokio::test]
   async fn handle_spawn() {
     let handle = handle();
+
     let join = handle.spawn(async { 5 });
+
     assert_eq!(join.await.unwrap(), 5);
   }
 
   #[test]
   fn handle_block_on() {
     let handle = handle();
+
     assert_eq!(handle.block_on(async { 0 }), 0);
   }
 
   #[tokio::test]
   async fn handle_abort() {
     let handle = handle();
+
     let join = handle.spawn(async {
       // Here we sleep 1 second to ensure this task to be uncompleted when abort() invoked.
       tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
       5
     });
+
     join.abort();
+
     if let crate::Error::JoinError(raw_error) = join.await.unwrap_err() {
       assert!(raw_error.is_cancelled());
     } else {

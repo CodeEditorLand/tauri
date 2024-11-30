@@ -14,6 +14,7 @@ pub fn manager_version(package_manager:&str) -> Option<String> {
 		.map(|o| {
 			if o.status.success() {
 				let v = String::from_utf8_lossy(o.stdout.as_slice()).to_string();
+
 				Some(v.split('\n').next().unwrap().to_string())
 			} else {
 				None
@@ -34,6 +35,7 @@ pub fn items(metadata:&VersionMetadata) -> Vec<SectionItem> {
 				.map(|o| {
 					if o.status.success() {
 						let v = String::from_utf8_lossy(o.stdout.as_slice()).to_string();
+
 						let v = v
 							.split('\n')
 							.next()
@@ -41,9 +43,12 @@ pub fn items(metadata:&VersionMetadata) -> Vec<SectionItem> {
 							.strip_prefix('v')
 							.unwrap_or_default()
 							.trim();
+
 						ActionResult::Description(format!("node: {}{}", v, {
 							let version = semver::Version::parse(v);
+
 							let target_version = semver::Version::parse(node_target_ver.as_str());
+
 							match (version, target_version) {
 								(Ok(version), Ok(target_version)) if version < target_version => {
 									format!(

@@ -55,6 +55,7 @@ pub fn gen(
 
 		if !missing_targets.is_empty() {
 			println!("Installing iOS Rust toolchains...");
+
 			for target in missing_targets {
 				target.install().context("failed to install target with rustup")?;
 			}
@@ -67,11 +68,15 @@ pub fn gen(
 		.with_context(|| "failed to install Apple dependencies")?;
 
 	let dest = config.project_dir();
+
 	let rel_prefix = util::relativize_path(config.app().root_dir(), &dest);
+
 	let source_dirs = vec![rel_prefix.join("src")];
 
 	let asset_catalogs = metadata.ios().asset_catalogs().unwrap_or_default();
+
 	let ios_pods = metadata.ios().pods().unwrap_or_default();
+
 	let macos_pods = metadata.macos().pods().unwrap_or_default();
 
 	#[cfg(target_arch = "aarch64")]
@@ -82,52 +87,80 @@ pub fn gen(
 	map.insert("lib-output-file-name", LIB_OUTPUT_FILE_NAME);
 
 	map.insert("file-groups", &source_dirs);
+
 	map.insert("ios-frameworks", metadata.ios().frameworks());
+
 	map.insert("ios-valid-archs", default_archs);
+
 	map.insert("ios-vendor-frameworks", metadata.ios().vendor_frameworks());
+
 	map.insert("ios-vendor-sdks", metadata.ios().vendor_sdks());
+
 	map.insert("macos-frameworks", metadata.macos().frameworks());
+
 	map.insert("macos-vendor-frameworks", metadata.macos().vendor_frameworks());
+
 	map.insert("macos-vendor-sdks", metadata.macos().vendor_frameworks());
+
 	map.insert("asset-catalogs", asset_catalogs);
+
 	map.insert("ios-pods", ios_pods);
+
 	map.insert("macos-pods", macos_pods);
+
 	map.insert("ios-additional-targets", metadata.ios().additional_targets());
+
 	map.insert("macos-additional-targets", metadata.macos().additional_targets());
+
 	map.insert("ios-pre-build-scripts", metadata.ios().pre_build_scripts());
+
 	map.insert("ios-post-compile-scripts", metadata.ios().post_compile_scripts());
+
 	map.insert("ios-post-build-scripts", metadata.ios().post_build_scripts());
+
 	map.insert("macos-pre-build-scripts", metadata.macos().pre_build_scripts());
+
 	map.insert("macos-post-compile-scripts", metadata.macos().post_compile_scripts());
+
 	map.insert("macos-post-build-scripts", metadata.macos().post_build_scripts());
+
 	map.insert("ios-command-line-arguments", metadata.ios().command_line_arguments());
+
 	map.insert("macos-command-line-arguments", metadata.macos().command_line_arguments());
 
 	let mut created_dirs = Vec::new();
+
 	template::render_with_generator(&handlebars, map.inner(), &TEMPLATE_DIR, &dest, &mut |path| {
 		let mut components:Vec<_> = path.components().collect();
 
 		let mut new_component = None;
+
 		for component in &mut components {
 			if let Component::Normal(c) = component {
 				let c = c.to_string_lossy();
+
 				if c.contains("{{app.name}}") {
 					new_component
 						.replace(OsString::from(&c.replace("{{app.name}}", config.app().name())));
 					*component = Component::Normal(new_component.as_ref().unwrap());
+
 					break;
 				}
 			}
 		}
+
 		let path = dest.join(components.iter().collect::<PathBuf>());
 
 		let parent = path.parent().unwrap().to_path_buf();
+
 		if !created_dirs.contains(&parent) {
 			create_dir_all(&parent)?;
+
 			created_dirs.push(parent);
 		}
 
 		let mut options = OpenOptions::new();
+
 		options.write(true);
 
 		if !path.exists() {
@@ -143,14 +176,18 @@ pub fn gen(
 			.context("failed to read custom Xcode project template")?;
 
 		let mut output_file = std::fs::File::create(dest.join("project.yml"))?;
+
 		handlebars
 			.render_template_to_write(&template, map.inner(), &mut output_file)
 			.expect("Failed to render template");
 	}
 
 	let mut dirs_to_create = asset_catalogs.to_vec();
+
 	dirs_to_create.push(dest.join(DEFAULT_ASSET_DIR));
+
 	dirs_to_create.push(dest.join("Externals"));
+
 	dirs_to_create.push(dest.join(format!("{}_iOS", config.app().name())));
 
 	// Create all required project directories if they don't already exist
@@ -163,6 +200,7 @@ pub fn gen(
 	// Note that Xcode doesn't always reload the project nicely; reopening is
 	// often necessary.
 	println!("Generating Xcode project...");
+
 	duct::cmd("xcodegen", ["generate", "--spec", &dest.join("project.yml").to_string_lossy()])
 		.stdout_file(os_pipe::dup_stdout().unwrap())
 		.stderr_file(os_pipe::dup_stderr().unwrap())
@@ -176,5 +214,6 @@ pub fn gen(
 			.run()
 			.with_context(|| "failed to run `pod install`")?;
 	}
+
 	Ok(())
 }

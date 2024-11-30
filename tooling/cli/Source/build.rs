@@ -89,12 +89,15 @@ pub fn command(mut options:Options, verbosity:u8) -> Result<()> {
 	setup(&interface, &mut options, config.clone(), false)?;
 
 	let config_guard = config.lock().unwrap();
+
 	let config_ = config_guard.as_ref().unwrap();
 
 	let app_settings = interface.app_settings();
+
 	let interface_options = options.clone().into();
 
 	let bin_path = app_settings.app_binary_path(&interface_options)?;
+
 	let out_dir = bin_path.parent().unwrap();
 
 	interface.build(interface_options)?;
@@ -125,9 +128,11 @@ pub fn setup(
 	mobile:bool,
 ) -> Result<()> {
 	let tauri_path = tauri_dir();
+
 	set_current_dir(tauri_path).with_context(|| "failed to change current working directory")?;
 
 	let config_guard = config.lock().unwrap();
+
 	let config_ = config_guard.as_ref().unwrap();
 
 	let bundle_identifier_source = config_
@@ -140,6 +145,7 @@ pub fn setup(
 			 `com.tauri.dev` is not allowed as it must be unique across applications.",
 			bundle_identifier_source
 		);
+
 		std::process::exit(1);
 	}
 
@@ -155,6 +161,7 @@ pub fn setup(
 			config_.identifier,
 			bundle_identifier_source
 		);
+
 		std::process::exit(1);
 	}
 
@@ -169,6 +176,7 @@ pub fn setup(
 				.and_then(|p| p.canonicalize().ok())
 				.map(|p| p.join(web_asset_path.file_name().unwrap()))
 				.unwrap_or_else(|| std::env::current_dir().unwrap().join(web_asset_path));
+
 			return Err(anyhow::anyhow!(
 				"Unable to find your web assets, did you forget to build your web app? Your \
 				 frontendDist is set to \"{}\" (which is `{}`).",
@@ -176,6 +184,7 @@ pub fn setup(
 				absolute_path.display(),
 			));
 		}
+
 		if web_asset_path.canonicalize()?.file_name() == Some(std::ffi::OsStr::new("src-tauri")) {
 			return Err(anyhow::anyhow!(
 				"The configured frontendDist is the `src-tauri` folder. Please isolate your web \
@@ -184,11 +193,13 @@ pub fn setup(
 		}
 
 		let mut out_folders = Vec::new();
+
 		for folder in &["node_modules", "src-tauri", "target"] {
 			if web_asset_path.join(folder).is_dir() {
 				out_folders.push(folder.to_string());
 			}
 		}
+
 		if !out_folders.is_empty() {
 			return Err(anyhow::anyhow!(
 				"The configured frontendDist includes the `{:?}` {}. Please isolate your web \
@@ -207,6 +218,7 @@ pub fn setup(
 		.features
 		.get_or_insert(Vec::new())
 		.extend(config_.build.features.clone().unwrap_or_default());
+
 	interface.build_options(&mut options.args, &mut options.features, mobile);
 
 	Ok(())

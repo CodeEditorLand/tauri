@@ -48,7 +48,9 @@ impl Parse for ContextItems {
 
 		let config_file = input.parse::<LitStr>().ok().map(|raw| {
 			let _ = input.parse::<Token![,]>();
+
 			let path = PathBuf::from(raw.value());
+
 			if path.is_relative() {
 				std::env::var("CARGO_MANIFEST_DIR")
 					.map(|m| PathBuf::from(m).join(path))
@@ -75,6 +77,7 @@ impl Parse for ContextItems {
 				},
 				Meta::NameValue(v) => {
 					let ident = v.path.require_ident()?;
+
 					match ident.to_string().as_str() {
 						"capabilities" => {
 							if let Expr::Array(array) = v.value {
@@ -148,10 +151,12 @@ impl Parse for ContextItems {
 				.map_err(|e| input.error(e))?,
 			root:root.unwrap_or_else(|| {
 				let mut segments = Punctuated::new();
+
 				segments.push(PathSegment {
 					ident:Ident::new("tauri", Span::call_site()),
 					arguments:PathArguments::None,
 				});
+
 				syn::Path { leading_colon:Some(Token![::](Span::call_site())), segments }
 			}),
 			capabilities,

@@ -129,15 +129,23 @@ pub fn command(mut options: Options) -> Result<()> {
       };
 
     let _ = remove_dir_all(&template_target_path);
+
     let mut handlebars = Handlebars::new();
+
     handlebars.register_escape_fn(handlebars::no_escape);
 
     let mut data = BTreeMap::new();
+
     plugin_name_data(&mut data, &plugin_name);
+
     data.insert("tauri_dep", to_json(tauri_dep));
+
     data.insert("tauri_example_dep", to_json(tauri_example_dep));
+
     data.insert("tauri_build_dep", to_json(tauri_build_dep));
+
     data.insert("tauri_plugin_dep", to_json(tauri_plugin_dep));
+
     data.insert("author", to_json(options.author));
 
     if options.tauri {
@@ -171,6 +179,7 @@ pub fn command(mut options: Options) -> Result<()> {
     let ios_framework = options.ios_framework;
 
     let mut created_dirs = Vec::new();
+
     template::render_with_generator(
       &handlebars,
       &data,
@@ -178,6 +187,7 @@ pub fn command(mut options: Options) -> Result<()> {
       &template_target_path,
       &mut |mut path| {
         let mut components = path.components();
+
         let root = components.next().unwrap();
 
         if let Component::Normal(component) = root {
@@ -230,16 +240,20 @@ pub fn command(mut options: Options) -> Result<()> {
             {
               return Ok(None);
             }
+
             _ => (),
           }
         }
 
         let path = template_target_path.join(path);
+
         let parent = path.parent().unwrap().to_path_buf();
+
         if !created_dirs.contains(&parent) {
           create_dir_all(&parent)?;
           created_dirs.push(parent);
         }
+
         File::create(path).map(Some)
       },
     )
@@ -293,12 +307,14 @@ pub fn generate_android_out_file(
       let out_dir = dest.join(parent).join(package_path);
       out_dir.join(file_name)
     }
+
     _ => dest.join(path),
   };
 
   let parent = path.parent().unwrap().to_path_buf();
   if !created_dirs.contains(&parent) {
     create_dir_all(&parent)?;
+
     created_dirs.push(parent);
   }
 
@@ -308,6 +324,7 @@ pub fn generate_android_out_file(
   #[cfg(unix)]
   if path.file_name().unwrap() == std::ffi::OsStr::new("gradlew") {
     use std::os::unix::fs::OpenOptionsExt;
+
     options.mode(0o755);
   }
 

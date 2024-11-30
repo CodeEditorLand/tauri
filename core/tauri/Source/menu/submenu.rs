@@ -30,6 +30,7 @@ impl<R:Runtime> ContextMenuBase for Submenu<R> {
 		position:Option<P>,
 	) -> crate::Result<()> {
 		let position = position.map(Into::into);
+
 		run_item_main_thread!(self, move |self_:Self| {
 			#[cfg(target_os = "macos")]
 			if let Ok(view) = window.ns_view() {
@@ -76,6 +77,7 @@ impl<R:Runtime> Submenu<R> {
 
 		let submenu = run_main_thread!(handle, || {
 			let submenu = muda::Submenu::new(text, enabled);
+
 			SubmenuInner { id:submenu.id().clone(), inner:Some(submenu), app_handle }
 		})?;
 
@@ -99,6 +101,7 @@ impl<R:Runtime> Submenu<R> {
 
 		let submenu = run_main_thread!(handle, || {
 			let submenu = muda::Submenu::with_id(id.clone(), text, enabled);
+
 			SubmenuInner { id, inner:Some(submenu), app_handle }
 		})?;
 
@@ -114,7 +117,9 @@ impl<R:Runtime> Submenu<R> {
 		items:&[&dyn IsMenuItem<R>],
 	) -> crate::Result<Self> {
 		let menu = Self::new(manager, text, enabled)?;
+
 		menu.append_items(items)?;
+
 		Ok(menu)
 	}
 
@@ -128,7 +133,9 @@ impl<R:Runtime> Submenu<R> {
 		items:&[&dyn IsMenuItem<R>],
 	) -> crate::Result<Self> {
 		let menu = Self::with_id(manager, id, text, enabled)?;
+
 		menu.append_items(items)?;
+
 		Ok(menu)
 	}
 
@@ -143,6 +150,7 @@ impl<R:Runtime> Submenu<R> {
 	/// Add a menu item to the end of this submenu.
 	pub fn append(&self, item:&dyn IsMenuItem<R>) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().append(kind.inner().inner_muda())
 		})?
@@ -162,6 +170,7 @@ impl<R:Runtime> Submenu<R> {
 	/// Add a menu item to the beginning of this submenu.
 	pub fn prepend(&self, item:&dyn IsMenuItem<R>) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().prepend(kind.inner().inner_muda())
 		})?
@@ -177,6 +186,7 @@ impl<R:Runtime> Submenu<R> {
 	/// Insert a menu item at the specified `position` in this submenu.
 	pub fn insert(&self, item:&dyn IsMenuItem<R>, position:usize) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().insert(kind.inner().inner_muda(), position)
 		})?
@@ -195,6 +205,7 @@ impl<R:Runtime> Submenu<R> {
 	/// Remove a menu item from this submenu.
 	pub fn remove(&self, item:&dyn IsMenuItem<R>) -> crate::Result<()> {
 		let kind = item.kind();
+
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().remove(kind.inner().inner_muda())
 		})?
@@ -243,6 +254,7 @@ impl<R:Runtime> Submenu<R> {
 	/// `&&`.
 	pub fn set_text<S:AsRef<str>>(&self, text:S) -> crate::Result<()> {
 		let text = text.as_ref().to_string();
+
 		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_text(text))
 	}
 
@@ -265,6 +277,7 @@ impl<R:Runtime> Submenu<R> {
 		run_item_main_thread!(self, |self_:Self| {
 			(*self_.0).as_ref().set_as_windows_menu_for_nsapp()
 		})?;
+
 		Ok(())
 	}
 
@@ -277,6 +290,7 @@ impl<R:Runtime> Submenu<R> {
 	#[cfg(target_os = "macos")]
 	pub fn set_as_help_menu_for_nsapp(&self) -> crate::Result<()> {
 		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_as_help_menu_for_nsapp())?;
+
 		Ok(())
 	}
 }

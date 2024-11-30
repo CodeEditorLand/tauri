@@ -170,6 +170,7 @@ impl<'de> Deserialize<'de> for CursorIcon {
 	where
 		D: Deserializer<'de>, {
 		let s = String::deserialize(deserializer)?;
+
 		Ok(match s.to_lowercase().as_str() {
 			"default" => CursorIcon::Default,
 			"crosshair" => CursorIcon::Crosshair,
@@ -493,6 +494,7 @@ impl<T:UserEvent, R:Runtime<T>> PendingWindow<T, R> {
 		label:impl Into<String>,
 	) -> crate::Result<Self> {
 		let label = label.into();
+
 		if !is_label_valid(&label) {
 			Err(crate::Error::InvalidWindowLabel)
 		} else {
@@ -503,6 +505,7 @@ impl<T:UserEvent, R:Runtime<T>> PendingWindow<T, R> {
 	/// Sets a webview to be created on the window.
 	pub fn set_webview(&mut self, webview:PendingWebview<T, R>) -> &mut Self {
 		self.webview.replace(webview);
+
 		self
 	}
 }

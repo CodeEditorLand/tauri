@@ -46,6 +46,7 @@ pub fn command_env(debug:bool) -> HashMap<&'static str, String> {
 
 pub fn resolve_tauri_path<P:AsRef<Path>>(path:P, crate_name:&str) -> PathBuf {
 	let path = path.as_ref();
+
 	if path.is_absolute() {
 		path.join(crate_name)
 	} else {
@@ -57,11 +58,14 @@ pub fn cross_command(bin:&str) -> Command {
 	#[cfg(target_os = "windows")]
 	let cmd = {
 		let mut cmd = Command::new("cmd");
+
 		cmd.arg("/c").arg(bin);
+
 		cmd
 	};
 	#[cfg(not(target_os = "windows"))]
 	let cmd = Command::new(bin);
+
 	cmd
 }
 
@@ -76,11 +80,14 @@ pub fn run_hook(
 		HookCommand::Script(s) => (Some(s), None),
 		HookCommand::ScriptWithOptions { script, cwd } => (Some(script), cwd.map(Into::into)),
 	};
+
 	let cwd = script_cwd.unwrap_or_else(|| app_dir().clone());
+
 	if let Some(script) = script {
 		log::info!(action = "Running"; "{} `{}`", name, script);
 
 		let mut env = command_env(debug);
+
 		env.extend(interface.env());
 
 		log::debug!("Setting environment for hook {:?}", env);

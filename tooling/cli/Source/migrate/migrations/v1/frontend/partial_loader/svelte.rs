@@ -29,6 +29,7 @@ impl<'a> SveltePartialLoader<'a> {
 
 		// find opening "<script"
 		let offset = script_start_finder.find(self.source_text[pointer..].as_bytes())?;
+
 		pointer += offset + SCRIPT_START.len();
 
 		// find closing ">"
@@ -51,6 +52,7 @@ impl<'a> SveltePartialLoader<'a> {
 		let source_text = &self.source_text[js_start..js_end];
 
 		let source_type = SourceType::default().with_module(true).with_typescript(is_ts);
+
 		Some(JavaScriptSource::new(source_text, source_type, js_start))
 	}
 }
@@ -74,6 +76,7 @@ mod test {
         "#;
 
 		let result = parse_svelte(source_text);
+
 		assert_eq!(result.source_text.trim(), r#"console.log("hi");"#);
 	}
 
@@ -87,6 +90,7 @@ mod test {
         "#;
 
 		let result = parse_svelte(source_text);
+
 		assert_eq!(result.source_text.trim(), r#"console.log("hi");"#);
 	}
 }

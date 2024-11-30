@@ -47,6 +47,7 @@ pub struct ContextData {
 fn inject_script_hashes(document: &NodeRef, key: &AssetKey, csp_hashes: &mut CspHashes) {
   if let Ok(inline_script_elements) = document.select("script:not(empty)") {
     let mut scripts = Vec::new();
+
     for inline_script_el in inline_script_elements {
       let script = inline_script_el.as_node().text_contents();
       let mut hasher = Sha256::new();
@@ -57,6 +58,7 @@ fn inject_script_hashes(document: &NodeRef, key: &AssetKey, csp_hashes: &mut Csp
         base64::engine::general_purpose::STANDARD.encode(hash)
       ));
     }
+
     csp_hashes
       .inline_scripts
       .entry(key.clone().into())
@@ -86,6 +88,7 @@ fn map_core_assets(
         *input = serialize_html_node(&document);
       }
     }
+
     Ok(())
   }
 }
@@ -177,6 +180,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
     quote!(#assets)
   } else if dev && config.build.dev_url.is_some() {
     let assets = EmbeddedAssets::default();
+
     quote!(#assets)
   } else {
     let assets = match &config.build.frontend_dist {
@@ -191,6 +195,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
           }
           EmbeddedAssets::new(assets_path, &options, map_core_assets(&options))?
         }
+
         FrontendDist::Files(files) => EmbeddedAssets::new(
           files
             .iter()
@@ -203,6 +208,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
       },
       None => Default::default(),
     };
+
     quote!(#assets)
   };
 
@@ -219,6 +225,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
       );
       if icon_path.exists() {
         let icon = CachedIcon::new(&root, &icon_path)?;
+
         quote!(::std::option::Option::Some(#icon))
       } else {
         let icon_path = find_icon(
@@ -227,7 +234,9 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
           |i| i.ends_with(".png"),
           "icons/icon.png",
         );
+
         let icon = CachedIcon::new(&root, &icon_path)?;
+
         quote!(::std::option::Option::Some(#icon))
       }
     } else {
@@ -250,6 +259,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
       |i| i.ends_with(".icns"),
       "icons/icon.png",
     );
+
     if !icon_path.exists() {
       icon_path = find_icon(
         &config,
@@ -260,6 +270,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
     }
 
     let icon = CachedIcon::new_raw(&root, &icon_path)?;
+
     quote!(::std::option::Option::Some(#icon.to_vec()))
   } else {
     quote!(::std::option::Option::None)
@@ -272,6 +283,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
   };
   let package_version = if let Some(version) = &config.version {
     semver::Version::from_str(version)?;
+
     quote!(#version.to_string())
   } else {
     quote!(env!("CARGO_PKG_VERSION").to_string())
@@ -301,6 +313,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
   #[cfg(target_os = "macos")]
   let maybe_embed_plist_block = if target == Target::MacOS && dev && !running_tests {
     let info_plist_path = config_parent.join("Info.plist");
+
     let mut info_plist = if info_plist_path.exists() {
       plist::Value::from_file(&info_plist_path)
         .unwrap_or_else(|e| panic!("failed to read plist {}: {}", info_plist_path.display(), e))
@@ -314,18 +327,22 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
       }
       if let Some(version) = &config.version {
         plist.insert("CFBundleShortVersionString".into(), version.clone().into());
+
         plist.insert("CFBundleVersion".into(), version.clone().into());
       }
     }
 
     let mut plist_contents = std::io::BufWriter::new(Vec::new());
+
     info_plist
       .to_writer_xml(&mut plist_contents)
       .expect("failed to serialize plist");
+
     let plist_contents =
       String::from_utf8_lossy(&plist_contents.into_inner().unwrap()).into_owned();
 
     let plist = crate::Cached::try_from(plist_contents)?;
+
     quote!({
       tauri::embed_plist::embed_info_plist!(#plist);
     })
@@ -358,6 +375,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
         if String::from_utf8_lossy(input).contains("__TAURI_ISOLATION_HOOK__") {
           sets_isolation_hook = true;
         }
+
         map_isolation(key, path, input, csp_hashes)
       })?;
 
@@ -380,6 +398,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
   let acl: BTreeMap<String, Manifest> = if acl_file_path.exists() {
     let acl_file =
       std::fs::read_to_string(acl_file_path).expect("failed to read plugin manifest map");
+
     serde_json::from_str(&acl_file).expect("failed to parse plugin manifest map")
   } else {
     Default::default()
@@ -390,6 +409,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
   {
     let capabilities_file =
       std::fs::read_to_string(capabilities_file_path).expect("failed to read capabilities");
+
     serde_json::from_str(&capabilities_file).expect("failed to parse capabilities")
   } else {
     Default::default()
@@ -399,11 +419,13 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
     capabilities_from_files
   } else {
     let mut capabilities = BTreeMap::new();
+
     for capability_entry in &config.app.security.capabilities {
       match capability_entry {
         CapabilityEntry::Inlined(capability) => {
           capabilities.insert(capability.identifier.clone(), capability.clone());
         }
+
         CapabilityEntry::Reference(id) => {
           let capability = capabilities_from_files
             .remove(id)
@@ -412,6 +434,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
         }
       }
     }
+
     capabilities
   };
 
@@ -430,6 +453,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
         CapabilityFile::Capability(c) => {
           capabilities.insert(c.identifier.clone(), c);
         }
+
         CapabilityFile::List(capabilities_list)
         | CapabilityFile::NamedList {
           capabilities: capabilities_list,
@@ -460,6 +484,7 @@ pub fn context_codegen(data: ContextData) -> EmbeddedAssetsResult<TokenStream> {
 
   let maybe_config_parent_setter = if dev {
     let config_parent = config_parent.to_string_lossy();
+
     quote!({
       context.with_config_parent(#config_parent);
     })

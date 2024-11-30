@@ -64,14 +64,17 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
     if settings.can_sign() {
       for bin in settings.binaries() {
         let bin_path = settings.binary_path(bin);
+
         windows::sign::try_sign(&bin_path, settings)?;
       }
 
       // Sign the sidecar binaries
       for bin in settings.external_binaries() {
         let path = bin?;
+
         let skip =
           std::env::var("TAURI_SKIP_SIDECAR_SIGNATURE_CHECK").map_or(false, |v| v == "true");
+
         if skip {
           continue;
         }
@@ -109,12 +112,14 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
       #[cfg(target_os = "macos")]
       PackageType::Dmg => {
         let bundled = macos::dmg::bundle_project(settings, &bundles)?;
+
         if !bundled.app.is_empty() {
           bundles.push(Bundle {
             package_type: PackageType::MacOsBundle,
             bundle_paths: bundled.app,
           });
         }
+
         bundled.dmg
       }
 
@@ -130,6 +135,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
       PackageType::AppImage => linux::appimage::bundle_project(settings)?,
       _ => {
         log::warn!("ignoring {}", package_type.short_name());
+
         continue;
       }
     };
@@ -171,6 +177,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<Bundle>> {
     {
       log::warn!("The bundler was configured to create updater artifacts but no updater-enabled targets were built. Please enable one of these targets: app, appimage, msi, nsis");
     }
+
     if updater.v1_compatible {
       log::warn!("Legacy v1 compatible updater is deprecated and will be removed in v3, change bundle > createUpdaterArtifacts to true when your users are updated to the version with v2 updater plugin");
     }

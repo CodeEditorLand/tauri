@@ -41,13 +41,17 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
   let mut settings = settings.clone();
   if main_binary.name().contains(" ") {
     let main_binary_path = settings.binary_path(main_binary);
+
     let project_out_directory = settings.project_out_directory();
 
     let main_binary_name_kebab = heck::AsKebabCase(main_binary.name()).to_string();
+
     let new_path = project_out_directory.join(&main_binary_name_kebab);
+
     fs::copy(main_binary_path, new_path)?;
 
     let main_binary = settings.main_binary_mut()?;
+
     main_binary.set_name(main_binary_name_kebab);
   }
 

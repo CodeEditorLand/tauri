@@ -30,9 +30,11 @@ pub fn get<R:Runtime>(
 	#[cfg(all(dev, mobile))]
 	let url = {
 		let mut url = manager.get_url().as_str().to_string();
+
 		if url.ends_with('/') {
 			url.pop();
 		}
+
 		url
 	};
 
@@ -104,33 +106,46 @@ fn get_response<R:Runtime>(
 			.build()
 			.unwrap()
 			.request(request.method().clone(), &url);
+
 		for (name, value) in request.headers() {
 			proxy_builder = proxy_builder.header(name, value);
 		}
+
 		match crate::async_runtime::block_on(proxy_builder.send()) {
 			Ok(r) => {
 				let mut response_cache_ = response_cache.lock().unwrap();
+
 				let mut response = None;
+
 				if r.status() == http::StatusCode::NOT_MODIFIED {
 					response = response_cache_.get(&url);
 				}
+
 				let response = if let Some(r) = response {
 					r
 				} else {
 					let status = r.status();
+
 					let headers = r.headers().clone();
+
 					let body = crate::async_runtime::block_on(r.bytes())?;
+
 					let response = CachedResponse { status, headers, body };
+
 					response_cache_.insert(url.clone(), response);
+
 					response_cache_.get(&url).unwrap()
 				};
+
 				for (name, value) in &response.headers {
 					builder = builder.header(name, value);
 				}
+
 				builder.status(response.status).body(response.body.to_vec().into())?
 			},
 			Err(e) => {
 				log::error!("Failed to request {}: {}", url.as_str(), e);
+
 				return Err(Box::new(e));
 			},
 		}
@@ -139,12 +154,16 @@ fn get_response<R:Runtime>(
 	#[cfg(not(all(dev, mobile)))]
 	let mut response = {
 		let asset = manager.get_asset(path)?;
+
 		builder = builder.header(CONTENT_TYPE, &asset.mime_type);
+
 		if let Some(csp) = &asset.csp_header {
 			builder = builder.header("Content-Security-Policy", csp);
 		}
+
 		builder.body(asset.bytes.into())?
 	};
+
 	if let Some(handler) = &web_resource_request_handler {
 		handler(request, &mut response);
 	}

@@ -13,10 +13,13 @@ use crate::{
 mod desktop_commands {
 
 	use serde::{Deserialize, Serialize};
+
 	use tauri_runtime::dpi::{Position, Size};
+
 	use tauri_utils::config::{WebviewUrl, WindowConfig};
 
 	use super::*;
+
 	use crate::{
 		command,
 		sealed::ManagerBase,
@@ -74,6 +77,7 @@ mod desktop_commands {
 		options:WindowConfig,
 	) -> crate::Result<()> {
 		WebviewWindowBuilder::from_config(&app, &options)?.build()?;
+
 		Ok(())
 	}
 	#[cfg(not(feature = "unstable"))]
@@ -95,12 +99,18 @@ mod desktop_commands {
 		let mut builder = crate::webview::WebviewBuilder::new(label, options.url);
 
 		builder.webview_attributes.user_agent = options.user_agent;
+
 		builder.webview_attributes.drag_drop_handler_enabled =
 			options.drag_drop_enabled.unwrap_or(true);
+
 		builder.webview_attributes.transparent = options.transparent;
+
 		builder.webview_attributes.accept_first_mouse = options.accept_first_mouse;
+
 		builder.webview_attributes.window_effects = options.window_effects;
+
 		builder.webview_attributes.incognito = options.incognito;
+
 		builder.webview_attributes.zoom_hotkeys_enabled = options.zoom_hotkeys_enabled;
 
 		window.add_child(
@@ -166,14 +176,20 @@ mod desktop_commands {
 
 	// TODO
 	getter!(webview_position, position, tauri_runtime::dpi::PhysicalPosition<i32>);
+
 	getter!(webview_size, size, tauri_runtime::dpi::PhysicalSize<u32>);
 	// getter!(is_focused, bool);
 
 	setter!(print);
+
 	setter!(webview_close, close);
+
 	setter!(set_webview_size, set_size, Size);
+
 	setter!(set_webview_position, set_position, Position);
+
 	setter!(set_webview_focus, set_focus);
+
 	setter!(set_webview_zoom, set_zoom, f64);
 
 	#[command(root = "crate")]
@@ -183,9 +199,11 @@ mod desktop_commands {
 		window:String,
 	) -> crate::Result<()> {
 		let webview = get_webview(webview, label)?;
+
 		if let Some(window) = webview.manager.get_window(&window) {
 			webview.reparent(&window)?;
 		}
+
 		Ok(())
 	}
 
@@ -196,11 +214,13 @@ mod desktop_commands {
 		label:Option<String>,
 	) -> crate::Result<()> {
 		let webview = get_webview(webview, label)?;
+
 		if webview.is_devtools_open() {
 			webview.close_devtools();
 		} else {
 			webview.open_devtools();
 		}
+
 		Ok(())
 	}
 }
@@ -234,6 +254,7 @@ pub fn init<R:Runtime>() -> TauriPlugin<R> {
 	}
 
 	let mut builder = Builder::new("webview");
+
 	if !init_script.is_empty() {
 		builder = builder.js_init_script(init_script);
 	}
@@ -261,11 +282,13 @@ pub fn init<R:Runtime>() -> TauriPlugin<R> {
 						#[cfg(any(debug_assertions, feature = "devtools"))]
 						desktop_commands::internal_toggle_devtools,
 					]);
+
 				handler(invoke)
 			}
 			#[cfg(mobile)]
 			{
 				invoke.resolver.reject("Webview API not available on mobile");
+
 				true
 			}
 		})

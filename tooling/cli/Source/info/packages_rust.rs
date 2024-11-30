@@ -32,6 +32,7 @@ pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionIt
 				} else {
 					None
 				};
+
 			let lock:Option<CargoLock> = get_workspace_dir()
 				.ok()
 				.and_then(|p| read_to_string(p.join("Cargo.lock")).ok())
@@ -39,7 +40,9 @@ pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionIt
 
 			for dep in ["tauri", "tauri-build", "wry", "tao"] {
 				let crate_version = crate_version(tauri_dir, manifest.as_ref(), lock.as_ref(), dep);
+
 				let item = rust_section_item(dep, crate_version);
+
 				items.push(item);
 			}
 		}
@@ -54,8 +57,11 @@ pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionIt
 			.map(|o| {
 				if o.status.success() {
 					let out = String::from_utf8_lossy(o.stdout.as_slice());
+
 					let (package, version) = out.split_once(' ').unwrap_or_default();
+
 					let latest_ver = crate_latest_version(package).unwrap_or_default();
+
 					format!(
 						"{} {}: {}{}",
 						package,
@@ -63,6 +69,7 @@ pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionIt
 						version.split_once('\n').unwrap_or_default().0,
 						if !(version.is_empty() || latest_ver.is_empty()) {
 							let version = semver::Version::parse(version).unwrap();
+
 							let target_version =
 								semver::Version::parse(latest_ver.as_str()).unwrap();
 
@@ -86,6 +93,7 @@ pub fn items(app_dir:Option<&PathBuf>, tauri_dir:Option<&Path>) -> Vec<SectionIt
 			})
 			.unwrap_or_default()
 	});
+
 	items.push(tauri_cli_rust_item);
 
 	items
@@ -97,6 +105,7 @@ pub fn rust_section_item(dep:&str, crate_version:CrateVersion) -> SectionItem {
 	let version_suffix = match (version, crate_latest_version(dep)) {
 		(Some(version), Some(target_version)) => {
 			let target_version = semver::Version::parse(&target_version).unwrap();
+
 			if version < target_version {
 				Some(format!(
 					" ({}, latest: {})",

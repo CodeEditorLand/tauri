@@ -81,6 +81,7 @@ impl Runtime {
 	/// Gets a reference to the [`TokioRuntime`].
 	pub fn inner(&self) -> &TokioRuntime {
 		let Self::Tokio(r) = self;
+
 		r
 	}
 
@@ -99,6 +100,7 @@ impl Runtime {
 		match self {
 			Self::Tokio(r) => {
 				let _guard = r.enter();
+
 				JoinHandle::Tokio(tokio::spawn(task))
 			},
 		}
@@ -134,6 +136,7 @@ impl<T> JoinHandle<T> {
 	/// Gets a reference to the [`TokioJoinHandle`].
 	pub fn inner(&self) -> &TokioJoinHandle<T> {
 		let Self::Tokio(t) = self;
+
 		t
 	}
 
@@ -170,6 +173,7 @@ impl RuntimeHandle {
 	/// Gets a reference to the [`TokioHandle`].
 	pub fn inner(&self) -> &TokioHandle {
 		let Self::Tokio(h) = self;
+
 		h
 	}
 
@@ -192,6 +196,7 @@ impl RuntimeHandle {
 		match self {
 			Self::Tokio(h) => {
 				let _guard = h.enter();
+
 				JoinHandle::Tokio(tokio::spawn(task))
 			},
 		}
@@ -207,7 +212,9 @@ impl RuntimeHandle {
 
 fn default_runtime() -> GlobalRuntime {
 	let runtime = Runtime::Tokio(TokioRuntime::new().unwrap());
+
 	let handle = runtime.handle();
+
 	GlobalRuntime { runtime:Some(runtime), handle }
 }
 
@@ -244,12 +251,14 @@ pub fn set(handle:TokioHandle) {
 /// Returns a handle of the async runtime.
 pub fn handle() -> RuntimeHandle {
 	let runtime = RUNTIME.get_or_init(default_runtime);
+
 	runtime.handle()
 }
 
 /// Runs a future to completion on runtime.
 pub fn block_on<F:Future>(task:F) -> F::Output {
 	let runtime = RUNTIME.get_or_init(default_runtime);
+
 	runtime.block_on(task)
 }
 
@@ -259,6 +268,7 @@ where
 	F: Future + Send + 'static,
 	F::Output: Send + 'static, {
 	let runtime = RUNTIME.get_or_init(default_runtime);
+
 	runtime.spawn(task)
 }
 
@@ -268,6 +278,7 @@ where
 	F: FnOnce() -> R + Send + 'static,
 	R: Send + 'static, {
 	let runtime = RUNTIME.get_or_init(default_runtime);
+
 	runtime.spawn_blocking(func)
 }
 
@@ -280,9 +291,11 @@ where
 		let (tx, rx) = std::sync::mpsc::sync_channel(1);
 
 		let handle_ = handle.clone();
+
 		handle.spawn_blocking(move || {
 			tx.send(handle_.block_on(task)).unwrap();
 		});
+
 		rx.recv().unwrap()
 	} else {
 		block_on(task)
@@ -296,6 +309,7 @@ mod tests {
 	#[tokio::test]
 	async fn runtime_spawn() {
 		let join = spawn(async { 5 });
+
 		assert_eq!(join.await.unwrap(), 5);
 	}
 
@@ -309,12 +323,14 @@ mod tests {
 		let handle = handle();
 
 		let join = handle.spawn(async { 5 });
+
 		assert_eq!(join.await.unwrap(), 5);
 	}
 
 	#[test]
 	fn handle_block_on() {
 		let handle = handle();
+
 		assert_eq!(handle.block_on(async { 0 }), 0);
 	}
 
@@ -326,9 +342,12 @@ mod tests {
 			// Here we sleep 1 second to ensure this task to be uncompleted when
 			// abort() invoked.
 			tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
 			5
 		});
+
 		join.abort();
+
 		if let crate::Error::JoinError(raw_error) = join.await.unwrap_err() {
 			assert!(raw_error.is_cancelled());
 		} else {

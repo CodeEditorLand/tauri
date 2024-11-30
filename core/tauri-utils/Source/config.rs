@@ -186,6 +186,7 @@ impl<'de> Deserialize<'de> for BundleType {
 	where
 		D: Deserializer<'de>, {
 		let s = String::deserialize(deserializer)?;
+
 		match s.to_lowercase().as_str() {
 			"deb" => Ok(Self::Deb),
 			"rpm" => Ok(Self::Rpm),
@@ -551,6 +552,7 @@ fn de_macos_minimum_system_version<'de, D>(
 where
 	D: Deserializer<'de>, {
 	let version = Option::<String>::deserialize(deserializer)?;
+
 	match version {
 		Some(v) if v.is_empty() => Ok(macos_minimum_system_version()),
 		e => Ok(e),
@@ -1077,6 +1079,7 @@ impl<'d> serde::Deserialize<'d> for AssociationExt {
 		deserializer:D,
 	) -> Result<Self, D::Error> {
 		let ext = String::deserialize(deserializer)?;
+
 		if let Some(ext) = ext.strip_prefix('.') {
 			Ok(AssociationExt(ext.into()))
 		} else {
@@ -1142,6 +1145,7 @@ impl BundleResources {
 			Self::List(l) => l.push(path.into()),
 			Self::Map(l) => {
 				let path = path.into();
+
 				l.insert(path.clone(), path);
 			},
 		}
@@ -1637,6 +1641,7 @@ impl CspDirectiveSources {
 		match self {
 			Self::Inline(s) => {
 				s.push(' ');
+
 				s.push_str(source.as_ref());
 			},
 			Self::List(l) => {
@@ -1677,18 +1682,22 @@ impl From<Csp> for HashMap<String, CspDirectiveSources> {
 		match csp {
 			Csp::Policy(policy) => {
 				let mut map = HashMap::new();
+
 				for directive in policy.split(';') {
 					let mut tokens = directive.trim().split(' ');
+
 					if let Some(directive) = tokens.next() {
 						let sources = tokens
 							.map(|s| s.to_string())
 							.collect::<Vec<String>>();
+
 						map.insert(
 							directive.to_string(),
 							CspDirectiveSources::List(sources),
 						);
 					}
 				}
+
 				map
 			},
 			Csp::DirectiveMap(m) => m,
@@ -1702,15 +1711,21 @@ impl Display for Csp {
 			Self::Policy(s) => write!(f, "{s}"),
 			Self::DirectiveMap(m) => {
 				let len = m.len();
+
 				let mut i = 0;
+
 				for (directive, sources) in m {
 					let sources:Vec<String> = sources.clone().into();
+
 					write!(f, "{} {}", directive, sources.join(" "))?;
+
 					i += 1;
+
 					if i != len {
 						write!(f, "; ")?;
 					}
 				}
+
 				Ok(())
 			},
 		}
@@ -1956,12 +1971,15 @@ impl AppConfig {
 	/// Returns the enabled Cargo features.
 	pub fn features(&self) -> Vec<&str> {
 		let mut features = Vec::new();
+
 		if self.tray_icon.is_some() {
 			features.push("tray-icon");
 		}
+
 		if self.macos_private_api {
 			features.push("macos-private-api");
 		}
+
 		if self.security.asset_protocol.enable {
 			features.push("protocol-asset");
 		}
@@ -1971,6 +1989,7 @@ impl AppConfig {
 		}
 
 		features.sort_unstable();
+
 		features
 	}
 }
@@ -2238,18 +2257,21 @@ impl<'d> serde::Deserialize<'d> for PackageVersion {
 				value:&str,
 			) -> Result<PackageVersion, E> {
 				let path = PathBuf::from(value);
+
 				if path.exists() {
 					let json_str = read_to_string(&path).map_err(|e| {
 						DeError::custom(format!(
 							"failed to read version JSON file: {e}"
 						))
 					})?;
+
 					let package_json:serde_json::Value =
 						serde_json::from_str(&json_str).map_err(|e| {
 							DeError::custom(format!(
 								"failed to read version JSON file: {e}"
 							))
 						})?;
+
 					if let Some(obj) = package_json.as_object() {
 						let version = obj
 							.get("version")
@@ -2265,6 +2287,7 @@ impl<'d> serde::Deserialize<'d> for PackageVersion {
 									path.display()
 								))
 							})?;
+
 						Ok(PackageVersion(
 							Version::from_str(version)
 								.map_err(|_| {
@@ -2454,9 +2477,11 @@ mod build {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
+
 	use quote::{quote, ToTokens, TokenStreamExt};
 
 	use super::*;
+
 	use crate::{literal_struct, tokens::*};
 
 	impl ToTokens for WebviewUrl {
@@ -2466,14 +2491,17 @@ mod build {
 			tokens.append_all(match self {
 				Self::App(path) => {
 					let path = path_buf_lit(path);
+
 					quote! { #prefix::App(#path) }
 				},
 				Self::External(url) => {
 					let url = url_lit(url);
+
 					quote! { #prefix::External(#url) }
 				},
 				Self::CustomProtocol(url) => {
 					let url = url_lit(url);
+
 					quote! { #prefix::CustomProtocol(#url) }
 				},
 			})
@@ -2494,16 +2522,21 @@ mod build {
 	impl ToTokens for Color {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let Color(r, g, b, a) = self;
+
 			tokens.append_all(
 				quote! {::tauri::utils::config::Color(#r,#g,#b,#a)},
 			);
 		}
 	}
+
 	impl ToTokens for WindowEffectsConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let effects = vec_lit(self.effects.clone(), |d| d);
+
 			let state = opt_lit(self.state.as_ref());
+
 			let radius = opt_lit(self.radius.as_ref());
+
 			let color = opt_lit(self.color.as_ref());
 
 			literal_struct!(
@@ -2594,48 +2627,88 @@ mod build {
 	impl ToTokens for WindowConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let label = str_lit(&self.label);
+
 			let url = &self.url;
+
 			let user_agent = opt_str_lit(self.user_agent.as_ref());
+
 			let drag_drop_enabled = self.drag_drop_enabled;
+
 			let center = self.center;
+
 			let x = opt_lit(self.x.as_ref());
+
 			let y = opt_lit(self.y.as_ref());
+
 			let width = self.width;
+
 			let height = self.height;
+
 			let min_width = opt_lit(self.min_width.as_ref());
+
 			let min_height = opt_lit(self.min_height.as_ref());
+
 			let max_width = opt_lit(self.max_width.as_ref());
+
 			let max_height = opt_lit(self.max_height.as_ref());
+
 			let resizable = self.resizable;
+
 			let maximizable = self.maximizable;
+
 			let minimizable = self.minimizable;
+
 			let closable = self.closable;
+
 			let title = str_lit(&self.title);
+
 			let proxy_url =
 				opt_lit(self.proxy_url.as_ref().map(url_lit).as_ref());
+
 			let fullscreen = self.fullscreen;
+
 			let focus = self.focus;
+
 			let transparent = self.transparent;
+
 			let maximized = self.maximized;
+
 			let visible = self.visible;
+
 			let decorations = self.decorations;
+
 			let always_on_bottom = self.always_on_bottom;
+
 			let always_on_top = self.always_on_top;
+
 			let visible_on_all_workspaces = self.visible_on_all_workspaces;
+
 			let content_protected = self.content_protected;
+
 			let skip_taskbar = self.skip_taskbar;
+
 			let theme = opt_lit(self.theme.as_ref());
+
 			let title_bar_style = &self.title_bar_style;
+
 			let hidden_title = self.hidden_title;
+
 			let accept_first_mouse = self.accept_first_mouse;
+
 			let tabbing_identifier =
 				opt_str_lit(self.tabbing_identifier.as_ref());
+
 			let additional_browser_args =
 				opt_str_lit(self.additional_browser_args.as_ref());
+
 			let shadow = self.shadow;
+
 			let window_effects = opt_lit(self.window_effects.as_ref());
+
 			let incognito = self.incognito;
+
 			let parent = opt_str_lit(self.parent.as_ref());
+
 			let zoom_hotkeys_enabled = self.zoom_hotkeys_enabled;
 
 			literal_struct!(
@@ -2697,6 +2770,7 @@ mod build {
 				#[cfg(feature = "isolation")]
 				Self::Isolation { dir } => {
 					let dir = path_buf_lit(dir);
+
 					quote! { #prefix::Isolation { dir: #dir } }
 				},
 			})
@@ -2720,6 +2794,7 @@ mod build {
 				},
 				Self::FixedRuntime { path } => {
 					let path = path_buf_lit(path);
+
 					quote! { #prefix::FixedRuntime { path: #path } }
 				},
 			})
@@ -2729,6 +2804,7 @@ mod build {
 	impl ToTokens for WindowsConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let webview_install_mode = &self.webview_install_mode;
+
 			tokens.append_all(quote! { ::tauri::utils::config::WindowsConfig {
 			  webview_install_mode: #webview_install_mode,
 			  ..Default::default()
@@ -2739,26 +2815,46 @@ mod build {
 	impl ToTokens for BundleConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let publisher = quote!(None);
+
 			let homepage = quote!(None);
+
 			let icon = vec_lit(&self.icon, str_lit);
+
 			let active = self.active;
+
 			let targets = quote!(Default::default());
+
 			let create_updater_artifacts = quote!(Default::default());
+
 			let resources = quote!(None);
+
 			let copyright = quote!(None);
+
 			let category = quote!(None);
+
 			let file_associations = quote!(None);
+
 			let short_description = quote!(None);
+
 			let long_description = quote!(None);
+
 			let use_local_tools_dir = self.use_local_tools_dir;
+
 			let external_bin = opt_vec_lit(self.external_bin.as_ref(), str_lit);
+
 			let windows = &self.windows;
+
 			let license = opt_str_lit(self.license.as_ref());
+
 			let license_file =
 				opt_lit(self.license_file.as_ref().map(path_buf_lit).as_ref());
+
 			let linux = quote!(Default::default());
+
 			let macos = quote!(Default::default());
+
 			let ios = quote!(Default::default());
+
 			let android = quote!(Default::default());
 
 			literal_struct!(
@@ -2796,14 +2892,17 @@ mod build {
 			tokens.append_all(match self {
 				Self::Url(url) => {
 					let url = url_lit(url);
+
 					quote! { #prefix::Url(#url) }
 				},
 				Self::Directory(path) => {
 					let path = path_buf_lit(path);
+
 					quote! { #prefix::Directory(#path) }
 				},
 				Self::Files(files) => {
 					let files = vec_lit(files, path_buf_lit);
+
 					quote! { #prefix::Files(#files) }
 				},
 			})
@@ -2813,11 +2912,17 @@ mod build {
 	impl ToTokens for BuildConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let dev_url = opt_lit(self.dev_url.as_ref().map(url_lit).as_ref());
+
 			let frontend_dist = opt_lit(self.frontend_dist.as_ref());
+
 			let runner = quote!(None);
+
 			let before_dev_command = quote!(None);
+
 			let before_build_command = quote!(None);
+
 			let before_bundle_command = quote!(None);
+
 			let features = quote!(None);
 
 			literal_struct!(
@@ -2841,10 +2946,12 @@ mod build {
 			tokens.append_all(match self {
 				Self::Inline(sources) => {
 					let sources = sources.as_str();
+
 					quote!(#prefix::Inline(#sources.into()))
 				},
 				Self::List(list) => {
 					let list = vec_lit(list, str_lit);
+
 					quote!(#prefix::List(#list))
 				},
 			})
@@ -2858,6 +2965,7 @@ mod build {
 			tokens.append_all(match self {
 				Self::Policy(policy) => {
 					let policy = policy.as_str();
+
 					quote!(#prefix::Policy(#policy.into()))
 				},
 				Self::DirectiveMap(list) => {
@@ -2867,6 +2975,7 @@ mod build {
 						str_lit,
 						identity,
 					);
+
 					quote!(#prefix::DirectiveMap(#map))
 				},
 			})
@@ -2884,6 +2993,7 @@ mod build {
 				},
 				Self::List(directives) => {
 					let directives = vec_lit(directives, str_lit);
+
 					quote! { #prefix::List(#directives) }
 				},
 			});
@@ -2900,6 +3010,7 @@ mod build {
 				},
 				Self::Reference(id) => {
 					let id = str_lit(id);
+
 					quote! { #prefix::Reference(#id) }
 				},
 			});
@@ -2909,12 +3020,18 @@ mod build {
 	impl ToTokens for SecurityConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let csp = opt_lit(self.csp.as_ref());
+
 			let dev_csp = opt_lit(self.dev_csp.as_ref());
+
 			let freeze_prototype = self.freeze_prototype;
+
 			let dangerous_disable_asset_csp_modification =
 				&self.dangerous_disable_asset_csp_modification;
+
 			let asset_protocol = &self.asset_protocol;
+
 			let pattern = &self.pattern;
+
 			let capabilities = vec_lit(&self.capabilities, identity);
 
 			literal_struct!(
@@ -2934,11 +3051,17 @@ mod build {
 	impl ToTokens for TrayIconConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let id = opt_str_lit(self.id.as_ref());
+
 			let icon_as_template = self.icon_as_template;
+
 			let menu_on_left_click = self.menu_on_left_click;
+
 			let icon_path = path_buf_lit(&self.icon_path);
+
 			let title = opt_str_lit(self.title.as_ref());
+
 			let tooltip = opt_str_lit(self.tooltip.as_ref());
+
 			literal_struct!(
 				tokens,
 				::tauri::utils::config::TrayIconConfig,
@@ -2961,6 +3084,7 @@ mod build {
           let allowed_paths = vec_lit(allow, path_buf_lit);
           quote! { #prefix::AllowedPaths(#allowed_paths) }
         }
+
         Self::Scope { allow, deny , require_literal_leading_dot} => {
           let allow = vec_lit(allow, path_buf_lit);
           let deny = vec_lit(deny, path_buf_lit);
@@ -2974,6 +3098,7 @@ mod build {
 	impl ToTokens for AssetProtocolConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let scope = &self.scope;
+
 			tokens.append_all(
 				quote! { ::tauri::utils::config::AssetProtocolConfig { scope: #scope, ..Default::default() } },
 			)
@@ -2983,10 +3108,15 @@ mod build {
 	impl ToTokens for AppConfig {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let windows = vec_lit(&self.windows, identity);
+
 			let security = &self.security;
+
 			let tray_icon = opt_lit(self.tray_icon.as_ref());
+
 			let macos_private_api = self.macos_private_api;
+
 			let with_global_tauri = self.with_global_tauri;
+
 			let enable_gtk_app_id = self.enable_gtk_app_id;
 
 			literal_struct!(
@@ -3010,6 +3140,7 @@ mod build {
 				str_lit,
 				json_value_lit,
 			);
+
 			tokens.append_all(
 				quote! { ::tauri::utils::config::PluginConfig(#config) },
 			)
@@ -3019,12 +3150,19 @@ mod build {
 	impl ToTokens for Config {
 		fn to_tokens(&self, tokens:&mut TokenStream) {
 			let schema = quote!(None);
+
 			let product_name = opt_str_lit(self.product_name.as_ref());
+
 			let version = opt_str_lit(self.version.as_ref());
+
 			let identifier = str_lit(&self.identifier);
+
 			let app = &self.app;
+
 			let build = &self.build;
+
 			let bundle = &self.bundle;
+
 			let plugins = &self.plugins;
 
 			literal_struct!(
@@ -3118,8 +3256,11 @@ mod test {
 
 		// test the configs
 		assert_eq!(a_config, app);
+
 		assert_eq!(b_config, build);
+
 		assert_eq!(d_bundle, bundle);
+
 		assert_eq!(d_windows, app.windows);
 	}
 }

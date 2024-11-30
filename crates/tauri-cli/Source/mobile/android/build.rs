@@ -109,12 +109,15 @@ pub fn command(options: Options, noise_level: NoiseLevel) -> Result<()> {
   )?;
   let (interface, config, metadata) = {
     let tauri_config_guard = tauri_config.lock().unwrap();
+
     let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
     let interface = AppInterface::new(tauri_config_, build_options.target.clone())?;
+
     interface.build_options(&mut Vec::new(), &mut build_options.features, true);
 
     let app = get_app(MobileTarget::Android, tauri_config_, &interface);
+
     let (config, metadata) = get_config(
       &app,
       tauri_config_,
@@ -181,6 +184,7 @@ fn run_build(
   if !(options.apk || options.aab) {
     // if the user didn't specify the format to build, we'll do both
     options.apk = true;
+
     options.aab = true;
   }
 
@@ -264,6 +268,7 @@ fn get_targets_or_all<'a>(targets: Vec<String>) -> Result<Vec<&'a Target<'a>>> {
       })?;
       outs.push(target);
     }
+
     Ok(outs)
   }
 }

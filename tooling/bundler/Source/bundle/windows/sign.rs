@@ -56,6 +56,7 @@ pub struct SignParams {
 fn signtool() -> Option<PathBuf> {
 	// sign code forked from https://github.com/forbjok/rust-codesign
 	static SIGN_TOOL:OnceLock<crate::Result<PathBuf>> = OnceLock::new();
+
 	SIGN_TOOL
 		.get_or_init(|| {
 			if let Some(signtool) = std::env::var_os("TAURI_WINDOWS_SIGNTOOL_PATH") {
@@ -64,6 +65,7 @@ fn signtool() -> Option<PathBuf> {
 
 			const INSTALLED_ROOTS_REGKEY_PATH:&str =
 				r"SOFTWARE\Microsoft\Windows Kits\Installed Roots";
+
 			const KITS_ROOT_REGVALUE_NAME:&str = r"KitsRoot10";
 
 			// Open 32-bit HKLM "Installed Roots" key
@@ -129,8 +131,11 @@ pub fn verify(path:&Path) -> crate::Result<bool> {
 	let signtool = signtool().ok_or(crate::Error::SignToolNotFound)?;
 
 	let mut cmd = Command::new(signtool);
+
 	cmd.arg("verify");
+
 	cmd.arg("/pa");
+
 	cmd.arg(path);
 
 	Ok(cmd.status()?.success())
@@ -143,6 +148,7 @@ pub fn sign_command_custom<P:AsRef<Path>>(
 	let path = path.as_ref();
 
 	let mut cmd = Command::new(&command.cmd);
+
 	for arg in &command.args {
 		if arg == "%1" {
 			cmd.arg(path);
@@ -150,6 +156,7 @@ pub fn sign_command_custom<P:AsRef<Path>>(
 			cmd.arg(arg);
 		}
 	}
+
 	Ok(cmd)
 }
 
@@ -158,14 +165,19 @@ pub fn sign_command_default<P:AsRef<Path>>(path:P, params:&SignParams) -> crate:
 	let signtool = signtool().ok_or(crate::Error::SignToolNotFound)?;
 
 	let mut cmd = Command::new(signtool);
+
 	cmd.arg("sign");
+
 	cmd.args(["/fd", &params.digest_algorithm]);
+
 	cmd.args(["/sha1", &params.certificate_thumbprint]);
+
 	cmd.args(["/d", &params.product_name]);
 
 	if let Some(ref timestamp_url) = params.timestamp_url {
 		if params.tsp {
 			cmd.args(["/tr", timestamp_url]);
+
 			cmd.args(["/td", &params.digest_algorithm]);
 		} else {
 			cmd.args(["/t", timestamp_url]);
@@ -202,6 +214,7 @@ pub fn sign_custom<P:AsRef<Path>>(
 	let output = cmd.output_ok()?;
 
 	let stdout = String::from_utf8_lossy(output.stdout.as_slice()).into_owned();
+
 	log::info!("{:?}", stdout);
 
 	Ok(())
@@ -210,17 +223,20 @@ pub fn sign_custom<P:AsRef<Path>>(
 #[cfg(windows)]
 pub fn sign_default<P:AsRef<Path>>(path:P, params:&SignParams) -> crate::Result<()> {
 	let signtool = signtool().ok_or(crate::Error::SignToolNotFound)?;
+
 	let path = path.as_ref();
 
 	log::info!(action = "Signing"; "{} with identity \"{}\"", tauri_utils::display_path(path), params.certificate_thumbprint);
 
 	let mut cmd = sign_command_default(path, params)?;
+
 	log::debug!("Running signtool {:?}", signtool);
 
 	// Execute SignTool command
 	let output = cmd.output_ok()?;
 
 	let stdout = String::from_utf8_lossy(output.stdout.as_slice()).into_owned();
+
 	log::info!("{:?}", stdout);
 
 	Ok(())
@@ -241,7 +257,9 @@ pub fn sign<P:AsRef<Path>>(path:P, params:&SignParams) -> crate::Result<()> {
 pub fn try_sign(file_path:&std::path::PathBuf, settings:&Settings) -> crate::Result<()> {
 	if settings.can_sign() {
 		log::info!(action = "Signing"; "{}", tauri_utils::display_path(file_path));
+
 		sign(file_path, &settings.sign_params())?;
 	}
+
 	Ok(())
 }

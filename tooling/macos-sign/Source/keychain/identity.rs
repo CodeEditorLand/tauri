@@ -41,6 +41,7 @@ impl Team {
 
 		let name = if let Some(organization) = organization {
 			println!("found cert {:?} with organization {:?}", common_name, organization);
+
 			organization
 		} else {
 			println!(
@@ -48,6 +49,7 @@ impl Team {
 				 common name",
 				common_name
 			);
+
 			regex!(r"Apple Develop\w+: (.*) \(.+\)")
 				.captures(&common_name)
 				.map(|caps| caps[1].to_owned())
@@ -57,6 +59,7 @@ impl Team {
 						 displaying full name",
 						common_name
 					);
+
 					common_name.clone()
 				})
 		};
@@ -79,6 +82,7 @@ impl Team {
 pub fn list(keychain_path:&Path) -> Result<Vec<Team>> {
 	let certs = {
 		let mut certs = Vec::new();
+
 		for cert_prefix in [
 			"iOS Distribution:",
 			"Apple Distribution:",
@@ -90,12 +94,16 @@ pub fn list(keychain_path:&Path) -> Result<Vec<Team>> {
 		] {
 			let pem_list_out = get_pem_list(keychain_path, cert_prefix)
 				.context("Failed to call `security` command")?;
+
 			let cert_list = X509Certificate::from_pem_multiple(pem_list_out.stdout)
 				.context("Failed to parse X509 cert")?;
+
 			certs.extend(cert_list.into_iter().map(|cert| (cert_prefix, cert)));
 		}
+
 		certs
 	};
+
 	Ok(certs
       .into_iter()
       .flat_map(|(cert_prefix, cert)| {

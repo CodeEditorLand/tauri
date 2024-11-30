@@ -99,6 +99,7 @@ pub fn command(cli: Cli) -> Result<()> {
               let parent = path.parent().unwrap().to_path_buf();
               if !created_dirs.contains(&parent) {
                 create_dir_all(&parent)?;
+
                 created_dirs.push(parent);
               }
               return File::create(path).map(Some);

@@ -27,12 +27,15 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
         .output()?;
       if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
+
         let info: YarnVersionInfo = serde_json::from_str(&stdout)?;
+
         Ok(Some(info.data.last().unwrap().to_string()))
       } else {
         Ok(None)
       }
     }
+
     PackageManager::YarnBerry => {
       let mut cmd = cross_command("yarn");
 
@@ -45,6 +48,7 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
       if output.status.success() {
         let info: crate::PackageJson =
           serde_json::from_reader(std::io::Cursor::new(output.stdout)).unwrap();
+
         Ok(info.version)
       } else {
         Ok(None)
@@ -57,17 +61,20 @@ pub fn npm_latest_version(pm: &PackageManager, name: &str) -> crate::Result<Opti
       let output = cmd.arg("show").arg(name).arg("version").output()?;
       if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
+
         Ok(Some(stdout.replace('\n', "")))
       } else {
         Ok(None)
       }
     }
+
     PackageManager::Pnpm => {
       let mut cmd = cross_command("pnpm");
 
       let output = cmd.arg("info").arg(name).arg("version").output()?;
       if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
+
         Ok(Some(stdout.replace('\n', "")))
       } else {
         Ok(None)
@@ -84,6 +91,7 @@ pub fn package_manager(frontend_dir: &PathBuf) -> PackageManager {
       "{}: no lock files found, defaulting to npm",
       "WARNING".yellow()
     );
+
     return PackageManager::Npm;
   }
 

@@ -39,6 +39,7 @@ mod build {
 
       if key.starts_with("DEP_") && key.ends_with(GLOBAL_API_SCRIPT_PATH_KEY) {
         let script_path = PathBuf::from(value);
+
         scripts.push(script_path);
       }
     }
@@ -53,12 +54,14 @@ mod build {
   /// Read global api scripts from [`GLOBAL_API_SCRIPT_FILE_LIST_PATH`]
   pub fn read_global_api_scripts(out_dir: &Path) -> Option<Vec<String>> {
     let global_scripts_path = out_dir.join(GLOBAL_API_SCRIPT_FILE_LIST_PATH);
+
     if !global_scripts_path.exists() {
       return None;
     }
 
     let global_scripts_str = fs::read_to_string(global_scripts_path)
       .expect("failed to read plugin global API script paths");
+
     let global_scripts = serde_json::from_str::<Vec<PathBuf>>(&global_scripts_str)
       .expect("failed to parse plugin global API script paths");
 

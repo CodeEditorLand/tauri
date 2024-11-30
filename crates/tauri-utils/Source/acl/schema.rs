@@ -154,8 +154,11 @@ fn extend_identifier_schema(schema: &mut RootSchema, acl: &BTreeMap<String, Mani
     });
 
     identifier_schema.subschemas = Some(new_subschemas);
+
     identifier_schema.object = None;
+
     identifier_schema.instance_type = None;
+
     identifier_schema.metadata().description = Some("Permission identifier".to_string());
   }
 }
@@ -196,15 +199,18 @@ fn extend_permission_entry_schema(root_schema: &mut RootSchema, acl: &BTreeMap<S
 
   if let Some(Schema::Object(obj)) = root_schema.definitions.get_mut("PermissionEntry") {
     let any_of = obj.subschemas().any_of.as_mut().unwrap();
+
     let Schema::Object(extened_permission_entry) = any_of.last_mut().unwrap() else {
       unreachable!("PermissionsEntry should be an object not a boolean");
     };
 
     // remove default properties and save it to be added later as a fallback
     let obj = extened_permission_entry.object.as_mut().unwrap();
+
     let default_properties = std::mem::take(&mut obj.properties);
 
     let defaut_identifier = default_properties.get(IDENTIFIER).cloned().unwrap();
+
     let default_identifier = (IDENTIFIER.to_string(), defaut_identifier);
 
     let mut all_of = vec![];
@@ -241,7 +247,9 @@ fn extend_permission_entry_schema(root_schema: &mut RootSchema, acl: &BTreeMap<S
 
     // add back default properties as a fallback
     let mut default_obj = SchemaObject::default();
+
     default_obj.object().properties = default_properties;
+
     all_of.push(Schema::Object(default_obj));
 
     // replace extended PermissionEntry with the new schema
@@ -296,6 +304,7 @@ fn extend_permission_file_schema(schema: &mut RootSchema, permissions: &[Permiss
 
   if let Some(Schema::Object(obj)) = schema.definitions.get_mut("PermissionSet") {
     let permissions_obj = obj.object().properties.get_mut("permissions");
+
     if let Some(Schema::Object(permissions_obj)) = permissions_obj {
       // replace the permissions property schema object
       // from a mere string to a referecnce to `PermissionKind`

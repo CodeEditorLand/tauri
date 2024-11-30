@@ -51,6 +51,7 @@ fn override_msvcrt_lib() {
     .open(path);
   if let Ok(mut f) = f {
     f.write_all(machine).unwrap();
+
     f.write_all(bytes).unwrap();
   }
   // Add the output directory to the native library path.

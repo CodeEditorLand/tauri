@@ -108,6 +108,7 @@ impl<T: UserEvent, R: Runtime<T>> PendingWebview<T, R> {
     label: impl Into<String>,
   ) -> crate::Result<Self> {
     let label = label.into();
+
     if !is_label_valid(&label) {
       Err(crate::Error::InvalidWindowLabel)
     } else {
@@ -139,6 +140,7 @@ impl<T: UserEvent, R: Runtime<T>> PendingWebview<T, R> {
     protocol: H,
   ) {
     let uri_scheme = uri_scheme.into();
+
     self
       .uri_scheme_protocols
       .insert(uri_scheme, Box::new(protocol));
@@ -152,6 +154,7 @@ impl<T: UserEvent, R: Runtime<T>> PendingWebview<T, R> {
     f: F,
   ) -> Self {
     self.on_webview_created.replace(Box::new(f));
+
     self
   }
 }
@@ -229,25 +232,33 @@ impl From<&WindowConfig> for WebviewAttributes {
     {
       builder = builder.transparent(config.transparent);
     }
+
     builder = builder.accept_first_mouse(config.accept_first_mouse);
+
     if !config.drag_drop_enabled {
       builder = builder.disable_drag_drop_handler();
     }
+
     if let Some(user_agent) = &config.user_agent {
       builder = builder.user_agent(user_agent);
     }
+
     if let Some(additional_browser_args) = &config.additional_browser_args {
       builder = builder.additional_browser_args(additional_browser_args);
     }
+
     if let Some(effects) = &config.window_effects {
       builder = builder.window_effects(effects.clone());
     }
+
     if let Some(url) = &config.proxy_url {
       builder = builder.proxy_url(url.to_owned());
     }
+
     if let Some(color) = config.background_color {
       builder = builder.background_color(color);
     }
+
     builder
   }
 }
@@ -284,6 +295,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn user_agent(mut self, user_agent: &str) -> Self {
     self.user_agent = Some(user_agent.to_string());
+
     self
   }
 
@@ -291,6 +303,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn initialization_script(mut self, script: &str) -> Self {
     self.initialization_scripts.push(script.to_string());
+
     self
   }
 
@@ -298,6 +311,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn data_directory(mut self, data_directory: PathBuf) -> Self {
     self.data_directory.replace(data_directory);
+
     self
   }
 
@@ -305,6 +319,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn disable_drag_drop_handler(mut self) -> Self {
     self.drag_drop_handler_enabled = false;
+
     self
   }
 
@@ -315,6 +330,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn enable_clipboard_access(mut self) -> Self {
     self.clipboard = true;
+
     self
   }
 
@@ -322,6 +338,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn accept_first_mouse(mut self, accept: bool) -> Self {
     self.accept_first_mouse = accept;
+
     self
   }
 
@@ -329,6 +346,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn additional_browser_args(mut self, additional_args: &str) -> Self {
     self.additional_browser_args = Some(additional_args.to_string());
+
     self
   }
 
@@ -336,6 +354,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn window_effects(mut self, effects: WindowEffectsConfig) -> Self {
     self.window_effects = Some(effects);
+
     self
   }
 
@@ -343,6 +362,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn incognito(mut self, incognito: bool) -> Self {
     self.incognito = incognito;
+
     self
   }
 
@@ -351,6 +371,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn transparent(mut self, transparent: bool) -> Self {
     self.transparent = transparent;
+
     self
   }
 
@@ -358,6 +379,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn focused(mut self, focus: bool) -> Self {
     self.focus = focus;
+
     self
   }
 
@@ -365,6 +387,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn auto_resize(mut self) -> Self {
     self.auto_resize = true;
+
     self
   }
 
@@ -372,6 +395,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn proxy_url(mut self, url: Url) -> Self {
     self.proxy_url = Some(url);
+
     self
   }
 
@@ -387,6 +411,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn zoom_hotkeys_enabled(mut self, enabled: bool) -> Self {
     self.zoom_hotkeys_enabled = enabled;
+
     self
   }
 
@@ -399,6 +424,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn browser_extensions_enabled(mut self, enabled: bool) -> Self {
     self.browser_extensions_enabled = enabled;
+
     self
   }
 
@@ -414,6 +440,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn use_https_scheme(mut self, enabled: bool) -> Self {
     self.use_https_scheme = enabled;
+
     self
   }
 
@@ -429,6 +456,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn devtools(mut self, enabled: Option<bool>) -> Self {
     self.devtools = enabled;
+
     self
   }
 
@@ -440,6 +468,7 @@ impl WebviewAttributes {
   #[must_use]
   pub fn background_color(mut self, color: Color) -> Self {
     self.background_color = Some(color);
+
     self
   }
 }

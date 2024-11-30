@@ -57,6 +57,7 @@ pub enum CodegenConfigError {
 pub fn get_config(path: &Path) -> Result<(Config, PathBuf), CodegenConfigError> {
   let path = if path.is_relative() {
     let cwd = std::env::current_dir().map_err(CodegenConfigError::CurrentDir)?;
+
     Cow::Owned(cwd.join(path))
   } else {
     Cow::Borrowed(path)
@@ -83,6 +84,7 @@ pub fn get_config(path: &Path) -> Result<(Config, PathBuf), CodegenConfigError> 
   if let Ok(env) = std::env::var("TAURI_CONFIG") {
     let merge_config: serde_json::Value =
       serde_json::from_str(&env).map_err(CodegenConfigError::FormatInline)?;
+
     json_patch::merge(&mut config, &merge_config);
   }
 
@@ -134,6 +136,7 @@ impl TryFrom<Vec<u8>> for Cached {
 
   fn try_from(content: Vec<u8>) -> Result<Self, Self::Error> {
     let checksum = checksum(content.as_ref()).map_err(EmbeddedAssetsError::Hex)?;
+
     let path = ensure_out_dir()?.join(&checksum);
 
     write_if_changed(&path, &content)
@@ -145,6 +148,7 @@ impl TryFrom<Vec<u8>> for Cached {
 impl ToTokens for Cached {
   fn to_tokens(&self, tokens: &mut TokenStream) {
     let path = &self.checksum;
+
     tokens.append_all(quote!(::std::concat!(::std::env!("OUT_DIR"), "/", #path)))
   }
 }

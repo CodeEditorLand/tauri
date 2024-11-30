@@ -270,6 +270,7 @@ pub fn resource_dir(package_info: &PackageInfo, env: &Env) -> crate::Result<Path
   #[cfg(not(target_os = "android"))]
   {
     let exe = current_exe()?;
+
     resource_dir_from(exe, package_info, env)
   }
 }
@@ -381,21 +382,29 @@ mod tests {
       description: "",
       crate_name: "my-app",
     };
+
     let env = Env::default();
 
     let path = PathBuf::from("/path/to/target/aarch64-apple-darwin/debug/app");
+
     let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+
     assert_eq!(resource_dir, path.parent().unwrap());
 
     let path = PathBuf::from("/path/to/target/custom-profile/app");
+
     let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+
     assert_eq!(resource_dir, path.parent().unwrap());
 
     let path = PathBuf::from("/path/to/target/release/app");
+
     let resource_dir = super::resource_dir_from(&path, &package_info, &env).unwrap();
+
     assert_eq!(resource_dir, path.parent().unwrap());
 
     let path = PathBuf::from("/path/to/target/unknown-profile/app");
+
     let resource_dir = super::resource_dir_from(&path, &package_info, &env);
     #[cfg(target_os = "macos")]
     assert!(resource_dir.is_err());

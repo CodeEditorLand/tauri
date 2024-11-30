@@ -68,6 +68,7 @@ impl<'de> Deserialize<'de> for SafePathBuf {
     D: Deserializer<'de>,
   {
     let path = PathBuf::deserialize(deserializer)?;
+
     SafePathBuf::new(path).map_err(DeError::custom)
   }
 }
@@ -213,6 +214,7 @@ impl BaseDirectory {
 
       _ => return None,
     };
+
     Some(res)
   }
 }
@@ -250,7 +252,9 @@ impl<R: Runtime> PathResolver<R> {
   /// ```
   pub fn parse<P: AsRef<Path>>(&self, path: P) -> Result<PathBuf> {
     let mut p = PathBuf::new();
+
     let mut components = path.as_ref().components();
+
     match components.next() {
       Some(Component::Normal(str)) => {
         if let Some(base_directory) = BaseDirectory::from_variable(&str.to_string_lossy()) {

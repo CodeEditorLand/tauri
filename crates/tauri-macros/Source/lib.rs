@@ -200,6 +200,7 @@ pub fn include_image(tokens: TokenStream) -> TokenStream {
       "Provided Image path \"{}\" doesn't exists",
       resolved_path.display()
     );
+
     return quote!(compile_error!(#error_string)).into();
   }
 

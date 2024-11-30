@@ -23,11 +23,13 @@ const VSWHERE:&[u8] = include_bytes!("../../scripts/vswhere.exe");
 #[cfg(windows)]
 fn build_tools_version() -> crate::Result<Vec<String>> {
 	let mut vswhere = std::env::temp_dir();
+
 	vswhere.push("vswhere.exe");
 
 	if !vswhere.exists() {
 		if let Ok(mut file) = std::fs::File::create(&vswhere) {
 			use std::io::Write;
+
 			let _ = file.write_all(VSWHERE);
 		}
 	}
@@ -71,6 +73,7 @@ fn build_tools_version() -> crate::Result<Vec<String>> {
 		let stdout = String::from_utf8_lossy(&output_sdk10.stdout);
 
 		let found:Vec<VsInstanceInfo> = serde_json::from_str(&stdout)?;
+
 		instances.extend(found);
 	}
 
@@ -78,6 +81,7 @@ fn build_tools_version() -> crate::Result<Vec<String>> {
 		let stdout = String::from_utf8_lossy(&output_sdk11.stdout);
 
 		let found:Vec<VsInstanceInfo> = serde_json::from_str(&stdout)?;
+
 		instances.extend(found);
 	}
 
@@ -85,6 +89,7 @@ fn build_tools_version() -> crate::Result<Vec<String>> {
 		instances.iter().map(|i| i.display_name.clone()).collect::<Vec<String>>();
 
 	instances.sort_unstable();
+
 	instances.dedup();
 
 	Ok(instances)
@@ -105,6 +110,7 @@ fn webview2_version() -> crate::Result<Option<String>> {
 			 {F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' | ForEach-Object {$_.pv}",
 		)
 		.output()?;
+
 	if output.status.success() {
 		return Ok(Some(String::from_utf8_lossy(&output.stdout).replace('\n', "")));
 	}
@@ -117,6 +123,7 @@ fn webview2_version() -> crate::Result<Option<String>> {
 			 {F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' | ForEach-Object {$_.pv}",
 		)
 		.output()?;
+
 	if output.status.success() {
 		return Ok(Some(String::from_utf8_lossy(&output.stdout).replace('\n', "")));
 	}
@@ -129,6 +136,7 @@ fn webview2_version() -> crate::Result<Option<String>> {
 			 {F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' | ForEach-Object {$_.pv}",
 		)
 		.output()?;
+
 	if output.status.success() {
 		return Ok(Some(String::from_utf8_lossy(&output.stdout).replace('\n', "")));
 	}
@@ -185,6 +193,7 @@ pub fn items() -> Vec<SectionItem> {
 	vec![
 		SectionItem::new().action(|| {
 			let os_info = os_info::get();
+
 			format!(
 				"OS: {} {} {} ({:?})",
 				os_info.os_type(),
@@ -201,6 +210,7 @@ pub fn items() -> Vec<SectionItem> {
 				"not installed!".red(),
 				"https://developer.microsoft.com/en-us/microsoft-edge/webview2/".cyan()
 			);
+
 			webview2_version()
 				.map(|v| {
 					v.map(|v| (format!("WebView2: {}", v), Status::Success))
@@ -212,6 +222,7 @@ pub fn items() -> Vec<SectionItem> {
 		#[cfg(windows)]
 		SectionItem::new().action(|| {
 			let build_tools = build_tools_version().unwrap_or_default();
+
 			if build_tools.is_empty() {
 				(
 					format!(

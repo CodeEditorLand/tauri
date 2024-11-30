@@ -59,6 +59,7 @@ impl Parse for WrapperAttributes {
 		};
 
 		let attrs = Punctuated::<WrapperAttributeKind, Token![,]>::parse_terminated(input)?;
+
 		for attr in attrs {
 			match attr {
 				WrapperAttributeKind::Meta(Meta::List(_)) => {
@@ -86,6 +87,7 @@ impl Parse for WrapperAttributes {
 								quote!($crate)
 							} else {
 								let ident = Ident::new(&lit, Span::call_site());
+
 								quote!(#ident)
 							};
 						}
@@ -131,8 +133,11 @@ struct Invoke {
 /// from the function.
 pub fn wrapper(attributes:TokenStream, item:TokenStream) -> TokenStream {
 	let mut attrs = parse_macro_input!(attributes as WrapperAttributes);
+
 	let function = parse_macro_input!(item as ItemFn);
+
 	let wrapper = super::format_command_wrapper(&function.sig.ident);
+
 	let visibility = &function.vis;
 
 	if function.sig.asyncness.is_some() {
@@ -158,6 +163,7 @@ pub fn wrapper(attributes:TokenStream, item:TokenStream) -> TokenStream {
 	// For now, we provide an informative error message to the user in that case.
 	// Once #2533 is resolved, this check can be removed.
 	let mut async_command_check = TokenStream2::new();
+
 	if function.sig.asyncness.is_some() {
 		// This check won't catch all possible problems but it should catch the most
 		// common ones.
@@ -172,6 +178,7 @@ pub fn wrapper(attributes:TokenStream, item:TokenStream) -> TokenStream {
 					syn::Type::Path(path) => {
 						// Check if the type contains a lifetime argument
 						let last = path.path.segments.last().unwrap();
+
 						if let syn::PathArguments::AngleBracketed(args) = &last.arguments {
 							if args
 								.args
@@ -196,8 +203,11 @@ pub fn wrapper(attributes:TokenStream, item:TokenStream) -> TokenStream {
 						  #[allow(unreachable_code, clippy::diverging_sub_expression)]
 						  const _: () = if false {
 							trait AsyncCommandMustReturnResult {}
+
 							impl<A, B> AsyncCommandMustReturnResult for ::std::result::Result<A, B> {}
+
 							let _check: #return_type = unreachable!();
+
 							let _: &dyn AsyncCommandMustReturnResult = &_check;
 						  };
 						};
@@ -239,7 +249,9 @@ pub fn wrapper(attributes:TokenStream, item:TokenStream) -> TokenStream {
 	};
 
 	let loc = function.span().start();
+
 	let line = loc.line;
+
 	let col = loc.column;
 
 	let maybe_span = if cfg!(feature = "tracing") {
@@ -302,6 +314,7 @@ fn body_async(
 	attributes:&WrapperAttributes,
 ) -> syn::Result<TokenStream2> {
 	let Invoke { message, resolver, acl } = invoke;
+
 	parse_args(plugin_name, function, message, acl, attributes).map(|args| {
 		#[cfg(feature = "tracing")]
 		quote! {
@@ -310,7 +323,9 @@ fn body_async(
 		  let span = tracing::debug_span!("ipc::request::run");
 		  #resolver.respond_async_serialized(async move {
 			let result = $path(#(#args?),*);
+
 			let kind = (&result).async_kind();
+
 			kind.future(result).await
 		  }
 		  .instrument(span));
@@ -321,7 +336,9 @@ fn body_async(
 		quote! {
 		  #resolver.respond_async_serialized(async move {
 			let result = $path(#(#args?),*);
+
 			let kind = (&result).async_kind();
+
 			kind.future(result).await
 		  });
 		  return true;
@@ -343,6 +360,7 @@ fn body_blocking(
 	attributes:&WrapperAttributes,
 ) -> syn::Result<TokenStream2> {
 	let Invoke { message, resolver, acl } = invoke;
+
 	let args = parse_args(plugin_name, function, message, acl, attributes)?;
 
 	// the body of a `match` to early return any argument that wasn't successful in

@@ -65,6 +65,7 @@ where
 	if erase && path.as_ref().exists() {
 		remove(&path)?;
 	}
+
 	Ok(create_dir(&path)?)
 }
 
@@ -76,6 +77,7 @@ where
 	if erase && path.as_ref().exists() {
 		remove(&path)?;
 	}
+
 	Ok(create_dir_all(&path)?)
 }
 
@@ -90,11 +92,14 @@ where
 	P: AsRef<Path>,
 	Q: AsRef<Path>, {
 	let from = from.as_ref();
+
 	if !from.exists() {
 		if let Some(msg) = from.to_str() {
 			let msg = format!("Path \"{msg}\" does not exist or you don't have access");
+
 			return Err(crate::Error::PathUtilError(msg));
 		}
+
 		return Err(crate::Error::PathUtilError(
 			"Path does not exist or you don't have access!".to_owned(),
 		));
@@ -103,10 +108,13 @@ where
 	if !from.is_file() {
 		if let Some(msg) = from.to_str() {
 			let msg = format!("Path \"{msg}\" is not a file!");
+
 			return Err(crate::Error::PathUtilError(msg));
 		}
+
 		return Err(crate::Error::PathUtilError("Path is not a file!".to_owned()));
 	}
+
 	if !options.overwrite && to.as_ref().exists() {
 		if options.skip {
 			return Ok(0);
@@ -114,6 +122,7 @@ where
 
 		if let Some(msg) = to.as_ref().to_str() {
 			let msg = format!("Path \"{msg}\" is exist");
+
 			return Err(crate::Error::PathUtilError(msg));
 		}
 	}
@@ -128,20 +137,26 @@ where
 	P: AsRef<Path>,
 	Q: AsRef<Path>, {
 	let from = from.as_ref();
+
 	if !from.exists() {
 		if let Some(msg) = from.to_str() {
 			let msg = format!("Path \"{msg}\" does not exist or you don't have access!");
+
 			return Err(crate::Error::PathUtilError(msg));
 		}
+
 		return Err(crate::Error::PathUtilError(
 			"Path does not exist or you don't have access".to_owned(),
 		));
 	}
+
 	if !from.is_dir() {
 		if let Some(msg) = from.to_str() {
 			let msg = format!("Path \"{msg}\" is not a directory!");
+
 			return Err(crate::Error::PathUtilError(msg));
 		}
+
 		return Err(crate::Error::PathUtilError("Path is not a directory".to_owned()));
 	}
 
@@ -150,21 +165,26 @@ where
 	} else {
 		return Err(crate::Error::PathUtilError("Invalid Folder form".to_owned()));
 	};
+
 	let mut to:PathBuf = to.as_ref().to_path_buf();
+
 	if !options.content_only && (!options.copy_files || to.exists()) {
 		to.push(dir_name);
 	}
 
 	let mut read_options = DirOpts::default();
+
 	if options.depth > 0 {
 		read_options.depth = options.depth;
 	}
 
 	let dir_content = get_dir_info(from, &read_options)?;
+
 	for directory in dir_content.directories {
 		let tmp_to = Path::new(&directory).strip_prefix(from)?;
 
 		let dir = to.join(tmp_to);
+
 		if !dir.exists() {
 			if options.copy_files {
 				create_all(dir, false)?;
@@ -173,7 +193,9 @@ where
 			}
 		}
 	}
+
 	let mut result:u64 = 0;
+
 	for file in dir_content.files {
 		let to = to.to_path_buf();
 
@@ -196,19 +218,23 @@ where
 			{
 				result_copy = copy_file(&file, &path, &file_options);
 			}
+
 			match result_copy {
 				Ok(val) => {
 					result += val;
+
 					work = false;
 				},
 
 				Err(err) => {
 					let err_msg = err.to_string();
+
 					return Err(crate::Error::PathUtilError(err_msg));
 				},
 			}
 		}
 	}
+
 	Ok(result)
 }
 
@@ -226,29 +252,40 @@ fn _get_dir_info<P>(path:P, mut depth:u64) -> crate::Result<DirInfo>
 where
 	P: AsRef<Path>, {
 	let mut directories = Vec::new();
+
 	let mut files = Vec::new();
+
 	let mut size = 0;
+
 	let item = path.as_ref().to_str();
+
 	if item.is_none() {
 		return Err(crate::Error::PathUtilError("Invalid Path".to_owned()));
 	}
+
 	let item = item.expect("Item had no data").to_string();
 
 	if path.as_ref().is_dir() {
 		directories.push(item);
+
 		if depth == 0 || depth > 1 {
 			if depth > 1 {
 				depth -= 1;
 			}
+
 			for entry in read_dir(&path)? {
 				let _path = entry?.path();
 
 				match _get_dir_info(_path, depth) {
 					Ok(items) => {
 						let mut _files = items.files;
+
 						let mut _directories = items.directories;
+
 						size += items.size;
+
 						files.append(&mut _files);
+
 						directories.append(&mut _directories);
 					},
 					Err(err) => return Err(err),
@@ -257,7 +294,9 @@ where
 		}
 	} else {
 		size = path.as_ref().metadata()?.len();
+
 		files.push(item);
 	}
+
 	Ok(DirInfo { size, files, directories })
 }

@@ -48,6 +48,7 @@ pub fn default_window_icon<R: Runtime>(
 ) -> Option<ResourceId> {
   app.default_window_icon().cloned().map(|icon| {
     let mut resources_table = webview.resources_table();
+
     resources_table.add(icon.to_owned())
   })
 }

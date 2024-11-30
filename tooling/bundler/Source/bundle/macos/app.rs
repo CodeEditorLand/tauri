@@ -58,12 +58,16 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 		fs::remove_dir_all(&app_bundle_path)
 			.with_context(|| format!("Failed to remove old {}", app_product_name))?;
 	}
+
 	let bundle_directory = app_bundle_path.join("Contents");
+
 	fs::create_dir_all(&bundle_directory)
 		.with_context(|| format!("Failed to create bundle directory at {:?}", bundle_directory))?;
 
 	let resources_dir = bundle_directory.join("Resources");
+
 	let bin_dir = bundle_directory.join("MacOS");
+
 	let mut sign_paths = Vec::new();
 
 	let bundle_icon_file:Option<PathBuf> = {
@@ -75,6 +79,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 
 	let framework_paths = copy_frameworks_to_bundle(&bundle_directory, settings)
 		.with_context(|| "Failed to bundle frameworks")?;
+
 	sign_paths.extend(framework_paths);
 
 	settings.copy_resources(&resources_dir)?;
@@ -82,9 +87,11 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 	let bin_paths = settings
 		.copy_binaries(&bin_dir)
 		.with_context(|| "Failed to copy external binaries")?;
+
 	sign_paths.extend(bin_paths.into_iter().map(|path| SignTarget { path, is_an_executable:true }));
 
 	let bin_paths = copy_binaries_to_bundle(&bundle_directory, settings)?;
+
 	sign_paths.extend(bin_paths.into_iter().map(|path| SignTarget { path, is_an_executable:true }));
 
 	copy_custom_files_to_bundle(&bundle_directory, settings)?;
@@ -125,6 +132,7 @@ fn remove_extra_attr(app_bundle_path:&Path) -> crate::Result<()> {
 		.arg(app_bundle_path)
 		.output_ok()
 		.context("failed to remove extra attributes from app bundle")?;
+
 	Ok(())
 }
 
@@ -134,15 +142,20 @@ fn copy_binaries_to_bundle(
 	settings:&Settings,
 ) -> crate::Result<Vec<PathBuf>> {
 	let mut paths = Vec::new();
+
 	let dest_dir = bundle_directory.join("MacOS");
+
 	for bin in settings.binaries() {
 		let bin_path = settings.binary_path(bin);
 
 		let dest_path = dest_dir.join(bin.name());
+
 		common::copy_file(&bin_path, &dest_path)
 			.with_context(|| format!("Failed to copy binary from {:?}", bin_path))?;
+
 		paths.push(dest_path);
 	}
+
 	Ok(paths)
 }
 
@@ -154,6 +167,7 @@ fn copy_custom_files_to_bundle(bundle_directory:&Path, settings:&Settings) -> cr
 		} else {
 			contents_path
 		};
+
 		if path.is_file() {
 			common::copy_file(path, bundle_directory.join(contents_path)).with_context(|| {
 				format!("Failed to copy file {:?} to {:?}", path, contents_path)
@@ -164,6 +178,7 @@ fn copy_custom_files_to_bundle(bundle_directory:&Path, settings:&Settings) -> cr
 			})?;
 		}
 	}
+
 	Ok(())
 }
 
@@ -175,33 +190,47 @@ fn create_info_plist(
 ) -> crate::Result<()> {
 	let format = time::format_description::parse("[year][month][day].[hour][minute][second]")
 		.map_err(time::error::Error::from)?;
+
 	let build_number = time::OffsetDateTime::now_utc()
 		.format(&format)
 		.map_err(time::error::Error::from)?;
 
 	let mut plist = plist::Dictionary::new();
+
 	plist.insert("CFBundleDevelopmentRegion".into(), "English".into());
+
 	plist.insert("CFBundleDisplayName".into(), settings.product_name().into());
+
 	plist.insert("CFBundleExecutable".into(), settings.main_binary_name().into());
+
 	if let Some(path) = bundle_icon_file {
 		plist.insert(
 			"CFBundleIconFile".into(),
 			path.file_name().expect("No file name").to_string_lossy().into_owned().into(),
 		);
 	}
+
 	plist.insert("CFBundleIdentifier".into(), settings.bundle_identifier().into());
+
 	plist.insert("CFBundleInfoDictionaryVersion".into(), "6.0".into());
+
 	plist.insert("CFBundleName".into(), settings.product_name().into());
+
 	plist.insert("CFBundlePackageType".into(), "APPL".into());
+
 	plist.insert("CFBundleShortVersionString".into(), settings.version_string().into());
+
 	plist.insert("CFBundleVersion".into(), build_number.into());
+
 	plist.insert("CSResourcesFileMapped".into(), true.into());
+
 	if let Some(category) = settings.app_category() {
 		plist.insert(
 			"LSApplicationCategoryType".into(),
 			category.macos_application_category_type().into(),
 		);
 	}
+
 	if let Some(version) = settings.macos().minimum_system_version.clone() {
 		plist.insert("LSMinimumSystemVersion".into(), version.into());
 	}
@@ -214,12 +243,14 @@ fn create_info_plist(
 					.iter()
 					.map(|association| {
 						let mut dict = plist::Dictionary::new();
+
 						dict.insert(
 							"CFBundleTypeExtensions".into(),
 							plist::Value::Array(
 								association.ext.iter().map(|ext| ext.to_string().into()).collect(),
 							),
 						);
+
 						dict.insert(
 							"CFBundleTypeName".into(),
 							association
@@ -229,7 +260,9 @@ fn create_info_plist(
 								.to_string()
 								.into(),
 						);
+
 						dict.insert("CFBundleTypeRole".into(), association.role.to_string().into());
+
 						plist::Value::Dictionary(dict)
 					})
 					.collect(),
@@ -245,12 +278,14 @@ fn create_info_plist(
 					.iter()
 					.map(|protocol| {
 						let mut dict = plist::Dictionary::new();
+
 						dict.insert(
 							"CFBundleURLSchemes".into(),
 							plist::Value::Array(
 								protocol.schemes.iter().map(|s| s.to_string().into()).collect(),
 							),
 						);
+
 						dict.insert(
 							"CFBundleURLName".into(),
 							protocol
@@ -263,7 +298,9 @@ fn create_info_plist(
 								))
 								.into(),
 						);
+
 						dict.insert("CFBundleTypeRole".into(), protocol.role.to_string().into());
+
 						plist::Value::Dictionary(dict)
 					})
 					.collect(),
@@ -272,7 +309,9 @@ fn create_info_plist(
 	}
 
 	plist.insert("LSRequiresCarbon".into(), true.into());
+
 	plist.insert("NSHighResolutionCapable".into(), true.into());
+
 	if let Some(copyright) = settings.copyright_string() {
 		plist.insert("NSHumanReadableCopyright".into(), copyright.into());
 	}
@@ -281,17 +320,23 @@ fn create_info_plist(
 		let mut security = plist::Dictionary::new();
 
 		let mut domain = plist::Dictionary::new();
+
 		domain.insert("NSExceptionAllowsInsecureHTTPLoads".into(), true.into());
+
 		domain.insert("NSIncludesSubdomains".into(), true.into());
 
 		let mut exception_domains = plist::Dictionary::new();
+
 		exception_domains.insert(exception_domain, domain.into());
+
 		security.insert("NSExceptionDomains".into(), exception_domains.into());
+
 		plist.insert("NSAppTransportSecurity".into(), security.into());
 	}
 
 	if let Some(user_plist_path) = &settings.macos().info_plist_path {
 		let user_plist = plist::Value::from_file(user_plist_path)?;
+
 		if let Some(dict) = user_plist.into_dictionary() {
 			for (key, value) in dict {
 				plist.insert(key, value);
@@ -308,9 +353,12 @@ fn create_info_plist(
 // `{dest_dir}/{framework}.framework`.
 fn copy_framework_from(dest_dir:&Path, framework:&str, src_dir:&Path) -> crate::Result<bool> {
 	let src_name = format!("{}.framework", framework);
+
 	let src_path = src_dir.join(&src_name);
+
 	if src_path.exists() {
 		common::copy_dir(&src_path, &dest_dir.join(&src_name))?;
+
 		Ok(true)
 	} else {
 		Ok(false)
@@ -325,32 +373,47 @@ fn copy_frameworks_to_bundle(
 	let mut paths = Vec::new();
 
 	let frameworks = settings.macos().frameworks.as_ref().cloned().unwrap_or_default();
+
 	if frameworks.is_empty() {
 		return Ok(paths);
 	}
+
 	let dest_dir = bundle_directory.join("Frameworks");
+
 	fs::create_dir_all(bundle_directory)
 		.with_context(|| format!("Failed to create Frameworks directory at {:?}", dest_dir))?;
+
 	for framework in frameworks.iter() {
 		if framework.ends_with(".framework") {
 			let src_path = PathBuf::from(framework);
+
 			let src_name = src_path.file_name().expect("Couldn't get framework filename");
+
 			let dest_path = dest_dir.join(src_name);
+
 			common::copy_dir(&src_path, &dest_path)?;
+
 			add_framework_sign_path(&src_path, &dest_path, &mut paths);
+
 			continue;
 		} else if framework.ends_with(".dylib") {
 			let src_path = PathBuf::from(framework);
+
 			if !src_path.exists() {
 				return Err(crate::Error::GenericError(format!(
 					"Library not found: {}",
 					framework
 				)));
 			}
+
 			let src_name = src_path.file_name().expect("Couldn't get library filename");
+
 			let dest_path = dest_dir.join(src_name);
+
 			common::copy_file(&src_path, &dest_path)?;
+
 			paths.push(SignTarget { path:dest_path, is_an_executable:false });
+
 			continue;
 		} else if framework.contains('/') {
 			return Err(crate::Error::GenericError(format!(
@@ -358,11 +421,13 @@ fn copy_frameworks_to_bundle(
 				framework
 			)));
 		}
+
 		if let Some(home_dir) = dirs::home_dir() {
 			if copy_framework_from(&dest_dir, framework, &home_dir.join("Library/Frameworks/"))? {
 				continue;
 			}
 		}
+
 		if copy_framework_from(&dest_dir, framework, &PathBuf::from("/Library/Frameworks/"))?
 			|| copy_framework_from(
 				&dest_dir,
@@ -371,11 +436,13 @@ fn copy_frameworks_to_bundle(
 			)? {
 			continue;
 		}
+
 		return Err(crate::Error::GenericError(format!(
 			"Could not locate framework: {}",
 			framework
 		)));
 	}
+
 	Ok(paths)
 }
 
@@ -392,6 +459,7 @@ fn add_framework_sign_path(framework_root:&Path, dest_path:&Path, sign_paths:&mu
 	} else {
 		add_nested_code_sign_path(framework_root, dest_path, sign_paths);
 	}
+
 	sign_paths.push(SignTarget { path:dest_path.into(), is_an_executable:false });
 }
 
@@ -410,6 +478,7 @@ fn add_executable_bundle_sign_path(
 	} else {
 		add_nested_code_sign_path(bundle_root, dest_path, sign_paths);
 	}
+
 	sign_paths.push(SignTarget { path:dest_path.into(), is_an_executable:true });
 }
 
@@ -431,7 +500,9 @@ fn add_nested_code_sign_path(src_path:&Path, dest_path:&Path, sign_paths:&mut Ve
 				}
 
 				let dest_path = dest_folder_path.join(entry.file_name());
+
 				let ext = entry.path().extension();
+
 				if entry.path().is_dir() {
 					// Bundles, like .app, .framework, .xpc
 					if ext == Some(OsStr::new("framework")) {

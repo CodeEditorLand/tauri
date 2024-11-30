@@ -34,22 +34,28 @@ impl TauriOptions {
   #[cfg(target_os = "linux")]
   fn into_native_object(self) -> Map<String, Value> {
     let mut map = Map::new();
+
     map.insert(
       "webkitgtk:browserOptions".into(),
       json!({"binary": self.application, "args": self.args}),
     );
+
     map
   }
 
   #[cfg(target_os = "windows")]
   fn into_native_object(self) -> Map<String, Value> {
     let mut map = Map::new();
+
     map.insert("ms:edgeChromium".into(), json!(true));
+
     map.insert("browserName".into(), json!("webview2"));
+
     map.insert(
       "ms:edgeOptions".into(),
       json!({"binary": self.application, "args": self.args, "webviewOptions": self.webview_options}),
     );
+
     map
   }
 }
@@ -65,6 +71,7 @@ async fn handle(
 
     // get the body from the future stream and parse it as json
     let body = hyper::body::to_bytes(body).await?;
+
     let json: Value = serde_json::from_slice(&body)?;
 
     // manipulate the json to convert from tauri option to native driver options
@@ -72,6 +79,7 @@ async fn handle(
 
     // serialize json and update the content-length header to be accurate
     let bytes = serde_json::to_vec(&json)?;
+
     parts.headers.insert(CONTENT_LENGTH, bytes.len().into());
 
     req = Request::from_parts(parts, bytes.into());
@@ -87,6 +95,7 @@ async fn handle(
 fn forward_to_native_driver(mut req: Request<Body>, args: Args) -> Result<Request<Body>, Error> {
   let host: Authority = {
     let headers = req.headers_mut();
+
     headers.remove("host").expect("hyper request has host")
   }
   .to_str()?
@@ -133,6 +142,7 @@ fn map_capabilities(mut json: Value) -> Value {
     if let Some(desired) = json.get_mut("desiredCapabilities") {
       if let Some(desired) = desired.as_object_mut() {
         desired.remove(TAURI_OPTIONS);
+
         desired.extend(native);
       }
     }
@@ -146,10 +156,13 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
   #[cfg(unix)]
   let (signals_handle, signals_task) = {
     use futures_util::StreamExt;
+
     use signal_hook::consts::signal::*;
 
     let signals = signal_hook_tokio::Signals::new([SIGTERM, SIGINT, SIGQUIT])?;
+
     let signals_handle = signals.handle();
+
     let signals_task = tokio::spawn(async move {
       let mut signals = signals.fuse();
       #[allow(clippy::never_loop)]
@@ -159,6 +172,7 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
             _driver
               .kill()
               .expect("unable to kill native webdriver server");
+
             std::process::exit(0);
           }
           _ => unreachable!(),
@@ -180,7 +194,9 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
   // pass a copy of the client to the http request handler
   let service = make_service_fn(move |_| {
     let client = client.clone();
+
     let args = args.clone();
+
     async move {
       Ok::<_, Infallible>(service_fn(move |request| {
         handle(client.clone(), request, args.clone())
@@ -199,6 +215,7 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
   #[cfg(unix)]
   {
     signals_handle.close();
+
     signals_task.await?;
   }
 

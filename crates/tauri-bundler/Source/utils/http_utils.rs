@@ -98,6 +98,7 @@ pub fn verify_hash(data: &[u8], hash: &str, hash_algorithm: HashAlgorithm) -> cr
       let hasher = sha2::Sha256::new();
       verify_data_with_hasher(data, hash, hasher)
     }
+
     HashAlgorithm::Sha1 => {
       let hasher = sha1::Sha1::new();
       verify_data_with_hasher(data, hash, hasher)
@@ -141,6 +142,7 @@ pub fn extract_zip(data: &[u8], path: &Path) -> crate::Result<()> {
       let dest_path = path.join(name);
       if file.is_dir() {
         create_dir_all(&dest_path)?;
+
         continue;
       }
 

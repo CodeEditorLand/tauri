@@ -18,6 +18,7 @@ pub fn items(metadata: &VersionMetadata) -> Vec<SectionItem> {
         .map(|o| {
           if o.status.success() {
             let v = String::from_utf8_lossy(o.stdout.as_slice()).to_string();
+
             let v = v
               .split('\n')
               .next()
@@ -25,6 +26,7 @@ pub fn items(metadata: &VersionMetadata) -> Vec<SectionItem> {
               .strip_prefix('v')
               .unwrap_or_default()
               .trim();
+
             ActionResult::Description(format!("node: {}{}", v, {
               let version = semver::Version::parse(v);
               let target_version = semver::Version::parse(node_target_ver.as_str());
@@ -36,6 +38,7 @@ pub fn items(metadata: &VersionMetadata) -> Vec<SectionItem> {
                     target_version.to_string().green()
                   )
                 }
+
                 _ => "".into(),
               }
             }))

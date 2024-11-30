@@ -31,6 +31,7 @@ impl<'a> VuePartialLoader<'a> {
 		let Some(result2) = self.parse_script(&mut pointer) else {
 			return vec![result1];
 		};
+
 		vec![result1, result2]
 	}
 
@@ -67,6 +68,7 @@ impl<'a> VuePartialLoader<'a> {
 
 		let source_type =
 			SourceType::default().with_module(true).with_typescript(is_ts).with_jsx(is_jsx);
+
 		Some(JavaScriptSource::new(source_text, source_type, js_start))
 	}
 }
@@ -90,6 +92,7 @@ mod test {
         "#;
 
 		let result = parse_vue(source_text);
+
 		assert_eq!(result.source_text, r#" console.log("hi") "#);
 	}
 
@@ -102,7 +105,9 @@ mod test {
         "#;
 
 		let result = parse_vue(source_text);
+
 		assert!(result.source_type.is_typescript());
+
 		assert_eq!(result.source_text.trim(), "1/1");
 	}
 
@@ -115,7 +120,9 @@ mod test {
         ";
 
 		let result = parse_vue(source_text);
+
 		assert!(result.source_type.is_typescript());
+
 		assert_eq!(result.source_text.trim(), "1/1");
 	}
 
@@ -128,7 +135,9 @@ mod test {
         ";
 
 		let result = parse_vue(source_text);
+
 		assert!(result.source_type.is_typescript());
+
 		assert_eq!(result.source_text.trim(), "1/1");
 	}
 
@@ -141,8 +150,11 @@ mod test {
         ";
 
 		let result = parse_vue(source_text);
+
 		assert!(result.source_type.is_jsx());
+
 		assert!(result.source_type.is_typescript());
+
 		assert_eq!(result.source_text.trim(), "1/1");
 	}
 
@@ -156,7 +168,9 @@ mod test {
         ";
 
 		let result = parse_vue(source_text);
+
 		assert!(!result.source_type.is_typescript());
+
 		assert_eq!(result.source_text.trim(), r"a.replace(/&#39;/g, '\''))");
 	}
 
@@ -169,6 +183,7 @@ mod test {
         ";
 
 		let result = parse_vue(source_text);
+
 		assert_eq!(result.source_text.trim(), r"`a${b( `c \`${d}\``)}`");
 	}
 
@@ -181,6 +196,7 @@ mod test {
         ";
 
 		let result = parse_vue(source_text);
+
 		assert_eq!(result.source_text.trim(), r"`${/{/}`");
 	}
 
@@ -191,6 +207,7 @@ mod test {
         ";
 
 		let sources = VuePartialLoader::new(source_text).parse();
+
 		assert!(sources.is_empty());
 	}
 
@@ -202,6 +219,7 @@ mod test {
         ";
 
 		let sources = VuePartialLoader::new(source_text).parse();
+
 		assert!(sources.is_empty());
 	}
 
@@ -214,8 +232,11 @@ mod test {
         ";
 
 		let sources = VuePartialLoader::new(source_text).parse();
+
 		assert_eq!(sources.len(), 2);
+
 		assert_eq!(sources[0].source_text, "a");
+
 		assert_eq!(sources[1].source_text, "b");
 	}
 
@@ -224,6 +245,7 @@ mod test {
 		let source_text = r"
         <script setup>
         let 日历 = '2000年';
+
         const t = useTranslate({
             'zh-CN': {
                 calendar: '日历',
@@ -234,9 +256,11 @@ mod test {
         ";
 
 		let result = parse_vue(source_text);
+
 		assert_eq!(
 			result.source_text.trim(),
 			"let 日历 = '2000年';
+
         const t = useTranslate({
             'zh-CN': {
                 calendar: '日历',

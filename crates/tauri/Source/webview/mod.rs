@@ -260,8 +260,11 @@ impl<R: Runtime> WebviewBuilder<R> {
 tauri::Builder::default()
   .setup(|app| {
     let window = tauri::window::WindowBuilder::new(app, "label").build()?;
+
     let webview_builder = tauri::webview::WebviewBuilder::new("label", tauri::WebviewUrl::App("index.html".into()));
+
     let webview = window.add_child(webview_builder, tauri::LogicalPosition::new(0, 0), window.inner_size().unwrap());
+
     Ok(())
   });
 ```
@@ -277,11 +280,13 @@ tauri::Builder::default()
 tauri::Builder::default()
   .setup(|app| {
     let handle = app.handle().clone();
+
     std::thread::spawn(move || {
       let window = tauri::window::WindowBuilder::new(&handle, "label").build().unwrap();
       let webview_builder = tauri::webview::WebviewBuilder::new("label", tauri::WebviewUrl::App("index.html".into()));
       window.add_child(webview_builder, tauri::LogicalPosition::new(0, 0), window.inner_size().unwrap());
     });
+
     Ok(())
   });
 ```
@@ -388,6 +393,7 @@ tauri::Builder::default()
           if let Some(csp) = response.headers_mut().get_mut("Content-Security-Policy") {
             // use the tauri helper to parse the CSP policy to a map
             let mut csp_map: HashMap<String, CspDirectiveSources> = Csp::Policy(csp.to_str().unwrap().to_string()).into();
+
             csp_map.entry("script-src".to_string()).or_insert_with(Default::default).push("'unsafe-inline'");
             // use the tauri helper to get a CSP string from the map
             let csp_string = Csp::from(csp_map).to_string();
@@ -410,6 +416,7 @@ tauri::Builder::default()
     f: F,
   ) -> Self {
     self.web_resource_request_handler.replace(Box::new(f));
+
     self
   }
 
@@ -439,6 +446,7 @@ tauri::Builder::default()
       });
 
     let webview = window.add_child(webview_builder, tauri::LogicalPosition::new(0, 0), window.inner_size().unwrap())?;
+
     Ok(())
   });
 ```
@@ -446,6 +454,7 @@ tauri::Builder::default()
   )]
   pub fn on_navigation<F: Fn(&Url) -> bool + Send + 'static>(mut self, f: F) -> Self {
     self.navigation_handler.replace(Box::new(f));
+
     self
   }
 
@@ -468,6 +477,7 @@ use tauri::{
 tauri::Builder::default()
   .setup(|app| {
     let window = WindowBuilder::new(app, "label").build()?;
+
     let webview_builder = WebviewBuilder::new("core", WebviewUrl::App("index.html".into()))
       .on_download(|webview, event| {
         match event {
@@ -485,6 +495,7 @@ tauri::Builder::default()
       });
 
     let webview = window.add_child(webview_builder, tauri::LogicalPosition::new(0, 0), window.inner_size().unwrap())?;
+
     Ok(())
   });
 ```
@@ -495,6 +506,7 @@ tauri::Builder::default()
     f: F,
   ) -> Self {
     self.download_handler.replace(Arc::new(f));
+
     self
   }
 
@@ -518,6 +530,7 @@ use std::collections::HashMap;
 tauri::Builder::default()
   .setup(|app| {
     let window = tauri::window::WindowBuilder::new(app, "label").build()?;
+
     let webview_builder = WebviewBuilder::new("core", WebviewUrl::App("index.html".into()))
       .on_page_load(|webview, payload| {
         match payload.event() {
@@ -529,7 +542,9 @@ tauri::Builder::default()
           }
         }
       });
+
     let webview = window.add_child(webview_builder, tauri::LogicalPosition::new(0, 0), window.inner_size().unwrap())?;
+
     Ok(())
   });
 ```
@@ -540,6 +555,7 @@ tauri::Builder::default()
     f: F,
   ) -> Self {
     self.on_page_load_handler.replace(Box::new(f));
+
     self
   }
 
@@ -549,7 +565,9 @@ tauri::Builder::default()
     window_label: &str,
   ) -> crate::Result<PendingWebview<EventLoopMessage, R>> {
     let mut pending = PendingWebview::new(self.webview_attributes, self.label.clone())?;
+
     pending.navigation_handler = self.navigation_handler.take();
+
     pending.web_resource_request_handler = self.web_resource_request_handler.take();
 
     if let Some(download_handler) = self.download_handler.take() {
@@ -575,7 +593,9 @@ tauri::Builder::default()
     }
 
     let label_ = pending.label.clone();
+
     let manager_ = manager.manager_owned();
+
     pending
       .on_page_load_handler
       .replace(Box::new(move |url, event| {
@@ -628,6 +648,7 @@ impl<R: Runtime> WebviewBuilder<R> {
   #[must_use]
   pub fn accept_first_mouse(mut self, accept: bool) -> Self {
     self.webview_attributes.accept_first_mouse = accept;
+
     self
   }
 
@@ -672,6 +693,7 @@ fn main() {
       .webview_attributes
       .initialization_scripts
       .push(script.to_string());
+
     self
   }
 
@@ -679,6 +701,7 @@ fn main() {
   #[must_use]
   pub fn user_agent(mut self, user_agent: &str) -> Self {
     self.webview_attributes.user_agent = Some(user_agent.to_string());
+
     self
   }
 
@@ -695,6 +718,7 @@ fn main() {
   #[must_use]
   pub fn additional_browser_args(mut self, additional_args: &str) -> Self {
     self.webview_attributes.additional_browser_args = Some(additional_args.to_string());
+
     self
   }
 
@@ -705,6 +729,7 @@ fn main() {
       .webview_attributes
       .data_directory
       .replace(data_directory);
+
     self
   }
 
@@ -712,6 +737,7 @@ fn main() {
   #[must_use]
   pub fn disable_drag_drop_handler(mut self) -> Self {
     self.webview_attributes.drag_drop_handler_enabled = false;
+
     self
   }
 
@@ -722,6 +748,7 @@ fn main() {
   #[must_use]
   pub fn enable_clipboard_access(mut self) -> Self {
     self.webview_attributes.clipboard = true;
+
     self
   }
 
@@ -733,6 +760,7 @@ fn main() {
   #[must_use]
   pub fn incognito(mut self, incognito: bool) -> Self {
     self.webview_attributes.incognito = incognito;
+
     self
   }
 
@@ -746,6 +774,7 @@ fn main() {
   #[must_use]
   pub fn proxy_url(mut self, url: Url) -> Self {
     self.webview_attributes.proxy_url = Some(url);
+
     self
   }
 
@@ -758,6 +787,7 @@ fn main() {
   #[must_use]
   pub fn transparent(mut self, transparent: bool) -> Self {
     self.webview_attributes.transparent = transparent;
+
     self
   }
 
@@ -765,6 +795,7 @@ fn main() {
   #[must_use]
   pub fn focused(mut self, focus: bool) -> Self {
     self.webview_attributes.focus = focus;
+
     self
   }
 
@@ -772,6 +803,7 @@ fn main() {
   #[must_use]
   pub fn auto_resize(mut self) -> Self {
     self.webview_attributes.auto_resize = true;
+
     self
   }
 
@@ -787,6 +819,7 @@ fn main() {
   #[must_use]
   pub fn zoom_hotkeys_enabled(mut self, enabled: bool) -> Self {
     self.webview_attributes.zoom_hotkeys_enabled = enabled;
+
     self
   }
 
@@ -799,6 +832,7 @@ fn main() {
   #[must_use]
   pub fn browser_extensions_enabled(mut self, enabled: bool) -> Self {
     self.webview_attributes.browser_extensions_enabled = enabled;
+
     self
   }
 
@@ -811,6 +845,7 @@ fn main() {
   #[must_use]
   pub fn extensions_path(mut self, path: impl AsRef<Path>) -> Self {
     self.webview_attributes.extensions_path = Some(path.as_ref().to_path_buf());
+
     self
   }
 
@@ -826,6 +861,7 @@ fn main() {
   #[must_use]
   pub fn use_https_scheme(mut self, enabled: bool) -> Self {
     self.webview_attributes.use_https_scheme = enabled;
+
     self
   }
 
@@ -841,6 +877,7 @@ fn main() {
   #[must_use]
   pub fn devtools(mut self, enabled: bool) -> Self {
     self.webview_attributes.devtools.replace(enabled);
+
     self
   }
 
@@ -854,6 +891,7 @@ fn main() {
   #[must_use]
   pub fn background_color(mut self, color: Color) -> Self {
     self.webview_attributes.background_color = Some(color);
+
     self
   }
 }
@@ -1007,7 +1045,9 @@ impl<R: Runtime> Webview<R> {
     command: &str,
   ) -> crate::Result<Option<ResolvedScope<T>>> {
     let current_url = self.url()?;
+
     let is_local = self.is_local_url(&current_url);
+
     let origin = if is_local {
       Origin::Local
     } else {
@@ -1015,6 +1055,7 @@ impl<R: Runtime> Webview<R> {
     };
 
     let cmd_name = format!("plugin:{plugin}|{command}");
+
     let resolved_access = self
       .manager()
       .runtime_authority
@@ -1066,7 +1107,9 @@ impl<R: Runtime> Webview<R> {
   /// Closes this webview.
   pub fn close(&self) -> crate::Result<()> {
     self.webview.dispatcher.close()?;
+
     self.manager().on_webview_close(self.label());
+
     Ok(())
   }
 
@@ -1122,7 +1165,9 @@ impl<R: Runtime> Webview<R> {
     }
 
     *self.window.lock().unwrap() = window.clone();
+
     self.webview.dispatcher.reparent(window.window.id)?;
+
     Ok(())
   }
 
@@ -1274,6 +1319,7 @@ fn main() {
       // or from a custom protocol registered by the user
       || ({
         let scheme = current_url.scheme();
+
         let protocols = self.manager().webview.uri_scheme_protocols.lock().unwrap();
 
         #[cfg(all(not(windows), not(target_os = "android")))]
@@ -1300,10 +1346,12 @@ fn main() {
   /// Handles this window receiving an [`InvokeRequest`].
   pub fn on_message(self, request: InvokeRequest, responder: Box<OwnedInvokeResponder<R>>) {
     let manager = self.manager_owned();
+
     let is_local = self.is_local_url(&request.url);
 
     // ensure the passed key matches what our manager should have injected
     let expected = manager.invoke_key();
+
     if request.invoke_key != expected {
       #[cfg(feature = "tracing")]
       tracing::error!(
@@ -1351,6 +1399,7 @@ fn main() {
         url: request.url.clone(),
       }
     };
+
     let (resolved_acl, has_app_acl_manifest) = {
       let runtime_authority = manager.runtime_authority.lock().unwrap();
       let acl = runtime_authority.resolve_access(
@@ -1386,6 +1435,7 @@ fn main() {
         let (key, command_name) = plugin_command
           .clone()
           .unwrap_or_else(|| (tauri_utils::acl::APP_ACL_KEY, request.cmd.clone()));
+
         invoke.resolver.reject(
           manager
             .runtime_authority
@@ -1452,6 +1502,7 @@ fn main() {
             },
           ) {
             resolver.reject(e.to_string());
+
             return;
           }
         }
@@ -1519,6 +1570,7 @@ fn main() {
       emit_args,
       &serde_json::to_string(ids)?,
     )?)?;
+
     Ok(())
   }
 
@@ -1541,6 +1593,7 @@ tauri::Builder::default()
   .setup(|app| {
     #[cfg(debug_assertions)]
     app.get_webview("main").unwrap().open_devtools();
+
     Ok(())
   });
 ```
@@ -1576,9 +1629,11 @@ tauri::Builder::default()
       webview.open_devtools();
       std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_secs(10));
+
         webview.close_devtools();
       });
     }
+
     Ok(())
   });
 ```
@@ -1615,6 +1670,7 @@ tauri::Builder::default()
         webview.open_devtools();
       }
     }
+
     Ok(())
   });
 ```
@@ -1684,6 +1740,7 @@ use tauri::{Manager, Listener};
 tauri::Builder::default()
   .setup(|app| {
     let webview = app.get_webview("main").unwrap();
+
     webview.listen("component-loaded", move |event| {
       println!("webview just loaded a component");
     });
@@ -1734,7 +1791,9 @@ use tauri::{Manager, Listener};
 tauri::Builder::default()
   .setup(|app| {
     let webview = app.get_webview("main").unwrap();
+
     let webview_ = webview.clone();
+
     let handler = webview.listen("component-loaded", move |event| {
       println!("webview just loaded a component");
 
@@ -1902,6 +1961,7 @@ mod tests {
   #[test]
   fn webview_is_send_sync() {
     crate::test_utils::assert_send::<super::Webview>();
+
     crate::test_utils::assert_sync::<super::Webview>();
   }
 }

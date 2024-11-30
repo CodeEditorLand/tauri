@@ -28,6 +28,7 @@ pub fn get<R: Runtime>(
 ) -> UriSchemeProtocolHandler {
   let frame_src = if cfg!(any(windows, target_os = "android")) {
     let https = if use_https_scheme { "https" } else { "http" };
+
     format!("{https}://{schema}.localhost")
   } else {
     format!("{schema}:")

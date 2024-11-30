@@ -39,6 +39,7 @@ pub fn command(mut options:Options) -> Result<()> {
 	} else {
 		options.private_key
 	};
+
 	let private_key = if let Some(pk) = options.private_key {
 		pk
 	} else {

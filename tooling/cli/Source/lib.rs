@@ -64,6 +64,7 @@ impl FromStr for ConfigValue {
 			Ok(Self(serde_json::from_str(config).context("invalid configuration JSON")?))
 		} else {
 			let path = PathBuf::from(config);
+
 			if path.exists() {
 				Ok(Self(serde_json::from_str(
 					&read_to_string(&path)
@@ -157,6 +158,7 @@ enum Commands {
 
 fn format_error<I:CommandFactory>(err:clap::Error) -> clap::Error {
 	let mut app = I::command();
+
 	err.format(&mut app)
 }
 
@@ -179,18 +181,25 @@ where
 	A: Into<OsString> + Clone, {
 	if let Err(e) = try_run(args, bin_name) {
 		let mut message = e.to_string();
+
 		if e.chain().count() > 1 {
 			message.push(':');
 		}
+
 		e.chain().skip(1).for_each(|cause| {
 			let m = cause.to_string();
+
 			if !message.contains(&m) {
 				message.push('\n');
+
 				message.push_str("    - ");
+
 				message.push_str(&m);
 			}
 		});
+
 		log::error!("{message}");
+
 		exit(1);
 	}
 }
@@ -207,24 +216,31 @@ where
 		Some(bin_name) => Cli::command().bin_name(bin_name),
 		None => Cli::command(),
 	};
+
 	let cli_ = cli.clone();
+
 	let matches = cli.get_matches_from(args);
 
 	let res = Cli::from_arg_matches(&matches).map_err(format_error::<Cli>);
+
 	let cli = match res {
 		Ok(s) => s,
 		Err(e) => e.exit(),
 	};
 
 	let mut builder = Builder::from_default_env();
+
 	let init_res = builder
 		.format_indent(Some(12))
 		.filter(None, verbosity_level(cli.verbose).to_level_filter())
 		.format(|f, record| {
 			let mut is_command_output = false;
+
 			if let Some(action) = record.key_values().get("action".into()) {
 				let action = action.to_cow_str().unwrap();
+
 				is_command_output = action == "stdout" || action == "stderr";
+
 				if !is_command_output {
 					let style = Style::new().fg_color(Some(AnsiColor::Green.into())).bold();
 
@@ -232,6 +248,7 @@ where
 				}
 			} else {
 				let style = f.default_level_style(record.level()).bold();
+
 				write!(f, "    {style}{}{style:#} ", prettyprint_level(record.level()))?;
 			}
 
@@ -296,16 +313,20 @@ pub trait CommandExt {
 	// The `pipe` function sets the stdout and stderr to properly
 	// show the command output in the Node.js wrapper.
 	fn piped(&mut self) -> std::io::Result<ExitStatus>;
+
 	fn output_ok(&mut self) -> crate::Result<Output>;
 }
 
 impl CommandExt for Command {
 	fn piped(&mut self) -> std::io::Result<ExitStatus> {
 		self.stdin(os_pipe::dup_stdin()?);
+
 		self.stdout(os_pipe::dup_stdout()?);
+
 		self.stderr(os_pipe::dup_stderr()?);
 
 		let program = self.get_program().to_string_lossy().into_owned();
+
 		log::debug!(action = "Running"; "Command `{} {}`", program, self.get_args().map(|arg| arg.to_string_lossy()).fold(String::new(), |acc, arg| format!("{acc} {arg}")));
 
 		self.status().map_err(Into::into)
@@ -313,9 +334,11 @@ impl CommandExt for Command {
 
 	fn output_ok(&mut self) -> crate::Result<Output> {
 		let program = self.get_program().to_string_lossy().into_owned();
+
 		log::debug!(action = "Running"; "Command `{} {}`", program, self.get_args().map(|arg| arg.to_string_lossy()).fold(String::new(), |acc, arg| format!("{acc} {arg}")));
 
 		self.stdout(Stdio::piped());
+
 		self.stderr(Stdio::piped());
 
 		let mut child = self.spawn()?;
@@ -325,15 +348,20 @@ impl CommandExt for Command {
 		let stdout_lines = Arc::new(Mutex::new(Vec::new()));
 
 		let stdout_lines_ = stdout_lines.clone();
+
 		std::thread::spawn(move || {
 			let mut line = String::new();
+
 			let mut lines = stdout_lines_.lock().unwrap();
+
 			loop {
 				line.clear();
+
 				match stdout.read_line(&mut line) {
 					Ok(0) => break,
 					Ok(_) => {
 						log::debug!(action = "stdout"; "{}", line.trim_end());
+
 						lines.extend(line.as_bytes().to_vec());
 					},
 					Err(_) => (),
@@ -346,15 +374,20 @@ impl CommandExt for Command {
 		let stderr_lines = Arc::new(Mutex::new(Vec::new()));
 
 		let stderr_lines_ = stderr_lines.clone();
+
 		std::thread::spawn(move || {
 			let mut line = String::new();
+
 			let mut lines = stderr_lines_.lock().unwrap();
+
 			loop {
 				line.clear();
+
 				match stderr.read_line(&mut line) {
 					Ok(0) => break,
 					Ok(_) => {
 						log::debug!(action = "stderr"; "{}", line.trim_end());
+
 						lines.extend(line.as_bytes().to_vec());
 					},
 					Err(_) => (),

@@ -25,7 +25,9 @@ fn create_file(path:&Path) -> crate::Result<BufWriter<File>> {
 	if let Some(parent) = path.parent() {
 		fs::create_dir_all(parent)?;
 	}
+
 	let file = File::create(path)?;
+
 	Ok(BufWriter::new(file))
 }
 
@@ -34,9 +36,11 @@ pub fn generate_key(password:Option<String>) -> crate::Result<KeyPair> {
 	let KP { pk, sk } = KP::generate_encrypted_keypair(password).unwrap();
 
 	let pk_box_str = pk.to_box().unwrap().to_string();
+
 	let sk_box_str = sk.to_box(None).unwrap().to_string();
 
 	let encoded_pk = base64::engine::general_purpose::STANDARD.encode(pk_box_str);
+
 	let encoded_sk = base64::engine::general_purpose::STANDARD.encode(sk_box_str);
 
 	Ok(KeyPair { pk:encoded_pk, sk:encoded_sk })
@@ -45,6 +49,7 @@ pub fn generate_key(password:Option<String>) -> crate::Result<KeyPair> {
 /// Transform a base64 String to readable string for the main signer
 pub fn decode_key<S:AsRef<[u8]>>(base64_key:S) -> crate::Result<String> {
 	let decoded_str = &base64::engine::general_purpose::STANDARD.decode(base64_key)?[..];
+
 	Ok(String::from(str::from_utf8(decoded_str)?))
 }
 
@@ -60,6 +65,7 @@ where
 	let sk_path = sk_path.as_ref();
 
 	let pubkey_path = format!("{}.pub", sk_path.display());
+
 	let pk_path = Path::new(&pubkey_path);
 
 	if sk_path.exists() {
@@ -79,11 +85,15 @@ where
 	}
 
 	let mut sk_writer = create_file(sk_path)?;
+
 	write!(sk_writer, "{key:}")?;
+
 	sk_writer.flush()?;
 
 	let mut pk_writer = create_file(pk_path)?;
+
 	write!(pk_writer, "{pubkey:}")?;
+
 	pk_writer.flush()?;
 
 	Ok((fs::canonicalize(sk_path)?, fs::canonicalize(pk_path)?))
@@ -96,7 +106,9 @@ where
 	let bin_path = bin_path.as_ref();
 	// We need to append .sig at the end it's where the signature will be stored
 	let mut extension = bin_path.extension().unwrap().to_os_string();
+
 	extension.push(".sig");
+
 	let signature_path = bin_path.with_extension(extension);
 
 	let mut signature_box_writer = create_file(&signature_path)?;
@@ -119,8 +131,11 @@ where
 
 	let encoded_signature =
 		base64::engine::general_purpose::STANDARD.encode(signature_box.to_string());
+
 	signature_box_writer.write_all(encoded_signature.as_bytes())?;
+
 	signature_box_writer.flush()?;
+
 	Ok((fs::canonicalize(&signature_path)?, signature_box))
 }
 
@@ -130,17 +145,22 @@ pub fn secret_key<S:AsRef<[u8]>>(
 	password:Option<String>,
 ) -> crate::Result<SecretKey> {
 	let decoded_secret = decode_key(private_key)?;
+
 	let sk_box = SecretKeyBox::from_string(&decoded_secret)
 		.with_context(|| "failed to load updater private key")?;
+
 	let sk = sk_box
 		.into_secret_key(password)
 		.with_context(|| "incorrect updater private key password")?;
+
 	Ok(sk)
 }
 
 fn unix_timestamp() -> u64 {
 	let start = SystemTime::now();
+
 	let since_the_epoch = start.duration_since(UNIX_EPOCH).expect("system clock is incorrect");
+
 	since_the_epoch.as_secs()
 }
 
@@ -148,10 +168,12 @@ fn open_data_file<P>(data_path:P) -> crate::Result<BufReader<File>>
 where
 	P: AsRef<Path>, {
 	let data_path = data_path.as_ref();
+
 	let file = OpenOptions::new()
 		.read(true)
 		.open(data_path)
 		.map_err(|e| minisign::PError::new(minisign::ErrorKind::Io, e))?;
+
 	Ok(BufReader::new(file))
 }
 
@@ -163,10 +185,12 @@ mod tests {
 	#[test]
 	fn empty_password_is_valid() {
 		let path = std::env::temp_dir().join("minisign-password-text.txt");
+
 		std::fs::write(&path, b"TAURI").expect("failed to write test file");
 
 		let secret_key =
 			super::secret_key(PRIVATE_KEY, Some("".into())).expect("failed to resolve secret key");
+
 		super::sign_file(&secret_key, &path).expect("failed to sign file");
 	}
 }

@@ -74,6 +74,7 @@ pub fn define_permissions<F:Fn(&Path) -> bool>(
 
 	let permission_files_path =
 		out_dir.join(format!("{}-permission-files", pkg_name.replace(':', "-")));
+
 	std::fs::write(&permission_files_path, serde_json::to_string(&permission_files)?)
 		.map_err(Error::WriteFile)?;
 
@@ -97,6 +98,7 @@ pub fn define_global_scope_schema(
 	out_dir:&Path,
 ) -> Result<(), Error> {
 	let path = out_dir.join("global-scope.json");
+
 	write(&path, serde_json::to_vec(&schema)?).map_err(Error::WriteFile)?;
 
 	if let Some(plugin_name) = pkg_name.strip_prefix("tauri:") {
@@ -136,6 +138,7 @@ pub fn parse_capabilities(
 						identifier:capability.identifier,
 					});
 				}
+
 				capabilities_map.insert(capability.identifier.clone(), capability);
 			},
 			CapabilityFile::List(capabilities) | CapabilityFile::NamedList { capabilities } => {
@@ -145,6 +148,7 @@ pub fn parse_capabilities(
 							identifier:capability.identifier,
 						});
 					}
+
 					capabilities_map.insert(capability.identifier.clone(), capability);
 				}
 			},
@@ -170,6 +174,7 @@ fn permissions_schema(permissions:&[PermissionFile]) -> RootSchema {
 	}
 
 	let mut permission_schemas = Vec::new();
+
 	for file in permissions {
 		if let Some(permission) = &file.default {
 			permission_schemas.push(schema_from("default", permission.description.as_deref()));
@@ -227,12 +232,15 @@ pub fn generate_schema<P:AsRef<Path>>(
 	out_dir:P,
 ) -> Result<(), Error> {
 	let schema = permissions_schema(permissions);
+
 	let schema_str = serde_json::to_string_pretty(&schema).unwrap();
 
 	let out_dir = out_dir.as_ref().join(PERMISSION_SCHEMAS_FOLDER_NAME);
+
 	create_dir_all(&out_dir).expect("unable to create schema output directory");
 
 	let schema_path = out_dir.join(PERMISSION_SCHEMA_FILE_NAME);
+
 	if schema_str != read_to_string(&schema_path).unwrap_or_default() {
 		write(schema_path, schema_str).map_err(Error::WriteFile)?;
 	}
@@ -248,19 +256,24 @@ pub fn generate_docs(
 	plugin_identifier:&str,
 ) -> Result<(), Error> {
 	let mut permission_table = "".to_string();
+
 	let permission_table_header =
 		"## Permission Table \n\n<table>\n<tr>\n<th>Identifier</th>\n<th>Description</th>\n</tr>\n"
 			.to_string();
 
 	let mut default_permission = "## Default Permission\n\n".to_string();
+
 	let mut contains_default = false;
 
 	fn docs_from(id:&str, description:Option<&str>, plugin_identifier:&str) -> String {
 		let mut docs = format!("\n<tr>\n<td>\n\n`{plugin_identifier}:{id}`\n\n</td>\n");
+
 		if let Some(d) = description {
 			docs.push_str(&format!("<td>\n\n{d}\n\n</td>"));
 		}
+
 		docs.push_str("\n</tr>");
+
 		docs
 	}
 
@@ -271,15 +284,20 @@ pub fn generate_docs(
 				Some(&set.description),
 				plugin_identifier,
 			));
+
 			permission_table.push('\n');
 		}
 
 		if let Some(default) = &permission.default {
 			default_permission.push_str(default.description.as_deref().unwrap_or_default());
+
 			default_permission.push('\n');
+
 			default_permission.push('\n');
+
 			for permission in &default.permissions {
 				default_permission.push_str(&format!("- `{permission}`"));
+
 				default_permission.push('\n');
 			}
 
@@ -292,9 +310,11 @@ pub fn generate_docs(
 				permission.description.as_deref(),
 				plugin_identifier,
 			));
+
 			permission_table.push('\n');
 		}
 	}
+
 	permission_table.push_str("</table>");
 
 	if !contains_default {
@@ -304,6 +324,7 @@ pub fn generate_docs(
 	let docs = format!("{default_permission}\n{permission_table_header}\n{permission_table}\n");
 
 	let reference_path = out_dir.join(PERMISSION_DOCS_FILE_NAME);
+
 	if docs != read_to_string(&reference_path).unwrap_or_default() {
 		std::fs::write(reference_path, docs).map_err(Error::WriteFile)?;
 	}
@@ -327,12 +348,16 @@ pub fn read_permissions() -> Result<HashMap<String, Vec<PermissionFile>>, Error>
 					.unwrap_or(v)
 			}) {
 			let permissions_path = PathBuf::from(value);
+
 			let permissions_str =
 				std::fs::read_to_string(&permissions_path).map_err(Error::ReadFile)?;
+
 			let permissions:Vec<PathBuf> = serde_json::from_str(&permissions_str)?;
+
 			let permissions = parse_permissions(permissions)?;
 
 			let plugin_crate_name = plugin_crate_name_var.to_lowercase().replace('_', "-");
+
 			permissions_map.insert(
 				plugin_crate_name
 					.strip_prefix("tauri-plugin-")
@@ -362,10 +387,13 @@ pub fn read_global_scope_schemas() -> Result<HashMap<String, serde_json::Value>,
 					.unwrap_or(v)
 			}) {
 			let path = PathBuf::from(value);
+
 			let json = std::fs::read_to_string(&path).map_err(Error::ReadFile)?;
+
 			let schema:serde_json::Value = serde_json::from_str(&json)?;
 
 			let plugin_crate_name = plugin_crate_name_var.to_lowercase().replace('_', "-");
+
 			permissions_map.insert(
 				plugin_crate_name
 					.strip_prefix("tauri-plugin-")
@@ -381,6 +409,7 @@ pub fn read_global_scope_schemas() -> Result<HashMap<String, serde_json::Value>,
 
 fn parse_permissions(paths:Vec<PathBuf>) -> Result<Vec<PermissionFile>, Error> {
 	let mut permissions = Vec::new();
+
 	for path in paths {
 		let permission_file = std::fs::read_to_string(&path).map_err(Error::ReadFile)?;
 
@@ -391,8 +420,10 @@ fn parse_permissions(paths:Vec<PathBuf>) -> Result<Vec<PermissionFile>, Error> {
 			"json" => serde_json::from_str(&permission_file)?,
 			_ => return Err(Error::UnknownPermissionFormat(ext)),
 		};
+
 		permissions.push(permission);
 	}
+
 	Ok(permissions)
 }
 
@@ -426,6 +457,7 @@ pub fn autogenerate_command_permissions(
 			.collect::<PathBuf>()
 			.join(PERMISSION_SCHEMAS_FOLDER_NAME)
 			.join(PERMISSION_SCHEMA_FILE_NAME);
+
 		format!(
 			"\n\"$schema\" = \"{}\"\n",
 			dunce::simplified(&schema_path).display().to_string().replace('\\', "/")
@@ -455,10 +487,12 @@ commands.deny = ["{command}"]
 		);
 
 		let out_path = path.join(format!("{command}.toml"));
+
 		write_if_changed(&out_path, toml)
 			.unwrap_or_else(|_| panic!("unable to autogenerate {out_path:?}"));
 
 		autogenerated.allowed.push(format!("allow-{slugified_command}"));
+
 		autogenerated.denied.push(format!("deny-{slugified_command}"));
 	}
 

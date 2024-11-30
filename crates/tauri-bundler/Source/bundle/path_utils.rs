@@ -108,6 +108,7 @@ where
       let msg = format!("Path \"{msg}\" does not exist or you don't have access");
       return Err(crate::Error::PathUtilError(msg));
     }
+
     return Err(crate::Error::PathUtilError(
       "Path does not exist or you don't have access!".to_owned(),
     ));
@@ -118,6 +119,7 @@ where
       let msg = format!("Path \"{msg}\" is not a file!");
       return Err(crate::Error::PathUtilError(msg));
     }
+
     return Err(crate::Error::PathUtilError(
       "Path is not a file!".to_owned(),
     ));
@@ -149,6 +151,7 @@ where
       let msg = format!("Path \"{msg}\" does not exist or you don't have access!");
       return Err(crate::Error::PathUtilError(msg));
     }
+
     return Err(crate::Error::PathUtilError(
       "Path does not exist or you don't have access".to_owned(),
     ));
@@ -158,6 +161,7 @@ where
       let msg = format!("Path \"{msg}\" is not a directory!");
       return Err(crate::Error::PathUtilError(msg));
     }
+
     return Err(crate::Error::PathUtilError(
       "Path is not a directory".to_owned(),
     ));
@@ -183,7 +187,9 @@ where
   let dir_content = get_dir_info(from, &read_options)?;
   for directory in dir_content.directories {
     let tmp_to = Path::new(&directory).strip_prefix(from)?;
+
     let dir = to.join(tmp_to);
+
     if !dir.exists() {
       if options.copy_files {
         create_all(dir, false)?;
@@ -195,7 +201,9 @@ where
   let mut result: u64 = 0;
   for file in dir_content.files {
     let to = to.to_path_buf();
+
     let tp = Path::new(&file).strip_prefix(from)?;
+
     let path = to.join(tp);
 
     let file_options = FileOpts {
@@ -203,7 +211,9 @@ where
       skip: options.skip,
       buffer_size: options.buffer_size,
     };
+
     let mut result_copy: crate::Result<u64>;
+
     let mut work = true;
 
     while work {
@@ -216,6 +226,7 @@ where
           result += val;
           work = false;
         }
+
         Err(err) => {
           let err_msg = err.to_string();
           return Err(crate::Error::PathUtilError(err_msg));
@@ -256,6 +267,7 @@ where
 
   if path.as_ref().is_dir() {
     directories.push(item);
+
     if depth == 0 || depth > 1 {
       if depth > 1 {
         depth -= 1;
@@ -266,9 +278,13 @@ where
         match _get_dir_info(_path, depth) {
           Ok(items) => {
             let mut _files = items.files;
+
             let mut _directories = items.directories;
+
             size += items.size;
+
             files.append(&mut _files);
+
             directories.append(&mut _directories);
           }
           Err(err) => return Err(err),
@@ -277,6 +293,7 @@ where
     }
   } else {
     size = path.as_ref().metadata()?.len();
+
     files.push(item);
   }
   Ok(DirInfo {

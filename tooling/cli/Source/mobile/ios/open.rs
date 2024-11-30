@@ -18,6 +18,7 @@ pub fn command() -> Result<()> {
 		let tauri_config_guard = tauri_config.lock().unwrap();
 
 		let tauri_config_ = tauri_config_guard.as_ref().unwrap();
+
 		get_config(
 			&get_app(tauri_config_, &AppInterface::new(tauri_config_, None)?),
 			tauri_config_,
@@ -27,7 +28,10 @@ pub fn command() -> Result<()> {
 	};
 
 	ensure_init(config.project_dir(), MobileTarget::Ios)?;
+
 	inject_assets(&config)?;
+
 	let env = env()?;
+
 	os::open_file_with("Xcode", config.project_dir(), &env).map_err(Into::into)
 }

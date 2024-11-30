@@ -127,6 +127,7 @@ pub fn setup(
       "You must change the bundle identifier in `{} identifier`. The default value `com.tauri.dev` is not allowed as it must be unique across applications.",
       bundle_identifier_source
     );
+
     std::process::exit(1);
   }
 
@@ -140,6 +141,7 @@ pub fn setup(
       config_.identifier,
       bundle_identifier_source
     );
+
     std::process::exit(1);
   }
 
@@ -159,6 +161,7 @@ pub fn setup(
           web_asset_path.display(), absolute_path.display(),
         ));
     }
+
     if web_asset_path.canonicalize()?.file_name() == Some(std::ffi::OsStr::new("src-tauri")) {
       return Err(anyhow::anyhow!(
           "The configured frontendDist is the `src-tauri` folder. Please isolate your web assets on a separate folder and update `tauri.conf.json > build > frontendDist`.",
@@ -166,11 +169,13 @@ pub fn setup(
     }
 
     let mut out_folders = Vec::new();
+
     for folder in &["node_modules", "src-tauri", "target"] {
       if web_asset_path.join(folder).is_dir() {
         out_folders.push(folder.to_string());
       }
     }
+
     if !out_folders.is_empty() {
       return Err(anyhow::anyhow!(
           "The configured frontendDist includes the `{:?}` {}. Please isolate your web assets on a separate folder and update `tauri.conf.json > build > frontendDist`.",

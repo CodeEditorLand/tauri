@@ -97,7 +97,9 @@ pub fn run_collect(cmd: &[&str]) -> (String, String) {
   let stderr = String::from_utf8_lossy(&stderr).to_string();
   if !status.success() {
     eprintln!("stdout: <<<{}>>>", stdout);
+
     eprintln!("stderr: <<<{}>>>", stderr);
+
     panic!("Unexpected exit code: {:?}", status.code());
   }
   (stdout, stderr)
@@ -112,6 +114,7 @@ pub fn parse_max_mem(file_path: &str) -> Option<u64> {
   for line in output.lines().map_while(Result::ok) {
     // split line by space
     let split = line.split(' ').collect::<Vec<_>>();
+
     if split.len() == 3 {
       // mprof generate result in MB
       let current_bytes = str::parse::<f64>(split[1]).unwrap() as u64 * 1024 * 1024;
@@ -149,7 +152,9 @@ pub fn parse_strace_output(output: &str) -> HashMap<String, StraceOutput> {
 
   for line in data_lines {
     let syscall_fields = line.split_whitespace().collect::<Vec<_>>();
+
     let len = syscall_fields.len();
+
     let syscall_name = syscall_fields.last().unwrap();
 
     if (5..=6).contains(&len) {
@@ -225,6 +230,7 @@ pub fn write_json(filename: &str, value: &Value) -> Result<()> {
 pub fn download_file(url: &str, filename: PathBuf) {
   if !url.starts_with("http:") && !url.starts_with("https:") {
     fs::copy(url, filename).unwrap();
+
     return;
   }
 

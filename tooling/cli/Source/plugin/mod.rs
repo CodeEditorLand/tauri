@@ -65,11 +65,14 @@ pub fn command(cli:Cli) -> Result<()> {
 
 fn infer_plugin_name<P:AsRef<Path>>(directory:P) -> Result<String> {
 	let dir = directory.as_ref();
+
 	let cargo_toml_path = dir.join("Cargo.toml");
+
 	let name = if cargo_toml_path.exists() {
 		let contents = std::fs::read_to_string(cargo_toml_path)?;
 
 		let cargo_toml:toml::Value = toml::from_str(&contents)?;
+
 		cargo_toml
 			.get("package")
 			.and_then(|v| v.get("name"))
@@ -79,5 +82,6 @@ fn infer_plugin_name<P:AsRef<Path>>(directory:P) -> Result<String> {
 	} else {
 		dir.file_name().unwrap_or_default().to_string_lossy().to_string()
 	};
+
 	Ok(name.strip_prefix("tauri-plugin-").unwrap_or(&name).to_string())
 }

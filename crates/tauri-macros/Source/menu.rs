@@ -41,7 +41,9 @@ impl NegatedIdent {
 impl Parse for NegatedIdent {
   fn parse(input: ParseStream) -> syn::Result<Self> {
     let negated_token = input.parse::<Token![!]>();
+
     let ident: Ident = input.parse()?;
+
     Ok(NegatedIdent {
       negated: negated_token.is_ok(),
       ident,
@@ -52,16 +54,27 @@ impl Parse for NegatedIdent {
 impl Parse for DoMenuItemInput {
   fn parse(input: ParseStream) -> syn::Result<Self> {
     let resources_table: Ident = input.parse()?;
+
     let _: Token![,] = input.parse()?;
+
     let rid: Ident = input.parse()?;
+
     let _: Token![,] = input.parse()?;
+
     let kind: Ident = input.parse()?;
+
     let _: Token![,] = input.parse()?;
+
     let _: Token![|] = input.parse()?;
+
     let var: Ident = input.parse()?;
+
     let _: Token![|] = input.parse()?;
+
     let expr: Expr = input.parse()?;
+
     let _: syn::Result<Token![,]> = input.parse();
+
     let kinds = Punctuated::<NegatedIdent, Token![|]>::parse_terminated(input)?;
 
     Ok(Self {
@@ -100,7 +113,9 @@ pub fn do_menu_item(input: DoMenuItemInput) -> TokenStream {
   let has_negated = kinds.iter().any(|n| n.is_negated());
   if has_negated {
     kinds.extend(defaults);
+
     kinds.sort_by(|a, b| a.ident.cmp(&b.ident));
+
     kinds.dedup_by(|a, b| a.ident == b.ident);
   }
 

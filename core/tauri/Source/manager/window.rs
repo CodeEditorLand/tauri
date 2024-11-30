@@ -98,8 +98,10 @@ impl<R:Runtime> WindowManager<R> {
 		let window_ = window.clone();
 
 		let window_event_listeners = self.event_listeners.clone();
+
 		window.on_window_event(move |event| {
 			let _ = on_window_event(&window_, event);
+
 			for handler in window_event_listeners.iter() {
 				handler(&window_, event);
 			}
@@ -131,6 +133,7 @@ impl<R:Runtime> Window<R> {
 	/// [`EventTarget::WebviewWindow`]
 	fn emit_to_window<S:Serialize + Clone>(&self, event:&str, payload:S) -> crate::Result<()> {
 		let window_label = self.label();
+
 		self.emit_filter(event, payload, |target| {
 			match target {
 				EventTarget::Window { label } | EventTarget::WebviewWindow { label } => {
@@ -147,6 +150,7 @@ impl<R:Runtime> Window<R> {
 		let window_label = self.label();
 
 		let listeners = self.manager().listeners();
+
 		listeners.has_js_listener(event, |target| {
 			match target {
 				EventTarget::Window { label } | EventTarget::WebviewWindow { label } => {
@@ -173,6 +177,7 @@ fn on_window_event<R:Runtime>(window:&Window<R>, event:&WindowEvent) -> crate::R
 			if window.has_js_listener(WINDOW_CLOSE_REQUESTED_EVENT) {
 				api.prevent_close();
 			}
+
 			window.emit_to_window(WINDOW_CLOSE_REQUESTED_EVENT, ())?;
 		},
 		WindowEvent::Destroyed => {
@@ -205,6 +210,7 @@ fn on_window_event<R:Runtime>(window:&Window<R>, event:&WindowEvent) -> crate::R
 				},
 				DragDropEvent::Over { position } => {
 					let payload = DragDropPayload { position, paths:None };
+
 					if window.is_webview_window() {
 						window.emit_to(
 							EventTarget::labeled(window.label()),
@@ -217,6 +223,7 @@ fn on_window_event<R:Runtime>(window:&Window<R>, event:&WindowEvent) -> crate::R
 				},
 				DragDropEvent::Drop { paths, position } => {
 					let scopes = window.state::<Scopes>();
+
 					for path in paths {
 						if path.is_file() {
 							let _ = scopes.allow_file(path);
@@ -224,6 +231,7 @@ fn on_window_event<R:Runtime>(window:&Window<R>, event:&WindowEvent) -> crate::R
 							let _ = scopes.allow_directory(path, true);
 						}
 					}
+
 					let payload = DragDropPayload { paths:Some(paths), position };
 
 					if window.is_webview_window() {
@@ -254,6 +262,7 @@ fn on_window_event<R:Runtime>(window:&Window<R>, event:&WindowEvent) -> crate::R
 			window.emit_to_window(WINDOW_THEME_CHANGED, theme.to_string())?
 		},
 	}
+
 	Ok(())
 }
 

@@ -62,9 +62,11 @@ pub trait CommandArg<'de, R: Runtime>: Sized {
 impl<'de, D: Deserialize<'de>, R: Runtime> CommandArg<'de, R> for D {
   fn from_command(command: CommandItem<'de, R>) -> Result<D, InvokeError> {
     let name = command.name;
+
     let arg = command.key;
     #[cfg(feature = "tracing")]
     let _span = tracing::trace_span!("ipc::request::deserialize_arg", arg = arg).entered();
+
     Self::deserialize(command).map_err(|e| crate::Error::InvalidArgs(name, arg, e).into())
   }
 }
@@ -89,6 +91,7 @@ macro_rules! pass {
             self.name, self.key
           )))
         }
+
         InvokeBody::Json(v) => {
           match v.get(self.key) {
             Some(value) => value.$fn($($arg),*),

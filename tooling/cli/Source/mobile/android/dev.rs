@@ -107,9 +107,11 @@ pub fn command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	crate::helpers::app_paths::resolve();
 
 	let result = run_command(options, noise_level);
+
 	if result.is_err() {
 		crate::dev::kill_before_dev_process();
 	}
+
 	result
 }
 
@@ -122,6 +124,7 @@ fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	)?;
 
 	let env = env()?;
+
 	let device = if options.open {
 		None
 	} else {
@@ -129,16 +132,19 @@ fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 			Ok(d) => Some(d),
 			Err(e) => {
 				log::error!("{e}");
+
 				None
 			},
 		}
 	};
 
 	let mut dev_options:DevOptions = options.clone().into();
+
 	let target_triple = device
 		.as_ref()
 		.map(|d| d.target().triple.to_string())
 		.unwrap_or_else(|| Target::all().values().next().unwrap().triple.into());
+
 	dev_options.target = Some(target_triple.clone());
 
 	let (interface, config, metadata) = {
@@ -156,9 +162,11 @@ fn run_command(options:Options, noise_level:NoiseLevel) -> Result<()> {
 	};
 
 	let tauri_path = tauri_dir();
+
 	set_current_dir(tauri_path).with_context(|| "failed to change current working directory")?;
 
 	ensure_init(&tauri_config, config.app(), config.project_dir(), MobileTarget::Android)?;
+
 	run_dev(
 		interface,
 		options,
@@ -193,18 +201,23 @@ fn run_dev(
 	};
 
 	let app_settings = interface.app_settings();
+
 	let bin_path = app_settings.app_binary_path(&interface_options)?;
+
 	let out_dir = bin_path.parent().unwrap();
+
 	let _lock = flock::open_rw(out_dir.join("lock").with_extension("android"), "Android")?;
 
 	configure_cargo(&mut env, config)?;
 
 	// run an initial build to initialize plugins
 	let target_triple = dev_options.target.as_ref().unwrap();
+
 	let target = Target::all()
 		.values()
 		.find(|t| t.triple == target_triple)
 		.unwrap_or_else(|| Target::all().values().next().unwrap());
+
 	target.build(
 		config,
 		metadata,
@@ -215,6 +228,7 @@ fn run_dev(
 	)?;
 
 	let open = options.open;
+
 	interface.mobile_dev(
 		MobileOptions {
 			debug:!options.release_mode,
@@ -250,6 +264,7 @@ fn run_dev(
 					Ok(c) => Ok(Box::new(c) as Box<dyn DevProcess + Send>),
 					Err(e) => {
 						crate::dev::kill_before_dev_process();
+
 						Err(e)
 					},
 				}

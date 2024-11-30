@@ -113,6 +113,7 @@ pub fn generate_data(
 
   for bin in settings.binaries() {
     let bin_path = settings.binary_path(bin);
+
     fs_utils::copy_file(&bin_path, &bin_dir.join(bin.name()))
       .with_context(|| format!("Failed to copy binary from {bin_path:?}"))?;
   }
@@ -138,14 +139,19 @@ pub fn generate_data(
 fn generate_changelog_file(settings: &Settings, data_dir: &Path) -> crate::Result<()> {
   if let Some(changelog_src_path) = &settings.deb().changelog {
     let mut src_file = File::open(changelog_src_path)?;
+
     let product_name = settings.product_name();
+
     let dest_path = data_dir.join(format!("usr/share/doc/{product_name}/changelog.gz"));
 
     let changelog_file = fs_utils::create_file(&dest_path)?;
+
     let mut gzip_encoder = GzEncoder::new(changelog_file, Compression::new(9));
+
     io::copy(&mut src_file, &mut gzip_encoder)?;
 
     let mut changelog_file = gzip_encoder.finish()?;
+
     changelog_file.flush()?;
   }
   Ok(())
@@ -245,6 +251,7 @@ fn generate_control_file(
   writeln!(file, "Description: {short_description}")?;
   for line in long_description.lines() {
     let line = line.trim();
+
     if line.is_empty() {
       writeln!(file, " .")?;
     } else {
@@ -258,21 +265,25 @@ fn generate_control_file(
 fn generate_scripts(settings: &Settings, control_dir: &Path) -> crate::Result<()> {
   if let Some(script_path) = &settings.deb().pre_install_script {
     let dest_path = control_dir.join("preinst");
+
     create_script_file_from_path(script_path, &dest_path)?
   }
 
   if let Some(script_path) = &settings.deb().post_install_script {
     let dest_path = control_dir.join("postinst");
+
     create_script_file_from_path(script_path, &dest_path)?
   }
 
   if let Some(script_path) = &settings.deb().pre_remove_script {
     let dest_path = control_dir.join("prerm");
+
     create_script_file_from_path(script_path, &dest_path)?
   }
 
   if let Some(script_path) = &settings.deb().post_remove_script {
     let dest_path = control_dir.join("postrm");
+
     create_script_file_from_path(script_path, &dest_path)?
   }
   Ok(())
@@ -297,21 +308,30 @@ fn generate_md5sums(control_dir: &Path, data_dir: &Path) -> crate::Result<()> {
   let mut md5sums_file = fs_utils::create_file(&md5sums_path)?;
   for entry in WalkDir::new(data_dir) {
     let entry = entry?;
+
     let path = entry.path();
+
     if path.is_dir() {
       continue;
     }
+
     let mut file = File::open(path)?;
+
     let mut hash = md5::Context::new();
+
     io::copy(&mut file, &mut hash)?;
+
     for byte in hash.compute().iter() {
       write!(md5sums_file, "{byte:02x}")?;
     }
+
     let rel_path = path.strip_prefix(data_dir)?;
+
     let path_str = rel_path.to_str().ok_or_else(|| {
       let msg = format!("Non-UTF-8 path: {rel_path:?}");
       io::Error::new(io::ErrorKind::InvalidData, msg)
     })?;
+
     writeln!(md5sums_file, "  {path_str}")?;
   }
   Ok(())
@@ -349,14 +369,21 @@ fn create_tar_from_dir<P: AsRef<Path>, W: Write>(src_dir: P, dest_file: W) -> cr
   let mut tar_builder = tar::Builder::new(dest_file);
   for entry in WalkDir::new(src_dir) {
     let entry = entry?;
+
     let src_path = entry.path();
+
     if src_path == src_dir {
       continue;
     }
+
     let dest_path = src_path.strip_prefix(src_dir)?;
+
     let stat = fs::metadata(src_path)?;
+
     let mut header = tar::Header::new_gnu();
+
     header.set_metadata_in_mode(&stat, HeaderMode::Deterministic);
+
     header.set_mtime(stat.mtime() as u64);
 
     if entry.file_type().is_dir() {

@@ -82,7 +82,9 @@ pub fn bundle_project(settings: &Settings, updater: bool) -> crate::Result<Vec<P
     .any(|p| !nsis_toolset_path.join(p).exists())
   {
     log::warn!("NSIS directory is missing some files. Recreating it.");
+
     std::fs::remove_dir_all(&nsis_toolset_path)?;
+
     get_and_extract_nsis(&nsis_toolset_path, &tauri_tools_path)?;
   } else {
     let mismatched = NSIS_REQUIRED_FILES_HASH
@@ -96,6 +98,7 @@ pub fn bundle_project(settings: &Settings, updater: bool) -> crate::Result<Vec<P
       log::warn!("NSIS directory contains mis-hashed files. Redownloading them.");
       for (path, url, hash, hash_algorithm) in mismatched {
         let data = download_and_verify(url, hash, *hash_algorithm)?;
+
         fs::write(nsis_toolset_path.join(path), data)?;
       }
     }
@@ -111,8 +114,11 @@ fn get_and_extract_nsis(nsis_toolset_path: &Path, _tauri_tools_path: &Path) -> c
   #[cfg(target_os = "windows")]
   {
     let data = download_and_verify(NSIS_URL, NSIS_SHA1, HashAlgorithm::Sha1)?;
+
     log::info!("extracting NSIS");
+
     crate::utils::http_utils::extract_zip(&data, _tauri_tools_path)?;
+
     fs::rename(_tauri_tools_path.join("nsis-3.08"), nsis_toolset_path)?;
   }
 
@@ -135,6 +141,7 @@ fn add_build_number_if_needed(version_str: &str) -> anyhow::Result<String> {
   let version = semver::Version::parse(version_str).context("invalid app version")?;
   if !version.build.is_empty() {
     let build = version.build.parse::<u64>();
+
     if build.is_ok() {
       return Ok(format!(
         "{}.{}.{}.{}",
@@ -186,7 +193,9 @@ fn build_nsis_app_installer(
   #[cfg(not(target_os = "windows"))]
   {
     let mut dir = dirs::cache_dir().unwrap();
+
     dir.extend(["tauri", "NSIS", "Plugins", "x86-unicode"]);
+
     data.insert("additional_plugins_path", to_json(dir));
   }
 
@@ -207,6 +216,7 @@ fn build_nsis_app_installer(
 
   if settings.can_sign() {
     let sign_cmd = format!("{:?}", sign_command("%1", &settings.sign_params())?);
+
     data.insert("uninstaller_sign_cmd", to_json(sign_cmd));
   }
 
@@ -224,9 +234,13 @@ fn build_nsis_app_installer(
 
   if let Some(license_file) = settings.license_file() {
     let license_file = dunce::canonicalize(license_file)?;
+
     let license_file_with_bom = output_path.join("license_file");
+
     let content = std::fs::read(license_file)?;
+
     write_utf8_with_bom(&license_file_with_bom, content)?;
+
     data.insert("license", to_json(license_file_with_bom));
   }
 
@@ -266,6 +280,7 @@ fn build_nsis_app_installer(
     if let Some(start_menu_folder) = &nsis.start_menu_folder {
       data.insert("start_menu_folder", to_json(start_menu_folder));
     }
+
     if let Some(minimum_webview2_version) = &nsis.minimum_webview2_version {
       data.insert(
         "minimum_webview2_version",
@@ -332,7 +347,9 @@ fn build_nsis_app_installer(
       // we check our translated languages
       if let Some((file_name, content)) = get_lang_data(lang) {
         let path = output_path.join(file_name);
+
         write_utf8_with_bom(&path, content)?;
+
         language_files_paths.push(path);
       } else {
         log::warn!("Custom tauri messages for {lang} are not translated.\nIf it is a valid language listed on <https://github.com/kichik/nsis/tree/9465c08046f00ccb6eda985abbdbf52c275c6c4d/Contrib/Language%20files>, please open a Tauri feature request\n or you can provide a custom language file for it in `tauri.conf.json > bundle > windows > nsis > custom_language_files`");
@@ -406,6 +423,7 @@ fn build_nsis_app_installer(
       .iter()
       .flat_map(|p| &p.schemes)
       .collect::<Vec<_>>();
+
     data.insert("deep_link_protocols", to_json(schemes));
   }
 
@@ -452,11 +470,13 @@ fn build_nsis_app_installer(
         to_json(webview2_bootstrapper_path),
       );
     }
+
     WebviewInstallMode::OfflineInstaller { silent: _ } => {
       let webview2_installer_path =
         download_webview2_offline_installer(&tauri_tools_path.join(arch), arch)?;
       data.insert("webview2_installer_path", to_json(webview2_installer_path));
     }
+
     _ => {}
   }
 
@@ -465,6 +485,7 @@ fn build_nsis_app_installer(
   handlebars.register_helper("association-description", Box::new(association_description));
   handlebars.register_escape_fn(|s| {
     let mut output = String::new();
+
     for c in s.chars() {
       match c {
         '\"' => output.push_str("$\\\""),
@@ -476,6 +497,7 @@ fn build_nsis_app_installer(
         _ => output.push(c),
       }
     }
+
     output
   });
   if let Some(path) = custom_template_path {
@@ -603,6 +625,7 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourcesMap> {
     let resource = resource?;
 
     let src = cwd.join(resource.path());
+
     let resource_path = dunce::simplified(&src).to_path_buf();
 
     // In some glob resource paths like `assets/**/*` a file might appear twice
@@ -611,9 +634,11 @@ fn generate_resource_data(settings: &Settings) -> crate::Result<ResourcesMap> {
     if added_resources.contains(&resource_path) {
       continue;
     }
+
     added_resources.push(resource_path.clone());
 
     let target_path = resource.target();
+
     resources.insert(
       resource_path,
       (
@@ -637,12 +662,15 @@ fn generate_binaries_data(settings: &Settings) -> crate::Result<BinariesMap> {
 
   for src in settings.external_binaries() {
     let src = src?;
+
     let binary_path = dunce::canonicalize(cwd.join(&src))?;
+
     let dest_filename = src
       .file_name()
       .expect("failed to extract external binary filename")
       .to_string_lossy()
       .replace(&format!("-{}", settings.target()), "");
+
     binaries.insert(binary_path, dest_filename);
   }
 

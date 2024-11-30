@@ -44,6 +44,7 @@ pub fn gen(
   if !skip_targets_install {
     let installed_targets =
       crate::interface::rust::installation::installed_targets().unwrap_or_default();
+
     let missing_targets = Target::all()
       .values()
       .filter(|t| !installed_targets.contains(&t.triple().into()))
@@ -148,6 +149,7 @@ pub fn gen(
               &c.replace("{{app.name}}", config.app().name()),
             ));
             *component = Component::Normal(new_component.as_ref().unwrap());
+
             break;
           }
         }
@@ -157,6 +159,7 @@ pub fn gen(
       let parent = path.parent().unwrap().to_path_buf();
       if !created_dirs.contains(&parent) {
         create_dir_all(&parent)?;
+
         created_dirs.push(parent);
       }
 
@@ -175,7 +178,9 @@ pub fn gen(
   if let Some(template_path) = tauri_config.bundle.ios.template.as_ref() {
     let template = std::fs::read_to_string(template_path)
       .context("failed to read custom Xcode project template")?;
+
     let mut output_file = std::fs::File::create(dest.join("project.yml"))?;
+
     handlebars
       .render_template_to_write(&template, map.inner(), &mut output_file)
       .expect("Failed to render template");

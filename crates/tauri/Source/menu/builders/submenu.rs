@@ -76,18 +76,21 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
   /// Set the id for this submenu.
   pub fn id<I: Into<MenuId>>(mut self, id: I) -> Self {
     self.id.replace(id.into());
+
     self
   }
 
   /// Set the enabled state for the submenu.
   pub fn enabled(mut self, enabled: bool) -> Self {
     self.enabled = enabled;
+
     self
   }
 
   /// Add this item to the submenu.
   pub fn item(mut self, item: &dyn IsMenuItem<R>) -> Self {
     self.items.push(Ok(item.kind()));
+
     self
   }
 
@@ -96,6 +99,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     for item in items {
       self = self.item(*item);
     }
+
     self
   }
 
@@ -104,6 +108,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(MenuItem::with_id(self.manager, id, text, true, None::<&str>).map(|i| i.kind()));
+
     self
   }
 
@@ -112,6 +117,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self.items.push(
       CheckMenuItem::with_id(self.manager, id, text, true, true, None::<&str>).map(|i| i.kind()),
     );
+
     self
   }
 
@@ -121,6 +127,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
       IconMenuItem::with_id(self.manager, id, text, true, Some(icon), None::<&str>)
         .map(|i| i.kind()),
     );
+
     self
   }
 
@@ -139,6 +146,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
       IconMenuItem::with_id_and_native_icon(self.manager, id, text, true, Some(icon), None::<&str>)
         .map(|i| i.kind()),
     );
+
     self
   }
 
@@ -147,6 +155,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::separator(self.manager).map(|i| i.kind()));
+
     self
   }
 
@@ -155,6 +164,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::copy(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -163,6 +173,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::cut(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -171,6 +182,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::paste(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -179,6 +191,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::select_all(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -191,6 +204,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::undo(self.manager, None).map(|i| i.kind()));
+
     self
   }
   /// Add Redo menu item to the submenu.
@@ -202,6 +216,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::redo(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -214,6 +229,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::minimize(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -226,6 +242,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::maximize(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -238,6 +255,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::fullscreen(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -250,6 +268,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::hide(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -262,6 +281,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::hide_others(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -274,6 +294,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::show_all(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -286,6 +307,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::close_window(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -298,6 +320,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::quit(self.manager, None).map(|i| i.kind()));
+
     self
   }
 
@@ -306,6 +329,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::about(self.manager, None, metadata).map(|i| i.kind()));
+
     self
   }
 
@@ -318,6 +342,7 @@ impl<'m, R: Runtime, M: Manager<R>> SubmenuBuilder<'m, R, M> {
     self
       .items
       .push(PredefinedMenuItem::services(self.manager, None).map(|i| i.kind()));
+
     self
   }
 

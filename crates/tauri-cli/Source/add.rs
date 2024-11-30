@@ -145,6 +145,7 @@ pub fn run(options: Options) -> Result<()> {
       if !options.no_fmt {
         // reformat code with rustfmt
         log::info!("Running `cargo fmt`...");
+
         let _ = Command::new("cargo")
           .arg("fmt")
           .current_dir(tauri_dir)

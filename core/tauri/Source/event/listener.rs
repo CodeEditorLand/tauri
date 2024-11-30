@@ -101,6 +101,7 @@ impl Listeners {
 	fn flush_pending(&self) -> crate::Result<()> {
 		let pending = {
 			let mut lock = self.inner.pending.lock().expect("poisoned pending event queue");
+
 			std::mem::take(&mut *lock)
 		};
 
@@ -136,7 +137,9 @@ impl Listeners {
 		let id = self.next_event_id();
 
 		let handler = Handler::new(target, handler);
+
 		self.listen_with_id(id, event, handler);
+
 		id
 	}
 
@@ -153,8 +156,11 @@ impl Listeners {
 
 		self.listen(event, target, move |event| {
 			let id = event.id;
+
 			let handler = handler.take().expect("attempted to call handler more than once");
+
 			handler(event);
+
 			self_.unlisten(id);
 		})
 	}
@@ -182,8 +188,10 @@ impl Listeners {
 			Ok(lock) => {
 				if let Some(handlers) = lock.get(&emit_args.event_name) {
 					let handlers = handlers.iter();
+
 					let handlers =
 						handlers.filter(|(_, h)| match_any_or_filter(&h.target, &filter));
+
 					for (&id, Handler { callback, .. }) in handlers {
 						maybe_pending = true;
 						(callback)(Event::new(id, emit_args.payload.clone()))
@@ -212,6 +220,7 @@ impl Listeners {
 		id:EventId,
 	) {
 		let mut listeners = self.inner.js_event_listeners.lock().unwrap();
+
 		listeners
 			.entry(source_webview_label.to_string())
 			.or_default()
@@ -224,6 +233,7 @@ impl Listeners {
 		let mut js_listeners = self.inner.js_event_listeners.lock().unwrap();
 
 		let js_listeners = js_listeners.values_mut();
+
 		for js_listeners in js_listeners {
 			if let Some(handlers) = js_listeners.get_mut(event) {
 				handlers.retain(|h| h.id != id);
@@ -237,6 +247,7 @@ impl Listeners {
 
 	pub(crate) fn has_js_listener<F:Fn(&EventTarget) -> bool>(&self, event:&str, filter:F) -> bool {
 		let js_listeners = self.inner.js_event_listeners.lock().unwrap();
+
 		js_listeners.values().any(|events| {
 			events
 				.get(event)
@@ -257,6 +268,7 @@ impl Listeners {
 		I: Iterator<Item = &'a Webview<R>>,
 		F: Fn(&EventTarget) -> bool, {
 		let js_listeners = self.inner.js_event_listeners.lock().unwrap();
+
 		webviews.try_for_each(|webview| {
 			if let Some(handlers) = js_listeners.get(webview.label()).and_then(|s| s.get(event)) {
 				let ids = handlers
@@ -264,6 +276,7 @@ impl Listeners {
 					.filter(|handler| match_any_or_filter(&handler.target, &filter))
 					.map(|handler| handler.id)
 					.collect::<Vec<_>>();
+
 				webview.emit_js(emit_args, &ids)?;
 			}
 
@@ -294,6 +307,7 @@ mod test {
 	use proptest::prelude::*;
 
 	use super::*;
+
 	use crate::event::EventTarget;
 
 	// dummy event handler function

@@ -44,7 +44,9 @@ pub trait AppSettings {
     package_types: Vec<PackageType>,
   ) -> crate::Result<Settings> {
     let no_default_features = options.args.contains(&"--no-default-features".into());
+
     let mut enabled_features = options.features.clone().unwrap_or_default();
+
     if !no_default_features {
       enabled_features.push("default".into());
     }
@@ -56,6 +58,7 @@ pub trait AppSettings {
     };
 
     let mut bins = self.get_binaries()?;
+
     if let Some(main_binary_name) = &config.main_binary_name {
       let main = bins.iter_mut().find(|b| b.main()).context("no main bin?")?;
       main.set_name(main_binary_name.to_owned());

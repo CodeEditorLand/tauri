@@ -52,7 +52,9 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 
   for src in settings.resource_files() {
     let src = src?;
+
     let dest = app_bundle_path.join(tauri_utils::resources::resource_relpath(&src));
+
     fs_utils::copy_file(&src, &dest)
       .with_context(|| format!("Failed to copy resource file {:?}", src))?;
   }
@@ -64,6 +66,7 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 
   for bin in settings.binaries() {
     let bin_path = settings.binary_path(bin);
+
     fs_utils::copy_file(&bin_path, &app_bundle_path.join(bin.name()))
       .with_context(|| format!("Failed to copy binary from {:?}", bin_path))?;
   }
@@ -86,6 +89,7 @@ fn generate_icon_files(bundle_dir: &Path, settings: &Settings) -> crate::Result<
       filenames.push(filename);
       path
     };
+
     let mut sizes = BTreeSet::new();
     // Prefer PNG files.
     for icon_path in settings.icon_files() {
@@ -99,7 +103,9 @@ fn generate_icon_files(bundle_dir: &Path, settings: &Settings) -> crate::Result<
       let is_retina = utils::is_retina(&icon_path);
       if !sizes.contains(&(width, height, is_retina)) {
         sizes.insert((width, height, is_retina));
+
         let dest_path = get_dest_path(width, height, is_retina);
+
         fs_utils::copy_file(&icon_path, &dest_path)?;
       }
     }
@@ -110,21 +116,28 @@ fn generate_icon_files(bundle_dir: &Path, settings: &Settings) -> crate::Result<
         continue;
       } else if icon_path.extension() == Some(OsStr::new("icns")) {
         let icon_family = icns::IconFamily::read(File::open(&icon_path)?)?;
+
         for icon_type in icon_family.available_icons() {
           let width = icon_type.screen_width();
           let height = icon_type.screen_height();
           let is_retina = icon_type.pixel_density() > 1;
           if !sizes.contains(&(width, height, is_retina)) {
             sizes.insert((width, height, is_retina));
+
             let dest_path = get_dest_path(width, height, is_retina);
+
             let icon = icon_family.get_icon_with_type(icon_type)?;
+
             icon.write_png(File::create(dest_path)?)?;
           }
         }
       } else {
         let icon = image::open(&icon_path)?;
+
         let (width, height) = icon.dimensions();
+
         let is_retina = utils::is_retina(&icon_path);
+
         if !sizes.contains(&(width, height, is_retina)) {
           sizes.insert((width, height, is_retina));
           let dest_path = get_dest_path(width, height, is_retina);
@@ -192,9 +205,11 @@ fn generate_info_plist(
 
   if !icon_filenames.is_empty() {
     writeln!(file, "  <key>CFBundleIconFiles</key>\n  <array>")?;
+
     for filename in icon_filenames {
       writeln!(file, "    <string>{}</string>", filename)?;
     }
+
     writeln!(file, "  </array>")?;
   }
   writeln!(file, "  <key>LSRequiresIPhoneOS</key>\n  <true/>")?;

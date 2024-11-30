@@ -5,6 +5,7 @@
 #[cfg(not(any(target_os = "macos", target_os = "linux", windows)))]
 fn main() {
 	println!("The Tauri CLI is not supported on this platform");
+
 	std::process::exit(1);
 }
 
@@ -13,6 +14,7 @@ fn main() {
 	use std::{env::args_os, ffi::OsStr, path::Path, process::exit};
 
 	let mut args = args_os().peekable();
+
 	let bin_name = match args
 		.next()
 		.as_deref()
@@ -24,6 +26,7 @@ fn main() {
 			if args.peek().and_then(|s| s.to_str()) == Some("tauri") {
 				// remove the extra cargo subcommand
 				args.next();
+
 				Some("cargo tauri".into())
 			} else {
 				Some("cargo-tauri".into())
@@ -32,6 +35,7 @@ fn main() {
 		Some(stem) => Some(stem.to_string()),
 		None => {
 			eprintln!("cargo-tauri wrapper unable to read first argument");
+
 			exit(1);
 		},
 	};

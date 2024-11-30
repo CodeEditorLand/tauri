@@ -45,6 +45,7 @@ fn get_completions(shell: Shell, cmd: Command) -> Result<String> {
   let completions = if shell == Shell::Bash {
     let mut completions =
       String::from_utf8_lossy(&completions_for(shell, "cargo", cmd)).into_owned();
+
     for &manager in PKG_MANAGERS {
       completions.push_str(&format!(
         "complete -F _cargo -o bashdefault -o default {} tauri\n",
@@ -59,6 +60,7 @@ fn get_completions(shell: Shell, cmd: Command) -> Result<String> {
         }
       ));
     }
+
     completions
   } else {
     let mut buffer = String::new();
@@ -77,6 +79,7 @@ fn get_completions(shell: Shell, cmd: Command) -> Result<String> {
             buf
           }
         }
+
         _ => buf,
       };
 

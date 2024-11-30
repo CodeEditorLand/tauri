@@ -72,6 +72,7 @@ impl std::fmt::Display for CrateVersion {
         write!(f, "{g} ({version})")?;
       } else {
         write!(f, "git:{g}")?;
+
         if let Some(branch) = &self.git_branch {
           write!(f, "&branch={branch}")?;
         } else if let Some(rev) = &self.git_rev {
@@ -130,6 +131,7 @@ pub fn crate_version(
 
   if crate_lock_packages.len() == 1 {
     let crate_lock_package = crate_lock_packages.first().unwrap();
+
     if let Some(s) = crate_lock_package
       .source
       .as_ref()
@@ -148,15 +150,20 @@ pub fn crate_version(
             version.version = Some(v);
           } else if let Some(p) = p.path {
             let manifest_path = tauri_dir.join(&p).join("Cargo.toml");
+
             let v = fs::read_to_string(manifest_path)
               .ok()
               .and_then(|m| toml::from_str::<CargoManifest>(&m).ok())
               .map(|m| m.package.version);
+
             version.version = v;
+
             version.path = Some(p);
           } else if let Some(g) = p.git {
             version.git = Some(g);
+
             version.git_branch = p.branch;
+
             version.git_rev = p.rev;
           }
         }

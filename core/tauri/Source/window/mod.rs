@@ -154,6 +154,7 @@ tauri::Builder::default()
   .setup(|app| {
     let window = tauri::window::WindowBuilder::new(app, "label")
       .build()?;
+
     Ok(())
   });
 ```
@@ -167,11 +168,13 @@ tauri::Builder::default()
 tauri::Builder::default()
   .setup(|app| {
     let handle = app.handle().clone();
+
     std::thread::spawn(move || {
       let window = tauri::window::WindowBuilder::new(&handle, "label")
         .build()
         .unwrap();
     });
+
     Ok(())
   });
 ```
@@ -255,6 +258,7 @@ async fn reopen_window(app: tauri::AppHandle) {
 		if let Some(parent) = &config.parent {
 			let window =
 				manager.manager().get_window(parent).ok_or(crate::Error::WindowNotFound)?;
+
 			builder = builder.parent(&window)?;
 		}
 
@@ -279,12 +283,15 @@ use tauri::menu::{Menu, Submenu, MenuItem};
 tauri::Builder::default()
   .setup(|app| {
     let handle = app.handle();
+
     let save_menu_item = MenuItem::new(handle, "Save", true, None::<&str>)?;
+
     let menu = Menu::with_items(handle, &[
       &Submenu::with_items(handle, "File", true, &[
         &save_menu_item,
       ])?,
     ])?;
+
     let window = tauri::window::WindowBuilder::new(app, "editor")
       .menu(menu)
       .on_menu_event(move |window, event| {
@@ -305,6 +312,7 @@ tauri::Builder::default()
 		f:F,
 	) -> Self {
 		self.on_menu_event.replace(Box::new(f));
+
 		self
 	}
 
@@ -332,6 +340,7 @@ tauri::Builder::default()
 		webview:Option<PendingWebview<EventLoopMessage, R>>,
 	) -> crate::Result<Window<R>> {
 		let mut pending = PendingWindow::new(self.window_builder.clone(), self.label.clone())?;
+
 		if let Some(webview) = webview {
 			pending.set_webview(webview);
 		}
@@ -343,6 +352,7 @@ tauri::Builder::default()
 		#[cfg(desktop)]
 		let window_menu = {
 			let is_app_wide = self.menu.is_none();
+
 			self.menu
 				.or_else(|| self.manager.app_handle().menu())
 				.map(|menu| WindowMenu { is_app_wide, menu })
@@ -410,6 +420,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn menu(mut self, menu:Menu<R>) -> Self {
 		self.menu.replace(menu);
+
 		self
 	}
 
@@ -417,6 +428,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn center(mut self) -> Self {
 		self.window_builder = self.window_builder.center();
+
 		self
 	}
 
@@ -424,6 +436,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn position(mut self, x:f64, y:f64) -> Self {
 		self.window_builder = self.window_builder.position(x, y);
+
 		self
 	}
 
@@ -431,6 +444,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn inner_size(mut self, width:f64, height:f64) -> Self {
 		self.window_builder = self.window_builder.inner_size(width, height);
+
 		self
 	}
 
@@ -438,6 +452,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn min_inner_size(mut self, min_width:f64, min_height:f64) -> Self {
 		self.window_builder = self.window_builder.min_inner_size(min_width, min_height);
+
 		self
 	}
 
@@ -445,6 +460,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn max_inner_size(mut self, max_width:f64, max_height:f64) -> Self {
 		self.window_builder = self.window_builder.max_inner_size(max_width, max_height);
+
 		self
 	}
 
@@ -455,6 +471,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 		constraints:tauri_runtime::window::WindowSizeConstraints,
 	) -> Self {
 		self.window_builder = self.window_builder.inner_size_constraints(constraints);
+
 		self
 	}
 
@@ -464,6 +481,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn resizable(mut self, resizable:bool) -> Self {
 		self.window_builder = self.window_builder.resizable(resizable);
+
 		self
 	}
 
@@ -478,6 +496,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn maximizable(mut self, maximizable:bool) -> Self {
 		self.window_builder = self.window_builder.maximizable(maximizable);
+
 		self
 	}
 
@@ -489,6 +508,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn minimizable(mut self, minimizable:bool) -> Self {
 		self.window_builder = self.window_builder.minimizable(minimizable);
+
 		self
 	}
 
@@ -503,6 +523,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn closable(mut self, closable:bool) -> Self {
 		self.window_builder = self.window_builder.closable(closable);
+
 		self
 	}
 
@@ -510,6 +531,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn title<S:Into<String>>(mut self, title:S) -> Self {
 		self.window_builder = self.window_builder.title(title);
+
 		self
 	}
 
@@ -517,6 +539,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn fullscreen(mut self, fullscreen:bool) -> Self {
 		self.window_builder = self.window_builder.fullscreen(fullscreen);
+
 		self
 	}
 
@@ -529,6 +552,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	)]
 	pub fn focus(mut self) -> Self {
 		self.window_builder = self.window_builder.focused(true);
+
 		self
 	}
 
@@ -536,6 +560,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn focused(mut self, focused:bool) -> Self {
 		self.window_builder = self.window_builder.focused(focused);
+
 		self
 	}
 
@@ -543,6 +568,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn maximized(mut self, maximized:bool) -> Self {
 		self.window_builder = self.window_builder.maximized(maximized);
+
 		self
 	}
 
@@ -550,6 +576,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn visible(mut self, visible:bool) -> Self {
 		self.window_builder = self.window_builder.visible(visible);
+
 		self
 	}
 
@@ -561,6 +588,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn theme(mut self, theme:Option<Theme>) -> Self {
 		self.window_builder = self.window_builder.theme(theme);
+
 		self
 	}
 
@@ -572,6 +600,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn transparent(mut self, transparent:bool) -> Self {
 		self.window_builder = self.window_builder.transparent(transparent);
+
 		self
 	}
 
@@ -579,6 +608,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn decorations(mut self, decorations:bool) -> Self {
 		self.window_builder = self.window_builder.decorations(decorations);
+
 		self
 	}
 
@@ -586,6 +616,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn always_on_bottom(mut self, always_on_bottom:bool) -> Self {
 		self.window_builder = self.window_builder.always_on_bottom(always_on_bottom);
+
 		self
 	}
 
@@ -593,6 +624,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn always_on_top(mut self, always_on_top:bool) -> Self {
 		self.window_builder = self.window_builder.always_on_top(always_on_top);
+
 		self
 	}
 
@@ -606,6 +638,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	pub fn visible_on_all_workspaces(mut self, visible_on_all_workspaces:bool) -> Self {
 		self.window_builder =
 			self.window_builder.visible_on_all_workspaces(visible_on_all_workspaces);
+
 		self
 	}
 
@@ -613,12 +646,14 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn content_protected(mut self, protected:bool) -> Self {
 		self.window_builder = self.window_builder.content_protected(protected);
+
 		self
 	}
 
 	/// Sets the window icon.
 	pub fn icon(mut self, icon:Image<'a>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.icon(icon.into())?;
+
 		Ok(self)
 	}
 
@@ -630,6 +665,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn skip_taskbar(mut self, skip:bool) -> Self {
 		self.window_builder = self.window_builder.skip_taskbar(skip);
+
 		self
 	}
 
@@ -645,6 +681,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn shadow(mut self, enable:bool) -> Self {
 		self.window_builder = self.window_builder.shadow(enable);
+
 		self
 	}
 
@@ -697,6 +734,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[cfg(windows)]
 	pub fn owner(mut self, owner:&Window<R>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.owner(owner.hwnd()?);
+
 		Ok(self)
 	}
 
@@ -716,6 +754,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn owner_raw(mut self, owner:HWND) -> Self {
 		self.window_builder = self.window_builder.owner(owner);
+
 		self
 	}
 
@@ -732,6 +771,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn parent_raw(mut self, parent:HWND) -> Self {
 		self.window_builder = self.window_builder.parent(parent);
+
 		self
 	}
 
@@ -745,6 +785,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn parent_raw(mut self, parent:*mut std::ffi::c_void) -> Self {
 		self.window_builder = self.window_builder.parent(parent);
+
 		self
 	}
 
@@ -763,6 +804,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	))]
 	pub fn transient_for(mut self, parent:&Window<R>) -> crate::Result<Self> {
 		self.window_builder = self.window_builder.transient_for(&parent.gtk_window()?);
+
 		Ok(self)
 	}
 
@@ -782,6 +824,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn transient_for_raw(mut self, parent:&impl gtk::glib::IsA<gtk::Window>) -> Self {
 		self.window_builder = self.window_builder.transient_for(parent);
+
 		self
 	}
 
@@ -790,6 +833,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn drag_and_drop(mut self, enabled:bool) -> Self {
 		self.window_builder = self.window_builder.drag_and_drop(enabled);
+
 		self
 	}
 
@@ -798,6 +842,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn title_bar_style(mut self, style:crate::TitleBarStyle) -> Self {
 		self.window_builder = self.window_builder.title_bar_style(style);
+
 		self
 	}
 
@@ -806,6 +851,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn hidden_title(mut self, hidden:bool) -> Self {
 		self.window_builder = self.window_builder.hidden_title(hidden);
+
 		self
 	}
 
@@ -820,6 +866,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	#[must_use]
 	pub fn tabbing_identifier(mut self, identifier:&str) -> Self {
 		self.window_builder = self.window_builder.tabbing_identifier(identifier);
+
 		self
 	}
 
@@ -834,6 +881,7 @@ impl<'a, R:Runtime, M:Manager<R>> WindowBuilder<'a, R, M> {
 	/// - **Linux**: Unsupported
 	pub fn effects(mut self, effects:WindowEffectsConfig) -> Self {
 		self.window_effects.replace(effects);
+
 		self
 	}
 }
@@ -986,10 +1034,13 @@ impl<R:Runtime> Window<R> {
 		let size = size.into();
 
 		let window_ = self.clone();
+
 		self.run_on_main_thread(move || {
 			let res = webview_builder.build(window_, position, size);
+
 			tx.send(res.map_err(Into::into)).unwrap();
 		})?;
+
 		rx.recv().unwrap()
 	}
 
@@ -1043,12 +1094,15 @@ use tauri::menu::{Menu, Submenu, MenuItem};
 tauri::Builder::default()
   .setup(|app| {
     let handle = app.handle();
+
     let save_menu_item = MenuItem::new(handle, "Save", true, None::<&str>)?;
+
     let menu = Menu::with_items(handle, &[
       &Submenu::with_items(handle, "File", true, &[
         &save_menu_item,
       ])?,
     ])?;
+
     let window = tauri::window::WindowBuilder::new(app, "editor")
       .menu(menu)
       .build()
@@ -1110,6 +1164,7 @@ tauri::Builder::default()
 		let window = self.clone();
 
 		let menu_ = menu.clone();
+
 		self.run_on_main_thread(move || {
 			#[cfg(windows)]
 			if let Ok(hwnd) = window.hwnd() {
@@ -1151,7 +1206,9 @@ tauri::Builder::default()
 		#[cfg_attr(target_os = "macos", allow(unused_variables))]
 		if let Some(menu) = &prev_menu {
 			let window = self.clone();
+
 			let menu = menu.clone();
+
 			self.run_on_main_thread(move || {
 				#[cfg(windows)]
 				if let Ok(hwnd) = window.hwnd() {
@@ -1181,7 +1238,9 @@ tauri::Builder::default()
 		#[cfg_attr(target_os = "macos", allow(unused_variables))]
 		if let Some(window_menu) = &*self.menu_lock() {
 			let window = self.clone();
+
 			let menu_ = window_menu.menu.clone();
+
 			self.run_on_main_thread(move || {
 				#[cfg(windows)]
 				if let Ok(hwnd) = window.hwnd() {
@@ -1209,7 +1268,9 @@ tauri::Builder::default()
 		#[cfg_attr(target_os = "macos", allow(unused_variables))]
 		if let Some(window_menu) = &*self.menu_lock() {
 			let window = self.clone();
+
 			let menu_ = window_menu.menu.clone();
+
 			self.run_on_main_thread(move || {
 				#[cfg(windows)]
 				if let Ok(hwnd) = window.hwnd() {
@@ -1237,8 +1298,11 @@ tauri::Builder::default()
 		#[cfg_attr(target_os = "macos", allow(unused_variables))]
 		if let Some(window_menu) = &*self.menu_lock() {
 			let (tx, rx) = std::sync::mpsc::channel();
+
 			let window = self.clone();
+
 			let menu_ = window_menu.menu.clone();
+
 			self.run_on_main_thread(move || {
 				#[cfg(windows)]
 				if let Ok(hwnd) = window.hwnd() {
@@ -1429,8 +1493,10 @@ impl<R:Runtime> Window<R> {
 			if let raw_window_handle::RawWindowHandle::AppKit(h) = handle.as_raw() {
 				Ok(unsafe {
 					use objc::*;
+
 					let ns_window:cocoa::base::id =
 						objc::msg_send![h.ns_view.as_ptr() as cocoa::base::id, window];
+
 					ns_window as *mut _
 				})
 			} else {
@@ -1665,6 +1731,7 @@ use tauri::{Manager, window::{Color, Effect, EffectState, EffectsBuilder}};
 tauri::Builder::default()
   .setup(|app| {
     let window = app.get_window("main").unwrap();
+
     window.set_effects(
       EffectsBuilder::new()
         .effect(Effect::Popover)
@@ -1673,6 +1740,7 @@ tauri::Builder::default()
         .color(Color(0, 0, 0, 255))
         .build(),
     )?;
+
     Ok(())
   });
 ```
@@ -1687,6 +1755,7 @@ tauri::Builder::default()
 		let effects = effects.into();
 
 		let window = self.clone();
+
 		self.run_on_main_thread(move || {
 			let _ = crate::vibrancy::set_window_effects(&window, effects);
 		})
@@ -1885,6 +1954,7 @@ use tauri::{Manager, Listener};
 tauri::Builder::default()
   .setup(|app| {
     let window = app.get_window("main").unwrap();
+
     window.listen("component-loaded", move |event| {
       println!("window just loaded a component");
     });
@@ -1929,7 +1999,9 @@ use tauri::{Manager, Listener};
 tauri::Builder::default()
   .setup(|app| {
     let window = app.get_window("main").unwrap();
+
     let window_ = window.clone();
+
     let handler = window.listen("component-loaded", move |event| {
       println!("window just loaded a component");
 
@@ -2046,36 +2118,42 @@ impl EffectsBuilder {
 	/// Adds effect to the [`WindowEffectsConfig`] `effects` field
 	pub fn effect(mut self, effect:Effect) -> Self {
 		self.0.effects.push(effect);
+
 		self
 	}
 
 	/// Adds effects to the [`WindowEffectsConfig`] `effects` field
 	pub fn effects<I:IntoIterator<Item = Effect>>(mut self, effects:I) -> Self {
 		self.0.effects.extend(effects);
+
 		self
 	}
 
 	/// Clears the [`WindowEffectsConfig`] `effects` field
 	pub fn clear_effects(mut self) -> Self {
 		self.0.effects.clear();
+
 		self
 	}
 
 	/// Sets `state` field for the [`WindowEffectsConfig`] **macOS Only**
 	pub fn state(mut self, state:EffectState) -> Self {
 		self.0.state = Some(state);
+
 		self
 	}
 
 	/// Sets `radius` field fo the [`WindowEffectsConfig`] **macOS Only**
 	pub fn radius(mut self, radius:f64) -> Self {
 		self.0.radius = Some(radius);
+
 		self
 	}
 
 	/// Sets `color` field fo the [`WindowEffectsConfig`] **Windows Only**
 	pub fn color(mut self, color:Color) -> Self {
 		self.0.color = Some(color);
+
 		self
 	}
 
@@ -2092,6 +2170,7 @@ mod tests {
 	#[test]
 	fn window_is_send_sync() {
 		crate::test_utils::assert_send::<super::Window>();
+
 		crate::test_utils::assert_sync::<super::Window>();
 	}
 }

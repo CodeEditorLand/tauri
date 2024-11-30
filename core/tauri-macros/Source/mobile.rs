@@ -13,6 +13,7 @@ fn get_env_var(name:&str, error:&mut Option<TokenStream2>, function:&ItemFn) -> 
 	match var(name) {
 		Ok(value) => {
 			let ident = format_ident!("{value}");
+
 			quote!(#ident)
 		},
 		Err(_) => {
@@ -25,6 +26,7 @@ fn get_env_var(name:&str, error:&mut Option<TokenStream2>, function:&ItemFn) -> 
 				)
 				.into_compile_error(),
 			);
+
 			quote!()
 		},
 	}
@@ -32,10 +34,13 @@ fn get_env_var(name:&str, error:&mut Option<TokenStream2>, function:&ItemFn) -> 
 
 pub fn entry_point(_attributes:TokenStream, item:TokenStream) -> TokenStream {
 	let function = parse_macro_input!(item as ItemFn);
+
 	let function_name = &function.sig.ident;
 
 	let mut error = None;
+
 	let domain = get_env_var("TAURI_ANDROID_PACKAGE_NAME_PREFIX", &mut error, &function);
+
 	let app_name = get_env_var("TAURI_ANDROID_PACKAGE_NAME_APP_NAME", &mut error, &function);
 
 	if let Some(e) = error {
@@ -47,6 +52,7 @@ pub fn entry_point(_attributes:TokenStream, item:TokenStream) -> TokenStream {
 			  Ok(t) => t,
 			  Err(err) => {
 				eprintln!("attempt to unwind out of `rust` with err: {:?}", err);
+
 				std::process::abort()
 			  }
 			}
@@ -61,6 +67,7 @@ pub fn entry_point(_attributes:TokenStream, item:TokenStream) -> TokenStream {
 			{
 			  ::tauri::android_binding!(#domain, #app_name, _start_app, ::tauri::wry);
 			}
+
 			stop_unwind(#function_name);
 		  }
 

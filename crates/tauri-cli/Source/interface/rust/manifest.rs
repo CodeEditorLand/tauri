@@ -58,6 +58,7 @@ impl Manifest {
       .collect();
 
     let manifest_features = self.features();
+
     for f in enabled_features {
       all_enabled_features.extend(get_enabled_features(&manifest_features, f));
     }
@@ -137,6 +138,7 @@ fn find_dependency<'a>(
         }
       } else if k == "target" {
         let mut matching_deps = Vec::new();
+
         for (_, target_value) in t.iter_mut() {
           if let Some(target_table) = target_value.as_table_mut() {
             if let Some(deps) = target_table.get_mut(table) {
@@ -146,6 +148,7 @@ fn find_dependency<'a>(
             }
           }
         }
+
         return matching_deps;
       }
     }
@@ -162,6 +165,7 @@ fn write_features<F: Fn(&str) -> bool>(
 ) -> crate::Result<bool> {
   if let Some(dep) = item.as_table_mut() {
     inject_features_table(dep, is_managed_feature, features);
+
     Ok(true)
   } else if let Some(dep) = item.as_value_mut() {
     match dep {
@@ -170,7 +174,9 @@ fn write_features<F: Fn(&str) -> bool>(
       }
       Value::String(version) => {
         let mut def = InlineTable::default();
+
         def.get_or_insert("version", version.to_string().replace(['\"', ' '], ""));
+
         def.get_or_insert("features", Value::Array(toml_array(features)));
         *dep = Value::InlineTable(def);
       }
@@ -181,6 +187,7 @@ fn write_features<F: Fn(&str) -> bool>(
         ))
       }
     }
+
     Ok(true)
   } else {
     Ok(false)
@@ -226,6 +233,7 @@ fn inject_features_table<D: TableLike, F: Fn(&str) -> bool>(
 
     // remove features that shouldn't be in the manifest anymore
     let mut i = features_array.len();
+
     while i != 0 {
       let index = i - 1;
       if let Some(f) = features_array.get(index).and_then(|f| f.as_str()) {
@@ -247,6 +255,7 @@ fn inject_features(
   let mut persist = false;
   for dependency in dependencies {
     let name = dependency.name.clone();
+
     let items = find_dependency(manifest, &dependency.name, dependency.kind);
 
     for item in items {
@@ -259,6 +268,7 @@ fn inject_features(
         log::info!("`{name}` dependency has workspace inheritance enabled. The features array won't be automatically rewritten. Expected features: [{}]", dependency.features.iter().join(", "));
       } else {
         let all_cli_managed_features = dependency.all_cli_managed_features.clone();
+
         let is_managed_feature: Box<dyn Fn(&str) -> bool> =
           Box::new(move |feature| all_cli_managed_features.contains(&feature));
 
@@ -318,8 +328,11 @@ pub fn rewrite_manifest(config: &Config) -> crate::Result<(Manifest, bool)> {
   if persist && original_manifest_str != new_manifest_str {
     let mut manifest_file =
       File::create(&manifest_path).with_context(|| "failed to open Cargo.toml for rewrite")?;
+
     manifest_file.write_all(new_manifest_str.as_bytes())?;
+
     manifest_file.flush()?;
+
     Ok((
       Manifest {
         inner: manifest,
@@ -349,6 +362,7 @@ mod tests {
       .expect("invalid toml");
 
     let mut expected = HashMap::new();
+
     for dep in &dependencies {
       let mut features = dep.features.clone();
       for item in super::find_dependency(&mut manifest, &dep.name, dep.kind) {
@@ -359,12 +373,14 @@ mod tests {
         } else {
           None
         };
+
         if let Some(f) = item_table
           .and_then(|t| t.get("features").cloned())
           .and_then(|f| f.as_array().cloned())
         {
           for feature in f.iter() {
             let feature = feature.as_str().expect("feature is not a string");
+
             if !dep.all_cli_managed_features.contains(&feature) {
               features.insert(feature.into());
             }
@@ -395,10 +411,12 @@ mod tests {
           .clone();
 
         let mut features = Vec::new();
+
         for feature in features_array.iter() {
           let feature = feature.as_str().expect("feature must be a string");
           features.push(feature);
         }
+
         for expected in expected_features {
           assert!(
             features.contains(&expected.as_str()),

@@ -46,6 +46,7 @@ impl<R: Runtime> ContextMenuBase for Menu<R> {
     position: Option<P>,
   ) -> crate::Result<()> {
     let position = position.map(Into::into);
+
     run_item_main_thread!(self, move |self_: Self| {
       #[cfg(target_os = "macos")]
       if let Ok(view) = window.ns_view() {
@@ -92,6 +93,7 @@ impl<R: Runtime> Menu<R> {
   /// Creates a new menu.
   pub fn new<M: Manager<R>>(manager: &M) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let menu = run_main_thread!(handle, || {
@@ -109,9 +111,11 @@ impl<R: Runtime> Menu<R> {
   /// Creates a new menu with the specified id.
   pub fn with_id<M: Manager<R>, I: Into<MenuId>>(manager: &M, id: I) -> crate::Result<Self> {
     let handle = manager.app_handle();
+
     let app_handle = handle.clone();
 
     let id = id.into();
+
     let menu = run_main_thread!(handle, || {
       let menu = muda::Menu::with_id(id.clone());
       MenuInner {
@@ -130,7 +134,9 @@ impl<R: Runtime> Menu<R> {
     items: &[&dyn IsMenuItem<R>],
   ) -> crate::Result<Self> {
     let menu = Self::new(manager)?;
+
     menu.append_items(items)?;
+
     Ok(menu)
   }
 
@@ -142,14 +148,18 @@ impl<R: Runtime> Menu<R> {
     items: &[&dyn IsMenuItem<R>],
   ) -> crate::Result<Self> {
     let menu = Self::with_id(manager, id)?;
+
     menu.append_items(items)?;
+
     Ok(menu)
   }
 
   /// Creates a menu filled with default menu items and submenus.
   pub fn default(app_handle: &AppHandle<R>) -> crate::Result<Self> {
     let pkg_info = app_handle.package_info();
+
     let config = app_handle.config();
+
     let about_metadata = AboutMetadata {
       name: Some(pkg_info.name.clone()),
       version: Some(pkg_info.version.to_string()),
@@ -271,6 +281,7 @@ impl<R: Runtime> Menu<R> {
   /// [`Submenu`]: super::Submenu
   pub fn append(&self, item: &dyn IsMenuItem<R>) -> crate::Result<()> {
     let kind = item.kind();
+
     run_item_main_thread!(self, |self_: Self| {
       (*self_.0).as_ref().append(kind.inner().inner_muda())
     })?
@@ -301,6 +312,7 @@ impl<R: Runtime> Menu<R> {
   /// [`Submenu`]: super::Submenu
   pub fn prepend(&self, item: &dyn IsMenuItem<R>) -> crate::Result<()> {
     let kind = item.kind();
+
     run_item_main_thread!(self, |self_: Self| {
       (*self_.0).as_ref().prepend(kind.inner().inner_muda())
     })?
@@ -327,6 +339,7 @@ impl<R: Runtime> Menu<R> {
   /// [`Submenu`]: super::Submenu
   pub fn insert(&self, item: &dyn IsMenuItem<R>, position: usize) -> crate::Result<()> {
     let kind = item.kind();
+
     run_item_main_thread!(self, |self_: Self| (*self_.0)
       .as_ref()
       .insert(kind.inner().inner_muda(), position))?
@@ -351,6 +364,7 @@ impl<R: Runtime> Menu<R> {
   /// Remove a menu item from this menu.
   pub fn remove(&self, item: &dyn IsMenuItem<R>) -> crate::Result<()> {
     let kind = item.kind();
+
     run_item_main_thread!(self, |self_: Self| {
       (*self_.0).as_ref().remove(kind.inner().inner_muda())
     })?

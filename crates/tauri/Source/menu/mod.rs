@@ -25,8 +25,11 @@ pub use muda::MenuId;
 macro_rules! run_item_main_thread {
   ($self:ident, $ex:expr) => {{
     use std::sync::mpsc::channel;
+
     let (tx, rx) = channel();
+
     let self_ = $self.clone();
+
     let task = move || {
       let f = $ex;
       let _ = tx.send(f(self_));
@@ -236,11 +239,13 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// Sets the application name.
   pub fn name<S: Into<String>>(mut self, name: Option<S>) -> Self {
     self.0.name = name.map(|s| s.into());
+
     self
   }
   /// Sets the application version.
   pub fn version<S: Into<String>>(mut self, version: Option<S>) -> Self {
     self.0.version = version.map(|s| s.into());
+
     self
   }
   /// Sets the short version, e.g. "1.0".
@@ -250,6 +255,7 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **Windows / Linux:** Appended to the end of `version` in parentheses.
   pub fn short_version<S: Into<String>>(mut self, short_version: Option<S>) -> Self {
     self.0.short_version = short_version.map(|s| s.into());
+
     self
   }
   /// Sets the authors of the application.
@@ -259,6 +265,7 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **macOS:** Unsupported.
   pub fn authors(mut self, authors: Option<Vec<String>>) -> Self {
     self.0.authors = authors;
+
     self
   }
   /// Application comments.
@@ -268,11 +275,13 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **macOS:** Unsupported.
   pub fn comments<S: Into<String>>(mut self, comments: Option<S>) -> Self {
     self.0.comments = comments.map(|s| s.into());
+
     self
   }
   /// Sets the copyright of the application.
   pub fn copyright<S: Into<String>>(mut self, copyright: Option<S>) -> Self {
     self.0.copyright = copyright.map(|s| s.into());
+
     self
   }
   /// Sets the license of the application.
@@ -282,6 +291,7 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **macOS:** Unsupported.
   pub fn license<S: Into<String>>(mut self, license: Option<S>) -> Self {
     self.0.license = license.map(|s| s.into());
+
     self
   }
   /// Sets the application website.
@@ -291,6 +301,7 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **macOS:** Unsupported.
   pub fn website<S: Into<String>>(mut self, website: Option<S>) -> Self {
     self.0.website = website.map(|s| s.into());
+
     self
   }
   /// Sets the website label.
@@ -300,6 +311,7 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **macOS:** Unsupported.
   pub fn website_label<S: Into<String>>(mut self, website_label: Option<S>) -> Self {
     self.0.website_label = website_label.map(|s| s.into());
+
     self
   }
   /// Sets the credits.
@@ -309,6 +321,7 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **Windows / Linux:** Unsupported.
   pub fn credits<S: Into<String>>(mut self, credits: Option<S>) -> Self {
     self.0.credits = credits.map(|s| s.into());
+
     self
   }
   /// Sets the application icon.
@@ -318,6 +331,7 @@ impl<'a> AboutMetadataBuilder<'a> {
   /// - **Windows:** Unsupported.
   pub fn icon(mut self, icon: Option<Image<'a>>) -> Self {
     self.0.icon = icon;
+
     self
   }
 
@@ -763,7 +777,9 @@ pub(crate) mod sealed {
 
   pub trait ContextMenuBase {
     fn inner_context(&self) -> &dyn muda::ContextMenu;
+
     fn inner_context_owned(&self) -> Box<dyn muda::ContextMenu>;
+
     fn popup_inner<R: crate::Runtime, P: Into<crate::Position>>(
       &self,
       window: crate::Window<R>,

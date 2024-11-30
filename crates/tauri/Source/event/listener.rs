@@ -154,8 +154,11 @@ impl Listeners {
     handler: F,
   ) -> EventId {
     let id = self.next_event_id();
+
     let handler = Handler::new(target, handler);
+
     self.listen_with_id(id, event, handler);
+
     id
   }
 
@@ -167,6 +170,7 @@ impl Listeners {
     handler: F,
   ) -> EventId {
     let self_ = self.clone();
+
     let handler = Cell::new(Some(handler));
 
     self.listen(event, target, move |event| {
@@ -230,6 +234,7 @@ impl Listeners {
     id: EventId,
   ) {
     let mut listeners = self.inner.js_event_listeners.lock().unwrap();
+
     listeners
       .entry(source_webview_label.to_string())
       .or_default()
@@ -240,7 +245,9 @@ impl Listeners {
 
   pub(crate) fn unlisten_js(&self, event: &str, id: EventId) {
     let mut js_listeners = self.inner.js_event_listeners.lock().unwrap();
+
     let js_listeners = js_listeners.values_mut();
+
     for js_listeners in js_listeners {
       if let Some(handlers) = js_listeners.get_mut(event) {
         handlers.retain(|h| h.id != id);
@@ -258,6 +265,7 @@ impl Listeners {
     filter: F,
   ) -> bool {
     let js_listeners = self.inner.js_event_listeners.lock().unwrap();
+
     js_listeners.values().any(|events| {
       events
         .get(event)
@@ -279,6 +287,7 @@ impl Listeners {
     F: Fn(&EventTarget) -> bool,
   {
     let js_listeners = self.inner.js_event_listeners.lock().unwrap();
+
     webviews.try_for_each(|webview| {
       if let Some(handlers) = js_listeners.get(webview.label()).and_then(|s| s.get(event)) {
         let ids = handlers
@@ -286,6 +295,7 @@ impl Listeners {
           .filter(|handler| match_any_or_filter(&handler.target, &filter))
           .map(|handler| handler.id)
           .collect::<Vec<_>>();
+
         webview.emit_js(emit_args, &ids)?;
       }
 

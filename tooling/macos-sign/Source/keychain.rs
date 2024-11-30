@@ -68,6 +68,7 @@ impl Keychain {
 		let tmp_dir = tempfile::tempdir()?;
 
 		let cert_path = tmp_dir.path().join("cert.p12");
+
 		super::decode_base64(certificate_encoded, &cert_path)?;
 
 		assert_command(
@@ -178,6 +179,7 @@ impl Keychain {
 			SigningIdentity::Team(t) => t.certificate_name(),
 			SigningIdentity::Identifier(i) => i.clone(),
 		};
+
 		println!("Signing with identity \"{}\"", identity);
 
 		println!("Signing {}", path.display());
@@ -186,17 +188,21 @@ impl Keychain {
 
 		if hardened_runtime {
 			args.push("--options");
+
 			args.push("runtime");
 		}
 
 		let mut codesign = Command::new("codesign");
+
 		codesign.args(args);
+
 		if let Some(p) = &self.path {
 			codesign.arg("--keychain").arg(p);
 		}
 
 		if let Some(entitlements_path) = entitlements_path {
 			codesign.arg("--entitlements");
+
 			codesign.arg(entitlements_path);
 		}
 

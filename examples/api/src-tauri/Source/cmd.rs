@@ -29,6 +29,7 @@ pub fn log_operation(
     Err("not allowed")
   } else {
     log::info!("{} {:?}", event, payload);
+
     Ok(())
   }
 }

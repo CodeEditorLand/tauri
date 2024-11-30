@@ -45,24 +45,28 @@ impl CheckMenuItemBuilder {
   /// Set the id for this menu item.
   pub fn id<I: Into<MenuId>>(mut self, id: I) -> Self {
     self.id.replace(id.into());
+
     self
   }
 
   /// Set the enabled state for this menu item.
   pub fn enabled(mut self, enabled: bool) -> Self {
     self.enabled = enabled;
+
     self
   }
 
   /// Set the checked state for this menu item.
   pub fn checked(mut self, checked: bool) -> Self {
     self.checked = checked;
+
     self
   }
 
   /// Set the accelerator for this menu item.
   pub fn accelerator<S: AsRef<str>>(mut self, accelerator: S) -> Self {
     self.accelerator.replace(accelerator.as_ref().to_string());
+
     self
   }
 

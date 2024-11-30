@@ -19,9 +19,13 @@ use crate::Settings;
 /// Returns a vector of PathBuf that shows where the RPM was created.
 pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 	let product_name = settings.product_name();
+
 	let version = settings.version_string();
+
 	let release = settings.rpm().release.as_str();
+
 	let epoch = settings.rpm().epoch;
+
 	let arch = match settings.binary_arch() {
 		"x86" => "i386",
 		"arm" => "armhfp",
@@ -31,21 +35,28 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 	let summary = settings.short_description().trim();
 
 	let package_base_name = format!("{product_name}-{version}-{release}.{arch}");
+
 	let package_name = format!("{package_base_name}.rpm");
 
 	let base_dir = settings.project_out_directory().join("bundle/rpm");
+
 	let package_dir = base_dir.join(&package_base_name);
+
 	if package_dir.exists() {
 		fs::remove_dir_all(&package_dir)
 			.with_context(|| format!("Failed to remove old {package_base_name}"))?;
 	}
+
 	fs::create_dir_all(&package_dir)?;
+
 	let package_path = base_dir.join(&package_name);
 
 	log::info!(action = "Bundling"; "{} ({})", package_name, package_path.display());
 
 	let license = settings.license().unwrap_or_default();
+
 	let name = heck::AsKebabCase(settings.product_name()).to_string();
+
 	let mut builder = rpm::PackageBuilder::new(&name, version, &license, arch, summary)
     .epoch(epoch)
     .release(release)
@@ -85,6 +96,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 		let src = settings.binary_path(bin);
 
 		let dest = Path::new("/usr/bin").join(bin.name());
+
 		builder = builder.with_file(src, FileOptions::new(dest.to_string_lossy()))?;
 	}
 
@@ -98,27 +110,32 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 				.to_string_lossy()
 				.replace(&format!("-{}", settings.target()), ""),
 		);
+
 		builder = builder.with_file(&src, FileOptions::new(dest.to_string_lossy()))?;
 	}
 
 	// Add scripts
 	if let Some(script_path) = &settings.rpm().pre_install_script {
 		let script = fs::read_to_string(script_path)?;
+
 		builder = builder.pre_install_script(script);
 	}
 
 	if let Some(script_path) = &settings.rpm().post_install_script {
 		let script = fs::read_to_string(script_path)?;
+
 		builder = builder.post_install_script(script);
 	}
 
 	if let Some(script_path) = &settings.rpm().pre_remove_script {
 		let script = fs::read_to_string(script_path)?;
+
 		builder = builder.pre_uninstall_script(script);
 	}
 
 	if let Some(script_path) = &settings.rpm().post_remove_script {
 		let script = fs::read_to_string(script_path)?;
+
 		builder = builder.post_uninstall_script(script);
 	}
 
@@ -128,6 +145,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 		// Create an empty file, needed to add a directory to the RPM package
 		// (cf https://github.com/rpm-rs/rpm/issues/177)
 		let empty_file_path = &package_dir.join("empty");
+
 		File::create(empty_file_path)?;
 		// Then add the resource directory `/usr/lib/<binary_name>` to the package.
 		builder = builder.with_file(
@@ -138,7 +156,9 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 		// Then add the resources files in that directory
 		for src in settings.resource_files() {
 			let src = src?;
+
 			let dest = resource_dir.join(tauri_utils::resources::resource_relpath(&src));
+
 			builder = builder.with_file(&src, FileOptions::new(dest.to_string_lossy()))?;
 		}
 	}
@@ -149,6 +169,7 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 		&settings.rpm().desktop_template,
 		&package_dir,
 	)?;
+
 	builder = builder
 		.with_file(desktop_src_path, FileOptions::new(desktop_dest_path.to_string_lossy()))?;
 
@@ -164,8 +185,10 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 		} else {
 			for entry in walkdir::WalkDir::new(src_path) {
 				let entry_path = entry?.into_path();
+
 				if entry_path.is_file() {
 					let dest_path = rpm_path.join(entry_path.strip_prefix(src_path).unwrap());
+
 					builder = builder
 						.with_file(&entry_path, FileOptions::new(dest_path.to_string_lossy()))?;
 				}
@@ -175,15 +198,18 @@ pub fn bundle_project(settings:&Settings) -> crate::Result<Vec<PathBuf>> {
 
 	let pkg = if let Ok(raw_secret_key) = env::var("TAURI_SIGNING_RPM_KEY") {
 		let mut signer = pgp::Signer::load_from_asc(&raw_secret_key)?;
+
 		if let Ok(passphrase) = env::var("TAURI_SIGNING_RPM_KEY_PASSPHRASE") {
 			signer = signer.with_key_passphrase(passphrase);
 		}
+
 		builder.build_and_sign(signer)?
 	} else {
 		builder.build()?
 	};
 
 	let mut f = fs::File::create(&package_path)?;
+
 	pkg.write(&mut f)?;
 
 	Ok(vec![package_path])

@@ -50,7 +50,9 @@ pub fn run_app<R: Runtime, F: FnOnce(&App<R>) + Send + 'static>(
       #[cfg(all(desktop, not(test)))]
       {
         let handle = app.handle();
+
         tray::create_tray(handle)?;
+
         handle.plugin(menu_plugin::init())?;
       }
 
@@ -101,13 +103,17 @@ pub fn run_app<R: Runtime, F: FnOnce(&App<R>) + Send + 'static>(
           Ok(s) => s,
           Err(e) => {
             eprintln!("{}", e);
+
             std::process::exit(1);
           }
         };
+
         loop {
           if let Ok(mut request) = server.recv() {
             let mut body = Vec::new();
+
             let _ = request.as_reader().read_to_end(&mut body);
+
             let response = tiny_http::Response::new(
               tiny_http::StatusCode(200),
               request.headers().to_vec(),
@@ -115,6 +121,7 @@ pub fn run_app<R: Runtime, F: FnOnce(&App<R>) + Send + 'static>(
               request.body_length(),
               None,
             );
+
             let _ = request.respond(response);
           }
         }
@@ -127,6 +134,7 @@ pub fn run_app<R: Runtime, F: FnOnce(&App<R>) + Send + 'static>(
     .on_page_load(|webview, payload| {
       if payload.event() == PageLoadEvent::Finished {
         let webview_ = webview.clone();
+
         webview.listen("js-event", move |event| {
           println!("got js-event with message '{:?}'", event.payload());
           let reply = Reply {
@@ -173,6 +181,7 @@ pub fn run_app<R: Runtime, F: FnOnce(&App<R>) + Send + 'static>(
         // run the window destroy manually just for fun :)
         // usually you'd show a dialog here to ask for confirmation or whatever
         api.prevent_close();
+
         _app_handle
           .get_webview_window(label)
           .unwrap()
@@ -194,6 +203,7 @@ mod tests {
       let window = app.get_webview_window("main").unwrap();
       std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_secs(1));
+
         window.close().unwrap();
       });
     })

@@ -99,9 +99,11 @@ enum Commands {
 
 pub fn command(cli:Cli, verbosity:u8) -> Result<()> {
 	let noise_level = NoiseLevel::from_occurrences(verbosity as u64);
+
 	match cli.command {
 		Commands::Init(options) => {
 			crate::helpers::app_paths::resolve();
+
 			init_command(
 				MobileTarget::Ios,
 				options.ci,
@@ -124,6 +126,7 @@ pub fn get_config(
 	cli_options:&CliOptions,
 ) -> (AppleConfig, AppleMetadata) {
 	let mut ios_options = cli_options.clone();
+
 	if let Some(features) = features {
 		ios_options.features.get_or_insert(Vec::new()).extend_from_slice(features);
 	}
@@ -134,6 +137,7 @@ pub fn get_config(
 			.or_else(|| tauri_config.bundle.ios.development_team.clone())
 			.or_else(|| {
 				let teams = find_development_teams().unwrap_or_default();
+
 				match teams.len() {
 					0 => {
 						log::warn!(
@@ -143,6 +147,7 @@ pub fn get_config(
 							 `{APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME}` environment variable. To \
 							 list the available certificates, run `tauri info`."
 						);
+
 						None
 					},
 					1 => None,
@@ -158,6 +163,7 @@ pub fn get_config(
 								.collect::<Vec<String>>()
 								.join(", ")
 						);
+
 						None
 					},
 				}
@@ -168,16 +174,20 @@ pub fn get_config(
 		ios_version:Some(tauri_config.bundle.ios.minimum_system_version.clone()),
 		..Default::default()
 	};
+
 	let config = AppleConfig::from_raw(app.clone(), Some(raw)).unwrap();
 
 	let tauri_dir = tauri_dir();
 
 	let mut vendor_frameworks = Vec::new();
+
 	let mut frameworks = Vec::new();
+
 	for framework in tauri_config.bundle.ios.frameworks.clone().unwrap_or_default() {
 		let framework_path = PathBuf::from(&framework);
 
 		let ext = framework_path.extension().unwrap_or_default();
+
 		if ext.is_empty() {
 			frameworks.push(framework);
 		} else if ext == "framework" {
@@ -204,6 +214,7 @@ pub fn get_config(
 	};
 
 	set_var("TAURI_IOS_PROJECT_PATH", config.project_dir());
+
 	set_var("TAURI_IOS_APP_NAME", config.app().name());
 
 	(config, metadata)
@@ -212,6 +223,7 @@ pub fn get_config(
 fn connected_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 	let device_list = device::list_devices(env)
 		.map_err(|cause| anyhow::anyhow!("Failed to detect connected iOS devices: {cause}"))?;
+
 	if !device_list.is_empty() {
 		let device = if let Some(t) = target {
 			let (device, score) = device_list
@@ -224,6 +236,7 @@ fn connected_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Devic
         .max_by_key(|(_, score)| *score)
         // we already checked the list is not empty
         .unwrap();
+
 			if score > MIN_DEVICE_MATCH_SCORE {
 				device
 			} else {
@@ -242,9 +255,12 @@ fn connected_device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Devic
 			} else {
 				0
 			};
+
 			device_list.into_iter().nth(index).unwrap()
 		};
+
 		println!("Detected connected device: {} with target {:?}", device, device.target().triple,);
+
 		Ok(device)
 	} else {
 		Err(anyhow::anyhow!("No connected iOS devices detected"))
@@ -255,6 +271,7 @@ fn simulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<device::Simulato
 	let simulator_list = device::list_simulators(env).map_err(|cause| {
 		anyhow::anyhow!("Failed to detect connected iOS Simulator devices: {cause}")
 	})?;
+
 	if !simulator_list.is_empty() {
 		let device = if let Some(t) = target {
 			let (device, score) = simulator_list
@@ -267,6 +284,7 @@ fn simulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<device::Simulato
         .max_by_key(|(_, score)| *score)
         // we already checked the list is not empty
         .unwrap();
+
 			if score > MIN_DEVICE_MATCH_SCORE {
 				device
 			} else {
@@ -283,10 +301,12 @@ fn simulator_prompt(env:&'_ Env, target:Option<&str>) -> Result<device::Simulato
 			.map_err(|cause| {
 				anyhow::anyhow!("Failed to prompt for iOS Simulator device: {cause}")
 			})?;
+
 			simulator_list.into_iter().nth(index).unwrap()
 		} else {
 			simulator_list.into_iter().next().unwrap()
 		};
+
 		Ok(device)
 	} else {
 		Err(anyhow::anyhow!("No available iOS Simulator detected"))
@@ -298,8 +318,11 @@ fn device_prompt<'a>(env:&'_ Env, target:Option<&str>) -> Result<Device<'a>> {
 		Ok(device)
 	} else {
 		let simulator = simulator_prompt(env, target)?;
+
 		log::info!("Starting simulator {}", simulator.name());
+
 		simulator.start_detached(env)?;
+
 		Ok(simulator.into())
 	}
 }
@@ -310,9 +333,11 @@ fn detect_target_ok<'a>(env:&Env) -> Option<&'a Target<'a>> {
 
 fn open_and_wait(config:&AppleConfig, env:&Env) -> ! {
 	log::info!("Opening Xcode");
+
 	if let Err(e) = os::open_file_with("Xcode", config.project_dir(), env) {
 		log::error!("{}", e);
 	}
+
 	loop {
 		sleep(Duration::from_secs(24 * 60 * 60));
 	}
@@ -320,6 +345,7 @@ fn open_and_wait(config:&AppleConfig, env:&Env) -> ! {
 
 fn inject_resources(config:&AppleConfig, tauri_config:&TauriConfig) -> Result<()> {
 	let asset_dir = config.project_dir().join(DEFAULT_ASSET_DIR);
+
 	create_dir_all(&asset_dir)?;
 
 	let resources = match &tauri_config.bundle.resources {
@@ -327,10 +353,13 @@ fn inject_resources(config:&AppleConfig, tauri_config:&TauriConfig) -> Result<()
 		Some(BundleResources::Map(map)) => Some(ResourcePaths::from_map(map, true)),
 		None => None,
 	};
+
 	if let Some(resources) = resources {
 		for resource in resources.iter() {
 			let resource = resource?;
+
 			let dest = asset_dir.join(resource.target());
+
 			crate::helpers::fs::copy_file(resource.path(), dest)?;
 		}
 	}
@@ -358,6 +387,7 @@ fn merge_plist(src:Vec<PlistKind>) -> Result<plist::Value> {
 			PlistKind::Path(p) => plist::Value::from_file(p),
 			PlistKind::Plist(v) => Ok(v),
 		};
+
 		if let Ok(src_plist) = plist {
 			if let Some(dict) = src_plist.into_dictionary() {
 				for (key, value) in dict {
@@ -377,6 +407,7 @@ pub fn signing_from_env() -> Result<(
 	let keychain = match (var_os("IOS_CERTIFICATE"), var_os("IOS_CERTIFICATE_PASSWORD")) {
 		(Some(certificate), Some(certificate_password)) => {
 			log::info!("Reading iOS certificates from ");
+
 			tauri_macos_sign::Keychain::with_certificate(&certificate, &certificate_password)
 				.map(Some)?
 		},
@@ -385,6 +416,7 @@ pub fn signing_from_env() -> Result<(
 				"The IOS_CERTIFICATE environment variable is set but not \
 				 IOS_CERTIFICATE_PASSWORD. Ignoring the certificate..."
 			);
+
 			None
 		},
 		_ => None,
@@ -400,6 +432,7 @@ pub fn signing_from_env() -> Result<(
 				 signing unless the profile is set in your Xcode project."
 			);
 		}
+
 		None
 	};
 
@@ -470,11 +503,13 @@ pub fn synchronize_project_config(
 
 			if let Some(identity) = &project_config.code_sign_identity {
 				let identity = format!("\"{identity}\"");
+
 				pbxproj.set_build_settings(
 					&build_configuration_ref.id,
 					"CODE_SIGN_IDENTITY",
 					&identity,
 				);
+
 				pbxproj.set_build_settings(
 					&build_configuration_ref.id,
 					"\"CODE_SIGN_IDENTITY[sdk=iphoneos*]\"",
@@ -484,6 +519,7 @@ pub fn synchronize_project_config(
 
 			if let Some(id) = &project_config.team_id {
 				pbxproj.set_build_settings(&build_configuration_ref.id, "DEVELOPMENT_TEAM", id);
+
 				pbxproj.set_build_settings(
 					&build_configuration_ref.id,
 					"\"DEVELOPMENT_TEAM[sdk=iphoneos*]\"",
@@ -493,11 +529,13 @@ pub fn synchronize_project_config(
 
 			if let Some(profile_uuid) = &project_config.provisioning_profile_uuid {
 				let profile_uuid = format!("\"{profile_uuid}\"");
+
 				pbxproj.set_build_settings(
 					&build_configuration_ref.id,
 					"PROVISIONING_PROFILE_SPECIFIER",
 					&profile_uuid,
 				);
+
 				pbxproj.set_build_settings(
 					&build_configuration_ref.id,
 					"\"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]\"",
@@ -515,10 +553,13 @@ pub fn synchronize_project_config(
 			.find(|l| l.comment.contains("_iOS"))
 		{
 			let mut configuration = None;
+
 			let target = if debug { "debug" } else { "release" };
+
 			for build_configuration_ref in xc_configuration_list.build_configurations {
 				if build_configuration_ref.comments.contains(target) {
 					configuration = pbxproj.xc_build_configuration.get(&build_configuration_ref.id);
+
 					break;
 				}
 			}
@@ -556,10 +597,13 @@ pub fn synchronize_project_config(
 				.or_else(|| build_configuration.get_build_setting("PROVISIONING_PROFILE_SPECIFIER"))
 				.map(|setting| setting.value.trim_matches('"').to_string())
 		});
+
 		if let Some(profile_uuid) = profile_uuid {
 			let mut provisioning_profiles = plist::Dictionary::new();
+
 			provisioning_profiles
 				.insert(config.app().identifier().to_string(), profile_uuid.into());
+
 			export_options_list
 				.insert("provisioningProfiles".to_string(), provisioning_profiles.into());
 		}

@@ -14,6 +14,7 @@ use crate::{
 
 pub fn apply_effects(window:impl HasWindowHandle, effects:WindowEffectsConfig) {
 	let WindowEffectsConfig { effects, radius, state, .. } = effects;
+
 	let effect =
 		if let Some(effect) =
 			effects.into_iter().find(|e| {

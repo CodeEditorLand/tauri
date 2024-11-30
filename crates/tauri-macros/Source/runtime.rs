@@ -61,7 +61,9 @@ pub(crate) struct Attributes {
 impl Parse for Attributes {
   fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
     let default_type = input.parse()?;
+
     input.parse::<Token![,]>()?;
+
     Ok(Attributes {
       default_type,
       feature: input.parse()?,
@@ -88,6 +90,7 @@ pub(crate) fn default_runtime(attributes: Attributes, input: Input) -> TokenStre
       param.eq_token = Some(parse_quote!(=));
       param.default = Some(attributes.default_type);
     }
+
     _ => {
       panic!("DefaultRuntime requires the last parameter to not have a default value")
     }

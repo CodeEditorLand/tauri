@@ -71,10 +71,12 @@ impl DevChild {
 impl DevProcess for DevChild {
 	fn kill(&self) -> std::io::Result<()> {
 		self.manually_killed_process.store(true, Ordering::Relaxed);
+
 		match self.child.kill() {
 			Ok(_) => Ok(()),
 			Err(e) => {
 				self.manually_killed_process.store(false, Ordering::Relaxed);
+
 				Err(e)
 			},
 		}
@@ -165,9 +167,12 @@ impl Default for CliOptions {
 
 fn env_vars() -> HashMap<String, OsString> {
 	let mut vars = HashMap::new();
+
 	vars.insert("RUST_LOG_STYLE".into(), "always".into());
+
 	for (k, v) in std::env::vars_os() {
 		let k = k.to_string_lossy();
+
 		if (k.starts_with("TAURI")
 			&& k != "TAURI_SIGNING_PRIVATE_KEY"
 			&& k != "TAURI_SIGNING_PRIVATE_KEY_PASSWORD")
@@ -179,11 +184,13 @@ fn env_vars() -> HashMap<String, OsString> {
 			vars.insert(k.into_owned(), v);
 		}
 	}
+
 	vars
 }
 
 fn env() -> Result<Env, EnvError> {
 	let env = Env::new()?.explicit_env_vars(env_vars());
+
 	Ok(env)
 }
 
@@ -195,18 +202,21 @@ pub fn write_options(identifier:&str, mut options:CliOptions) -> crate::Result<O
 	options.vars.extend(env_vars());
 
 	let runtime = Runtime::new().unwrap();
+
 	let r:anyhow::Result<(ServerHandle, SocketAddr)> = runtime.block_on(async move {
 		let server = ServerBuilder::default().build("127.0.0.1:0").await?;
 
 		let addr = server.local_addr()?;
 
 		let mut module = RpcModule::new(());
+
 		module.register_method("options", move |_, _, _| Some(options.clone()))?;
 
 		let handle = server.start(module);
 
 		Ok((handle, addr))
 	});
+
 	let (handle, addr) = r?;
 
 	write(temp_dir().join(format!("{identifier}-server-addr")), addr.to_string())?;
@@ -216,9 +226,11 @@ pub fn write_options(identifier:&str, mut options:CliOptions) -> crate::Result<O
 
 fn read_options(identifier:&str) -> CliOptions {
 	let runtime = tokio::runtime::Runtime::new().unwrap();
+
 	let options = runtime
 		.block_on(async move {
 			let addr_path = temp_dir().join(format!("{identifier}-server-addr"));
+
 			let (tx, rx) = WsTransportClientBuilder::default()
 				.build(
 					format!(
@@ -231,8 +243,11 @@ fn read_options(identifier:&str) -> CliOptions {
 					.unwrap(),
 				)
 				.await?;
+
 			let client:Client = ClientBuilder::default().build_with_tokio(tx, rx);
+
 			let options:CliOptions = client.request("options", rpc_params![]).await?;
+
 			Ok::<CliOptions, anyhow::Error>(options)
 		})
 		.expect("failed to read CLI options");
@@ -240,6 +255,7 @@ fn read_options(identifier:&str) -> CliOptions {
 	for (k, v) in &options.vars {
 		set_var(k, v);
 	}
+
 	options
 }
 
@@ -252,10 +268,12 @@ pub fn get_app(target:Target, config:&TauriConfig, interface:&AppInterface) -> A
 
 	if identifier.is_empty() {
 		log::error!("Bundle identifier set in `tauri.conf.json > identifier` cannot be empty");
+
 		exit(1);
 	}
 
 	let app_name = interface.app_settings().app_name().unwrap_or_else(|| "app".into());
+
 	let lib_name = interface.app_settings().lib_name().unwrap_or_else(|| app_name.to_snek_case());
 
 	let raw = RawAppConfig {
@@ -268,6 +286,7 @@ pub fn get_app(target:Target, config:&TauriConfig, interface:&AppInterface) -> A
 	};
 
 	let app_settings = interface.app_settings();
+
 	App::from_raw(tauri_dir().to_path_buf(), raw).unwrap().with_target_dir_resolver(
 		move |target, profile| {
 			let bin_path = app_settings
@@ -277,6 +296,7 @@ pub fn get_app(target:Target, config:&TauriConfig, interface:&AppInterface) -> A
 					..Default::default()
 				})
 				.expect("failed to resolve target directory");
+
 			bin_path.parent().unwrap().to_path_buf()
 		},
 	)
@@ -299,6 +319,7 @@ fn ensure_init(
 	}
 
 	let tauri_config_guard = tauri_config.lock().unwrap();
+
 	let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
 	let mut project_outdated_reasons = Vec::new();
@@ -308,6 +329,7 @@ fn ensure_init(
 			let java_folder = project_dir
 				.join("app/src/main/java")
 				.join(tauri_config_.identifier.replace('.', "/").replace('-', "_"));
+
 			if java_folder.exists() {
 				#[cfg(unix)]
 				ensure_gradlew(&project_dir)?;
@@ -335,6 +357,7 @@ fn ensure_init(
 
 	if !project_outdated_reasons.is_empty() {
 		let reason = project_outdated_reasons.join(" and ");
+
 		bail!(
 			"{} project directory is outdated because {reason}. Please run `tauri {} init` and \
 			 try again.",
@@ -351,15 +374,19 @@ fn ensure_gradlew(project_dir:&std::path::Path) -> Result<()> {
 	use std::os::unix::fs::PermissionsExt;
 
 	let gradlew_path = project_dir.join("gradlew");
+
 	if let Ok(metadata) = gradlew_path.metadata() {
 		let mut permissions = metadata.permissions();
 
 		let is_executable = permissions.mode() & 0o111 != 0;
+
 		if !is_executable {
 			permissions.set_mode(permissions.mode() | 0o111);
+
 			std::fs::set_permissions(&gradlew_path, permissions)
 				.context("failed to mark gradlew as executable")?;
 		}
+
 		std::fs::write(
 			&gradlew_path,
 			std::fs::read_to_string(&gradlew_path)
@@ -375,6 +402,7 @@ fn ensure_gradlew(project_dir:&std::path::Path) -> Result<()> {
 fn log_finished(outputs:Vec<PathBuf>, kind:&str) {
 	if !outputs.is_empty() {
 		let mut printable_paths = String::new();
+
 		for path in &outputs {
 			writeln!(printable_paths, "        {}", path.display()).unwrap();
 		}

@@ -36,6 +36,7 @@ pub fn get<R:Runtime>(
 				match assets.get(&"index.html".into()) {
 					Some(asset) => {
 						let mut asset = String::from_utf8_lossy(asset.as_ref()).into_owned();
+
 						let csp_map = set_csp(
 							&mut asset,
 							&assets,
@@ -43,6 +44,7 @@ pub fn get<R:Runtime>(
 							&manager,
 							Csp::Policy(format!("default-src 'none'; frame-src {}", frame_src)),
 						);
+
 						let csp = Csp::DirectiveMap(csp_map).to_string();
 
 						let template =
@@ -51,6 +53,7 @@ pub fn get<R:Runtime>(
 								origin:window_origin.clone(),
 								process_ipc_message_fn:PROCESS_IPC_MESSAGE_FN,
 							};
+
 						match template.render(asset.as_ref(), &Default::default()) {
 							Ok(asset) => {
 								http::Response::builder()

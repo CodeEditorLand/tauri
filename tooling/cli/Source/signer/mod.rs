@@ -33,5 +33,6 @@ pub fn command(cli:Cli) -> Result<()> {
 		Commands::Sign(options) => sign::command(options)?,
 		Commands::Generate(options) => generate::command(options)?,
 	}
+
 	Ok(())
 }

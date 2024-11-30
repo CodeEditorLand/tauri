@@ -53,10 +53,12 @@ impl<'a> Image<'a> {
     use image::GenericImageView;
 
     let img = image::load_from_memory(bytes)?;
+
     let pixels = img
       .pixels()
       .flat_map(|(_, _, pixel)| pixel.0)
       .collect::<Vec<_>>();
+
     Ok(Self {
       rgba: Cow::Owned(pixels),
       width: img.width(),
@@ -71,6 +73,7 @@ impl<'a> Image<'a> {
   #[cfg_attr(docsrs, doc(cfg(any(feature = "image-ico", feature = "image-png"))))]
   pub fn from_path<P: AsRef<std::path::Path>>(path: P) -> crate::Result<Self> {
     let bytes = std::fs::read(path)?;
+
     Self::from_bytes(&bytes)
   }
 

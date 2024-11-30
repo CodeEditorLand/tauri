@@ -163,6 +163,7 @@ mod build {
         Self::Int(i) => {
           quote! { #prefix::Int(#i) }
         }
+
         Self::Float(f) => {
           quote! { #prefix::Float (#f) }
         }
@@ -182,10 +183,12 @@ mod build {
           let s = str_lit(str);
           quote! { #prefix::String(#s) }
         }
+
         Value::List(vec) => {
           let items = vec_lit(vec, identity);
           quote! { #prefix::List(#items) }
         }
+
         Value::Map(map) => {
           let map = map_lit(
             quote! { ::std::collections::BTreeMap },

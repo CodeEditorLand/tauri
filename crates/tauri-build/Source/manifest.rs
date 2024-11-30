@@ -61,10 +61,13 @@ pub fn check(config: &Config, manifest: &mut Manifest) -> Result<()> {
 
   for metadata in dependencies {
     let mut name = metadata.name.clone();
+
     let mut deps = find_dependency(manifest, &metadata.name, metadata.kind);
+
     if deps.is_empty() {
       if let Some(alias) = &metadata.alias {
         deps = find_dependency(manifest, alias, metadata.kind);
+
         name.clone_from(alias);
       }
     }
@@ -92,6 +95,7 @@ fn find_dependency(manifest: &mut Manifest, name: &str, kind: DependencyKind) ->
     vec![dep]
   } else {
     let mut deps = Vec::new();
+
     for target in manifest.target.values_mut() {
       if let Some(dep) = match kind {
         DependencyKind::Build => target.build_dependencies.remove(name),
@@ -100,6 +104,7 @@ fn find_dependency(manifest: &mut Manifest, name: &str, kind: DependencyKind) ->
         deps.push(dep);
       }
     }
+
     deps
   }
 }
@@ -150,19 +155,24 @@ fn check_features(dependency: Dependency, metadata: &AllowlistedDependency) -> R
   let mut error_message = String::new();
   if !diff.remove.is_empty() {
     error_message.push_str("remove the `");
+
     error_message.push_str(&diff.remove.join(", "));
+
     error_message.push_str(if diff.remove.len() == 1 {
       "` feature"
     } else {
       "` features"
     });
+
     if !diff.add.is_empty() {
       error_message.push_str(" and ");
     }
   }
   if !diff.add.is_empty() {
     error_message.push_str("add the `");
+
     error_message.push_str(&diff.add.join(", "));
+
     error_message.push_str(if diff.add.len() == 1 {
       "` feature"
     } else {

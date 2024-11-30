@@ -113,7 +113,9 @@ pub fn command(options:Options) -> Result<()> {
 		Some(o) => o.canonicalize()?,
 		None => {
 			let dir = tauri_dir();
+
 			let capabilities_dir = dir.join("capabilities");
+
 			capabilities_dir.join(format!(
 				"{}.{}",
 				capability.identifier,
@@ -126,6 +128,7 @@ pub fn command(options:Options) -> Result<()> {
 		let msg = format!("Capability already exists at {}", dunce::simplified(&path).display());
 
 		let overwrite = prompts::confirm(&format!("{msg}, overwrite?"), Some(false))?;
+
 		if overwrite {
 			std::fs::remove_file(&path)?;
 		} else {

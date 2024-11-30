@@ -59,6 +59,7 @@ pub fn command(cli:Cli) -> Result<()> {
 			};
 
 			let out_dir = PathBuf::from(options.out_dir);
+
 			if out_dir.join("ios").exists() {
 				return Err(anyhow::anyhow!("ios folder already exists"));
 			}
@@ -66,6 +67,7 @@ pub fn command(cli:Cli) -> Result<()> {
 			let handlebars = Handlebars::new();
 
 			let mut data = BTreeMap::new();
+
 			super::init::plugin_name_data(&mut data, &plugin_name);
 
 			let ios_folder_name = match options.ios_framework {
@@ -74,6 +76,7 @@ pub fn command(cli:Cli) -> Result<()> {
 			};
 
 			let mut created_dirs = Vec::new();
+
 			template::render_with_generator(
 				&handlebars,
 				&data,
@@ -81,13 +84,17 @@ pub fn command(cli:Cli) -> Result<()> {
 				&out_dir,
 				&mut |path| {
 					let mut components = path.components();
+
 					let root = components.next().unwrap();
+
 					if let Component::Normal(component) = root {
 						if component == ios_folder_name {
 							let folder_name =
 								components.next().unwrap().as_os_str().to_string_lossy();
+
 							let new_folder_name =
 								folder_name.replace("{{ plugin_name }}", &plugin_name);
+
 							let new_folder_name = OsString::from(&new_folder_name);
 
 							let path = [
@@ -99,11 +106,15 @@ pub fn command(cli:Cli) -> Result<()> {
 							.collect::<PathBuf>();
 
 							let path = out_dir.join(path);
+
 							let parent = path.parent().unwrap().to_path_buf();
+
 							if !created_dirs.contains(&parent) {
 								create_dir_all(&parent)?;
+
 								created_dirs.push(parent);
 							}
+
 							return File::create(path).map(Some);
 						}
 					}
@@ -121,8 +132,10 @@ tauri-build = "{}"
 "#,
 				metadata.tauri_build
 			);
+
 			let build_file =
 				super::init::TEMPLATE_DIR.get_file("build.rs").unwrap().contents_utf8().unwrap();
+
 			let init_fn = format!(
 				r#"
 #[cfg(target_os = "ios")]
@@ -142,8 +155,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {{
 			);
 
 			log::info!("iOS project added");
+
 			println!("You must add the following to the Cargo.toml file:\n{cargo_toml_addition}",);
+
 			println!("You must add the following code to the build.rs file:\n\n{build_file}",);
+
 			println!(
 				"Your plugin's init function under src/lib.rs must initialize the iOS \
 				 plugin:\n{init_fn}"

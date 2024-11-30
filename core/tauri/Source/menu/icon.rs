@@ -46,6 +46,7 @@ impl<R:Runtime> IconMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::IconMenuItem::new(text, enabled, icon, accelerator);
+
 			IconMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
@@ -87,6 +88,7 @@ impl<R:Runtime> IconMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::IconMenuItem::with_id(id.clone(), text, enabled, icon, accelerator);
+
 			IconMenuItemInner { id, inner:Some(item), app_handle }
 		})?;
 
@@ -123,6 +125,7 @@ impl<R:Runtime> IconMenuItem<R> {
 
 		let item = run_main_thread!(handle, || {
 			let item = muda::IconMenuItem::with_native_icon(text, enabled, icon, accelerator);
+
 			IconMenuItemInner { id:item.id().clone(), inner:Some(item), app_handle }
 		})?;
 
@@ -170,6 +173,7 @@ impl<R:Runtime> IconMenuItem<R> {
 				icon,
 				accelerator,
 			);
+
 			IconMenuItemInner { id, inner:Some(item), app_handle }
 		})?;
 
@@ -193,6 +197,7 @@ impl<R:Runtime> IconMenuItem<R> {
 	/// `&&`.
 	pub fn set_text<S:AsRef<str>>(&self, text:S) -> crate::Result<()> {
 		let text = text.as_ref().to_string();
+
 		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_text(text))
 	}
 
@@ -209,6 +214,7 @@ impl<R:Runtime> IconMenuItem<R> {
 	/// Set this menu item accelerator.
 	pub fn set_accelerator<S:AsRef<str>>(&self, accelerator:Option<S>) -> crate::Result<()> {
 		let accel = accelerator.and_then(|s| s.as_ref().parse().ok());
+
 		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_accelerator(accel))?
 			.map_err(Into::into)
 	}
@@ -219,6 +225,7 @@ impl<R:Runtime> IconMenuItem<R> {
 			Some(i) => Some(i.try_into()?),
 			None => None,
 		};
+
 		run_item_main_thread!(self, |self_:Self| (*self_.0).as_ref().set_icon(icon))
 	}
 

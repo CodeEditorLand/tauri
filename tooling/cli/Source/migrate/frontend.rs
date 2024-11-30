@@ -70,10 +70,13 @@ const JS_EXTENSIONS: &[&str] = &["js", "mjs", "jsx", "ts", "mts", "tsx", "svelte
 /// Returns a list of migrated plugins
 pub fn migrate(app_dir: &Path) -> Result<Vec<String>> {
 	let mut new_npm_packages = Vec::new();
+
 	let mut new_plugins = Vec::new();
+
 	let mut npm_packages_to_remove = Vec::new();
 
 	let pre = env!("CARGO_PKG_VERSION_PRE");
+
 	let npm_version = if pre.is_empty() {
 		format!("{}.0.0", env!("CARGO_PKG_VERSION_MAJOR"))
 	} else {
@@ -86,6 +89,7 @@ pub fn migrate(app_dir: &Path) -> Result<Vec<String>> {
 	for pkg in ["@tauri-apps/cli", "@tauri-apps/api"] {
 		let version =
 			pm.current_package_version(pkg, app_dir).unwrap_or_default().unwrap_or_default();
+
 		if version.starts_with('1') {
 			new_npm_packages.push(format!("{pkg}@^{npm_version}"));
 		}
@@ -94,15 +98,19 @@ pub fn migrate(app_dir: &Path) -> Result<Vec<String>> {
 	for entry in walk_builder(app_dir).build().flatten() {
 		if entry.file_type().map(|t| t.is_file()).unwrap_or_default() {
 			let path = entry.path();
+
 			let ext = path.extension().unwrap_or_default();
+
 			if JS_EXTENSIONS.iter().any(|e| e == &ext) {
 				let js_contents = std::fs::read_to_string(path)?;
+
 				let new_contents = migrate_imports(
 					path,
 					&js_contents,
 					&mut new_plugins,
 					&mut npm_packages_to_remove,
 				)?;
+
 				if new_contents != js_contents {
 					fs::write(path, new_contents)
 						.with_context(|| format!("Error writing {}", path.display()))?;
@@ -113,13 +121,17 @@ pub fn migrate(app_dir: &Path) -> Result<Vec<String>> {
 
 	if !npm_packages_to_remove.is_empty() {
 		npm_packages_to_remove.sort();
+
 		npm_packages_to_remove.dedup();
+
 		pm.remove(&npm_packages_to_remove, app_dir).context("Error removing npm packages")?;
 	}
 
 	if !new_npm_packages.is_empty() {
 		new_npm_packages.sort();
+
 		new_npm_packages.dedup();
+
 		pm.install(&new_npm_packages, app_dir).context("Error installing new npm packages")?;
 	}
 
@@ -153,6 +165,7 @@ fn migrate_imports<'a>(
 		let allocator = Allocator::default();
 
 		let ret = Parser::new(&allocator, js_source, source_type).parse();
+
 		if !ret.errors.is_empty() {
 			anyhow::bail!("failed to parse {} as valid Javascript/Typescript file", path.display())
 		}
@@ -216,6 +229,7 @@ fn migrate_imports<'a>(
 							// ```
 							"appWindow" if module == "@tauri-apps/api/window" => {
 								stmts_to_add.push("\nconst appWindow = getCurrentWebviewWindow()");
+
 								Some("getCurrentWebviewWindow")
 							}
 
@@ -234,12 +248,14 @@ fn migrate_imports<'a>(
 							{
 								let js_plugin: &str =
 									MODULES_MAP[&format!("@tauri-apps/api/{import}")];
+
 								let (_, plugin_name) = js_plugin.split_once("plugin-").unwrap();
 
 								new_plugins.push(plugin_name.to_string());
 
 								if specifier.local.name.as_str() != import {
 									let local = &specifier.local.name;
+
 									imports_to_add.push(format!(
 										"\nimport * as {import} as {local} from \"{js_plugin}\""
 									));
@@ -248,6 +264,7 @@ fn migrate_imports<'a>(
 										"\nimport * as {import} from \"{js_plugin}\""
 									));
 								};
+
 								None
 							}
 
@@ -281,9 +298,12 @@ fn migrate_imports<'a>(
 
 							// find the next comma or the bracket ending the import
 							let start = specifier.span.start as usize;
+
 							let sliced = &js_source[start..];
+
 							let comma_or_bracket =
 								sliced.chars().find_position(|&c| c == ',' || c == '}');
+
 							let end = match comma_or_bracket {
 								Some((n, ',')) => n + start + 1,
 								Some((_, '}')) => specifier.span.end as _,
@@ -339,6 +359,7 @@ fn migrate_imports<'a>(
 mod tests {
 
 	use super::*;
+
 	use pretty_assertions::assert_eq;
 
 	#[test]
@@ -416,6 +437,7 @@ const appWindow = getCurrentWebviewWindow()
 			new_plugins,
 			vec!["dialog", "cli", "dialog", "global-shortcut", "clipboard-manager", "fs"]
 		);
+
 		assert_eq!(npm_packages_to_remove, Vec::<String>::new());
 	}
 
@@ -478,6 +500,7 @@ const appWindow = getCurrentWebviewWindow()
 			new_plugins,
 			vec!["dialog", "cli", "dialog", "global-shortcut", "clipboard-manager", "fs"]
 		);
+
 		assert_eq!(npm_packages_to_remove, Vec::<String>::new());
 	}
 
@@ -504,12 +527,19 @@ function App() {
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setGreetMsg(await invoke("greet", { name }));
+
     await open();
+
     await dialog.save();
+
     await convertFileSrc("");
+
     const a = appWindow.label;
+
     superCli.getMatches();
+
     clipboard.readText();
+
     fs.exists("");
   }
 
@@ -578,12 +608,19 @@ function App() {
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setGreetMsg(await invoke("greet", { name }));
+
     await open();
+
     await dialog.save();
+
     await convertFileSrc("");
+
     const a = appWindow.label;
+
     superCli.getMatches();
+
     clipboard.readText();
+
     fs.exists("");
   }
 
@@ -655,6 +692,7 @@ export default App;
 				"sql"
 			]
 		);
+
 		assert_eq!(npm_packages_to_remove, vec!["tauri-plugin-store-api", "tauri-plugin-sql-api"]);
 	}
 }

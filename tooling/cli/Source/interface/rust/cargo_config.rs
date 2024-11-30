@@ -56,6 +56,7 @@ impl Config {
 			let contents = fs::read_to_string(&path).with_context(|| {
 				format!("failed to read configuration file `{}`", display_path(&path))
 			})?;
+
 			toml::from_str(&contents).with_context(|| {
 				format!("could not parse TOML configuration in `{}`", display_path(&path))
 			})
@@ -64,8 +65,10 @@ impl Config {
 		for current in PathAncestors::new(path) {
 			if let Some(path) = get_file_path(&current.join(".cargo"), "config", true)? {
 				let toml = get_config(path)?;
+
 				if let Some(target) = toml.build.and_then(|b| b.target) {
 					config.build.target = Some(target);
+
 					break;
 				}
 			}
@@ -75,6 +78,7 @@ impl Config {
 			if let Ok(cargo_home) = std::env::var("CARGO_HOME") {
 				if let Some(path) = get_file_path(&PathBuf::from(cargo_home), "config", true)? {
 					let toml = get_config(path)?;
+
 					if let Some(target) = toml.build.and_then(|b| b.target) {
 						config.build.target = Some(target);
 					}
@@ -99,6 +103,7 @@ impl BuildConfig {
 /// for backwards compatibility, but warn the user appropriately.
 fn get_file_path(dir:&Path, filename_without_extension:&str, warn:bool) -> Result<Option<PathBuf>> {
 	let possible = dir.join(filename_without_extension);
+
 	let possible_with_extension = dir.join(format!("{filename_without_extension}.toml"));
 
 	if possible.exists() {

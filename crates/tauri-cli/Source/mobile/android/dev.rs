@@ -137,6 +137,7 @@ fn run_command(options: Options, noise_level: NoiseLevel) -> Result<()> {
       Ok(d) => Some(d),
       Err(e) => {
         log::error!("{e}");
+
         None
       }
     }
@@ -151,11 +152,13 @@ fn run_command(options: Options, noise_level: NoiseLevel) -> Result<()> {
 
   let (interface, config, metadata) = {
     let tauri_config_guard = tauri_config.lock().unwrap();
+
     let tauri_config_ = tauri_config_guard.as_ref().unwrap();
 
     let interface = AppInterface::new(tauri_config_, dev_options.target.clone())?;
 
     let app = get_app(MobileTarget::Android, tauri_config_, &interface);
+
     let (config, metadata) = get_config(
       &app,
       tauri_config_,
@@ -279,6 +282,7 @@ fn run_dev(
           Ok(c) => Ok(Box::new(c) as Box<dyn DevProcess + Send>),
           Err(e) => {
             crate::dev::kill_before_dev_process();
+
             Err(e)
           }
         }

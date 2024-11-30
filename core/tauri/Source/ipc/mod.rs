@@ -312,6 +312,7 @@ impl<R:Runtime> InvokeResolver<R> {
 				Ok(ok) => InvokeResponse::Ok(ok),
 				Err(err) => InvokeResponse::Err(err),
 			};
+
 			Self::return_result(
 				self.webview,
 				self.responder,
@@ -381,6 +382,7 @@ impl<R:Runtime> InvokeResolver<R> {
 		T: IpcResponse,
 		F: Future<Output = Result<T, InvokeError>> + Send + 'static, {
 		let result = task.await;
+
 		Self::return_closure(webview, responder, || result, cmd, success_callback, error_callback)
 	}
 
@@ -494,17 +496,21 @@ mod tests {
 	#[test]
 	fn deserialize_invoke_response_body() {
 		let json = InvokeResponseBody::Json("[1, 123, 1231]".to_string());
+
 		assert_eq!(json.deserialize::<Vec<u16>>().unwrap(), vec![1, 123, 1231]);
 
 		let json = InvokeResponseBody::Json("\"string value\"".to_string());
+
 		assert_eq!(json.deserialize::<String>().unwrap(), "string value");
 
 		let json = InvokeResponseBody::Json("\"string value\"".to_string());
+
 		assert!(json.deserialize::<Vec<u16>>().is_err());
 
 		let values = vec![1, 2, 3, 4, 5, 6, 1];
 
 		let raw = InvokeResponseBody::Raw(values.clone());
+
 		assert_eq!(raw.deserialize::<Vec<u8>>().unwrap(), values);
 	}
 }

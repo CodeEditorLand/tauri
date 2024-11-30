@@ -118,6 +118,7 @@ impl StateManager {
 
   fn with_map_ref<'a, F: FnOnce(&'a TypeIdMap) -> R, R>(&'a self, f: F) -> R {
     let map = self.map.lock().unwrap();
+
     let map = map.get();
     // SAFETY: safe to access since we are holding a lock
     f(unsafe { &*map })
@@ -125,7 +126,9 @@ impl StateManager {
 
   fn with_map_mut<F: FnOnce(&mut TypeIdMap) -> R, R>(&self, f: F) -> R {
     let mut map = self.map.lock().unwrap();
+
     let map = map.get_mut();
+
     f(map)
   }
 
@@ -188,33 +191,46 @@ mod tests {
   #[test]
   fn simple_set_get() {
     let state = StateManager::new();
+
     assert!(state.set(1u32));
+
     assert_eq!(*state.get::<u32>(), 1);
   }
 
   #[test]
   fn simple_set_get_unmanage() {
     let state = StateManager::new();
+
     assert!(state.set(1u32));
+
     assert_eq!(*state.get::<u32>(), 1);
+
     assert!(state.unmanage::<u32>().is_some());
+
     assert!(state.unmanage::<u32>().is_none());
+
     assert_eq!(state.try_get::<u32>(), None);
+
     assert!(state.set(2u32));
+
     assert_eq!(*state.get::<u32>(), 2);
   }
 
   #[test]
   fn dst_set_get() {
     let state = StateManager::new();
+
     assert!(state.set::<[u32; 4]>([1, 2, 3, 4u32]));
+
     assert_eq!(*state.get::<[u32; 4]>(), [1, 2, 3, 4]);
   }
 
   #[test]
   fn set_get_remote() {
     let state = Arc::new(StateManager::new());
+
     let sate_ = Arc::clone(&state);
+
     thread::spawn(move || {
       sate_.set(10isize);
     })
@@ -227,27 +243,35 @@ mod tests {
   #[test]
   fn two_put_get() {
     let state = StateManager::new();
+
     assert!(state.set("Hello, world!".to_string()));
 
     let s_old = state.get::<String>();
+
     assert_eq!(*s_old, "Hello, world!");
 
     assert!(!state.set::<String>("Bye bye!".into()));
+
     assert_eq!(*state.get::<String>(), "Hello, world!");
+
     assert_eq!(state.get::<String>(), s_old);
   }
 
   #[test]
   fn many_puts_only_one_succeeds() {
     let state = Arc::new(StateManager::new());
+
     let mut threads = vec![];
+
     for _ in 0..1000 {
       let state_ = Arc::clone(&state);
       threads.push(thread::spawn(move || state_.set(10i64)))
     }
 
     let results: Vec<bool> = threads.into_iter().map(|t| t.join().unwrap()).collect();
+
     assert_eq!(results.into_iter().filter(|&b| b).count(), 1);
+
     assert_eq!(*state.get::<i64>(), 10);
   }
 
@@ -255,14 +279,19 @@ mod tests {
   #[test]
   fn test_no_drop_on_set() {
     let state = StateManager::new();
+
     let drop_flag = Arc::new(RwLock::new(false));
+
     let dropping_struct = DroppingStruct(drop_flag.clone());
 
     let _drop_flag_ignore = Arc::new(RwLock::new(false));
+
     let _dropping_struct_ignore = DroppingStruct(_drop_flag_ignore.clone());
 
     state.set::<DroppingStruct>(dropping_struct);
+
     assert!(!state.set::<DroppingStruct>(_dropping_struct_ignore));
+
     assert!(!*drop_flag.read().unwrap());
   }
 
@@ -270,9 +299,11 @@ mod tests {
   #[test]
   fn drop_inners_on_drop() {
     let drop_flag_a = Arc::new(RwLock::new(false));
+
     let dropping_struct_a = DroppingStruct(drop_flag_a.clone());
 
     let drop_flag_b = Arc::new(RwLock::new(false));
+
     let dropping_struct_b = DroppingStructWrap(DroppingStruct(drop_flag_b.clone()));
 
     {
@@ -286,6 +317,7 @@ mod tests {
     }
 
     assert!(*drop_flag_a.read().unwrap());
+
     assert!(*drop_flag_b.read().unwrap());
   }
 }

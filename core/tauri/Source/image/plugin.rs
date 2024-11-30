@@ -22,8 +22,11 @@ fn new<R:Runtime>(
 	height:u32,
 ) -> crate::Result<ResourceId> {
 	let image = Image::new_owned(rgba, width, height);
+
 	let mut resources_table = webview.resources_table();
+
 	let rid = resources_table.add(image);
+
 	Ok(rid)
 }
 
@@ -31,8 +34,11 @@ fn new<R:Runtime>(
 #[command(root = "crate")]
 fn from_bytes<R:Runtime>(webview:Webview<R>, bytes:Vec<u8>) -> crate::Result<ResourceId> {
 	let image = Image::from_bytes(&bytes)?.to_owned();
+
 	let mut resources_table = webview.resources_table();
+
 	let rid = resources_table.add(image);
+
 	Ok(rid)
 }
 
@@ -46,8 +52,11 @@ fn from_bytes() -> std::result::Result<(), &'static str> {
 #[command(root = "crate")]
 fn from_path<R:Runtime>(webview:Webview<R>, path:std::path::PathBuf) -> crate::Result<ResourceId> {
 	let image = Image::from_path(path)?.to_owned();
+
 	let mut resources_table = webview.resources_table();
+
 	let rid = resources_table.add(image);
+
 	Ok(rid)
 }
 
@@ -60,7 +69,9 @@ fn from_path() -> std::result::Result<(), &'static str> {
 #[command(root = "crate")]
 fn rgba<R:Runtime>(webview:Webview<R>, rid:ResourceId) -> crate::Result<Vec<u8>> {
 	let resources_table = webview.resources_table();
+
 	let image = resources_table.get::<Image<'_>>(rid)?;
+
 	Ok(image.rgba().to_vec())
 }
 
@@ -73,7 +84,9 @@ struct Size {
 #[command(root = "crate")]
 fn size<R:Runtime>(webview:Webview<R>, rid:ResourceId) -> crate::Result<Size> {
 	let resources_table = webview.resources_table();
+
 	let image = resources_table.get::<Image<'_>>(rid)?;
+
 	Ok(Size { width:image.width(), height:image.height() })
 }
 

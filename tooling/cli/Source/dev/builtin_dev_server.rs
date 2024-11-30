@@ -30,15 +30,20 @@ struct ServerState {
 
 pub fn start<P:AsRef<Path>>(dir:P, ip:IpAddr, port:Option<u16>) -> crate::Result<SocketAddr> {
 	let dir = dir.as_ref();
+
 	let dir = dunce::canonicalize(dir)?;
 
 	// bind port and tcp listener
 	let auto_port = port.is_none();
+
 	let mut port = port.unwrap_or(1430);
+
 	let (tcp_listener, address) = loop {
 		let address = SocketAddr::new(ip, port);
+
 		if let Ok(tcp) = std::net::TcpListener::bind(address) {
 			tcp.set_nonblocking(true)?;
+
 			break (tcp, address);
 		}
 
@@ -53,6 +58,7 @@ pub fn start<P:AsRef<Path>>(dir:P, ip:IpAddr, port:Option<u16>) -> crate::Result
 
 	// watch dir for changes
 	let tx_c = tx.clone();
+
 	watch(dir.clone(), move || {
 		let _ = tx_c.send(());
 	});
@@ -94,6 +100,7 @@ async fn handler(uri:Uri, state:State<ServerState>) -> impl IntoResponse {
 	match bytes {
 		Ok(mut bytes) => {
 			let mime_type = MimeType::parse_with_fallback(&bytes, uri, MimeType::OctetStream);
+
 			if mime_type == MimeType::Html.to_string() {
 				bytes = inject_address(bytes, &state.address);
 			}
@@ -107,11 +114,13 @@ async fn ws_handler(ws:WebSocketUpgrade, state:State<ServerState>) -> Response {
 	ws.on_upgrade(move |mut ws| {
 		async move {
 			let mut rx = state.tx.subscribe();
+
 			while tokio::select! {
 				_ = ws.recv() => return,
 				fs_reload_event = rx.recv() => fs_reload_event.is_ok(),
 			} {
 				let msg = ws::Message::Text(r#"{"reload": true}"#.to_owned());
+
 				if ws.send(msg).await.is_err() {
 					break;
 				}
@@ -127,18 +136,23 @@ fn inject_address(html_bytes:Vec<u8>, address:&SocketAddr) -> Vec<u8> {
 		} else {
 			let node =
 				NodeRef::new_element(QualName::new(None, ns!(html), LocalName::from("head")), None);
+
 			f(&node);
+
 			document.prepend(node)
 		}
 	}
 
 	let mut document = kuchiki::parse_html().one(String::from_utf8_lossy(&html_bytes).into_owned());
+
 	with_html_head(&mut document, |head| {
 		let script =
 			RELOAD_SCRIPT.replace("{{reload_url}}", &format!("ws://{address}/__tauri_cli"));
 
 		let script_el = NodeRef::new_element(QualName::new(None, ns!(html), "script".into()), None);
+
 		script_el.append(NodeRef::new_text(script));
+
 		head.prepend(script_el);
 	});
 
@@ -147,6 +161,7 @@ fn inject_address(html_bytes:Vec<u8>, address:&SocketAddr) -> Vec<u8> {
 
 fn fs_read_scoped(path:PathBuf, scope:&Path) -> crate::Result<Vec<u8>> {
 	let path = dunce::canonicalize(path)?;
+
 	if path.starts_with(scope) {
 		std::fs::read(path).map_err(Into::into)
 	} else {

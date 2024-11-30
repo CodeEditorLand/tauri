@@ -74,6 +74,7 @@ impl Config {
     for current in PathAncestors::new(path) {
       if let Some(path) = get_file_path(&current.join(".cargo"), "config", true)? {
         let toml = get_config(path)?;
+
         if let Some(target) = toml.build.and_then(|b| b.target) {
           config.build.target = Some(target);
           break;

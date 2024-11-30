@@ -180,6 +180,7 @@ impl Scope {
     scope: &FsScope,
   ) -> crate::Result<Self> {
     let mut allowed_patterns = HashSet::new();
+
     for path in scope.allowed_paths() {
       if let Ok(path) = manager.path().parse(path) {
         push_pattern(&mut allowed_patterns, path, Pattern::new)?;
@@ -187,6 +188,7 @@ impl Scope {
     }
 
     let mut forbidden_patterns = HashSet::new();
+
     if let Some(forbidden_paths) = scope.forbidden_paths() {
       for path in forbidden_paths {
         if let Ok(path) = manager.path().parse(path) {
@@ -235,7 +237,9 @@ impl Scope {
   /// Listen to an event on this scope.
   pub fn listen<F: Fn(&Event) + Send + 'static>(&self, f: F) -> ScopeEventId {
     let id = self.next_event_id();
+
     self.listen_with_id(id, f);
+
     id
   }
 
@@ -246,8 +250,11 @@ impl Scope {
   /// Listen to an event on this scope and immediately unlisten.
   pub fn once<F: FnOnce(&Event) + Send + 'static>(&self, f: F) -> ScopeEventId {
     let listerners = self.event_listeners.clone();
+
     let handler = std::cell::Cell::new(Some(f));
+
     let id = self.next_event_id();
+
     self.listen_with_id(id, move |event| {
       listerners.lock().unwrap().remove(&id);
       let handler = handler
@@ -255,6 +262,7 @@ impl Scope {
         .expect("attempted to call handler more than once");
       handler(event)
     });
+
     id
   }
 
@@ -265,7 +273,9 @@ impl Scope {
 
   fn emit(&self, event: Event) {
     let listeners = self.event_listeners.lock().unwrap();
+
     let handlers = listeners.values();
+
     for listener in handlers {
       listener(&event);
     }
@@ -287,7 +297,9 @@ impl Scope {
         escaped_pattern_with(p, if recursive { "**" } else { "*" })
       })?;
     }
+
     self.emit(Event::PathAllowed(path.to_path_buf()));
+
     Ok(())
   }
 
@@ -296,12 +308,15 @@ impl Scope {
   /// After this function has been called, the frontend will be able to use the Tauri API to read the contents of this file.
   pub fn allow_file<P: AsRef<Path>>(&self, path: P) -> crate::Result<()> {
     let path = path.as_ref();
+
     push_pattern(
       &mut self.allowed_patterns.lock().unwrap(),
       path,
       escaped_pattern,
     )?;
+
     self.emit(Event::PathAllowed(path.to_path_buf()));
+
     Ok(())
   }
 
@@ -320,7 +335,9 @@ impl Scope {
         escaped_pattern_with(p, if recursive { "**" } else { "*" })
       })?;
     }
+
     self.emit(Event::PathForbidden(path.to_path_buf()));
+
     Ok(())
   }
 
@@ -329,12 +346,15 @@ impl Scope {
   /// **Note:** this takes precedence over allowed paths, so its access gets denied **always**.
   pub fn forbid_file<P: AsRef<Path>>(&self, path: P) -> crate::Result<()> {
     let path = path.as_ref();
+
     push_pattern(
       &mut self.forbidden_patterns.lock().unwrap(),
       path,
       escaped_pattern,
     )?;
+
     self.emit(Event::PathForbidden(path.to_path_buf()));
+
     Ok(())
   }
 
@@ -613,6 +633,7 @@ mod tests {
     }
 
     let cwd = std::env::current_dir().unwrap();
+
     let disk = {
       let std::path::Component::Prefix(prefix) = cwd.components().next().unwrap() else {
         panic!("Expected current dir to start with a prefix");

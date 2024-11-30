@@ -31,7 +31,9 @@ pub fn items(frontend_dir: Option<&PathBuf>, tauri_dir: Option<&Path>) -> Vec<Se
 
       for dep in ["tauri", "tauri-build", "wry", "tao"] {
         let crate_version = crate_version(tauri_dir, manifest.as_ref(), lock.as_ref(), dep);
+
         let item = rust_section_item(dep, crate_version);
+
         items.push(item);
       }
     }
@@ -97,6 +99,7 @@ pub fn rust_section_item(dep: &str, crate_version: CrateVersion) -> SectionItem 
         None
       }
     }
+
     _ => None,
   };
 

@@ -18,6 +18,7 @@ pub fn command() -> Result<()> {
 		let tauri_config_guard = tauri_config.lock().unwrap();
 
 		let tauri_config_ = tauri_config_guard.as_ref().unwrap();
+
 		get_config(
 			&get_app(tauri_config_, &AppInterface::new(tauri_config_, None)?),
 			tauri_config_,
@@ -25,8 +26,12 @@ pub fn command() -> Result<()> {
 			&Default::default(),
 		)
 	};
+
 	ensure_init(config.project_dir(), MobileTarget::Android)?;
+
 	inject_assets(&config, tauri_config.lock().unwrap().as_ref().unwrap())?;
+
 	let env = env()?;
+
 	os::open_file_with("Android Studio", config.project_dir(), &env.base).map_err(Into::into)
 }

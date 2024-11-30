@@ -62,10 +62,12 @@ pub fn parse<P: AsRef<Path>>(path: P) -> crate::Result<Pbxproj> {
             state = State::XCBuildConfigurationObject { id: id.clone() };
           } else {
             let assignment = token.trim_end_matches(';');
+
             if let Some((key, value)) = assignment.split_once(" = ") {
               // multiline value
               let value = if value == "(" {
                 let mut value = value.to_string();
+
                 loop {
                   let Some((_next_line_number, next_line)) = iter.next() else {
                     break;
@@ -80,6 +82,7 @@ pub fn parse<P: AsRef<Path>>(path: P) -> crate::Result<Pbxproj> {
                     }
                   }
                 }
+
                 value
               } else {
                 value.trim().to_string()
@@ -134,6 +137,7 @@ pub fn parse<P: AsRef<Path>>(path: P) -> crate::Result<Pbxproj> {
             let Some((build_configuration_id, comments)) = token.split_once(' ') else {
               continue;
             };
+
             proj
               .xc_configuration_list
               .get_mut(id)
@@ -198,11 +202,13 @@ impl Pbxproj {
 
   fn serialize(&self) -> String {
     let mut proj = String::new();
+
     let last_line_number = self.raw_lines.len() - 1;
 
     for (number, line) in self.raw_lines.iter().enumerate() {
       if let Some(new) = self.additions.get(&number) {
         proj.push_str(new);
+
         proj.push('\n');
       }
 
@@ -236,6 +242,7 @@ impl Pbxproj {
         };
 
         *line = format!("{}{key} = {value};", build_setting.identation);
+
         self.has_changes = true;
       }
     } else {
@@ -292,10 +299,13 @@ mod tests {
   #[test]
   fn parse() {
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+
     let fixtures_path = manifest_dir.join("tests").join("fixtures").join("pbxproj");
 
     let mut settings = insta::Settings::clone_current();
+
     settings.set_snapshot_path(fixtures_path.join("snapshots"));
+
     let _guard = settings.bind_to_scope();
 
     insta::assert_debug_snapshot!(
@@ -307,10 +317,13 @@ mod tests {
   #[test]
   fn modify() {
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+
     let fixtures_path = manifest_dir.join("tests").join("fixtures").join("pbxproj");
 
     let mut settings = insta::Settings::clone_current();
+
     settings.set_snapshot_path(fixtures_path.join("snapshots"));
+
     let _guard = settings.bind_to_scope();
 
     let mut pbxproj =
@@ -321,6 +334,7 @@ mod tests {
       "PRODUCT_NAME",
       "\"Tauri Test\"",
     );
+
     pbxproj.set_build_settings("DB_0E254D0FD84970B57F6410", "UNKNOWN", "9283j49238h");
 
     insta::assert_snapshot!("project-modified.pbxproj", pbxproj.serialize());

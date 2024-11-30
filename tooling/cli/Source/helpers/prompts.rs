@@ -33,10 +33,13 @@ where
 
 pub fn confirm(prompt:&str, default:Option<bool>) -> Result<bool> {
 	let theme = dialoguer::theme::ColorfulTheme::default();
+
 	let mut builder = dialoguer::Confirm::with_theme(&theme).with_prompt(prompt);
+
 	if let Some(default) = default {
 		builder = builder.default(default);
 	}
+
 	builder.interact().map_err(Into::into)
 }
 
@@ -46,9 +49,12 @@ pub fn multiselect<T:ToString>(
 	defaults:Option<&[bool]>,
 ) -> Result<Vec<usize>> {
 	let theme = dialoguer::theme::ColorfulTheme::default();
+
 	let mut builder = dialoguer::MultiSelect::with_theme(&theme).with_prompt(prompt).items(items);
+
 	if let Some(defaults) = defaults {
 		builder = builder.defaults(defaults);
 	}
+
 	builder.interact().map_err(Into::into)
 }

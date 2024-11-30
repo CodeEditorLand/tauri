@@ -87,7 +87,9 @@ impl<R: Runtime> WindowManager<R> {
     );
 
     let window_ = window.clone();
+
     let window_event_listeners = self.event_listeners.clone();
+
     window.on_window_event(move |event| {
       let _ = on_window_event(&window_, event);
       for handler in window_event_listeners.iter() {
@@ -104,6 +106,7 @@ impl<R: Runtime> WindowManager<R> {
 
     // let plugins know that a new window has been added to the manager
     let manager = window.manager.clone();
+
     let window_ = window.clone();
     // run on main thread so the plugin store doesn't dead lock with the event loop handler in App
     let _ = window.run_on_main_thread(move || {
@@ -126,6 +129,7 @@ impl<R: Runtime> Window<R> {
   /// Emits event to [`EventTarget::Window`] and [`EventTarget::WebviewWindow`]
   fn emit_to_window<S: Serialize + Clone>(&self, event: &str, payload: S) -> crate::Result<()> {
     let window_label = self.label();
+
     self.emit_filter(event, payload, |target| match target {
       EventTarget::Window { label } | EventTarget::WebviewWindow { label } => label == window_label,
       _ => false,
@@ -135,7 +139,9 @@ impl<R: Runtime> Window<R> {
   /// Checks whether has js listener for [`EventTarget::Window`] or [`EventTarget::WebviewWindow`]
   fn has_js_listener(&self, event: &str) -> bool {
     let window_label = self.label();
+
     let listeners = self.manager().listeners();
+
     listeners.has_js_listener(event, |target| match target {
       EventTarget::Window { label } | EventTarget::WebviewWindow { label } => label == window_label,
       _ => false,
@@ -160,9 +166,11 @@ fn on_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) -> crate
       }
       window.emit_to_window(WINDOW_CLOSE_REQUESTED_EVENT, ())?;
     }
+
     WindowEvent::Destroyed => {
       window.emit_to_window(WINDOW_DESTROYED_EVENT, ())?;
     }
+
     WindowEvent::Focused(focused) => window.emit_to_window(
       if *focused {
         WINDOW_FOCUS_EVENT
@@ -204,6 +212,7 @@ fn on_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) -> crate
           position,
           paths: None,
         };
+
         if window.is_webview_window() {
           window.emit_to(
             EventTarget::labeled(window.label()),
@@ -216,6 +225,7 @@ fn on_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) -> crate
       }
       DragDropEvent::Drop { paths, position } => {
         let scopes = window.state::<Scopes>();
+
         for path in paths {
           if path.is_file() {
             let _ = scopes.allow_file(path);
@@ -223,6 +233,7 @@ fn on_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) -> crate
             let _ = scopes.allow_directory(path, true);
           }
         }
+
         let payload = DragDropPayload {
           paths: Some(paths),
           position,

@@ -99,6 +99,7 @@ pub fn command(cli: Cli, verbosity: u8) -> Result<()> {
         options.skip_targets_install,
       )?
     }
+
     Commands::Dev(options) => dev::command(options, noise_level)?,
     Commands::Build(options) => build::command(options, noise_level)?,
     Commands::XcodeScript(options) => xcode_script::command(options)?,
@@ -132,6 +133,7 @@ pub fn get_config(
               log::warn!("No code signing certificates found. You must add one and set the certificate development team ID on the `bundle > iOS > developmentTeam` config value or the `{APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME}` environment variable. To list the available certificates, run `tauri info`.");
               None
             }
+
             1 => None,
             _ => {
               log::warn!("You must set the code signing certificate development team ID on  the `bundle > iOS > developmentTeam` config value or the `{APPLE_DEVELOPMENT_TEAM_ENV_VAR_NAME}` environment variable. Available certificates: {}", teams.iter().map(|t| format!("{} (ID: {})", t.name, t.id)).collect::<Vec<String>>().join(", "));
@@ -159,7 +161,9 @@ pub fn get_config(
     .unwrap_or_default()
   {
     let framework_path = PathBuf::from(&framework);
+
     let ext = framework_path.extension().unwrap_or_default();
+
     if ext.is_empty() {
       frameworks.push(framework);
     } else if ext == "framework" {
@@ -232,11 +236,13 @@ fn connected_device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Dev
       };
       device_list.into_iter().nth(index).unwrap()
     };
+
     println!(
       "Detected connected device: {} with target {:?}",
       device,
       device.target().triple,
     );
+
     Ok(device)
   } else {
     Err(anyhow::anyhow!("No connected iOS devices detected"))
@@ -277,6 +283,7 @@ fn simulator_prompt(env: &'_ Env, target: Option<&str>) -> Result<device::Simula
     } else {
       simulator_list.into_iter().next().unwrap()
     };
+
     Ok(device)
   } else {
     Err(anyhow::anyhow!("No available iOS Simulator detected"))
@@ -288,8 +295,11 @@ fn device_prompt<'a>(env: &'_ Env, target: Option<&str>) -> Result<Device<'a>> {
     Ok(device)
   } else {
     let simulator = simulator_prompt(env, target)?;
+
     log::info!("Starting simulator {}", simulator.name());
+
     simulator.start_detached(env)?;
+
     Ok(simulator.into())
   }
 }
@@ -352,6 +362,7 @@ fn merge_plist(src: Vec<PlistKind>) -> Result<plist::Value> {
       PlistKind::Path(p) => plist::Value::from_file(p),
       PlistKind::Plist(v) => Ok(v),
     };
+
     if let Ok(src_plist) = plist {
       if let Some(dict) = src_plist.into_dictionary() {
         for (key, value) in dict {
@@ -380,6 +391,7 @@ pub fn signing_from_env() -> Result<(
       log::warn!("The IOS_CERTIFICATE environment variable is set but not IOS_CERTIFICATE_PASSWORD. Ignoring the certificate...");
       None
     }
+
     _ => None,
   };
 
@@ -389,6 +401,7 @@ pub fn signing_from_env() -> Result<(
     if keychain.is_some() {
       log::warn!("You have provided an iOS certificate via environment variables but the IOS_MOBILE_PROVISION environment variable is not set. This will fail when signing unless the profile is set in your Xcode project.");
     }
+
     None
   };
 
@@ -463,7 +476,9 @@ pub fn synchronize_project_config(
 
       if let Some(identity) = &project_config.code_sign_identity {
         let identity = format!("\"{identity}\"");
+
         pbxproj.set_build_settings(&build_configuration_ref.id, "CODE_SIGN_IDENTITY", &identity);
+
         pbxproj.set_build_settings(
           &build_configuration_ref.id,
           "\"CODE_SIGN_IDENTITY[sdk=iphoneos*]\"",
@@ -473,6 +488,7 @@ pub fn synchronize_project_config(
 
       if let Some(id) = &project_config.team_id {
         pbxproj.set_build_settings(&build_configuration_ref.id, "DEVELOPMENT_TEAM", id);
+
         pbxproj.set_build_settings(
           &build_configuration_ref.id,
           "\"DEVELOPMENT_TEAM[sdk=iphoneos*]\"",
@@ -482,11 +498,13 @@ pub fn synchronize_project_config(
 
       if let Some(profile_uuid) = &project_config.provisioning_profile_uuid {
         let profile_uuid = format!("\"{profile_uuid}\"");
+
         pbxproj.set_build_settings(
           &build_configuration_ref.id,
           "PROVISIONING_PROFILE_SPECIFIER",
           &profile_uuid,
         );
+
         pbxproj.set_build_settings(
           &build_configuration_ref.id,
           "\"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]\"",
@@ -552,7 +570,9 @@ pub fn synchronize_project_config(
         });
       if let Some(profile_uuid) = profile_uuid {
         let mut provisioning_profiles = plist::Dictionary::new();
+
         provisioning_profiles.insert(config.app().identifier().to_string(), profile_uuid.into());
+
         export_options_plist.insert(
           "provisioningProfiles".to_string(),
           provisioning_profiles.into(),

@@ -180,6 +180,7 @@ impl<'de> Deserialize<'de> for BundleType {
     D: Deserializer<'de>,
   {
     let s = String::deserialize(deserializer)?;
+
     match s.to_lowercase().as_str() {
       "deb" => Ok(Self::Deb),
       "rpm" => Ok(Self::Rpm),
@@ -1089,6 +1090,7 @@ impl fmt::Display for AssociationExt {
 impl<'d> serde::Deserialize<'d> for AssociationExt {
   fn deserialize<D: Deserializer<'d>>(deserializer: D) -> Result<Self, D::Error> {
     let ext = String::deserialize(deserializer)?;
+
     if let Some(ext) = ext.strip_prefix('.') {
       Ok(AssociationExt(ext.into()))
     } else {
@@ -1149,6 +1151,7 @@ impl BundleResources {
       Self::List(l) => l.push(path.into()),
       Self::Map(l) => {
         let path = path.into();
+
         l.insert(path.clone(), path);
       }
     }
@@ -1333,6 +1336,7 @@ impl FromStr for Color {
   type Err = String;
   fn from_str(mut color: &str) -> Result<Self, Self::Err> {
     color = color.trim().strip_prefix('#').unwrap_or(color);
+
     let color = match color.len() {
       // TODO: use repeat_n once our MSRV is bumped to 1.82
       3 => color.chars()
@@ -1345,8 +1349,11 @@ impl FromStr for Color {
     };
 
     let r = u8::from_str_radix(&color[0..2], 16).map_err(|e| e.to_string())?;
+
     let g = u8::from_str_radix(&color[2..4], 16).map_err(|e| e.to_string())?;
+
     let b = u8::from_str_radix(&color[4..6], 16).map_err(|e| e.to_string())?;
+
     let a = u8::from_str_radix(&color[6..8], 16).map_err(|e| e.to_string())?;
 
     Ok(Color(r, g, b, a))
@@ -1383,6 +1390,7 @@ impl<'de> Deserialize<'de> for Color {
     D: Deserializer<'de>,
   {
     let color = InnerColor::deserialize(deserializer)?;
+
     let color = match color {
       InnerColor::String(string) => string.parse().map_err(serde::de::Error::custom)?,
       InnerColor::Rgb(rgb) => Color(rgb.0, rgb.1, rgb.2, 255),
@@ -1407,13 +1415,16 @@ impl schemars::JsonSchema for Color {
 
   fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
     let mut schema = schemars::schema_for!(InnerColor).schema;
+
     schema.metadata = None; // Remove `title: InnerColor` from schema
 
     // add hex color pattern validation
     let any_of = schema.subschemas().any_of.as_mut().unwrap();
+
     let schemars::schema::Schema::Object(str_schema) = any_of.first_mut().unwrap() else {
       unreachable!()
     };
+
     str_schema.string().pattern = Some("^#?([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$".into());
 
     schema.into()
@@ -1800,6 +1811,7 @@ impl CspDirectiveSources {
     match self {
       Self::Inline(s) => {
         s.push(' ');
+
         s.push_str(source.as_ref());
       }
       Self::List(l) => {
@@ -1839,13 +1851,16 @@ impl From<Csp> for HashMap<String, CspDirectiveSources> {
     match csp {
       Csp::Policy(policy) => {
         let mut map = HashMap::new();
+
         for directive in policy.split(';') {
           let mut tokens = directive.trim().split(' ');
           if let Some(directive) = tokens.next() {
             let sources = tokens.map(|s| s.to_string()).collect::<Vec<String>>();
+
             map.insert(directive.to_string(), CspDirectiveSources::List(sources));
           }
         }
+
         map
       }
       Csp::DirectiveMap(m) => m,
@@ -1859,7 +1874,9 @@ impl Display for Csp {
       Self::Policy(s) => write!(f, "{s}"),
       Self::DirectiveMap(m) => {
         let len = m.len();
+
         let mut i = 0;
+
         for (directive, sources) in m {
           let sources: Vec<String> = sources.clone().into();
           write!(f, "{} {}", directive, sources.join(" "))?;
@@ -1868,6 +1885,7 @@ impl Display for Csp {
             write!(f, "; ")?;
           }
         }
+
         Ok(())
       }
     }
@@ -2000,7 +2018,9 @@ impl Display for HeaderSource {
       Self::List(l) => write!(f, "{}", l.join(", ")),
       Self::Map(m) => {
         let len = m.len();
+
         let mut i = 0;
+
         for (key, value) in m {
           write!(f, "{} {}", key, value)?;
           i += 1;
@@ -2008,6 +2028,7 @@ impl Display for HeaderSource {
             write!(f, "; ")?;
           }
         }
+
         Ok(())
       }
     }
@@ -2089,6 +2110,7 @@ impl HeaderAddition for Builder {
         self = self.header("Tauri-Custom-Header", value.to_string());
       };
     }
+
     self
   }
 }
@@ -2392,12 +2414,15 @@ impl AppConfig {
   /// Returns the enabled Cargo features.
   pub fn features(&self) -> Vec<&str> {
     let mut features = Vec::new();
+
     if self.tray_icon.is_some() {
       features.push("tray-icon");
     }
+
     if self.macos_private_api {
       features.push("macos-private-api");
     }
+
     if self.security.asset_protocol.enable {
       features.push("protocol-asset");
     }
@@ -2407,6 +2432,7 @@ impl AppConfig {
     }
 
     features.sort_unstable();
+
     features
   }
 }
@@ -2656,6 +2682,7 @@ impl<'d> serde::Deserialize<'d> for PackageVersion {
 
       fn visit_str<E: DeError>(self, value: &str) -> Result<PackageVersion, E> {
         let path = PathBuf::from(value);
+
         if path.exists() {
           let json_str = read_to_string(&path)
             .map_err(|e| DeError::custom(format!("failed to read version JSON file: {e}")))?;
@@ -2669,6 +2696,7 @@ impl<'d> serde::Deserialize<'d> for PackageVersion {
               .ok_or_else(|| {
                 DeError::custom(format!("`{} > version` must be a string", path.display()))
               })?;
+
             Ok(PackageVersion(
               Version::from_str(version)
                 .map_err(|_| DeError::custom("`package > version` must be a semver string"))?
@@ -2846,10 +2874,12 @@ mod build {
           let path = path_buf_lit(path);
           quote! { #prefix::App(#path) }
         }
+
         Self::External(url) => {
           let url = url_lit(url);
           quote! { #prefix::External(#url) }
         }
+
         Self::CustomProtocol(url) => {
           let url = url_lit(url);
           quote! { #prefix::CustomProtocol(#url) }
@@ -3085,12 +3115,15 @@ mod build {
         Self::DownloadBootstrapper { silent } => {
           quote! { #prefix::DownloadBootstrapper { silent: #silent } }
         }
+
         Self::EmbedBootstrapper { silent } => {
           quote! { #prefix::EmbedBootstrapper { silent: #silent } }
         }
+
         Self::OfflineInstaller { silent } => {
           quote! { #prefix::OfflineInstaller { silent: #silent } }
         }
+
         Self::FixedRuntime { path } => {
           let path = path_buf_lit(path);
           quote! { #prefix::FixedRuntime { path: #path } }
@@ -3170,10 +3203,12 @@ mod build {
           let url = url_lit(url);
           quote! { #prefix::Url(#url) }
         }
+
         Self::Directory(path) => {
           let path = path_buf_lit(path);
           quote! { #prefix::Directory(#path) }
         }
+
         Self::Files(files) => {
           let files = vec_lit(files, path_buf_lit);
           quote! { #prefix::Files(#files) }
@@ -3215,6 +3250,7 @@ mod build {
           let sources = sources.as_str();
           quote!(#prefix::Inline(#sources.into()))
         }
+
         Self::List(list) => {
           let list = vec_lit(list, str_lit);
           quote!(#prefix::List(#list))
@@ -3232,6 +3268,7 @@ mod build {
           let policy = policy.as_str();
           quote!(#prefix::Policy(#policy.into()))
         }
+
         Self::DirectiveMap(list) => {
           let map = map_lit(
             quote! { ::std::collections::HashMap },
@@ -3253,6 +3290,7 @@ mod build {
         Self::Flag(flag) => {
           quote! { #prefix::Flag(#flag) }
         }
+
         Self::List(directives) => {
           let directives = vec_lit(directives, str_lit);
           quote! { #prefix::List(#directives) }
@@ -3269,6 +3307,7 @@ mod build {
         Self::Inlined(capability) => {
           quote! { #prefix::Inlined(#capability) }
         }
+
         Self::Reference(id) => {
           let id = str_lit(id);
           quote! { #prefix::Reference(#id) }
@@ -3286,10 +3325,12 @@ mod build {
           let line = s.as_str();
           quote!(#prefix::Inline(#line.into()))
         }
+
         Self::List(l) => {
           let list = vec_lit(l, str_lit);
           quote!(#prefix::List(#list))
         }
+
         Self::Map(m) => {
           let map = map_lit(quote! { ::std::collections::HashMap }, m, str_lit, str_lit);
           quote!(#prefix::Map(#map))
@@ -3392,6 +3433,7 @@ mod build {
           let allowed_paths = vec_lit(allow, path_buf_lit);
           quote! { #prefix::AllowedPaths(#allowed_paths) }
         }
+
         Self::Scope { allow, deny , require_literal_leading_dot} => {
           let allow = vec_lit(allow, path_buf_lit);
           let deny = vec_lit(deny, path_buf_lit);
@@ -3547,8 +3589,11 @@ mod test {
 
     // test the configs
     assert_eq!(a_config, app);
+
     assert_eq!(b_config, build);
+
     assert_eq!(d_bundle, bundle);
+
     assert_eq!(d_windows, app.windows);
   }
 
@@ -3557,9 +3602,13 @@ mod test {
     use super::Color;
 
     assert_eq!(Color(255, 255, 255, 255), "fff".parse().unwrap());
+
     assert_eq!(Color(255, 255, 255, 255), "#fff".parse().unwrap());
+
     assert_eq!(Color(0, 0, 0, 255), "#000000".parse().unwrap());
+
     assert_eq!(Color(0, 0, 0, 255), "#000000ff".parse().unwrap());
+
     assert_eq!(Color(0, 255, 0, 255), "#00ff00ff".parse().unwrap());
   }
 }
