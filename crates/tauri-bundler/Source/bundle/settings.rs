@@ -220,6 +220,10 @@ pub struct DebianSettings {
 pub struct AppImageSettings {
   /// The files to include in the Appimage Binary.
   pub files: HashMap<PathBuf, PathBuf>,
+  /// Whether to include gstreamer plugins for audio/media support.
+  pub bundle_media_framework: bool,
+  /// Whether to include the `xdg-open` binary.
+  pub bundle_xdg_open: bool,
 }
 
 /// The RPM bundle settings.
@@ -404,7 +408,7 @@ pub struct WixSettings {
   pub banner_path: Option<PathBuf>,
   /// Path to a bitmap file to use on the installation user interface dialogs.
   /// It is used on the welcome and completion dialogs.
-
+  ///
   /// The required dimensions are 493px × 312px.
   pub dialog_image_path: Option<PathBuf>,
   /// Enables FIPS compliant algorithms.

@@ -40,6 +40,8 @@ use tao::platform::windows::{WindowBuilderExtWindows, WindowExtWindows};
 use webview2_com::FocusChangedEventHandler;
 #[cfg(windows)]
 use windows::Win32::{Foundation::HWND, System::WinRT::EventRegistrationToken};
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+use wry::WebViewBuilderExtDarwin;
 #[cfg(windows)]
 use wry::WebViewBuilderExtWindows;
 
@@ -4486,6 +4488,13 @@ fn create_webview<T: UserEvent>(
   {
     if let Some(path) = &webview_attributes.extensions_path {
       webview_builder = webview_builder.with_extension_path(path);
+    }
+  }
+
+  #[cfg(any(target_os = "macos", target_os = "ios"))]
+  {
+    if let Some(data_store_identifier) = &webview_attributes.data_store_identifier {
+      webview_builder = webview_builder.with_data_store_identifier(*data_store_identifier);
     }
   }
 

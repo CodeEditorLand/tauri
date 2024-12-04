@@ -792,7 +792,7 @@ impl<'a, R: Runtime, M: Manager<R>> WebviewWindowBuilder<'a, R, M> {
 }
 
 /// Webview attributes.
-impl<'a, R: Runtime, M: Manager<R>> WebviewWindowBuilder<'a, R, M> {
+impl<R: Runtime, M: Manager<R>> WebviewWindowBuilder<'_, R, M> {
   /// Sets whether clicking an inactive window also clicks through to the webview.
   #[must_use]
   pub fn accept_first_mouse(mut self, accept: bool) -> Self {
@@ -979,6 +979,19 @@ impl<'a, R: Runtime, M: Manager<R>> WebviewWindowBuilder<'a, R, M> {
   pub fn extensions_path(mut self, path: impl AsRef<Path>) -> Self {
     self.webview_builder = self.webview_builder.extensions_path(path);
 
+    self
+  }
+
+  /// Initialize the WebView with a custom data store identifier.
+  /// Can be used as a replacement for data_directory not being available in WKWebView.
+  ///
+  /// - **macOS / iOS**: Available on macOS >= 14 and iOS >= 17
+  /// - **Windows / Linux / Android**: Unsupported.
+  #[must_use]
+  pub fn data_store_identifier(mut self, data_store_identifier: [u8; 16]) -> Self {
+    self.webview_builder = self
+      .webview_builder
+      .data_store_identifier(data_store_identifier);
     self
   }
 
