@@ -8,8 +8,8 @@
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"devDependencies": {
-		"@playform/build": "0.1.9",
-		"wrangler": "3.91"
+		"@playform/build": "0.2.0",
+		"wrangler": "3.92"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [

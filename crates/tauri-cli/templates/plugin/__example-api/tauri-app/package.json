@@ -12,7 +12,7 @@
 		"tauri-plugin-{{ plugin_name }}-api": "file:../../"
 	},
 	"devDependencies": {
-		"@playform/build": "0.1.9",
+		"@playform/build": "0.2.0",
 		"@tauri-apps/cli": "2.1.0"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",

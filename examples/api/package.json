@@ -13,9 +13,9 @@
 	"devDependencies": {
 		"@iconify-json/codicon": "1.2.4",
 		"@iconify-json/ph": "1.2.1",
-		"@playform/build": "0.1.9",
-		"@unocss/extractor-svelte": "0.65.0",
-		"unocss": "0.65.0"
+		"@playform/build": "0.2.0",
+		"@unocss/extractor-svelte": "0.65.1",
+		"unocss": "0.65.1"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
 	"keywords": [

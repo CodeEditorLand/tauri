@@ -12,11 +12,11 @@
 	],
 	"description": "Tauri API definitions",
 	"devDependencies": {
-		"@playform/build": "0.1.9",
-		"@types/node": "22.9.1",
+		"@playform/build": "0.2.0",
+		"@types/node": "22.10.1",
 		"fast-glob": "3.3.2",
-		"globals": "^15.4.0",
-		"tslib": "^2.6.3"
+		"globals": "^15.13.0",
+		"tslib": "^2.8.1"
 	},
 	"exports": {
 		".": {
