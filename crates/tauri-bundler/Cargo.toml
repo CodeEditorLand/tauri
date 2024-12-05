@@ -6,7 +6,7 @@ authors = [
 	"Tauri Programme within The Commons Conservancy",
 ]
 categories = ["command-line-utilities", "development-tools::cargo-plugins"]
-license = "Apache-2.0 OR MIT"
+license-file = "LICENSE"
 keywords = ["bundle", "cargo", "tauri"]
 repository = "https://github.com/tauri-apps/tauri"
 description = "Wrap rust executables in OS-specific app bundles for Tauri"
