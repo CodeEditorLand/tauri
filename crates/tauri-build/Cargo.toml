@@ -26,24 +26,24 @@ rustc-args = ["--cfg", "docsrs"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-anyhow = "1"
+anyhow = { version = "1" }
 quote = { version = "1", optional = true }
 tauri-codegen = { version = "2.0.3", path = "../tauri-codegen", optional = true }
 tauri-utils = { version = "2.1.0", path = "../tauri-utils", features = [
 	"build",
 	"resources",
 ] }
-cargo_toml = "0.17"
-serde = "1"
-serde_json = "1"
-heck = "0.5"
+cargo_toml = { version = "0.17" }
+serde = { version = "1" }
+serde_json = { version = "1" }
+heck = { version = "0.5" }
 json-patch = "3.0"
-walkdir = "2"
+walkdir = { version = "2" }
 tauri-winres = "0.1"
-semver = "1"
-dirs = "5"
-glob = "0.3"
-toml = "0.8"
+semver = { version = "1" }
+dirs = { version = "5" }
+glob = { version = "0.3" }
+toml = { version = "0.8" }
 schemars = { version = "0.8.18", features = ["preserve_order"] }
 
 [features]
