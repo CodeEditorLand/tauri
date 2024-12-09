@@ -13,6 +13,7 @@
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
+	"dependencies": {},
 	"description": "Command line interface for building Tauri apps",
 	"devDependencies": {
 		"@napi-rs/cli": "2.18.4",
@@ -32,7 +33,7 @@
 	],
 	"license": "SEE LICENSE IN LICENSE",
 	"main": "main.js",
-	"name": "@tauri-apps/cli",
+	"name": "@codeeditorland/cli",
 	"napi": {
 		"name": "cli",
 		"triples": {

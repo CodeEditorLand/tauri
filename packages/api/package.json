@@ -10,6 +10,7 @@
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
+	"dependencies": {},
 	"description": "Tauri API definitions",
 	"devDependencies": {
 		"@playform/build": "0.2.0",
@@ -44,7 +45,7 @@
 	"license": "SEE LICENSE IN LICENSE",
 	"main": "./index.cjs",
 	"module": "./index.js",
-	"name": "@tauri-apps/api",
+	"name": "@codeeditorland/api",
 	"private": false,
 	"publishConfig": {
 		"access": "public"

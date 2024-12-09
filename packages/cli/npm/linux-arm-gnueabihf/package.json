@@ -13,6 +13,7 @@
 	"cpu": [
 		"arm"
 	],
+	"dependencies": {},
 	"devDependencies": {
 		"@playform/build": "0.2.0"
 	},
@@ -27,7 +28,7 @@
 	],
 	"license": "SEE LICENSE IN LICENSE",
 	"main": "cli.linux-arm-gnueabihf.node",
-	"name": "@tauri-apps/cli-linux-arm-gnueabihf",
+	"name": "@codeeditorland/cli-linux-arm-gnueabihf",
 	"os": [
 		"linux"
 	],

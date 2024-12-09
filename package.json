@@ -10,6 +10,7 @@
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
+	"dependencies": {},
 	"devDependencies": {
 		"@playform/build": "0.2.0"
 	},

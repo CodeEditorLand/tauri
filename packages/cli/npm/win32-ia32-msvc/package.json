@@ -13,6 +13,7 @@
 	"cpu": [
 		"ia32"
 	],
+	"dependencies": {},
 	"devDependencies": {
 		"@playform/build": "0.2.0"
 	},
@@ -27,7 +28,7 @@
 	],
 	"license": "SEE LICENSE IN LICENSE",
 	"main": "cli.win32-ia32-msvc.node",
-	"name": "@tauri-apps/cli-win32-ia32-msvc",
+	"name": "@codeeditorland/cli-win32-ia32-msvc",
 	"os": [
 		"win32"
 	],

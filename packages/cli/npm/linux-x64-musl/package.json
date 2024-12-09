@@ -13,6 +13,7 @@
 	"cpu": [
 		"x64"
 	],
+	"dependencies": {},
 	"devDependencies": {
 		"@playform/build": "0.2.0"
 	},
@@ -30,7 +31,7 @@
 	],
 	"license": "SEE LICENSE IN LICENSE",
 	"main": "cli.linux-x64-musl.node",
-	"name": "@tauri-apps/cli-linux-x64-musl",
+	"name": "@codeeditorland/cli-linux-x64-musl",
 	"os": [
 		"linux"
 	],

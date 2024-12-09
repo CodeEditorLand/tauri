@@ -7,6 +7,7 @@
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
+	"dependencies": {},
 	"devDependencies": {
 		"@playform/build": "0.2.0"
 	},

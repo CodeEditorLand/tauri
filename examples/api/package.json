@@ -8,7 +8,7 @@
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "../../packages/api/dist"
+		"@codeeditorland/api": "../../packages/api/dist"
 	},
 	"devDependencies": {
 		"@iconify-json/codicon": "1.2.4",

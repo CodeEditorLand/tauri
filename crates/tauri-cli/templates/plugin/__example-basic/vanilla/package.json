@@ -8,7 +8,7 @@
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
 	},
 	"dependencies": {
-		"@tauri-apps/cli": "2.1.0"
+		"@codeeditorland/cli": "2.1.0"
 	},
 	"description": "",
 	"devDependencies": {
