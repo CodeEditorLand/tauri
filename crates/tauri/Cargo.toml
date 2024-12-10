@@ -82,9 +82,9 @@ serialize-to-javascript = "=0.1.1"
 image = { version = "0.25", default-features = false, optional = true }
 http-range = { version = "0.1.5", optional = true }
 tracing = { version = "0.1", optional = true }
-heck = "0.5"
-log = "0.4"
-dunce = "1"
+heck = { version = "0.5" }
+log = { version = "0.4" }
+dunce = { version = "1" }
 specta = { version = "^2.0.0-rc.20", optional = true, default-features = false, features = [
   "function",
   "derive",

@@ -1,35 +1,13 @@
 {
 	"name": "@codeeditorland/api",
-	"version": "0.0.1",
-	"private": false,
 	"description": "Tauri API definitions",
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
 	"funding": {
 		"type": "opencollective",
 		"url": "https://opencollective.com/tauri"
 	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"email": "Source/Open@Editor.Land",
-		"url": "HTTPS://Editor.Land"
-	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
 	],
-	"type": "module",
 	"exports": {
 		".": {
 			"import": "./index.js",
@@ -62,8 +40,5 @@
 		"fast-glob": "3.3.2",
 		"globals": "^15.4.0",
 		"tslib": "^2.6.3"
-	},
-	"publishConfig": {
-		"access": "public"
 	}
 }

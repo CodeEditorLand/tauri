@@ -1,51 +1,26 @@
 {
-	"name": "@codeeditorland/cli-linux-x64-gnu",
-	"version": "0.0.1",
-	"private": false,
-	"keywords": [
-		"codeeditorland",
-		"land",
-		"playform"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🖋️ Source — 👐🏻 Open —",
-		"email": "Source/Open@Editor.Land",
-		"url": "HTTPS://Editor.Land"
-	},
 	"contributors": [
 		"Tauri Programme within The Commons Conservancy"
-	],
-	"type": "module",
-	"main": "cli.linux-x64-gnu.node",
-	"files": [
-		"cli.linux-x64-gnu.node"
-	],
-	"scripts": {
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"dependencies": {},
-	"devDependencies": {
-		"@playform/build": "0.2.0"
-	},
-	"os": [
-		"linux"
 	],
 	"cpu": [
 		"x64"
 	],
-	"publishConfig": {
-		"access": "public"
+	"dependencies": {},
+	"devDependencies": {
+		"@playform/build": "0.2.0"
 	},
+	"files": [
+		"cli.linux-x64-gnu.node"
+	],
 	"libc": [
 		"glibc"
-	]
+	],
+	"main": "cli.linux-x64-gnu.node",
+	"name": "@codeeditorland/cli-linux-x64-gnu",
+	"os": [
+		"linux"
+	],
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	}
 }
