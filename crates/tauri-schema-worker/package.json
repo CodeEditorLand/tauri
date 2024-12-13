@@ -1,13 +1,13 @@
 {
-	"name": "@codeeditorland/schema-worker",
-	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"dependencies": {},
-	"devDependencies": {
-		"@playform/build": "0.2.0",
-		"wrangler": "3.92"
-	}
+  "name": "tauri-schema-worker",
+  "version": "0.0.0",
+  "license": "Apache-2.0 OR MIT",
+  "private": "true",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^3.95.0"
+  }
 }
