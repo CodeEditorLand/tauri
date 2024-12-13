@@ -1,6 +1,28 @@
 {
 	"name": "@codeeditorland/plugin-{{ plugin_name }}-api",
+	"version": "0.0.1",
+	"private": false,
 	"description": "",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"type": "module",
 	"exports": {
 		"import": "./dist-js/index.js",
 		"require": "./dist-js/index.cjs",
@@ -23,5 +45,8 @@
 	"devDependencies": {
 		"@playform/build": "0.2.0",
 		"tslib": "2.8.1"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
