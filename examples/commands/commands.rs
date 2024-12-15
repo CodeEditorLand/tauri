@@ -2,26 +2,26 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use tauri::{command, State};
+use tauri::{State, command};
 
 #[command]
-pub fn cmd(_argument: String) {}
+pub fn cmd(_argument:String) {}
 
 #[command]
-pub fn invoke(_argument: String) {}
+pub fn invoke(_argument:String) {}
 
 #[command]
-pub fn message(_argument: String) {}
+pub fn message(_argument:String) {}
 
 #[command]
-pub fn resolver(_argument: String) {}
+pub fn resolver(_argument:String) {}
 
 #[command]
-pub fn simple_command(the_argument: String) {
-  println!("{the_argument}");
+pub fn simple_command(the_argument:String) {
+	println!("{the_argument}");
 }
 
 #[command]
-pub fn stateful_command(the_argument: Option<String>, state: State<'_, super::MyState>) {
-  println!("{:?} {:?}", the_argument, state.inner());
+pub fn stateful_command(the_argument:Option<String>, state:State<'_, super::MyState>) {
+	println!("{:?} {:?}", the_argument, state.inner());
 }
