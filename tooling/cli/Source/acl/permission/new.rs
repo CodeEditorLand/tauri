@@ -5,12 +5,12 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use tauri_utils::acl::{manifest::PermissionFile, Commands, Permission};
+use tauri_utils::acl::{Commands, Permission, manifest::PermissionFile};
 
 use crate::{
+	Result,
 	acl::FileFormat,
 	helpers::{app_paths::resolve_tauri_dir, prompts},
-	Result,
 };
 
 #[derive(Debug, Parser)]

@@ -5,9 +5,9 @@
 use std::path::Path;
 
 use clap::Parser;
-use tauri_utils::acl::{manifest::PermissionFile, PERMISSION_SCHEMA_FILE_NAME};
+use tauri_utils::acl::{PERMISSION_SCHEMA_FILE_NAME, manifest::PermissionFile};
 
-use crate::{acl::FileFormat, helpers::app_paths::resolve_tauri_dir, Result};
+use crate::{Result, acl::FileFormat, helpers::app_paths::resolve_tauri_dir};
 
 fn rm_permission_files(identifier:&str, dir:&Path) -> Result<()> {
 	for entry in std::fs::read_dir(dir)?.flatten() {

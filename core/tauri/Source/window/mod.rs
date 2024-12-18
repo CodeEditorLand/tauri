@@ -18,26 +18,23 @@ use tauri_runtime::{
 	dpi::{PhysicalPosition, PhysicalSize},
 	webview::PendingWebview,
 };
-pub use tauri_utils::{config::Color, WindowEffect as Effect, WindowEffectState as EffectState};
+pub use tauri_utils::{WindowEffect as Effect, WindowEffectState as EffectState, config::Color};
 #[cfg(windows)]
 use windows::Win32::Foundation::HWND;
 
 #[cfg(desktop)]
 pub use crate::runtime::ProgressBarStatus;
+#[cfg(desktop)]
 use crate::{
-	app::AppHandle,
-	event::{Event, EventId, EventTarget},
-	ipc::{CommandArg, CommandItem, InvokeError},
-	manager::AppManager,
+	CursorIcon,
+	image::Image,
+	menu::{ContextMenu, Menu, MenuId},
 	runtime::{
-		monitor::Monitor as RuntimeMonitor,
-		window::{DetachedWindow, PendingWindow, WindowBuilder as _},
-		RuntimeHandle,
-		WindowDispatch,
+		UserAttentionType,
+		dpi::{Position, Size},
 	},
-	sealed::{ManagerBase, RuntimeOrDispatch},
-	utils::config::{WindowConfig, WindowEffectsConfig},
-	webview::WebviewBuilder,
+};
+use crate::{
 	Emitter,
 	EventLoopMessage,
 	Listener,
@@ -47,16 +44,19 @@ use crate::{
 	Theme,
 	Webview,
 	WindowEvent,
-};
-#[cfg(desktop)]
-use crate::{
-	image::Image,
-	menu::{ContextMenu, Menu, MenuId},
+	app::AppHandle,
+	event::{Event, EventId, EventTarget},
+	ipc::{CommandArg, CommandItem, InvokeError},
+	manager::AppManager,
 	runtime::{
-		dpi::{Position, Size},
-		UserAttentionType,
+		RuntimeHandle,
+		WindowDispatch,
+		monitor::Monitor as RuntimeMonitor,
+		window::{DetachedWindow, PendingWindow, WindowBuilder as _},
 	},
-	CursorIcon,
+	sealed::{ManagerBase, RuntimeOrDispatch},
+	utils::config::{WindowConfig, WindowEffectsConfig},
+	webview::WebviewBuilder,
 };
 
 /// Monitor descriptor.

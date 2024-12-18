@@ -13,8 +13,8 @@ use clap::{Parser, Subcommand};
 use handlebars::Handlebars;
 
 use crate::{
-	helpers::{prompts, template},
 	Result,
+	helpers::{prompts, template},
 };
 
 #[derive(Parser)]

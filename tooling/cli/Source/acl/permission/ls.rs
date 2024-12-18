@@ -6,9 +6,9 @@ use std::{collections::BTreeMap, fs::read_to_string};
 
 use clap::Parser;
 use colored::Colorize;
-use tauri_utils::acl::{manifest::Manifest, APP_ACL_KEY};
+use tauri_utils::acl::{APP_ACL_KEY, manifest::Manifest};
 
-use crate::{helpers::app_paths::tauri_dir, Result};
+use crate::{Result, helpers::app_paths::tauri_dir};
 
 #[derive(Debug, Parser)]
 #[clap(about = "List permissions available to your application")]

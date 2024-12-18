@@ -8,9 +8,9 @@ use clap::Parser;
 use tauri_utils::acl::capability::{Capability, PermissionEntry};
 
 use crate::{
+	Result,
 	acl::FileFormat,
 	helpers::{app_paths::tauri_dir, prompts},
-	Result,
 };
 
 #[derive(Debug, Parser)]

@@ -6,7 +6,7 @@
 #![allow(dead_code)]
 
 use std::{
-	fs::{create_dir_all, File, OpenOptions},
+	fs::{File, OpenOptions, create_dir_all},
 	io,
 	io::{Read, Seek, SeekFrom, Write},
 	path::{Path, PathBuf},
@@ -289,11 +289,11 @@ mod sys {
 	use windows_sys::Win32::{
 		Foundation::{ERROR_INVALID_FUNCTION, ERROR_LOCK_VIOLATION, HANDLE},
 		Storage::FileSystem::{
-			LockFileEx,
-			UnlockFile,
+			LOCK_FILE_FLAGS,
 			LOCKFILE_EXCLUSIVE_LOCK,
 			LOCKFILE_FAIL_IMMEDIATELY,
-			LOCK_FILE_FLAGS,
+			LockFileEx,
+			UnlockFile,
 		},
 	};
 

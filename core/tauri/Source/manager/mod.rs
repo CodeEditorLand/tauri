@@ -19,12 +19,6 @@ use tauri_utils::{
 use url::Url;
 
 use crate::{
-	app::{AppHandle, GlobalWebviewEventListener, GlobalWindowEventListener, OnPageLoad},
-	event::{assert_event_name_is_valid, EmitArgs, Event, EventId, EventTarget, Listeners},
-	ipc::{Invoke, InvokeHandler, InvokeResponder, RuntimeAuthority},
-	plugin::PluginStore,
-	resources::ResourceTable,
-	utils::{config::Config, PackageInfo},
 	Assets,
 	Context,
 	Pattern,
@@ -32,6 +26,12 @@ use crate::{
 	StateManager,
 	Webview,
 	Window,
+	app::{AppHandle, GlobalWebviewEventListener, GlobalWindowEventListener, OnPageLoad},
+	event::{EmitArgs, Event, EventId, EventTarget, Listeners, assert_event_name_is_valid},
+	ipc::{Invoke, InvokeHandler, InvokeResponder, RuntimeAuthority},
+	plugin::PluginStore,
+	resources::ResourceTable,
+	utils::{PackageInfo, config::Config},
 };
 
 #[cfg(desktop)]
@@ -678,19 +678,12 @@ mod tests {
 #[cfg(test)]
 mod test {
 	use std::{
-		sync::mpsc::{channel, Receiver, Sender},
+		sync::mpsc::{Receiver, Sender, channel},
 		time::Duration,
 	};
 
 	use super::AppManager;
-
 	use crate::{
-		event::EventTarget,
-		generate_context,
-		plugin::PluginStore,
-		test::{mock_app, MockRuntime},
-		webview::WebviewBuilder,
-		window::WindowBuilder,
 		App,
 		Emitter,
 		Listener,
@@ -701,6 +694,12 @@ mod test {
 		WebviewWindowBuilder,
 		Window,
 		Wry,
+		event::EventTarget,
+		generate_context,
+		plugin::PluginStore,
+		test::{MockRuntime, mock_app},
+		webview::WebviewBuilder,
+		window::WindowBuilder,
 	};
 
 	const APP_LISTEN_ID:&str = "App::listen";

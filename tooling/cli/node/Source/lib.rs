@@ -5,11 +5,11 @@
 #![cfg(any(target_os = "macos", target_os = "linux", windows))]
 
 use napi::{
-	threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 	Error,
 	JsFunction,
 	Result,
 	Status,
+	threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
 
 #[napi_derive::napi]

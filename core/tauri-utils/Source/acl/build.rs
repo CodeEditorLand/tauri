@@ -17,9 +17,9 @@ use schemars::{
 };
 
 use super::{
+	PERMISSION_SCHEMA_FILE_NAME,
 	capability::{Capability, CapabilityFile},
 	manifest::PermissionFile,
-	PERMISSION_SCHEMA_FILE_NAME,
 };
 use crate::{acl::Error, write_if_changed};
 

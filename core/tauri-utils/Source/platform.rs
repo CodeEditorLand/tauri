@@ -342,8 +342,7 @@ fn resource_dir_from<P:AsRef<std::path::Path>>(
 #[cfg(feature = "build")]
 mod build {
 	use proc_macro2::TokenStream;
-
-	use quote::{quote, ToTokens, TokenStreamExt};
+	use quote::{ToTokens, TokenStreamExt, quote};
 
 	use super::*;
 

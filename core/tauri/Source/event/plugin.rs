@@ -8,17 +8,17 @@ use serde::{Deserialize, Deserializer};
 use serde_json::Value as JsonValue;
 use tauri_runtime::window::is_label_valid;
 
-use super::{is_event_name_valid, EventTarget};
+use super::{EventTarget, is_event_name_valid};
 use crate::{
-	command,
-	ipc::CallbackFn,
-	plugin::{Builder, TauriPlugin},
 	AppHandle,
 	Emitter,
 	EventId,
 	Result,
 	Runtime,
 	Webview,
+	command,
+	ipc::CallbackFn,
+	plugin::{Builder, TauriPlugin},
 };
 
 pub struct EventName(String);

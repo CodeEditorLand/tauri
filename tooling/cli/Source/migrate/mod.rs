@@ -7,12 +7,12 @@ use std::{fs::read_to_string, str::FromStr};
 use anyhow::Context;
 
 use crate::{
+	Result,
 	helpers::{
 		app_paths::tauri_dir,
-		cargo_manifest::{crate_version, CargoLock, CargoManifest},
+		cargo_manifest::{CargoLock, CargoManifest, crate_version},
 	},
 	interface::rust::get_workspace_dir,
-	Result,
 };
 
 mod migrations;

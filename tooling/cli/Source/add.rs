@@ -9,13 +9,13 @@ use colored::Colorize;
 use regex::Regex;
 
 use crate::{
+	Result,
 	acl,
 	helpers::{
 		app_paths::{resolve_app_dir, tauri_dir},
 		cargo,
 		npm::PackageManager,
 	},
-	Result,
 };
 
 #[derive(Debug, Parser)]

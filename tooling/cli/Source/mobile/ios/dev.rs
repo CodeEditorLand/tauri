@@ -20,6 +20,8 @@ use cargo_mobile2::{
 use clap::{ArgAction, Parser};
 
 use super::{
+	MobileTarget,
+	ProjectConfig,
 	device_prompt,
 	ensure_init,
 	env,
@@ -30,20 +32,18 @@ use super::{
 	merge_plist,
 	open_and_wait,
 	synchronize_project_config,
-	MobileTarget,
-	ProjectConfig,
 };
 use crate::{
+	ConfigValue,
+	Result,
 	dev::Options as DevOptions,
 	helpers::{
 		app_paths::tauri_dir,
-		config::{get as get_tauri_config, reload as reload_config, ConfigHandle},
+		config::{ConfigHandle, get as get_tauri_config, reload as reload_config},
 		flock,
 	},
 	interface::{AppInterface, AppSettings, Interface, MobileOptions, Options as InterfaceOptions},
-	mobile::{write_options, CliOptions, DevChild, DevProcess},
-	ConfigValue,
-	Result,
+	mobile::{CliOptions, DevChild, DevProcess, write_options},
 };
 
 const PHYSICAL_IPHONE_DEV_WARNING: &str = "To develop on physical phones you need the `--host` option (not required for Simulators). See the documentation for more information: https://v2.tauri.app/develop/#development-server";

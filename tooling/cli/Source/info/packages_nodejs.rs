@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use colored::Colorize;
 use serde::Deserialize;
 
-use super::{env_nodejs::manager_version, SectionItem, VersionMetadata};
+use super::{SectionItem, VersionMetadata, env_nodejs::manager_version};
 use crate::helpers::{cross_command, npm::PackageManager};
 
 #[derive(Deserialize)]

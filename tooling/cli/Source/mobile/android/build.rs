@@ -13,6 +13,8 @@ use cargo_mobile2::{
 use clap::{ArgAction, Parser};
 
 use super::{
+	MobileTarget,
+	OptionsHandle,
 	configure_cargo,
 	delete_codegen_vars,
 	ensure_init,
@@ -22,20 +24,18 @@ use super::{
 	inject_resources,
 	log_finished,
 	open_and_wait,
-	MobileTarget,
-	OptionsHandle,
 };
 use crate::{
+	ConfigValue,
+	Result,
 	build::Options as BuildOptions,
 	helpers::{
 		app_paths::tauri_dir,
-		config::{get as get_tauri_config, ConfigHandle},
+		config::{ConfigHandle, get as get_tauri_config},
 		flock,
 	},
 	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
-	mobile::{write_options, CliOptions},
-	ConfigValue,
-	Result,
+	mobile::{CliOptions, write_options},
 };
 
 #[derive(Debug, Clone, Parser)]

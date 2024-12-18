@@ -7,7 +7,7 @@ use std::{
 	str::FromStr,
 };
 
-use serde::{de::Error as DeError, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de::Error as DeError};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::Runtime;
@@ -228,7 +228,7 @@ impl<R:Runtime> PathResolver<R> {
 	/// # Examples
 	///
 	/// ```rust,no_run
-	/// use tauri::{path::BaseDirectory, Manager};
+	/// use tauri::{Manager, path::BaseDirectory};
 	/// tauri::Builder::default().setup(|app| {
 	/// 	let path = app.path().resolve("path/to/something", BaseDirectory::Config)?;
 	/// 	assert_eq!(path.to_str().unwrap(), "/home/${whoami}/.config/path/to/something");

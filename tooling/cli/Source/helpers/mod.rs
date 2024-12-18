@@ -28,8 +28,8 @@ use tauri_utils::config::HookCommand;
 
 use self::app_paths::app_dir;
 use crate::{
-	interface::{AppInterface, Interface},
 	CommandExt,
+	interface::{AppInterface, Interface},
 };
 
 pub fn command_env(debug:bool) -> HashMap<&'static str, String> {

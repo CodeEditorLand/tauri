@@ -4,11 +4,11 @@
 
 use cargo_mobile2::os;
 
-use super::{ensure_init, env, get_app, get_config, inject_assets, MobileTarget};
+use super::{MobileTarget, ensure_init, env, get_app, get_config, inject_assets};
 use crate::{
+	Result,
 	helpers::config::get as get_tauri_config,
 	interface::{AppInterface, Interface},
-	Result,
 };
 
 pub fn command() -> Result<()> {

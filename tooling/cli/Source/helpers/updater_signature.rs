@@ -12,7 +12,7 @@ use std::{
 
 use anyhow::Context;
 use base64::Engine;
-use minisign::{sign, KeyPair as KP, SecretKey, SecretKeyBox, SignatureBox};
+use minisign::{KeyPair as KP, SecretKey, SecretKeyBox, SignatureBox, sign};
 
 /// A key pair (`PublicKey` and `SecretKey`).
 #[derive(Clone, Debug)]

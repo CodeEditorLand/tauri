@@ -15,7 +15,7 @@ use http::Request;
 use tauri_utils::config::{WebviewUrl, WindowConfig, WindowEffectsConfig};
 use url::Url;
 
-use crate::{window::is_label_valid, Rect, Runtime, UserEvent};
+use crate::{Rect, Runtime, UserEvent, window::is_label_valid};
 
 type UriSchemeProtocol = dyn Fn(http::Request<Vec<u8>>, Box<dyn FnOnce(http::Response<Cow<'static, [u8]>>) + Send>)
 	+ Send

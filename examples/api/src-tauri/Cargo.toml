@@ -9,6 +9,7 @@ license-file = "LICENSE"
 [lib]
 name = "api_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
+path = "Source/lib.rs"
 
 [build-dependencies]
 tauri-build = { path = "../../../crates/tauri-build", features = [
@@ -19,10 +20,10 @@ tauri-build = { path = "../../../crates/tauri-build", features = [
 [dependencies]
 serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }
-tiny_http = { version = "0.11" }
+tiny_http = { version = "0.12" }
 log = { version = "0.4" }
 tauri-plugin-sample = { path = "./tauri-plugin-sample/" }
-tauri-plugin-log = "2.0.0-rc"
+tauri-plugin-log = "2.2.0"
 
 [dependencies.tauri]
 path = "../../../crates/tauri"

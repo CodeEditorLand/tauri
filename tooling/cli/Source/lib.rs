@@ -39,15 +39,15 @@ use std::{
 	fs::read_to_string,
 	io::{BufRead, BufReader, Write},
 	path::PathBuf,
-	process::{exit, Command, ExitStatus, Output, Stdio},
+	process::{Command, ExitStatus, Output, Stdio, exit},
 	str::FromStr,
 	sync::{Arc, Mutex},
 };
 
 use clap::{ArgAction, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
 use env_logger::{
-	fmt::style::{AnsiColor, Style},
 	Builder,
+	fmt::style::{AnsiColor, Style},
 };
 use log::Level;
 use serde::{Deserialize, Serialize};

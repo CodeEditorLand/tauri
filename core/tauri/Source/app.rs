@@ -6,54 +6,29 @@ use std::{
 	borrow::Cow,
 	collections::HashMap,
 	fmt,
-	sync::{mpsc::Sender, Arc, MutexGuard},
+	sync::{Arc, MutexGuard, mpsc::Sender},
 };
 
 use raw_window_handle::HasDisplayHandle;
 use serde::Serialize;
-use serialize_to_javascript::{default_template, DefaultTemplate, Template};
+use serialize_to_javascript::{DefaultTemplate, Template, default_template};
 use tauri_macros::default_runtime;
 #[cfg(desktop)]
 use tauri_runtime::EventLoopProxy;
 use tauri_runtime::{
+	RuntimeInitArgs,
 	dpi::{PhysicalPosition, PhysicalSize},
 	window::DragDropEvent,
-	RuntimeInitArgs,
 };
-use tauri_utils::{assets::AssetsIter, PackageInfo};
+use tauri_utils::{PackageInfo, assets::AssetsIter};
 
+#[cfg(target_os = "macos")]
+use crate::ActivationPolicy;
 #[cfg(desktop)]
 use crate::menu::{Menu, MenuEvent};
 #[cfg(all(desktop, feature = "tray-icon"))]
 use crate::tray::{TrayIcon, TrayIconBuilder, TrayIconEvent, TrayIconId};
-#[cfg(target_os = "macos")]
-use crate::ActivationPolicy;
 use crate::{
-	event::EventId,
-	image::Image,
-	ipc::{
-		channel::ChannelDataIpcQueue,
-		CallbackFn,
-		CommandArg,
-		CommandItem,
-		Invoke,
-		InvokeError,
-		InvokeHandler,
-		InvokeResponder,
-		InvokeResponse,
-	},
-	manager::{webview::UriSchemeProtocol, AppManager, Asset},
-	plugin::{Plugin, PluginStore},
-	resources::ResourceTable,
-	runtime::{
-		window::{WebviewEvent as RuntimeWebviewEvent, WindowEvent as RuntimeWindowEvent},
-		ExitRequestedEventAction,
-		RunEvent as RuntimeRunEvent,
-		RuntimeHandle,
-	},
-	sealed::{ManagerBase, RuntimeOrDispatch},
-	utils::{config::Config, Env},
-	webview::PageLoadPayload,
 	Context,
 	DeviceEventFilter,
 	Emitter,
@@ -71,6 +46,31 @@ use crate::{
 	Webview,
 	WebviewWindowBuilder,
 	Window,
+	event::EventId,
+	image::Image,
+	ipc::{
+		CallbackFn,
+		CommandArg,
+		CommandItem,
+		Invoke,
+		InvokeError,
+		InvokeHandler,
+		InvokeResponder,
+		InvokeResponse,
+		channel::ChannelDataIpcQueue,
+	},
+	manager::{AppManager, Asset, webview::UriSchemeProtocol},
+	plugin::{Plugin, PluginStore},
+	resources::ResourceTable,
+	runtime::{
+		ExitRequestedEventAction,
+		RunEvent as RuntimeRunEvent,
+		RuntimeHandle,
+		window::{WebviewEvent as RuntimeWebviewEvent, WindowEvent as RuntimeWindowEvent},
+	},
+	sealed::{ManagerBase, RuntimeOrDispatch},
+	utils::{Env, config::Config},
+	webview::PageLoadPayload,
 };
 
 pub(crate) mod plugin;
@@ -411,8 +411,8 @@ impl<R:Runtime> AppHandle<R> {
 	///
 	/// ```
 	/// use tauri::{
-	/// 	plugin::{Builder as PluginBuilder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder as PluginBuilder, TauriPlugin},
 	/// };
 	///
 	/// fn init_plugin<R:Runtime>() -> TauriPlugin<R> { PluginBuilder::new("dummy").build() }
@@ -445,8 +445,8 @@ impl<R:Runtime> AppHandle<R> {
 	///
 	/// ```
 	/// use tauri::{
-	/// 	plugin::{Builder as PluginBuilder, Plugin, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder as PluginBuilder, Plugin, TauriPlugin},
 	/// };
 	///
 	/// fn init_plugin<R:Runtime>() -> TauriPlugin<R> { PluginBuilder::new("dummy").build() }
@@ -1456,9 +1456,9 @@ tauri::Builder::default()
 	/// ```
 	/// mod plugin {
 	/// 	use tauri::{
-	/// 		plugin::{Builder as PluginBuilder, TauriPlugin},
 	/// 		RunEvent,
 	/// 		Runtime,
+	/// 		plugin::{Builder as PluginBuilder, TauriPlugin},
 	/// 	};
 	///
 	/// 	// this command can be called in the frontend using `invoke('plugin:window|do_something')`.
@@ -1858,9 +1858,9 @@ tauri::Builder::default()
 
 				Some(Box::new(move |msg| {
 					use windows::Win32::UI::WindowsAndMessaging::{
-						TranslateAcceleratorW,
 						HACCEL,
 						MSG,
+						TranslateAcceleratorW,
 					};
 
 					unsafe {
@@ -2117,7 +2117,6 @@ fn on_event_loop_event<R:Runtime>(
 					base::{id, nil},
 					foundation::NSData,
 				};
-
 				use objc::*;
 
 				if let Some(icon) = app_handle.manager.app_icon.clone() {

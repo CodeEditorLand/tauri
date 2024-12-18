@@ -5,8 +5,8 @@
 use anyhow::Context;
 
 use crate::{
-	helpers::app_paths::{app_dir, tauri_dir},
 	Result,
+	helpers::app_paths::{app_dir, tauri_dir},
 };
 
 mod config;

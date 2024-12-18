@@ -10,14 +10,14 @@ use std::{
 };
 
 use axum::{
-	extract::{ws, State, WebSocketUpgrade},
-	http::{header, StatusCode, Uri},
+	extract::{State, WebSocketUpgrade, ws},
+	http::{StatusCode, Uri, header},
 	response::{IntoResponse, Response},
 };
-use html5ever::{namespace_url, ns, LocalName, QualName};
-use kuchiki::{traits::TendrilSink, NodeRef};
+use html5ever::{LocalName, QualName, namespace_url, ns};
+use kuchiki::{NodeRef, traits::TendrilSink};
 use tauri_utils::mime_type::MimeType;
-use tokio::sync::broadcast::{channel, Sender};
+use tokio::sync::broadcast::{Sender, channel};
 
 const RELOAD_SCRIPT:&str = include_str!("./auto-reload.js");
 

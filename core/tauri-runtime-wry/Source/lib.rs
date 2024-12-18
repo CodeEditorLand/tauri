@@ -18,22 +18,22 @@
 use std::{
 	cell::RefCell,
 	collections::{
-		hash_map::Entry::{Occupied, Vacant},
 		BTreeMap,
 		HashMap,
+		hash_map::Entry::{Occupied, Vacant},
 	},
 	fmt,
 	ops::Deref,
 	path::PathBuf,
 	rc::Rc,
 	sync::{
-		atomic::{AtomicBool, AtomicU32, Ordering},
-		mpsc::{channel, Sender},
 		Arc,
 		Mutex,
 		Weak,
+		atomic::{AtomicBool, AtomicU32, Ordering},
+		mpsc::{Sender, channel},
 	},
-	thread::{current as current_thread, ThreadId},
+	thread::{ThreadId, current as current_thread},
 };
 
 use http::Request;
@@ -86,22 +86,6 @@ use tao::{
 #[cfg(target_os = "macos")]
 use tauri_runtime::ActivationPolicy;
 use tauri_runtime::{
-	dpi::{LogicalPosition, LogicalSize, PhysicalPosition, PhysicalSize, Position, Size},
-	monitor::Monitor,
-	webview::{DetachedWebview, DownloadEvent, PendingWebview, WebviewIpcHandler},
-	window::{
-		CursorIcon,
-		DetachedWindow,
-		DragDropEvent,
-		PendingWindow,
-		RawWindow,
-		WebviewEvent,
-		WindowBuilder,
-		WindowBuilderBase,
-		WindowEvent,
-		WindowId,
-		WindowSizeConstraints,
-	},
 	DeviceEventFilter,
 	Error,
 	EventLoopProxy,
@@ -120,10 +104,26 @@ use tauri_runtime::{
 	WebviewEventId,
 	WindowDispatch,
 	WindowEventId,
+	dpi::{LogicalPosition, LogicalSize, PhysicalPosition, PhysicalSize, Position, Size},
+	monitor::Monitor,
+	webview::{DetachedWebview, DownloadEvent, PendingWebview, WebviewIpcHandler},
+	window::{
+		CursorIcon,
+		DetachedWindow,
+		DragDropEvent,
+		PendingWindow,
+		RawWindow,
+		WebviewEvent,
+		WindowBuilder,
+		WindowBuilderBase,
+		WindowEvent,
+		WindowId,
+		WindowSizeConstraints,
+	},
 };
 #[cfg(target_os = "macos")]
 use tauri_utils::TitleBarStyle;
-use tauri_utils::{config::WindowConfig, Theme};
+use tauri_utils::{Theme, config::WindowConfig};
 use url::Url;
 #[cfg(windows)]
 use webview2_com::FocusChangedEventHandler;
@@ -134,12 +134,6 @@ use wry::WebViewBuilderExtWindows;
 #[cfg(windows)]
 use wry::WebViewExtWindows;
 pub use wry::{self, webview_version};
-#[cfg(target_os = "android")]
-use wry::{
-	prelude::{dispatch, find_class},
-	WebViewBuilderExtAndroid,
-	WebViewExtAndroid,
-};
 use wry::{
 	DragDropEvent as WryDragDropEvent,
 	ProxyConfig,
@@ -147,6 +141,12 @@ use wry::{
 	WebContext,
 	WebView,
 	WebViewBuilder,
+};
+#[cfg(target_os = "android")]
+use wry::{
+	WebViewBuilderExtAndroid,
+	WebViewExtAndroid,
+	prelude::{dispatch, find_class},
 };
 #[cfg(not(any(
 	target_os = "windows",
@@ -1572,7 +1572,6 @@ fn get_raw_window_handle<T:UserEvent>(
 
 impl<T:UserEvent> WindowDispatch<T> for WryWindowDispatcher<T> {
 	type Runtime = Wry<T>;
-
 	type WindowBuilder = WindowBuilderWrapper;
 
 	fn run_on_main_thread<F:FnOnce() + Send + 'static>(&self, f:F) -> Result<()> {
@@ -2303,11 +2302,8 @@ impl<T:UserEvent> Wry<T> {
 
 impl<T:UserEvent> Runtime<T> for Wry<T> {
 	type EventLoopProxy = EventProxy<T>;
-
 	type Handle = WryHandle<T>;
-
 	type WebviewDispatcher = WryWebviewDispatcher<T>;
-
 	type WindowDispatcher = WryWindowDispatcher<T>;
 
 	fn new(args:RuntimeInitArgs) -> Result<Self> {
@@ -2738,8 +2734,8 @@ fn handle_user_message<T:UserEvent>(
 								use windows::Win32::{
 									Foundation::RECT,
 									Graphics::Dwm::{
-										DwmGetWindowAttribute,
 										DWMWA_EXTENDED_FRAME_BOUNDS,
+										DwmGetWindowAttribute,
 									},
 								};
 
@@ -3253,7 +3249,6 @@ fn handle_user_message<T:UserEvent>(
 						#[cfg(target_os = "ios")]
 						{
 							use tao::platform::ios::WindowExtIOS;
-
 							use wry::WebViewExtIOS;
 
 							f(Webview {
@@ -4327,7 +4322,6 @@ fn calculate_window_center_position(
 	#[cfg(windows)]
 	{
 		use tao::platform::windows::MonitorHandleExtWindows;
-
 		use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, HMONITOR, MONITORINFO};
 
 		let mut monitor_info =

@@ -24,11 +24,11 @@ use handlebars::{
 	RenderErrorReason,
 };
 
-use super::{get_app, Target};
+use super::{Target, get_app};
 use crate::{
+	Result,
 	helpers::{config::get as get_tauri_config, template::JsonMap},
 	interface::{AppInterface, Interface},
-	Result,
 };
 
 pub fn command(

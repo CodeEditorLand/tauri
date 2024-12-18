@@ -5,7 +5,7 @@
 use std::path::PathBuf;
 
 use super::Result;
-use crate::{plugin::PluginHandle, Runtime};
+use crate::{Runtime, plugin::PluginHandle};
 
 /// A helper class to access the mobile path APIs.
 pub struct PathResolver<R:Runtime>(pub(crate) PluginHandle<R>);

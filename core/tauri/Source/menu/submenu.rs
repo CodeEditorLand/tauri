@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use muda::{ContextMenu, MenuId};
 
-use super::{run_item_main_thread, sealed::ContextMenuBase, IsMenuItem, MenuItemKind, Submenu};
-use crate::{menu::SubmenuInner, run_main_thread, AppHandle, Manager, Position, Runtime, Window};
+use super::{IsMenuItem, MenuItemKind, Submenu, run_item_main_thread, sealed::ContextMenuBase};
+use crate::{AppHandle, Manager, Position, Runtime, Window, menu::SubmenuInner, run_main_thread};
 
 impl<R:Runtime> super::ContextMenu for Submenu<R> {
 	fn popup<T:Runtime>(&self, window:Window<T>) -> crate::Result<()> {

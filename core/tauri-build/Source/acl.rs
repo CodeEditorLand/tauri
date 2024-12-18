@@ -25,9 +25,9 @@ use schemars::{
 };
 use tauri_utils::{
 	acl::{
+		APP_ACL_KEY,
 		capability::{Capability, CapabilityFile},
 		manifest::Manifest,
-		APP_ACL_KEY,
 	},
 	platform::Target,
 	write_if_changed,

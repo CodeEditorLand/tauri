@@ -5,10 +5,8 @@
 use std::path::PathBuf;
 
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{
-	parse::{Parse, ParseBuffer},
-	punctuated::Punctuated,
 	Expr,
 	ExprLit,
 	Lit,
@@ -18,8 +16,10 @@ use syn::{
 	PathArguments,
 	PathSegment,
 	Token,
+	parse::{Parse, ParseBuffer},
+	punctuated::Punctuated,
 };
-use tauri_codegen::{context_codegen, get_config, ContextData};
+use tauri_codegen::{ContextData, context_codegen, get_config};
 use tauri_utils::{config::parse::does_supported_file_name_exist, platform::Target};
 
 pub(crate) struct ContextItems {

@@ -20,12 +20,12 @@ use std::{
 };
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
-pub use tauri_utils::config::{parse::ConfigError, Config};
+use quote::{ToTokens, TokenStreamExt, quote};
+pub use tauri_utils::config::{Config, parse::ConfigError};
 use tauri_utils::{platform::Target, write_if_changed};
 
-pub use self::context::{context_codegen, ContextData};
-use crate::embedded_assets::{ensure_out_dir, EmbeddedAssetsError};
+pub use self::context::{ContextData, context_codegen};
+use crate::embedded_assets::{EmbeddedAssetsError, ensure_out_dir};
 
 mod context;
 pub mod embedded_assets;

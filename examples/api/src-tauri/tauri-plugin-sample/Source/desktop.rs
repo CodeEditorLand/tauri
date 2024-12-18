@@ -3,29 +3,26 @@
 // SPDX-License-Identifier: MIT
 
 use serde::de::DeserializeOwned;
-use tauri::{plugin::PluginApi, AppHandle, Runtime};
+use tauri::{AppHandle, Runtime, plugin::PluginApi};
 
 use crate::models::*;
 
-pub fn init<R: Runtime, C: DeserializeOwned>(
-  app: &AppHandle<R>,
-  _api: PluginApi<R, C>,
+pub fn init<R:Runtime, C:DeserializeOwned>(
+	app:&AppHandle<R>,
+	_api:PluginApi<R, C>,
 ) -> crate::Result<Sample<R>> {
-  Ok(Sample(app.clone()))
+	Ok(Sample(app.clone()))
 }
 
 /// A helper class to access the sample APIs.
-pub struct Sample<R: Runtime>(AppHandle<R>);
+pub struct Sample<R:Runtime>(AppHandle<R>);
 
-impl<R: Runtime> Sample<R> {
-  pub fn ping(&self, payload: PingRequest) -> crate::Result<PingResponse> {
-    payload.on_event.send(Event {
-      kind: "ping".to_string(),
-      value: payload.value.clone(),
-    })?;
+impl<R:Runtime> Sample<R> {
+	pub fn ping(&self, payload:PingRequest) -> crate::Result<PingResponse> {
+		payload
+			.on_event
+			.send(Event { kind:"ping".to_string(), value:payload.value.clone() })?;
 
-    Ok(PingResponse {
-      value: payload.value,
-    })
-  }
+		Ok(PingResponse { value:payload.value })
+	}
 }

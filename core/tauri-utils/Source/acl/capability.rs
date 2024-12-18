@@ -7,10 +7,10 @@
 use std::{path::Path, str::FromStr};
 
 use serde::{
-	de::{Error, IntoDeserializer},
 	Deserialize,
 	Deserializer,
 	Serialize,
+	de::{Error, IntoDeserializer},
 };
 use serde_untagged::UntaggedEnumVisitor;
 
@@ -316,11 +316,9 @@ mod build {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
-
-	use quote::{quote, ToTokens, TokenStreamExt};
+	use quote::{ToTokens, TokenStreamExt, quote};
 
 	use super::*;
-
 	use crate::{literal_struct, tokens::*};
 
 	impl ToTokens for CapabilityRemote {
@@ -386,7 +384,6 @@ mod build {
 #[cfg(test)]
 mod tests {
 	use super::{Capability, CapabilityFile, PermissionEntry};
-
 	use crate::acl::{Identifier, Scopes};
 
 	#[test]

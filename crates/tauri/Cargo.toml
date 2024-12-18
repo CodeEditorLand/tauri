@@ -65,7 +65,7 @@ tauri-utils = { version = "2.1.0", features = [
 tauri-runtime-wry = { version = "2.2.0", path = "../tauri-runtime-wry", optional = true }
 getrandom = { version = "0.2" }
 serde_repr = { version = "0.1" }
-http = { version = "1.1" }
+http = { version = "1.2" }
 dirs = { version = "5" }
 percent-encoding = "2.3"
 reqwest = { version = "0.12", default-features = false, features = [
@@ -120,7 +120,7 @@ objc2-app-kit = { version = "0.2.2", features = [
 window-vibrancy = "0.5"
 
 [target."cfg(windows)".dependencies]
-webview2-com = "0.33"
+webview2-com = "0.34"
 window-vibrancy = "0.5"
 
 [target."cfg(windows)".dependencies.windows]
@@ -143,14 +143,14 @@ tauri-utils = { path = "../tauri-utils/", version = "2.1.0", features = [
 ] }
 
 [dev-dependencies]
-proptest = { version = "1.4.0" }
+proptest = { version = "1.6.0" }
 quickcheck = { version = "1.0.3" }
 quickcheck_macros = { version = "1.0.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 tauri = { path = ".", default-features = false, features = ["wry"] }
 tokio = { version = "1", features = ["full"] }
-cargo_toml = { version = "0.17" }
+cargo_toml = { version = "0.21" }
 http-range = "0.1.5"
 
 # macOS

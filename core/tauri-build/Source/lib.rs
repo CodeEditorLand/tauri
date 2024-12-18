@@ -24,9 +24,9 @@ use anyhow::Context;
 pub use anyhow::Result;
 use cargo_toml::Manifest;
 use tauri_utils::{
-	acl::{build::parse_capabilities, APP_ACL_KEY},
+	acl::{APP_ACL_KEY, build::parse_capabilities},
 	config::{BundleResources, Config, WebviewInstallMode},
-	resources::{external_binaries, ResourcePaths},
+	resources::{ResourcePaths, external_binaries},
 };
 
 mod acl;
@@ -703,7 +703,6 @@ pub fn try_build(attributes:Attributes) -> Result<()> {
 
 	if target_triple.contains("windows") {
 		use semver::Version;
-
 		use tauri_winres::{VersionInfo, WindowsResource};
 
 		fn find_icon<F:Fn(&&String) -> bool>(config:&Config, predicate:F, default:&str) -> PathBuf {

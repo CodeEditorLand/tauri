@@ -6,9 +6,9 @@ use std::{
 	io::{BufReader, ErrorKind, Write},
 	process::{Command, ExitStatus, Stdio},
 	sync::{
-		atomic::{AtomicBool, Ordering},
 		Arc,
 		Mutex,
+		atomic::{AtomicBool, Ordering},
 	},
 };
 
@@ -434,17 +434,17 @@ mod terminal {
 	use std::{cmp, mem, ptr};
 
 	use windows_sys::{
-		core::PCSTR,
 		Win32::{
 			Foundation::{CloseHandle, GENERIC_READ, GENERIC_WRITE, INVALID_HANDLE_VALUE},
 			Storage::FileSystem::{CreateFileA, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING},
 			System::Console::{
+				CONSOLE_SCREEN_BUFFER_INFO,
 				GetConsoleScreenBufferInfo,
 				GetStdHandle,
-				CONSOLE_SCREEN_BUFFER_INFO,
 				STD_ERROR_HANDLE,
 			},
 		},
+		core::PCSTR,
 	};
 
 	pub fn stderr_width() -> Option<usize> {

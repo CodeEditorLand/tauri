@@ -7,7 +7,7 @@ use std::{
 	os::raw::{c_char, c_int, c_ulonglong},
 };
 
-use swift_rs::{swift, SRString, SwiftArg};
+use swift_rs::{SRString, SwiftArg, swift};
 
 type PluginMessageCallbackFn = unsafe extern fn(c_int, c_int, *const c_char);
 pub struct PluginMessageCallback(pub PluginMessageCallbackFn);

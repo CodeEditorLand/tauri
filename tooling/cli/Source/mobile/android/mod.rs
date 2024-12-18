@@ -30,19 +30,19 @@ use sublime_fuzzy::best_match;
 use tauri_utils::resources::ResourcePaths;
 
 use super::{
+	CliOptions,
+	MIN_DEVICE_MATCH_SCORE,
+	OptionsHandle,
+	Target as MobileTarget,
 	ensure_init,
 	get_app,
 	init::command as init_command,
 	log_finished,
 	read_options,
-	CliOptions,
-	OptionsHandle,
-	Target as MobileTarget,
-	MIN_DEVICE_MATCH_SCORE,
 };
 use crate::{
-	helpers::config::{BundleResources, Config as TauriConfig},
 	Result,
+	helpers::config::{BundleResources, Config as TauriConfig},
 };
 
 mod android_studio_script;

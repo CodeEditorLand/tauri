@@ -12,9 +12,9 @@ use std::{
 };
 
 use serde::{
-	de::{Deserialize, DeserializeOwned, Deserializer, Error as DeError},
 	Serialize,
 	Serializer,
+	de::{Deserialize, DeserializeOwned, Deserializer, Error as DeError},
 };
 use serde_json::Value as JsonValue;
 use tauri_macros::default_runtime;
@@ -22,17 +22,17 @@ use thiserror::Error;
 use url::Url;
 
 use crate::{
-	app::UriSchemeResponder,
-	ipc::{Invoke, InvokeHandler, ScopeObject, ScopeValue},
-	manager::webview::UriSchemeProtocol,
-	utils::config::PluginConfig,
-	webview::PageLoadPayload,
 	AppHandle,
 	Error,
 	RunEvent,
 	Runtime,
 	Webview,
 	Window,
+	app::UriSchemeResponder,
+	ipc::{Invoke, InvokeHandler, ScopeObject, ScopeValue},
+	manager::webview::UriSchemeProtocol,
+	utils::config::PluginConfig,
+	webview::PageLoadPayload,
 };
 
 /// Mobile APIs.
@@ -176,8 +176,8 @@ const RESERVED_PLUGIN_NAMES:&[&str] = &["core", "tauri"];
 ///
 /// ```rust
 /// use tauri::{
-/// 	plugin::{Builder, TauriPlugin},
 /// 	Runtime,
+/// 	plugin::{Builder, TauriPlugin},
 /// };
 ///
 /// pub fn init<R:Runtime>() -> TauriPlugin<R> { Builder::new("example").build() }
@@ -188,8 +188,8 @@ const RESERVED_PLUGIN_NAMES:&[&str] = &["core", "tauri"];
 ///
 /// ```rust
 /// use tauri::{
-/// 	plugin::{Builder as PluginBuilder, TauriPlugin},
 /// 	Runtime,
+/// 	plugin::{Builder as PluginBuilder, TauriPlugin},
 /// };
 ///
 /// pub struct Builder {
@@ -274,8 +274,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// #[tauri::command]
@@ -321,8 +321,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// const INIT_SCRIPT:&str = r#"
@@ -352,9 +352,9 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	/// use std::path::PathBuf;
 	///
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Manager,
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// #[derive(Debug, Default)]
@@ -390,8 +390,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
@@ -418,8 +418,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
@@ -450,8 +450,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
@@ -477,8 +477,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
@@ -536,8 +536,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
@@ -579,8 +579,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {
@@ -627,8 +627,8 @@ impl<R:Runtime, C:DeserializeOwned> Builder<R, C> {
 	///
 	/// ```rust
 	/// use tauri::{
-	/// 	plugin::{Builder, TauriPlugin},
 	/// 	Runtime,
+	/// 	plugin::{Builder, TauriPlugin},
 	/// };
 	///
 	/// fn init<R:Runtime>() -> TauriPlugin<R> {

@@ -11,19 +11,19 @@ use std::{
 
 use anyhow::Context;
 use clap::Parser;
-use handlebars::{to_json, Handlebars};
-use include_dir::{include_dir, Dir};
+use handlebars::{Handlebars, to_json};
+use include_dir::{Dir, include_dir};
 
 use crate::{
+	Result,
+	VersionMetadata,
 	helpers::{
-		framework::{infer_from_package_json as infer_framework, Framework},
+		framework::{Framework, infer_from_package_json as infer_framework},
 		npm::PackageManager,
 		prompts,
 		resolve_tauri_path,
 		template,
 	},
-	Result,
-	VersionMetadata,
 };
 
 const TEMPLATE_DIR:Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/app");

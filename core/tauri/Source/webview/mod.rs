@@ -18,20 +18,30 @@ use http::HeaderMap;
 use serde::Serialize;
 use tauri_macros::default_runtime;
 pub use tauri_runtime::webview::PageLoadEvent;
+use tauri_runtime::{
+	WebviewDispatch,
+	webview::{DetachedWebview, PendingWebview, WebviewAttributes},
+};
 #[cfg(desktop)]
 use tauri_runtime::{
-	dpi::{PhysicalPosition, PhysicalSize, Position, Size},
 	WindowDispatch,
-};
-use tauri_runtime::{
-	webview::{DetachedWebview, PendingWebview, WebviewAttributes},
-	WebviewDispatch,
+	dpi::{PhysicalPosition, PhysicalSize, Position, Size},
 };
 use tauri_utils::config::{WebviewUrl, WindowConfig};
 pub use url::Url;
 pub use webview_window::{WebviewWindow, WebviewWindowBuilder};
 
 use crate::{
+	AppHandle,
+	Emitter,
+	Event,
+	EventId,
+	EventLoopMessage,
+	Listener,
+	Manager,
+	ResourceTable,
+	Runtime,
+	Window,
 	app::{UriSchemeResponder, WebviewEvent},
 	event::{EmitArgs, EventTarget},
 	ipc::{
@@ -48,16 +58,6 @@ use crate::{
 	},
 	manager::AppManager,
 	sealed::{ManagerBase, RuntimeOrDispatch},
-	AppHandle,
-	Emitter,
-	Event,
-	EventId,
-	EventLoopMessage,
-	Listener,
-	Manager,
-	ResourceTable,
-	Runtime,
-	Window,
 };
 
 pub(crate) type WebResourceRequestHandler =

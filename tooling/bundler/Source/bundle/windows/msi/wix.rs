@@ -11,8 +11,8 @@ use std::{
 	process::Command,
 };
 
-use anyhow::{bail, Context};
-use handlebars::{html_escape, to_json, Handlebars};
+use anyhow::{Context, bail};
+use handlebars::{Handlebars, html_escape, to_json};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tauri_utils::{config::WebviewInstallMode, display_path};
@@ -20,18 +20,18 @@ use uuid::Uuid;
 
 use crate::bundle::{
 	common::CommandExt,
-	path_utils::{copy_file, FileOpts},
+	path_utils::{FileOpts, copy_file},
 	settings::Settings,
 	windows::{
 		sign::try_sign,
 		util::{
+			HashAlgorithm,
+			WIX_OUTPUT_FOLDER_NAME,
+			WIX_UPDATER_OUTPUT_FOLDER_NAME,
 			download_and_verify,
 			download_webview2_bootstrapper,
 			download_webview2_offline_installer,
 			extract_zip,
-			HashAlgorithm,
-			WIX_OUTPUT_FOLDER_NAME,
-			WIX_UPDATER_OUTPUT_FOLDER_NAME,
 		},
 	},
 };

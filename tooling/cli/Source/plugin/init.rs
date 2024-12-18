@@ -6,21 +6,21 @@ use std::{
 	collections::BTreeMap,
 	env::current_dir,
 	ffi::{OsStr, OsString},
-	fs::{create_dir_all, remove_dir_all, File, OpenOptions},
+	fs::{File, OpenOptions, create_dir_all, remove_dir_all},
 	path::{Component, Path, PathBuf},
 };
 
 use anyhow::Context;
 use clap::Parser;
-use handlebars::{to_json, Handlebars};
+use handlebars::{Handlebars, to_json};
 use heck::{ToKebabCase, ToPascalCase, ToSnakeCase};
-use include_dir::{include_dir, Dir};
+use include_dir::{Dir, include_dir};
 
 use super::PluginIosFramework;
 use crate::{
-	helpers::{prompts, resolve_tauri_path, template},
 	Result,
 	VersionMetadata,
+	helpers::{prompts, resolve_tauri_path, template},
 };
 
 pub const TEMPLATE_DIR:Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/plugin");

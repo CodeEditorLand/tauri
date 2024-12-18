@@ -10,8 +10,8 @@ use tauri_utils_v1::config::Allowlist;
 use toml_edit::{Document, Entry, Item, Table, TableLike, Value};
 
 use crate::{
-	interface::rust::manifest::{read_manifest, serialize_manifest},
 	Result,
+	interface::rust::manifest::{read_manifest, serialize_manifest},
 };
 
 const CRATE_TYPES:[&str; 3] = ["lib", "staticlib", "cdylib"];

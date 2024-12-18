@@ -146,8 +146,7 @@ pub fn listen_js_script(
 	format!(
 		"(function () {{
       if (window['{listeners_object_name}'] === void 0) {{
-        Object.defineProperty(window, '{listeners_object_name}', {{ value: Object.create(null) \
-		 }});
+        Object.defineProperty(window, '{listeners_object_name}', {{ value: Object.create(null) }});
       }}
       if (window['{listeners_object_name}']['{event}'] === void 0) {{
         Object.defineProperty(window['{listeners_object_name}'], '{event}', {{ value: \

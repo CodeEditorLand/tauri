@@ -5,11 +5,11 @@
 use std::{collections::HashMap, fmt, sync::Mutex};
 
 use crate::{
+	AppHandle,
+	Runtime,
 	app::GlobalTrayIconEventListener,
 	image::Image,
 	tray::{TrayIcon, TrayIconEvent, TrayIconId},
-	AppHandle,
-	Runtime,
 };
 
 pub struct TrayManager<R:Runtime> {

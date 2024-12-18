@@ -6,12 +6,12 @@ use std::{borrow::Cow, sync::Arc};
 #[cfg(all(dev, mobile))]
 use std::{collections::HashMap, sync::Mutex};
 
-use http::{header::CONTENT_TYPE, Request, Response as HttpResponse, StatusCode};
+use http::{Request, Response as HttpResponse, StatusCode, header::CONTENT_TYPE};
 
 use crate::{
-	manager::{webview::PROXY_DEV_SERVER, AppManager},
-	webview::{UriSchemeProtocolHandler, WebResourceRequestHandler},
 	Runtime,
+	manager::{AppManager, webview::PROXY_DEV_SERVER},
+	webview::{UriSchemeProtocolHandler, WebResourceRequestHandler},
 };
 
 #[cfg(all(dev, mobile))]

@@ -12,3 +12,6 @@ tauri-build = { path = "../../../crates/tauri-build", features = ["codegen"] }
 serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }
 tauri = { path = "../../../crates/tauri", features = [] }
+
+[lib]
+path = "Source/main.rs"

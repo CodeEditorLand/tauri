@@ -8,15 +8,15 @@ use anyhow::Context;
 use cargo_mobile2::{
 	android::{adb, target::Target},
 	opts::Profile,
-	target::{call_for_targets_with_fallback, TargetTrait},
+	target::{TargetTrait, call_for_targets_with_fallback},
 };
 use clap::{ArgAction, Parser};
 
-use super::{detect_target_ok, ensure_init, env, get_app, get_config, read_options, MobileTarget};
+use super::{MobileTarget, detect_target_ok, ensure_init, env, get_app, get_config, read_options};
 use crate::{
+	Result,
 	helpers::config::get as get_tauri_config,
 	interface::{AppInterface, Interface},
-	Result,
 };
 
 #[derive(Debug, Parser)]

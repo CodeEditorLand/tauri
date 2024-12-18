@@ -4,13 +4,13 @@
 
 use std::sync::Arc;
 
-use super::{run_item_main_thread, AboutMetadata, PredefinedMenuItem};
+use super::{AboutMetadata, PredefinedMenuItem, run_item_main_thread};
 use crate::{
-	menu::{MenuId, PredefinedMenuItemInner},
-	run_main_thread,
 	AppHandle,
 	Manager,
 	Runtime,
+	menu::{MenuId, PredefinedMenuItemInner},
+	run_main_thread,
 };
 
 impl<R:Runtime> PredefinedMenuItem<R> {

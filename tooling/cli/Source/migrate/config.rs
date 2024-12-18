@@ -10,9 +10,9 @@ use std::{
 
 use serde_json::{Map, Value};
 use tauri_utils::acl::{
-	capability::{Capability, PermissionEntry},
 	Scopes,
 	Value as AclValue,
+	capability::{Capability, PermissionEntry},
 };
 
 use crate::Result;

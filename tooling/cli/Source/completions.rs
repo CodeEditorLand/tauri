@@ -6,7 +6,7 @@ use std::{fs::write, path::PathBuf};
 
 use anyhow::Context;
 use clap::{Command, Parser};
-use clap_complete::{generate, Shell};
+use clap_complete::{Shell, generate};
 
 use crate::Result;
 

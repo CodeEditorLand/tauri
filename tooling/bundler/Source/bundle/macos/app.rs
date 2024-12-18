@@ -35,7 +35,7 @@ use anyhow::Context;
 use super::{
 	super::common::{self, CommandExt},
 	icon::create_icns_file,
-	sign::{notarize, notarize_auth, sign, NotarizeAuthError, SignTarget},
+	sign::{NotarizeAuthError, SignTarget, notarize, notarize_auth, sign},
 };
 use crate::Settings;
 

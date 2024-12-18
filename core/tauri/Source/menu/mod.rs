@@ -20,7 +20,7 @@ pub use menu::{HELP_SUBMENU_ID, WINDOW_SUBMENU_ID};
 pub use muda::MenuId;
 use serde::{Deserialize, Serialize};
 
-use crate::{image::Image, AppHandle, Runtime};
+use crate::{AppHandle, Runtime, image::Image};
 
 macro_rules! run_item_main_thread {
 	($self:ident, $ex:expr) => {{

@@ -7,8 +7,6 @@ use std::sync::Arc;
 use muda::{ContextMenu, MenuId};
 
 use super::{
-	run_item_main_thread,
-	sealed::ContextMenuBase,
 	AboutMetadata,
 	IsMenuItem,
 	Menu,
@@ -16,8 +14,10 @@ use super::{
 	MenuItemKind,
 	PredefinedMenuItem,
 	Submenu,
+	run_item_main_thread,
+	sealed::ContextMenuBase,
 };
-use crate::{run_main_thread, AppHandle, Manager, Position, Runtime, Window};
+use crate::{AppHandle, Manager, Position, Runtime, Window, run_main_thread};
 
 /// Expected submenu id of the Window menu for macOS.
 pub const WINDOW_SUBMENU_ID:&str = "__tauri_window_menu__";

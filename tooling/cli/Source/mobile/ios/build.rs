@@ -16,11 +16,13 @@ use cargo_mobile2::{
 	},
 	env::Env,
 	opts::{NoiseLevel, Profile},
-	target::{call_for_targets_with_fallback, TargetInvalid, TargetTrait},
+	target::{TargetInvalid, TargetTrait, call_for_targets_with_fallback},
 };
 use clap::{ArgAction, Parser, ValueEnum};
 
 use super::{
+	MobileTarget,
+	OptionsHandle,
 	detect_target_ok,
 	ensure_init,
 	env,
@@ -33,20 +35,18 @@ use super::{
 	open_and_wait,
 	project_config,
 	synchronize_project_config,
-	MobileTarget,
-	OptionsHandle,
 };
 use crate::{
+	ConfigValue,
+	Result,
 	build::Options as BuildOptions,
 	helpers::{
 		app_paths::tauri_dir,
-		config::{get as get_tauri_config, ConfigHandle},
+		config::{ConfigHandle, get as get_tauri_config},
 		flock,
 	},
 	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
-	mobile::{write_options, CliOptions},
-	ConfigValue,
-	Result,
+	mobile::{CliOptions, write_options},
 };
 
 #[derive(Debug, Clone, Parser)]

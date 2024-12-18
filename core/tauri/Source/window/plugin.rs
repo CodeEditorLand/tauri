@@ -5,23 +5,17 @@
 //! The tauri plugin to create and manipulate windows from JS.
 
 use crate::{
-	plugin::{Builder, TauriPlugin},
 	Runtime,
+	plugin::{Builder, TauriPlugin},
 };
 
 #[cfg(desktop)]
 mod desktop_commands {
-	use tauri_runtime::{window::WindowSizeConstraints, ResizeDirection};
-
+	use tauri_runtime::{ResizeDirection, window::WindowSizeConstraints};
 	use tauri_utils::TitleBarStyle;
 
 	use super::*;
-
 	use crate::{
-		command,
-		sealed::ManagerBase,
-		utils::config::{WindowConfig, WindowEffectsConfig},
-		window::{ProgressBarState, WindowBuilder},
 		AppHandle,
 		CursorIcon,
 		Manager,
@@ -34,6 +28,10 @@ mod desktop_commands {
 		UserAttentionType,
 		Webview,
 		Window,
+		command,
+		sealed::ManagerBase,
+		utils::config::{WindowConfig, WindowEffectsConfig},
+		window::{ProgressBarState, WindowBuilder},
 	};
 
 	#[command(root = "crate")]
@@ -275,7 +273,7 @@ mod desktop_commands {
 
 /// Initializes the plugin.
 pub fn init<R:Runtime>() -> TauriPlugin<R> {
-	use serialize_to_javascript::{default_template, DefaultTemplate, Template};
+	use serialize_to_javascript::{DefaultTemplate, Template, default_template};
 
 	let mut init_script = String::new();
 

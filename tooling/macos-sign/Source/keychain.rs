@@ -11,7 +11,7 @@ use std::{
 use anyhow::Result;
 use rand::distributions::{Alphanumeric, DistString};
 
-use crate::{assert_command, CommandExt};
+use crate::{CommandExt, assert_command};
 
 mod identity;
 

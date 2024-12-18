@@ -13,7 +13,7 @@ use std::{
 
 use image::GenericImageView;
 
-use crate::bundle::{common, Settings};
+use crate::bundle::{Settings, common};
 
 // Given a list of icon files, try to produce an ICNS file in the out_dir
 // and return the path to it.  Returns `Ok(None)` if no usable icons

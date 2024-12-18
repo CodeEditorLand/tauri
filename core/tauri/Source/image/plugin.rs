@@ -5,13 +5,13 @@
 use serde::Serialize;
 
 use crate::{
-	command,
-	image::Image,
-	plugin::{Builder, TauriPlugin},
 	Manager,
 	ResourceId,
 	Runtime,
 	Webview,
+	command,
+	image::Image,
+	plugin::{Builder, TauriPlugin},
 };
 
 #[command(root = "crate")]

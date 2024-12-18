@@ -4,14 +4,14 @@
 
 use std::sync::Arc;
 
-use super::{run_item_main_thread, IconMenuItem, NativeIcon};
+use super::{IconMenuItem, NativeIcon, run_item_main_thread};
 use crate::{
-	image::Image,
-	menu::{IconMenuItemInner, MenuId},
-	run_main_thread,
 	AppHandle,
 	Manager,
 	Runtime,
+	image::Image,
+	menu::{IconMenuItemInner, MenuId},
+	run_main_thread,
 };
 
 impl<R:Runtime> IconMenuItem<R> {

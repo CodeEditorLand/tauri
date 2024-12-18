@@ -10,7 +10,7 @@ use std::{
 	path::{Path, PathBuf},
 	process::Command,
 	str::FromStr,
-	sync::{mpsc::sync_channel, Arc, Mutex},
+	sync::{Arc, Mutex, mpsc::sync_channel},
 	time::{Duration, Instant},
 };
 
@@ -36,18 +36,18 @@ use tauri_bundler::{
 	WindowsSettings,
 };
 use tauri_utils::{
-	config::{parse::is_configuration_file, DeepLinkProtocol, Updater},
+	config::{DeepLinkProtocol, Updater, parse::is_configuration_file},
 	display_path,
 	platform::Target,
 };
 
 use super::{AppSettings, DevProcess, ExitReason, Interface};
 use crate::{
+	ConfigValue,
 	helpers::{
 		app_paths::{app_dir, tauri_dir},
-		config::{nsis_settings, reload as reload_config, wix_settings, BundleResources, Config},
+		config::{BundleResources, Config, nsis_settings, reload as reload_config, wix_settings},
 	},
-	ConfigValue,
 };
 
 mod cargo_config;
@@ -55,7 +55,7 @@ mod desktop;
 pub mod installation;
 pub mod manifest;
 use cargo_config::Config as CargoConfig;
-use manifest::{rewrite_manifest, Manifest};
+use manifest::{Manifest, rewrite_manifest};
 
 use crate::helpers::config::custom_sign_settings;
 

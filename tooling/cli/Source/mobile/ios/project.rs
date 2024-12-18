@@ -4,7 +4,7 @@
 
 use std::{
 	ffi::OsString,
-	fs::{create_dir_all, OpenOptions},
+	fs::{OpenOptions, create_dir_all},
 	path::{Component, PathBuf},
 };
 
@@ -21,12 +21,12 @@ use cargo_mobile2::{
 	util::{self, cli::TextWrapper},
 };
 use handlebars::Handlebars;
-use include_dir::{include_dir, Dir};
+use include_dir::{Dir, include_dir};
 
 use crate::{
+	Result,
 	helpers::{config::Config as TauriConfig, template},
 	mobile::ios::LIB_OUTPUT_FILE_NAME,
-	Result,
 };
 
 const TEMPLATE_DIR:Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/mobile/ios");

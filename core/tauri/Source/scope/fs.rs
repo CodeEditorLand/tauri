@@ -5,11 +5,11 @@
 use std::{
 	collections::{HashMap, HashSet},
 	fmt,
-	path::{Path, PathBuf, MAIN_SEPARATOR},
+	path::{MAIN_SEPARATOR, Path, PathBuf},
 	sync::{
-		atomic::{AtomicU32, Ordering},
 		Arc,
 		Mutex,
+		atomic::{AtomicU32, Ordering},
 	},
 };
 

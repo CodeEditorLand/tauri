@@ -4,13 +4,13 @@
 
 use std::{
 	env::var,
-	fs::{create_dir_all, File},
+	fs::{File, create_dir_all},
 	io::{BufWriter, Write},
 	path::{Path, PathBuf},
 };
 
 use anyhow::{Context, Result};
-use tauri_codegen::{context_codegen, ContextData};
+use tauri_codegen::{ContextData, context_codegen};
 use tauri_utils::config::FrontendDist;
 
 // TODO docs

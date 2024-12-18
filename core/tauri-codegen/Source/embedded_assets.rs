@@ -12,7 +12,7 @@ use base64::Engine;
 #[cfg(feature = "compression")]
 use brotli::enc::backward_references::BrotliEncoderParams;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{ToTokens, TokenStreamExt, quote};
 use sha2::{Digest, Sha256};
 use tauri_utils::{
 	assets::AssetKey,

@@ -9,11 +9,6 @@ use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::{format_ident, quote, quote_spanned};
 use syn::{
-	ext::IdentExt,
-	parse::{Parse, ParseStream},
-	parse_macro_input,
-	punctuated::Punctuated,
-	spanned::Spanned,
 	Expr,
 	ExprLit,
 	FnArg,
@@ -23,6 +18,11 @@ use syn::{
 	Pat,
 	Token,
 	Visibility,
+	ext::IdentExt,
+	parse::{Parse, ParseStream},
+	parse_macro_input,
+	punctuated::Punctuated,
+	spanned::Spanned,
 };
 
 enum WrapperAttributeKind {

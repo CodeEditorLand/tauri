@@ -3,10 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{
-	parse::{Parse, ParseStream},
-	parse_quote,
 	DeriveInput,
 	Error,
 	GenericParam,
@@ -16,6 +14,8 @@ use syn::{
 	Token,
 	Type,
 	TypeParam,
+	parse::{Parse, ParseStream},
+	parse_quote,
 };
 
 #[derive(Clone)]

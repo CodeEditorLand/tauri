@@ -24,9 +24,9 @@ use cargo_mobile2::{
 	},
 };
 use handlebars::Handlebars;
-use include_dir::{include_dir, Dir};
+use include_dir::{Dir, include_dir};
 
-use crate::{helpers::template, Result};
+use crate::{Result, helpers::template};
 
 const TEMPLATE_DIR:Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/templates/mobile/android");
 

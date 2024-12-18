@@ -18,17 +18,17 @@
 use std::{
 	collections::BTreeMap,
 	ffi::OsStr,
-	fs::{read_to_string, File},
+	fs::{File, read_to_string},
 	io::BufReader,
 	path::{Path, PathBuf},
 };
 
 use anyhow::Context;
 use handlebars::Handlebars;
-use image::{self, codecs::png::PngDecoder, ImageDecoder};
+use image::{self, ImageDecoder, codecs::png::PngDecoder};
 use serde::Serialize;
 
-use crate::{bundle::common, Settings};
+use crate::{Settings, bundle::common};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Icon {

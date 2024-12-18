@@ -5,10 +5,10 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::{
-	parse::{Parse, ParseStream},
-	punctuated::Punctuated,
 	Expr,
 	Token,
+	parse::{Parse, ParseStream},
+	punctuated::Punctuated,
 };
 
 pub struct DoMenuItemInput {

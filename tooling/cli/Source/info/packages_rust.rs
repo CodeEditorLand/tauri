@@ -12,11 +12,11 @@ use colored::Colorize;
 use super::{ActionResult, SectionItem};
 use crate::{
 	helpers::cargo_manifest::{
-		crate_latest_version,
-		crate_version,
 		CargoLock,
 		CargoManifest,
 		CrateVersion,
+		crate_latest_version,
+		crate_version,
 	},
 	interface::rust::get_workspace_dir,
 };

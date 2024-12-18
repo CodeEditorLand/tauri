@@ -9,9 +9,9 @@ use std::{
 	string::FromUtf8Error,
 };
 
-use aes_gcm::{aead::Aead, Aes256Gcm, KeyInit, Nonce};
-use getrandom::{getrandom, Error as CsprngError};
-use serialize_to_javascript::{default_template, Template};
+use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::Aead};
+use getrandom::{Error as CsprngError, getrandom};
+use serialize_to_javascript::{Template, default_template};
 
 /// The style for the isolation iframe.
 pub const IFRAME_STYLE:&str = "#__tauri_isolation__ { display: none !important }";

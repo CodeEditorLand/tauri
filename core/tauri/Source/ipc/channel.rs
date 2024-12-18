@@ -6,9 +6,9 @@ use std::{
 	collections::HashMap,
 	str::FromStr,
 	sync::{
-		atomic::{AtomicU32, AtomicUsize, Ordering},
 		Arc,
 		Mutex,
+		atomic::{AtomicU32, AtomicUsize, Ordering},
 	},
 };
 
@@ -16,13 +16,13 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::{CallbackFn, InvokeError, InvokeResponseBody, IpcResponse, Request, Response};
 use crate::{
-	command,
-	ipc::{CommandArg, CommandItem},
-	plugin::{Builder as PluginBuilder, TauriPlugin},
 	Manager,
 	Runtime,
 	State,
 	Webview,
+	command,
+	ipc::{CommandArg, CommandItem},
+	plugin::{Builder as PluginBuilder, TauriPlugin},
 };
 
 pub const IPC_PAYLOAD_PREFIX:&str = "__CHANNEL__:";
@@ -70,7 +70,7 @@ impl<TSend> Serialize for Channel<TSend> {
 /// # Examples
 ///
 /// ```rust
-/// use tauri::{ipc::JavaScriptChannelId, Runtime, Webview};
+/// use tauri::{Runtime, Webview, ipc::JavaScriptChannelId};
 ///
 /// #[derive(serde::Deserialize)]
 /// #[serde(rename_all = "camelCase")]

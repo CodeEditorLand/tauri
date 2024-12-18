@@ -5,11 +5,11 @@
 use std::{ffi::OsStr, io::Cursor, path::Path};
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{ToTokens, TokenStreamExt, quote};
 
 use crate::{
-	embedded_assets::{EmbeddedAssetsError, EmbeddedAssetsResult},
 	Cached,
+	embedded_assets::{EmbeddedAssetsError, EmbeddedAssetsResult},
 };
 
 /// The format the Icon is consumed as.

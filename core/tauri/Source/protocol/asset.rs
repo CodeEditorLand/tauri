@@ -4,7 +4,7 @@
 
 use std::{borrow::Cow, io::SeekFrom};
 
-use http::{header::*, status::StatusCode, Request, Response};
+use http::{Request, Response, header::*, status::StatusCode};
 use http_range::HttpRange;
 use tauri_utils::mime_type::MimeType;
 use tokio::{

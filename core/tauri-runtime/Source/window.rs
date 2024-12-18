@@ -13,16 +13,16 @@ use std::{
 
 use dpi::PixelUnit;
 use serde::{Deserialize, Deserializer, Serialize};
-use tauri_utils::{config::WindowConfig, Theme};
+use tauri_utils::{Theme, config::WindowConfig};
 #[cfg(windows)]
 use windows::Win32::Foundation::HWND;
 
 use crate::{
-	webview::{DetachedWebview, PendingWebview},
 	Icon,
 	Runtime,
 	UserEvent,
 	WindowDispatch,
+	webview::{DetachedWebview, PendingWebview},
 };
 
 /// An event from a window.

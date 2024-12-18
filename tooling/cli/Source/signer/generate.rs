@@ -8,8 +8,8 @@ use clap::Parser;
 use tauri_utils::display_path;
 
 use crate::{
-	helpers::updater_signature::{generate_key, save_keypair},
 	Result,
+	helpers::updater_signature::{generate_key, save_keypair},
 };
 
 #[derive(Debug, Parser)]

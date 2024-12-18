@@ -11,7 +11,7 @@ use std::{
 pub use tauri_utils::config::WebviewInstallMode;
 use tauri_utils::{
 	config::{BundleType, DeepLinkProtocol, FileAssociation, NSISInstallerMode, NsisCompression},
-	resources::{external_binaries, ResourcePaths},
+	resources::{ResourcePaths, external_binaries},
 };
 
 use super::category::AppCategory;

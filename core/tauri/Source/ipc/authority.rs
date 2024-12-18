@@ -8,24 +8,24 @@ use std::{
 	sync::Arc,
 };
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use state::TypeMap;
 use tauri_utils::{
 	acl::{
-		capability::{Capability, CapabilityFile, PermissionEntry},
-		manifest::Manifest,
-		resolved::{Resolved, ResolvedCommand, ResolvedScope, ScopeKey},
+		APP_ACL_KEY,
 		ExecutionContext,
 		Scopes,
 		Value,
-		APP_ACL_KEY,
+		capability::{Capability, CapabilityFile, PermissionEntry},
+		manifest::Manifest,
+		resolved::{Resolved, ResolvedCommand, ResolvedScope, ScopeKey},
 	},
 	platform::Target,
 };
 use url::Url;
 
 use super::{CommandArg, CommandItem};
-use crate::{ipc::InvokeError, sealed::ManagerBase, AppHandle, Manager, Runtime};
+use crate::{AppHandle, Manager, Runtime, ipc::InvokeError, sealed::ManagerBase};
 
 /// The runtime authority used to authorize IPC execution based on the Access
 /// Control List.
@@ -794,14 +794,12 @@ impl ScopeManager {
 #[cfg(test)]
 mod tests {
 	use glob::Pattern;
-
 	use tauri_utils::acl::{
-		resolved::{Resolved, ResolvedCommand},
 		ExecutionContext,
+		resolved::{Resolved, ResolvedCommand},
 	};
 
 	use super::RuntimeAuthority;
-
 	use crate::ipc::Origin;
 
 	#[test]

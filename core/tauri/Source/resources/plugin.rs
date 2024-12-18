@@ -4,11 +4,11 @@
 
 use super::ResourceId;
 use crate::{
-	command,
-	plugin::{Builder, TauriPlugin},
 	Manager,
 	Runtime,
 	Webview,
+	command,
+	plugin::{Builder, TauriPlugin},
 };
 
 #[command(root = "crate")]

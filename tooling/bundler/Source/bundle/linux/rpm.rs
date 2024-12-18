@@ -10,7 +10,7 @@ use std::{
 };
 
 use anyhow::Context;
-use rpm::{self, signature::pgp, Dependency, FileMode, FileOptions};
+use rpm::{self, Dependency, FileMode, FileOptions, signature::pgp};
 
 use super::freedesktop;
 use crate::Settings;

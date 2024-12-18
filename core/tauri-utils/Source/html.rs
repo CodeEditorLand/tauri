@@ -7,12 +7,12 @@
 use std::path::{Path, PathBuf};
 
 use html5ever::{
+	LocalName,
 	interface::QualName,
 	namespace_url,
 	ns,
 	serialize::{HtmlSerializer, SerializeOpts, Serializer, TraversalScope},
 	tendril::TendrilSink,
-	LocalName,
 };
 pub use kuchiki::NodeRef;
 use kuchiki::{Attribute, ExpandedName, NodeData};

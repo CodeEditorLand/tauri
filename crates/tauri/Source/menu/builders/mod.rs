@@ -7,8 +7,7 @@
 //! A module containing menu builder types
 
 mod menu;
-pub use menu::MenuBuilder;
-pub use menu::SubmenuBuilder;
+pub use menu::{MenuBuilder, SubmenuBuilder};
 mod normal;
 pub use normal::MenuItemBuilder;
 mod check;

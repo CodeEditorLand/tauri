@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use std::{
-	fs::{create_dir_all, File},
+	fs::{File, create_dir_all},
 	io::{Cursor, Read, Write},
 	path::{Path, PathBuf},
 };

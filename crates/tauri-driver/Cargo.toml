@@ -13,7 +13,7 @@ rust-version = "1.77.2"
 
 [dependencies]
 anyhow = { version = "1" }
-hyper = { version = "0.14", features = [
+hyper = { version = "1.5", features = [
 	"client",
 	"http1",
 	"runtime",
@@ -23,12 +23,15 @@ hyper = { version = "0.14", features = [
 ] }
 futures = { version = "0.3" }
 futures-util = "0.3"
-pico-args = "0.4"
+pico-args = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 tokio = { version = "1", features = ["macros"] }
-which = { version = "4" }
+which = { version = "7" }
 
 [target."cfg(unix)".dependencies]
 signal-hook = "0.3"
 signal-hook-tokio = { version = "0.3", features = ["futures-v0_3"] }
+
+[lib]
+path = "Source/lib.rs"

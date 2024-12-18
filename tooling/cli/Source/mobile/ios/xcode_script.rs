@@ -16,12 +16,12 @@ use cargo_mobile2::{apple::target::Target, opts::Profile};
 use clap::Parser;
 use object::{Object, ObjectSymbol};
 
-use super::{ensure_init, env, get_app, get_config, read_options, MobileTarget};
+use super::{MobileTarget, ensure_init, env, get_app, get_config, read_options};
 use crate::{
+	Result,
 	helpers::config::get as get_tauri_config,
 	interface::{AppInterface, AppSettings, Interface, Options as InterfaceOptions},
 	mobile::ios::LIB_OUTPUT_FILE_NAME,
-	Result,
 };
 
 #[derive(Debug, Parser)]

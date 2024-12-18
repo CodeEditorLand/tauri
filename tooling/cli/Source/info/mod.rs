@@ -6,7 +6,7 @@ use std::fmt::{self, Display, Formatter};
 
 use clap::Parser;
 use colored::{ColoredString, Colorize};
-use dialoguer::{theme::ColorfulTheme, Confirm};
+use dialoguer::{Confirm, theme::ColorfulTheme};
 use serde::Deserialize;
 
 use crate::Result;

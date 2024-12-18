@@ -7,11 +7,11 @@ use std::{
 	path::{Path, PathBuf},
 };
 
-use super::{packages_nodejs, packages_rust, SectionItem};
+use super::{SectionItem, packages_nodejs, packages_rust};
 use crate::{
 	helpers::{
 		self,
-		cargo_manifest::{crate_version, CargoLock, CargoManifest},
+		cargo_manifest::{CargoLock, CargoManifest, crate_version},
 		npm::PackageManager,
 	},
 	interface::rust::get_workspace_dir,

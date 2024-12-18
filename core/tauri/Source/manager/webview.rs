@@ -11,7 +11,7 @@ use std::{
 };
 
 use serde::Serialize;
-use serialize_to_javascript::{default_template, DefaultTemplate, Template};
+use serialize_to_javascript::{DefaultTemplate, Template, default_template};
 use tauri_runtime::{
 	webview::{DetachedWebview, PendingWebview},
 	window::DragDropEvent,
@@ -20,21 +20,16 @@ use tauri_utils::config::WebviewUrl;
 use url::Url;
 
 use super::{
+	AppManager,
 	window::{
-		DragDropPayload,
 		DRAG_DROP_EVENT,
 		DRAG_ENTER_EVENT,
 		DRAG_LEAVE_EVENT,
 		DRAG_OVER_EVENT,
+		DragDropPayload,
 	},
-	AppManager,
 };
 use crate::{
-	app::{GlobalWebviewEventListener, OnPageLoad, UriSchemeResponder, WebviewEvent},
-	ipc::{InvokeHandler, InvokeResponder},
-	pattern::PatternJavascript,
-	sealed::ManagerBase,
-	webview::PageLoadPayload,
 	AppHandle,
 	Emitter,
 	EventLoopMessage,
@@ -44,6 +39,11 @@ use crate::{
 	Scopes,
 	Webview,
 	Window,
+	app::{GlobalWebviewEventListener, OnPageLoad, UriSchemeResponder, WebviewEvent},
+	ipc::{InvokeHandler, InvokeResponder},
+	pattern::PatternJavascript,
+	sealed::ManagerBase,
+	webview::PageLoadPayload,
 };
 
 // we need to proxy the dev server on mobile because we can't use `localhost`,

@@ -15,16 +15,16 @@ use zip::write::SimpleFileOptions;
 
 use super::common;
 use crate::{
+	Settings,
 	bundle::{
+		Bundle,
 		windows::{
 			NSIS_OUTPUT_FOLDER_NAME,
 			NSIS_UPDATER_OUTPUT_FOLDER_NAME,
 			WIX_OUTPUT_FOLDER_NAME,
 			WIX_UPDATER_OUTPUT_FOLDER_NAME,
 		},
-		Bundle,
 	},
-	Settings,
 };
 
 // Build update
@@ -129,10 +129,9 @@ fn bundle_update_linux(bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 fn bundle_update_windows(settings:&Settings, bundles:&[Bundle]) -> crate::Result<Vec<PathBuf>> {
 	#[cfg(target_os = "windows")]
 	use crate::bundle::windows::msi;
-
 	use crate::{
-		bundle::{settings::WebviewInstallMode, windows::nsis},
 		PackageType,
+		bundle::{settings::WebviewInstallMode, windows::nsis},
 	};
 
 	// find our installers or rebuild
@@ -250,7 +249,7 @@ pub fn create_zip(src_file:&Path, dst_file:&Path) -> crate::Result<PathBuf> {
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 fn create_tar(src_dir:&Path, dest_path:&Path) -> crate::Result<PathBuf> {
-	use flate2::{write::GzEncoder, Compression};
+	use flate2::{Compression, write::GzEncoder};
 
 	let dest_file = common::create_file(dest_path)?;
 

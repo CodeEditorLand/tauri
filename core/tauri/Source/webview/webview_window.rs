@@ -19,13 +19,6 @@ use windows::Win32::Foundation::HWND;
 
 use super::DownloadEvent;
 use crate::{
-	event::EventTarget,
-	ipc::{CommandArg, CommandItem, InvokeError, OwnedInvokeResponder},
-	manager::AppManager,
-	runtime::dpi::{PhysicalPosition, PhysicalSize},
-	sealed::{ManagerBase, RuntimeOrDispatch},
-	webview::{PageLoadPayload, WebviewBuilder},
-	window::{Monitor, WindowBuilder},
 	AppHandle,
 	Emitter,
 	Event,
@@ -36,15 +29,22 @@ use crate::{
 	Runtime,
 	Webview,
 	WindowEvent,
+	event::EventTarget,
+	ipc::{CommandArg, CommandItem, InvokeError, OwnedInvokeResponder},
+	manager::AppManager,
+	runtime::dpi::{PhysicalPosition, PhysicalSize},
+	sealed::{ManagerBase, RuntimeOrDispatch},
+	webview::{PageLoadPayload, WebviewBuilder},
+	window::{Monitor, WindowBuilder},
 };
 #[cfg(desktop)]
 use crate::{
 	image::Image,
 	menu::{ContextMenu, Menu},
 	runtime::{
+		UserAttentionType,
 		dpi::{Position, Size},
 		window::CursorIcon,
-		UserAttentionType,
 	},
 };
 
@@ -1090,9 +1090,9 @@ impl<R:Runtime> WebviewWindow<R> {
 	///
 	/// ```
 	/// use tauri::{
-	/// 	menu::{Menu, MenuItem, Submenu},
 	/// 	WebviewUrl,
 	/// 	WebviewWindowBuilder,
+	/// 	menu::{Menu, MenuItem, Submenu},
 	/// };
 	///
 	/// tauri::Builder::default().setup(|app| {
@@ -1478,8 +1478,8 @@ impl<R:Runtime> WebviewWindow<R> {
 	///
 	/// ```rust,no_run
 	/// use tauri::{
-	/// 	window::{Color, Effect, EffectState, EffectsBuilder},
 	/// 	Manager,
+	/// 	window::{Color, Effect, EffectState, EffectsBuilder},
 	/// };
 	/// tauri::Builder::default().setup(|app| {
 	/// 	let webview_window = app.get_webview_window("main").unwrap();

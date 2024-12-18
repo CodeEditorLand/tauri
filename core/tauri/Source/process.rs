@@ -37,7 +37,7 @@ use crate::Env;
 /// # Examples
 ///
 /// ```rust,no_run
-/// use tauri::{process::current_binary, Env, Manager};
+/// use tauri::{Env, Manager, process::current_binary};
 /// let current_binary_path = current_binary(&Env::default()).unwrap();
 ///
 /// tauri::Builder::default().setup(|app| {
@@ -65,7 +65,7 @@ pub fn current_binary(_env:&Env) -> std::io::Result<PathBuf> {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use tauri::{process::restart, Env, Manager};
+/// use tauri::{Env, Manager, process::restart};
 ///
 /// tauri::Builder::default().setup(|app| {
 /// 	restart(&app.env());
@@ -73,7 +73,7 @@ pub fn current_binary(_env:&Env) -> std::io::Result<PathBuf> {
 /// });
 /// ```
 pub fn restart(env:&Env) -> ! {
-	use std::process::{exit, Command};
+	use std::process::{Command, exit};
 
 	if let Ok(path) = current_binary(env) {
 		Command::new(path)

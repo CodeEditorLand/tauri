@@ -22,9 +22,9 @@ use std::{
 };
 
 use anyhow::Context;
-use image::{codecs::png::PngDecoder, GenericImageView, ImageDecoder};
+use image::{GenericImageView, ImageDecoder, codecs::png::PngDecoder};
 
-use crate::{bundle::common, Settings};
+use crate::{Settings, bundle::common};
 
 /// Bundles the project.
 /// Returns a vector of PathBuf that shows where the .app was created.

@@ -5,36 +5,36 @@
 use std::{
 	env::set_current_dir,
 	net::{IpAddr, Ipv4Addr},
-	process::{exit, Command, Stdio},
+	process::{Command, Stdio, exit},
 	sync::{
-		atomic::{AtomicBool, Ordering},
 		Arc,
 		Mutex,
 		OnceLock,
+		atomic::{AtomicBool, Ordering},
 	},
 };
 
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use clap::{ArgAction, Parser};
 use shared_child::SharedChild;
 use tauri_utils::platform::Target;
 
 use crate::{
+	CommandExt,
+	ConfigValue,
+	Result,
 	helpers::{
 		app_paths::{app_dir, tauri_dir},
 		command_env,
 		config::{
-			get as get_config,
-			reload as reload_config,
 			BeforeDevCommand,
 			ConfigHandle,
 			FrontendDist,
+			get as get_config,
+			reload as reload_config,
 		},
 	},
 	interface::{AppInterface, DevProcess, ExitReason, Interface},
-	CommandExt,
-	ConfigValue,
-	Result,
 };
 
 mod builtin_dev_server;

@@ -8,17 +8,17 @@ use serde::Deserialize;
 
 use super::{TrayIcon, TrayIconEvent};
 use crate::{
-	command,
-	image::JsImage,
-	ipc::Channel,
-	menu::{plugin::ItemKind, Menu, Submenu},
-	plugin::{Builder, TauriPlugin},
-	resources::ResourceId,
-	tray::TrayIconBuilder,
 	AppHandle,
 	Manager,
 	Runtime,
 	Webview,
+	command,
+	image::JsImage,
+	ipc::Channel,
+	menu::{Menu, Submenu, plugin::ItemKind},
+	plugin::{Builder, TauriPlugin},
+	resources::ResourceId,
+	tray::TrayIconBuilder,
 };
 
 #[derive(Deserialize)]

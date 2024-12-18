@@ -9,10 +9,10 @@ use serialize_to_javascript::Template;
 use tauri_utils::{assets::EmbeddedAssets, config::Csp};
 
 use crate::{
-	manager::{set_csp, webview::PROCESS_IPC_MESSAGE_FN, AppManager},
-	webview::UriSchemeProtocolHandler,
 	Assets,
 	Runtime,
+	manager::{AppManager, set_csp, webview::PROCESS_IPC_MESSAGE_FN},
+	webview::UriSchemeProtocolHandler,
 };
 
 pub fn get<R:Runtime>(

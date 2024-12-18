@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use std::path::{Component, Path, PathBuf, MAIN_SEPARATOR};
+use std::path::{Component, MAIN_SEPARATOR, Path, PathBuf};
 
-use serialize_to_javascript::{default_template, DefaultTemplate, Template};
+use serialize_to_javascript::{DefaultTemplate, Template, default_template};
 
 use super::{BaseDirectory, Error, PathResolver, Result};
 use crate::{
-	command,
-	plugin::{Builder, TauriPlugin},
 	AppHandle,
 	Manager,
 	Runtime,
 	State,
+	command,
+	plugin::{Builder, TauriPlugin},
 };
 
 /// Normalize a path, removing things like `.` and `..`, this snippet is taken

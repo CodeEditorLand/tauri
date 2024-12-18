@@ -7,9 +7,9 @@ use std::{
 	cell::Cell,
 	collections::{HashMap, HashSet},
 	sync::{
-		atomic::{AtomicU32, Ordering},
 		Arc,
 		Mutex,
+		atomic::{AtomicU32, Ordering},
 	},
 };
 
@@ -307,7 +307,6 @@ mod test {
 	use proptest::prelude::*;
 
 	use super::*;
-
 	use crate::event::EventTarget;
 
 	// dummy event handler function

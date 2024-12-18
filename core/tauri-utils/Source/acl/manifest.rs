@@ -118,11 +118,9 @@ mod build {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
-
-	use quote::{quote, ToTokens, TokenStreamExt};
+	use quote::{ToTokens, TokenStreamExt, quote};
 
 	use super::*;
-
 	use crate::{literal_struct, tokens::*};
 
 	impl ToTokens for DefaultPermission {

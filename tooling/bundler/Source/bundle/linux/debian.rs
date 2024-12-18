@@ -31,7 +31,7 @@ use std::{
 };
 
 use anyhow::Context;
-use flate2::{write::GzEncoder, Compression};
+use flate2::{Compression, write::GzEncoder};
 use tar::HeaderMode;
 use walkdir::WalkDir;
 

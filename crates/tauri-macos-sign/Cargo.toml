@@ -14,13 +14,16 @@ anyhow = { version = "1" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 tempfile = { version = "3" }
-x509-certificate = "0.23"
+x509-certificate = "0.24"
 once-cell-regex = "0.2"
 os_pipe = { version = "1" }
 plist = { version = "1" }
 rand = { version = "0.8" }
 dirs-next = "2"
-log = { version = "0.4.21", features = ["kv"] }
+log = { version = "0.4.22", features = ["kv"] }
 apple-codesign = "0.27"
-chrono = { version = "0.4.38" }
+chrono = { version = "0.4.39" }
 p12 = { version = "0.6" }
+
+[lib]
+path = "Source/lib.rs"

@@ -12,16 +12,16 @@ use std::sync::{Arc, Mutex};
 use futures_util::Future;
 use http::HeaderMap;
 use serde::{
-	de::{DeserializeOwned, IntoDeserializer},
 	Deserialize,
 	Serialize,
+	de::{DeserializeOwned, IntoDeserializer},
 };
 use serde_json::Value as JsonValue;
 pub use serialize_to_javascript::Options as SerializeOptions;
 use tauri_macros::default_runtime;
 use tauri_utils::acl::resolved::ResolvedCommand;
 
-use crate::{webview::Webview, Runtime, StateManager};
+use crate::{Runtime, StateManager, webview::Webview};
 
 mod authority;
 pub(crate) mod channel;
@@ -40,7 +40,7 @@ pub use authority::{
 	ScopeValue,
 };
 pub use channel::{Channel, JavaScriptChannelId};
-pub use command::{private, CommandArg, CommandItem};
+pub use command::{CommandArg, CommandItem, private};
 
 /// A closure that is run every time Tauri receives a message it doesn't
 /// explicitly handle.

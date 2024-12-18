@@ -14,9 +14,9 @@ use anyhow::Context;
 
 use super::{app, icon::create_icns_file};
 use crate::{
-	bundle::{common::CommandExt, Bundle},
 	PackageType,
 	Settings,
+	bundle::{Bundle, common::CommandExt},
 };
 
 pub struct Bundled {

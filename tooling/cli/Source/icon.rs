@@ -4,7 +4,7 @@
 
 use std::{
 	collections::HashMap,
-	fs::{create_dir_all, File},
+	fs::{File, create_dir_all},
 	io::{BufWriter, Write},
 	path::{Path, PathBuf},
 	str::FromStr,
@@ -15,22 +15,22 @@ use anyhow::Context;
 use clap::Parser;
 use icns::{IconFamily, IconType};
 use image::{
+	DynamicImage,
+	ExtendedColorType,
+	ImageBuffer,
+	ImageEncoder,
+	Rgba,
 	codecs::{
 		ico::{IcoEncoder, IcoFrame},
 		png::{CompressionType, FilterType as PngFilterType, PngEncoder},
 	},
 	imageops::FilterType,
 	open,
-	DynamicImage,
-	ExtendedColorType,
-	ImageBuffer,
-	ImageEncoder,
-	Rgba,
 };
 use resvg::{tiny_skia, usvg};
 use serde::Deserialize;
 
-use crate::{helpers::app_paths::tauri_dir, Result};
+use crate::{Result, helpers::app_paths::tauri_dir};
 
 #[derive(Debug, Deserialize)]
 struct IcnsEntry {

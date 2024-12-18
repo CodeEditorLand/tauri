@@ -10,8 +10,8 @@ use clap::Parser;
 use tauri_utils::display_path;
 
 use crate::{
-	helpers::updater_signature::{secret_key, sign_file},
 	Result,
+	helpers::updater_signature::{secret_key, sign_file},
 };
 
 #[derive(Debug, Parser)]

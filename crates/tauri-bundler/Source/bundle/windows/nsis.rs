@@ -10,29 +10,29 @@ use std::{
 };
 
 use anyhow::Context;
-use handlebars::{to_json, Handlebars};
+use handlebars::{Handlebars, to_json};
 use tauri_utils::{
 	config::{NSISInstallerMode, NsisCompression, WebviewInstallMode},
 	display_path,
 };
 
 use crate::{
+	Settings,
 	bundle::{
 		common::CommandExt,
 		windows::{
 			sign::{sign_command, try_sign},
 			util::{
+				HashAlgorithm,
+				NSIS_OUTPUT_FOLDER_NAME,
+				NSIS_UPDATER_OUTPUT_FOLDER_NAME,
 				download_and_verify,
 				download_webview2_bootstrapper,
 				download_webview2_offline_installer,
 				verify_file_hash,
-				HashAlgorithm,
-				NSIS_OUTPUT_FOLDER_NAME,
-				NSIS_UPDATER_OUTPUT_FOLDER_NAME,
 			},
 		},
 	},
-	Settings,
 };
 
 // URLS for the NSIS toolchain.

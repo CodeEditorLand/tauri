@@ -155,7 +155,6 @@ pub fn format_result_raw(
 #[cfg(test)]
 mod test {
 	use quickcheck::{Arbitrary, Gen};
-
 	use quickcheck_macros::quickcheck;
 
 	use super::*;

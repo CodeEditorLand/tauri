@@ -24,10 +24,10 @@ use tauri_utils::{
 	assets::AssetKey,
 	config::{CapabilityEntry, Config, FrontendDist, PatternKind},
 	html::{
+		NodeRef,
 		inject_nonce_token,
 		parse as parse_html,
 		serialize_node as serialize_html_node,
-		NodeRef,
 	},
 	platform::Target,
 	plugin::GLOBAL_API_SCRIPT_FILE_LIST_PATH,
@@ -36,11 +36,11 @@ use tauri_utils::{
 
 use crate::{
 	embedded_assets::{
-		ensure_out_dir,
 		AssetOptions,
 		CspHashes,
 		EmbeddedAssets,
 		EmbeddedAssetsResult,
+		ensure_out_dir,
 	},
 	image::CachedIcon,
 };

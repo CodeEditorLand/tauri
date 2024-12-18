@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: MIT
 
 use crate::{
-	command,
-	plugin::{Builder, TauriPlugin},
 	AppHandle,
 	Manager,
 	ResourceId,
 	Runtime,
 	Webview,
+	command,
+	plugin::{Builder, TauriPlugin},
 };
 
 #[command(root = "crate")]

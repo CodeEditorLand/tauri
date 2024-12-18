@@ -13,8 +13,8 @@ use oxc_parser::Parser;
 use oxc_span::SourceType;
 
 use crate::{
-	helpers::{app_paths::walk_builder, cargo, npm::PackageManager},
 	Result,
+	helpers::{app_paths::walk_builder, cargo, npm::PackageManager},
 };
 
 const RENAMED_MODULES:phf::Map<&str, &str> = phf::phf_map! {

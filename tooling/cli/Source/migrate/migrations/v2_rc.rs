@@ -8,12 +8,12 @@ use anyhow::Context;
 use toml_edit::{DocumentMut, Item, Table, TableLike, Value};
 
 use crate::{
+	Result,
 	helpers::{
 		app_paths::{app_dir, tauri_dir},
 		npm::PackageManager,
 	},
 	interface::rust::manifest::{read_manifest, serialize_manifest},
-	Result,
 };
 
 pub fn run() -> Result<()> {

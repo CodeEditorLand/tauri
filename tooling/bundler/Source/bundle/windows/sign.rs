@@ -12,8 +12,8 @@ use std::{path::Path, process::Command};
 #[cfg(windows)]
 use crate::bundle::windows::util;
 use crate::{
-	bundle::{common::CommandExt, settings::CustomSignCommandSettings},
 	Settings,
+	bundle::{common::CommandExt, settings::CustomSignCommandSettings},
 };
 
 impl Settings {

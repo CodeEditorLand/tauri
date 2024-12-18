@@ -12,15 +12,15 @@ use serde::Serialize;
 pub use tray_icon::TrayIconId;
 
 use crate::{
-	app::{GlobalMenuEventListener, GlobalTrayIconEventListener},
-	image::Image,
-	menu::{run_item_main_thread, ContextMenu, MenuEvent},
-	resources::Resource,
 	AppHandle,
 	Manager,
 	PhysicalPosition,
 	Rect,
 	Runtime,
+	app::{GlobalMenuEventListener, GlobalTrayIconEventListener},
+	image::Image,
+	menu::{ContextMenu, MenuEvent, run_item_main_thread},
+	resources::Resource,
 };
 
 /// Describes the mouse button state.

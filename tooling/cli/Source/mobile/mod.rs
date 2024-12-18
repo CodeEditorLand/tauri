@@ -10,25 +10,25 @@ use std::{
 	fs::{read_to_string, write},
 	net::SocketAddr,
 	path::PathBuf,
-	process::{exit, ExitStatus},
+	process::{ExitStatus, exit},
 	sync::{
-		atomic::{AtomicBool, Ordering},
 		Arc,
+		atomic::{AtomicBool, Ordering},
 	},
 };
 
 #[cfg(unix)]
 use anyhow::Context;
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 #[cfg(not(windows))]
 use cargo_mobile2::env::Env;
 #[cfg(windows)]
 use cargo_mobile2::os::Env;
 use cargo_mobile2::{
+	ChildHandle,
 	config::app::{App, Raw as RawAppConfig},
 	env::Error as EnvError,
 	opts::{NoiseLevel, Profile},
-	ChildHandle,
 };
 use heck::ToSnekCase;
 use jsonrpsee::{
@@ -41,12 +41,12 @@ use serde::{Deserialize, Serialize};
 use tokio::runtime::Runtime;
 
 use crate::{
+	ConfigValue,
 	helpers::{
 		app_paths::tauri_dir,
 		config::{Config as TauriConfig, ConfigHandle},
 	},
 	interface::{AppInterface, AppSettings, DevProcess, Interface, Options as InterfaceOptions},
-	ConfigValue,
 };
 
 pub mod android;

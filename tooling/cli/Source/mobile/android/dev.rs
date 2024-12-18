@@ -18,6 +18,7 @@ use cargo_mobile2::{
 use clap::{ArgAction, Parser};
 
 use super::{
+	MobileTarget,
 	configure_cargo,
 	delete_codegen_vars,
 	device_prompt,
@@ -27,19 +28,18 @@ use super::{
 	get_config,
 	inject_resources,
 	open_and_wait,
-	MobileTarget,
 };
 use crate::{
+	ConfigValue,
+	Result,
 	dev::Options as DevOptions,
 	helpers::{
 		app_paths::tauri_dir,
-		config::{get as get_tauri_config, ConfigHandle},
+		config::{ConfigHandle, get as get_tauri_config},
 		flock,
 	},
 	interface::{AppInterface, AppSettings, Interface, MobileOptions, Options as InterfaceOptions},
-	mobile::{write_options, CliOptions, DevChild, DevProcess, TargetDevice},
-	ConfigValue,
-	Result,
+	mobile::{CliOptions, DevChild, DevProcess, TargetDevice, write_options},
 };
 
 #[derive(Debug, Clone, Parser)]

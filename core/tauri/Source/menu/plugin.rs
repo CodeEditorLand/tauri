@@ -10,12 +10,6 @@ use tauri_runtime::dpi::Position;
 
 use super::{sealed::ContextMenuBase, *};
 use crate::{
-	command,
-	image::JsImage,
-	ipc::{channel::JavaScriptChannelId, Channel},
-	plugin::{Builder, TauriPlugin},
-	resources::ResourceId,
-	sealed::ManagerBase,
 	Manager,
 	ResourceTable,
 	RunEvent,
@@ -23,6 +17,12 @@ use crate::{
 	State,
 	Webview,
 	Window,
+	command,
+	image::JsImage,
+	ipc::{Channel, channel::JavaScriptChannelId},
+	plugin::{Builder, TauriPlugin},
+	resources::ResourceId,
+	sealed::ManagerBase,
 };
 
 #[derive(Deserialize, Serialize)]

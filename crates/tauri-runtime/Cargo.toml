@@ -30,7 +30,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 thiserror = { version = "2" }
 tauri-utils = { version = "2.1.0", path = "../tauri-utils" }
-http = { version = "1.1" }
+http = { version = "1.2" }
 raw-window-handle = "0.6"
 url = { version = "2" }
 dpi = { version = "0.1", features = ["serde"] }
@@ -51,3 +51,6 @@ url = { version = "2" }
 [features]
 devtools = []
 macos-private-api = []
+
+[lib]
+path = "Source/lib.rs"

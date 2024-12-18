@@ -6,7 +6,7 @@ use std::{
 	collections::BTreeMap,
 	env::current_dir,
 	ffi::{OsStr, OsString},
-	fs::{create_dir_all, File},
+	fs::{File, create_dir_all},
 	path::{Component, PathBuf},
 };
 
@@ -14,7 +14,7 @@ use clap::{Parser, Subcommand};
 use handlebars::Handlebars;
 
 use super::PluginIosFramework;
-use crate::{helpers::template, Result};
+use crate::{Result, helpers::template};
 
 #[derive(Parser)]
 #[clap(

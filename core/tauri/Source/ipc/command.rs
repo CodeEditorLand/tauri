@@ -9,15 +9,15 @@
 //! by [`crate::generate_handler`] macro.
 
 use serde::{
-	de::{Error, Visitor},
 	Deserialize,
 	Deserializer,
+	de::{Error, Visitor},
 };
 use tauri_utils::acl::resolved::ResolvedCommand;
 
 use crate::{
-	ipc::{InvokeBody, InvokeError, InvokeMessage},
 	Runtime,
+	ipc::{InvokeBody, InvokeError, InvokeMessage},
 };
 
 /// Represents a custom command.
@@ -226,8 +226,8 @@ pub mod private {
 	pub use tracing;
 
 	use crate::{
-		ipc::{InvokeError, InvokeResolver, InvokeResponseBody, IpcResponse},
 		Runtime,
+		ipc::{InvokeError, InvokeResolver, InvokeResponseBody, IpcResponse},
 	};
 
 	// ===== impl IpcResponse =====

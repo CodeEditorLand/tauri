@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 use crate::{
-	menu::{CheckMenuItem, MenuId},
 	Manager,
 	Runtime,
+	menu::{CheckMenuItem, MenuId},
 };
 
 /// A builder type for [`CheckMenuItem`]

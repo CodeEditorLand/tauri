@@ -7,18 +7,18 @@ use std::{convert::Infallible, path::PathBuf, process::Child};
 use anyhow::Error;
 use futures_util::TryFutureExt;
 use hyper::{
-	header::CONTENT_LENGTH,
-	http::uri::Authority,
-	service::{make_service_fn, service_fn},
 	Body,
 	Client,
 	Method,
 	Request,
 	Response,
 	Server,
+	header::CONTENT_LENGTH,
+	http::uri::Authority,
+	service::{make_service_fn, service_fn},
 };
 use serde::Deserialize;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 
 use crate::cli::Args;
 
@@ -155,7 +155,6 @@ pub async fn run(args:Args, mut _driver:Child) -> Result<(), Error> {
 	#[cfg(unix)]
 	let (signals_handle, signals_task) = {
 		use futures_util::StreamExt;
-
 		use signal_hook::consts::signal::*;
 
 		let signals = signal_hook_tokio::Signals::new([SIGTERM, SIGINT, SIGQUIT])?;

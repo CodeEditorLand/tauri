@@ -45,3 +45,6 @@ compression = ["brotli", "tauri-utils/compression"]
 isolation = ["tauri-utils/isolation"]
 config-json5 = ["tauri-utils/config-json5"]
 config-toml = ["tauri-utils/config-toml"]
+
+[lib]
+path = "Source/lib.rs"

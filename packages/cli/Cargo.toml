@@ -5,13 +5,14 @@ version = "0.0.0"
 
 [lib]
 crate-type = ["cdylib"]
+path = "Source/lib.rs"
 
 [dependencies]
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.16", default-features = false, features = ["napi4"] }
 napi-derive = "2.16"
 tauri-cli = { path = "../../crates/tauri-cli", default-features = false }
-log = { version = "0.4.21" }
+log = { version = "0.4.22" }
 
 [build-dependencies]
 napi-build = "2.1"

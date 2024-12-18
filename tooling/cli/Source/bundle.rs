@@ -10,19 +10,19 @@ use std::{
 
 use anyhow::Context;
 use base64::Engine;
-use clap::{builder::PossibleValue, ArgAction, Parser, ValueEnum};
+use clap::{ArgAction, Parser, ValueEnum, builder::PossibleValue};
 use tauri_bundler::PackageType;
 use tauri_utils::platform::Target;
 
 use crate::{
+	ConfigValue,
 	helpers::{
 		self,
 		app_paths::tauri_dir,
-		config::{get as get_config, ConfigMetadata},
+		config::{ConfigMetadata, get as get_config},
 		updater_signature,
 	},
 	interface::{AppInterface, AppSettings, Interface},
-	ConfigValue,
 };
 
 #[derive(Debug, Clone)]

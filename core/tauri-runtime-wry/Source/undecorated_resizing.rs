@@ -79,7 +79,6 @@ fn hit_test(
 #[cfg(windows)]
 mod windows {
 	use windows::{
-		core::*,
 		Win32::{
 			Foundation::*,
 			Graphics::Gdi::*,
@@ -89,9 +88,10 @@ mod windows {
 				WindowsAndMessaging::*,
 			},
 		},
+		core::*,
 	};
 
-	use super::{hit_test, HitTestResult};
+	use super::{HitTestResult, hit_test};
 
 	impl HitTestResult {
 		fn to_win32(self) -> i32 {
@@ -397,7 +397,7 @@ mod windows {
 
 #[cfg(not(windows))]
 mod gtk {
-	use super::{hit_test, HitTestResult};
+	use super::{HitTestResult, hit_test};
 
 	const BORDERLESS_RESIZE_INSET:i32 = 5;
 
@@ -421,11 +421,10 @@ mod gtk {
 
 	pub fn attach_resize_handler(webview:&wry::WebView) {
 		use gtk::{
-			gdk::{prelude::*, WindowEdge},
+			gdk::{WindowEdge, prelude::*},
 			glib::Propagation,
 			prelude::*,
 		};
-
 		use wry::WebViewExtUnix;
 
 		let webview = webview.webview();

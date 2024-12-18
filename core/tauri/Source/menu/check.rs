@@ -4,13 +4,13 @@
 
 use std::sync::Arc;
 
-use super::{run_item_main_thread, CheckMenuItem};
+use super::{CheckMenuItem, run_item_main_thread};
 use crate::{
-	menu::{CheckMenuItemInner, MenuId},
-	run_main_thread,
 	AppHandle,
 	Manager,
 	Runtime,
+	menu::{CheckMenuItemInner, MenuId},
+	run_main_thread,
 };
 
 impl<R:Runtime> CheckMenuItem<R> {

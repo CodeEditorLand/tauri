@@ -9,15 +9,15 @@ use clap::{ArgAction, Parser};
 use tauri_utils::platform::Target;
 
 use crate::{
+	ConfigValue,
+	Result,
 	bundle::BundleFormat,
 	helpers::{
 		self,
 		app_paths::tauri_dir,
-		config::{get as get_config, ConfigHandle, FrontendDist},
+		config::{ConfigHandle, FrontendDist, get as get_config},
 	},
 	interface::{AppInterface, AppSettings, Interface},
-	ConfigValue,
-	Result,
 };
 
 #[derive(Debug, Clone, Parser)]

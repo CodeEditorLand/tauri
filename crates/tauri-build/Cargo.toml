@@ -33,7 +33,7 @@ tauri-utils = { version = "2.1.0", path = "../tauri-utils", features = [
 	"build",
 	"resources",
 ] }
-cargo_toml = { version = "0.17" }
+cargo_toml = { version = "0.21" }
 serde = { version = "1" }
 serde_json = { version = "1" }
 heck = { version = "0.5" }
@@ -44,7 +44,7 @@ semver = { version = "1" }
 dirs = { version = "5" }
 glob = { version = "0.3" }
 toml = { version = "0.8" }
-schemars = { version = "0.8.18", features = ["preserve_order"] }
+schemars = { version = "0.8.21", features = ["preserve_order"] }
 
 [features]
 default = ["config-json"]
@@ -53,3 +53,6 @@ isolation = ["tauri-codegen/isolation", "tauri-utils/isolation"]
 config-json = []
 config-json5 = ["tauri-utils/config-json5"]
 config-toml = ["tauri-utils/config-toml"]
+
+[lib]
+path = "Source/lib.rs"

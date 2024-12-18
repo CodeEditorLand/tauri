@@ -7,8 +7,7 @@
 use std::{collections::BTreeMap, fmt};
 
 use super::{
-	capability::{Capability, PermissionEntry},
-	manifest::Manifest,
+	APP_ACL_KEY,
 	Commands,
 	Error,
 	ExecutionContext,
@@ -16,7 +15,8 @@ use super::{
 	PermissionSet,
 	Scopes,
 	Value,
-	APP_ACL_KEY,
+	capability::{Capability, PermissionEntry},
+	manifest::Manifest,
 };
 use crate::platform::Target;
 
@@ -406,11 +406,9 @@ mod build {
 	use std::convert::identity;
 
 	use proc_macro2::TokenStream;
-
-	use quote::{quote, ToTokens, TokenStreamExt};
+	use quote::{ToTokens, TokenStreamExt, quote};
 
 	use super::*;
-
 	use crate::{literal_struct, tokens::*};
 
 	#[cfg(debug_assertions)]
