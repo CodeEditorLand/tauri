@@ -70,7 +70,7 @@ tauri-utils-v1 = { version = "1", package = "tauri-utils", features = [
 	"config-toml",
 ] }
 toml = { version = "0.8" }
-jsonschema = { version = "0.26" }
+jsonschema = { version = "0.27" }
 handlebars = { version = "6.2" }
 include_dir = { version = "0.7" }
 minisign = "=0.7.3"
@@ -86,7 +86,7 @@ os_pipe = { version = "1" }
 ignore = { version = "0.4" }
 ctrlc = { version = "3.4" }
 log = { version = "0.4.22", features = ["kv", "kv_std"] }
-env_logger = { version = "0.11.5" }
+env_logger = { version = "0.11.6" }
 icns = { package = "tauri-icns", version = "0.1" }
 image = { version = "0.25", default-features = false, features = ["ico"] }
 axum = { version = "0.7.9", features = ["ws"] }

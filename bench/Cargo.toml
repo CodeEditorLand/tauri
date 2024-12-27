@@ -9,7 +9,7 @@ description = "Cross-platform WebView rendering library"
 repository = "https://github.com/tauri-apps/wry"
 
 [dependencies]
-anyhow = { version = "1.0.94" }
+anyhow = { version = "1.0.95" }
 time = { version = "0.3", features = ["formatting"] }
 tempfile = { version = "3.14.0" }
 serde_json = { version = "1.0" }
