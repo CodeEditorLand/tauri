@@ -1,24 +1,45 @@
 {
-  "name": "api",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "tauri": "node ../../packages/cli/tauri.js"
-  },
-  "dependencies": {
-    "@tauri-apps/api": "../../packages/api/dist"
-  },
-  "devDependencies": {
-    "@iconify-json/codicon": "^1.2.8",
-    "@iconify-json/ph": "^1.2.2",
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@unocss/extractor-svelte": "^0.65.3",
-    "svelte": "^5.16.1",
-    "unocss": "^0.65.3",
-    "vite": "^6.0.7"
-  }
+	"name": "api",
+	"version": "0.0.1",
+	"private": false,
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Tauri#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Tauri/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/Tauri.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"type": "module",
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"preview": "vite preview",
+		"tauri": "node ../../packages/cli/tauri.js"
+	},
+	"dependencies": {
+		"@codeeditorland/api": "../../packages/api/dist"
+	},
+	"devDependencies": {
+		"@iconify-json/codicon": "^1.2.8",
+		"@iconify-json/ph": "^1.2.2",
+		"@playform/build": "0.2.0",
+		"@unocss/extractor-svelte": "^0.65.3",
+		"unocss": "^0.65.3"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
