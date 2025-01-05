@@ -1,6 +1,6 @@
 [package]
 name = "tauri-utils"
-version = "2.1.0"
+version = "2.1.1"
 description = "Utilities for Tauri"
 exclude = ["CHANGELOG.md", "/target"]
 readme = "README.md"
@@ -25,8 +25,9 @@ html5ever = { version = "0.29" }
 kuchiki = { package = "kuchikiki", version = "0.8" }
 proc-macro2 = { version = "1", optional = true }
 quote = { version = "1", optional = true }
-schemars = { version = "0.8.21", features = ["url", "uuid1"], optional = true }
-serde_with = { version = "3" }
+# Our code requires at least 0.8.18 so don't change this to 0.8
+schemars = { version = "0.8.18", features = ["url", "uuid1"], optional = true }
+serde_with = "3"
 aes-gcm = { version = "0.10", optional = true }
 getrandom = { version = "0.2", optional = true, features = ["std"] }
 serialize-to-javascript = { version = "=0.1.1", optional = true }
@@ -38,22 +39,22 @@ glob = { version = "0.3" }
 urlpattern = { version = "0.3" }
 regex = { version = "1" }
 walkdir = { version = "2", optional = true }
-memchr = { version = "2" }
-semver = { version = "1" }
-infer = { version = "0.16" }
-dunce = { version = "1" }
-log = { version = "0.4.22" }
+memchr = "2"
+semver = "1"
+infer = "0.16"
+dunce = "1"
+log = "0.4.21"
 cargo_metadata = { version = "0.19", optional = true }
 serde-untagged = "0.1"
 uuid = { version = "1", features = ["serde"] }
-http = { version = "1.2.0" }
+http = "1"
 
 [target."cfg(target_os = \"macos\")".dependencies]
-swift-rs = { version = "1.0.7", optional = true, features = ["build"] }
+swift-rs = { version = "1", optional = true, features = ["build"] }
 
 [dev-dependencies]
 getrandom = { version = "0.2", features = ["std"] }
-serial_test = { version = "3.2" }
+serial_test = "3"
 
 [features]
 build = ["proc-macro2", "quote", "cargo_metadata", "schema", "swift-rs"]

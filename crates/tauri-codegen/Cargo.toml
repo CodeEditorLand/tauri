@@ -1,6 +1,6 @@
 [package]
 name = "tauri-codegen"
-version = "2.0.3"
+version = "2.0.4"
 description = "code generation meant to be consumed inside of `tauri` through `tauri-build` or `tauri-macros`"
 exclude = ["CHANGELOG.md", "/target"]
 readme = "README.md"
@@ -19,9 +19,9 @@ proc-macro2 = "1"
 quote = { version = "1" }
 syn = { version = "2" }
 serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1" }
-tauri-utils = { version = "2.1.0", path = "../tauri-utils", features = [
-	"build",
+serde_json = "1"
+tauri-utils = { version = "2.1.1", path = "../tauri-utils", features = [
+  "build",
 ] }
 thiserror = { version = "2" }
 walkdir = { version = "2" }
@@ -30,11 +30,11 @@ brotli = { version = "7", optional = true, default-features = false, features = 
 ] }
 regex = { version = "1", optional = true }
 uuid = { version = "1", features = ["v4"] }
-semver = { version = "1" }
-ico = { version = "0.3" }
-png = { version = "0.17" }
-json-patch = "3.0"
-url = { version = "2" }
+semver = "1"
+ico = "0.3"
+png = "0.17"
+json-patch = "3"
+url = "2"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 plist = { version = "1" }

@@ -1,6 +1,6 @@
 [package]
 name = "tauri-bundler"
-version = "2.1.0"
+version = "2.2.0"
 authors = [
 	"George Burton <burtonageo@gmail.com>",
 	"Tauri Programme within The Commons Conservancy",
@@ -15,41 +15,39 @@ rust-version = "1.77.2"
 exclude = ["CHANGELOG.md", "/target", "rustfmt.toml"]
 
 [dependencies]
-tauri-utils = { version = "2.1.0", path = "../tauri-utils", features = [
-	"resources",
+tauri-utils = { version = "2.1.1", path = "../tauri-utils", features = [
+  "resources",
 ] }
-image = { version = "0.25.5" }
-flate2 = { version = "1.0" }
-anyhow = { version = "1.0" }
-thiserror = { version = "2" }
-serde_json = { version = "1.0" }
-serde = { version = "1.0", features = ["derive"] }
-strsim = { version = "0.11.1" }
-tar = { version = "0.4.43" }
-walkdir = { version = "2" }
-handlebars = { version = "6" }
-tempfile = { version = "3.14.0" }
-log = { version = "0.4.22", features = ["kv"] }
-dirs = { version = "5" }
-os_pipe = { version = "1" }
-ureq = { version = "2.12.1", default-features = false, features = [
-	"socks-proxy",
-] }
+image = "0.25"
+flate2 = "1"
+anyhow = "1"
+thiserror = "2"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+strsim = "0.11"
+tar = "0.4"
+walkdir = "2"
+handlebars = "6"
+tempfile = "3"
+log = { version = "0.4.21", features = ["kv"] }
+dirs = "5"
+os_pipe = "1"
+ureq = { version = "2", default-features = false, features = ["socks-proxy"] }
 native-tls = { version = "0.2", optional = true }
-hex = { version = "0.4" }
-semver = { version = "1" }
-sha1 = { version = "0.10" }
-sha2 = { version = "0.10" }
-zip = { version = "2.2", default-features = false, features = ["deflate"] }
-dunce = { version = "1" }
-url = { version = "2" }
+hex = "0.4"
+semver = "1"
+sha1 = "0.10"
+sha2 = "0.10"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+dunce = "1"
+url = "2"
 uuid = { version = "1", features = ["v4", "v5"] }
 regex = { version = "1" }
 
 [target."cfg(target_os = \"windows\")".dependencies]
-bitness = { version = "0.4" }
-windows-registry = "0.3.0"
-glob = { version = "0.3" }
+bitness = "0.4"
+windows-registry = "0.3"
+glob = "0.3"
 
 [target."cfg(target_os = \"windows\")".dependencies.windows-sys]
 version = "0.59"
@@ -62,10 +60,10 @@ plist = { version = "1" }
 tauri-macos-sign = { version = "2.0.1", path = "../tauri-macos-sign" }
 
 [target."cfg(target_os = \"linux\")".dependencies]
-heck = { version = "0.5" }
-ar = { version = "0.9.0" }
-md5 = { version = "0.7.0" }
-rpm = { version = "0.16.0" }
+heck = "0.5"
+ar = "0.9"
+md5 = "0.7"
+rpm = { version = "0.16", features = ["bzip2-compression"] }
 
 [lib]
 name = "tauri_bundler"

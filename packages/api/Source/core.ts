@@ -75,31 +75,41 @@ function transformCallback<T = unknown>(
 }
 
 class Channel<T = unknown> {
-	id: number;
-	// @ts-expect-error field used by the IPC serializer
-	private readonly __TAURI_CHANNEL_MARKER__ = true;
-	#onmessage: (response: T) => void = () => {
-		// no-op
-	};
-	#nextMessageId = 0;
-	#pendingMessages: Record<string, T> = {};
+  id: number
+  // @ts-expect-error field used by the IPC serializer
+  private readonly __TAURI_CHANNEL_MARKER__ = true
+  #onmessage: (response: T) => void = () => {
+    // no-op
+  }
+  // the id is used as a mechanism to preserve message order
+  #nextMessageId = 0
+  #pendingMessages: T[] = []
 
-	constructor() {
-		this.id = transformCallback(
-			({ message, id }: { message: T; id: number }) => {
-				// the id is used as a mechanism to preserve message order
-				if (id === this.#nextMessageId) {
-					this.#nextMessageId = id + 1;
+  constructor() {
+    this.id = transformCallback(
+      ({ message, id }: { message: T; id: number }) => {
+        // Process the message if we're at the right order
+        if (id == this.#nextMessageId) {
+          this.#onmessage(message)
+          this.#nextMessageId += 1
 
-					this.#onmessage(message);
-
-					// process pending messages
-					const pendingMessageIds = Object.keys(
-						this.#pendingMessages,
-					);
-
-					if (pendingMessageIds.length > 0) {
-						let nextId = id + 1;
+          // process pending messages
+          while (this.#nextMessageId in this.#pendingMessages) {
+            const message = this.#pendingMessages[this.#nextMessageId]
+            this.#onmessage(message)
+            // eslint-disable-next-line @typescript-eslint/no-array-delete
+            delete this.#pendingMessages[this.#nextMessageId]
+            this.#nextMessageId += 1
+          }
+        }
+        // Queue the message if we're not
+        else {
+          // eslint-disable-next-line security/detect-object-injection
+          this.#pendingMessages[id] = message
+        }
+      }
+    )
+  }
 
 						for (const pendingId of pendingMessageIds.sort()) {
 							// if we have the next message, process it

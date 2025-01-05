@@ -22,8 +22,5 @@ rand = { version = "0.8" }
 dirs-next = "2"
 log = { version = "0.4.22", features = ["kv"] }
 apple-codesign = "0.27"
-chrono = { version = "0.4.39" }
-p12 = { version = "0.6" }
-
-[lib]
-path = "Source/lib.rs"
+chrono = "0.4"
+p12 = "0.6"

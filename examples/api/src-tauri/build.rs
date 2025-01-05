@@ -5,18 +5,22 @@
 use tauri_build::WindowsAttributes;
 
 fn main() {
-	tauri_build::try_build(
-		tauri_build::Attributes::new()
-			.codegen(tauri_build::CodegenContext::new())
-			.windows_attributes(WindowsAttributes::new_without_app_manifest())
-			.plugin("app-menu", tauri_build::InlinedPlugin::new().commands(&["toggle", "popup"]))
-			.app_manifest(tauri_build::AppManifest::new().commands(&[
-				"log_operation",
-				"perform_request",
-				"echo",
-			])),
-	)
-	.expect("failed to run tauri-build");
+  tauri_build::try_build(
+    tauri_build::Attributes::new()
+      .codegen(tauri_build::CodegenContext::new())
+      .windows_attributes(WindowsAttributes::new_without_app_manifest())
+      .plugin(
+        "app-menu",
+        tauri_build::InlinedPlugin::new().commands(&["toggle", "popup"]),
+      )
+      .app_manifest(tauri_build::AppManifest::new().commands(&[
+        "log_operation",
+        "perform_request",
+        "echo",
+        "spam",
+      ])),
+  )
+  .expect("failed to run tauri-build");
 
 	// workaround needed to prevent `STATUS_ENTRYPOINT_NOT_FOUND` error in tests
 	// see https://github.com/tauri-apps/tauri/pull/4383#issuecomment-1212221864

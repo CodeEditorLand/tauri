@@ -430,8 +430,8 @@ permissions = [{}]
 			.join(",")
 	);
 
-	write_if_changed(&default_toml, toml_content)
-		.unwrap_or_else(|_| panic!("unable to autogenerate core:default set"));
+  write_if_changed(default_toml, toml_content)
+    .unwrap_or_else(|_| panic!("unable to autogenerate core:default set"));
 
 	let _ = tauri_utils::acl::build::define_permissions(
 		&permissions_out_dir.join("*.toml").to_string_lossy(),

@@ -1,6 +1,6 @@
 [package]
 name = "tauri-cli"
-version = "2.1.0"
+version = "2.2.2"
 authors = ["Tauri Programme within The Commons Conservancy"]
 edition = "2021"
 rust-version = "1.77.2"
@@ -36,32 +36,32 @@ name = "cargo-tauri"
 path = "src/main.rs"
 
 [target."cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\", target_os = \"windows\", target_os = \"macos\"))".dependencies]
-cargo-mobile2 = { version = "0.17.4", default-features = false }
+cargo-mobile2 = { version = "0.17", default-features = false }
 
 [dependencies]
-jsonrpsee = { version = "0.24.7", features = ["server"] }
-jsonrpsee-core = "0.24.7"
-jsonrpsee-client-transport = { version = "0.24.7", features = ["ws"] }
-jsonrpsee-ws-client = { version = "0.24.7", default-features = false }
-sublime_fuzzy = { version = "0.7" }
-clap_complete = { version = "4" }
-clap = { version = "4.5", features = ["derive", "env"] }
-anyhow = { version = "1.0" }
-tauri-bundler = { version = "2.1.0", default-features = false, path = "../tauri-bundler" }
-colored = { version = "2.2" }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0", features = ["preserve_order"] }
-notify = { version = "7.0" }
-notify-debouncer-mini = "0.5"
-shared_child = { version = "1.0" }
-duct = { version = "0.13" }
+jsonrpsee = { version = "0.24", features = ["server"] }
+jsonrpsee-core = "0.24"
+jsonrpsee-client-transport = { version = "0.24", features = ["ws"] }
+jsonrpsee-ws-client = { version = "0.24", default-features = false }
+sublime_fuzzy = "0.7"
+clap_complete = "4"
+clap = { version = "4", features = ["derive", "env"] }
+anyhow = "1"
+tauri-bundler = { version = "2.2.0", default-features = false, path = "../tauri-bundler" }
+colored = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+notify = "7"
+notify-debouncer-full = "0.4"
+shared_child = "1"
+duct = "0.13"
 toml_edit = { version = "0.22", features = ["serde"] }
-json-patch = "3.0"
-tauri-utils = { version = "2.1.0", path = "../tauri-utils", features = [
-	"isolation",
-	"schema",
-	"config-json5",
-	"config-toml",
+json-patch = "3"
+tauri-utils = { version = "2.1.1", path = "../tauri-utils", features = [
+  "isolation",
+  "schema",
+  "config-json5",
+  "config-toml",
 ] }
 tauri-utils-v1 = { version = "1", package = "tauri-utils", features = [
 	"isolation",
@@ -69,43 +69,44 @@ tauri-utils-v1 = { version = "1", package = "tauri-utils", features = [
 	"config-json5",
 	"config-toml",
 ] }
-toml = { version = "0.8" }
-jsonschema = { version = "0.27" }
-handlebars = { version = "6.2" }
-include_dir = { version = "0.7" }
+toml = "0.8"
+jsonschema = "0.28"
+handlebars = "6"
+include_dir = "0.7"
 minisign = "=0.7.3"
-base64 = { version = "0.22.1" }
-ureq = { version = "2.12.1", default-features = false, features = ["gzip"] }
-os_info = { version = "3" }
-semver = { version = "1.0" }
-regex = { version = "1.11.1" }
-heck = { version = "0.5" }
-dialoguer = { version = "0.11" }
-url = { version = "2.5", features = ["serde"] }
-os_pipe = { version = "1" }
-ignore = { version = "0.4" }
-ctrlc = { version = "3.4" }
-log = { version = "0.4.22", features = ["kv", "kv_std"] }
-env_logger = { version = "0.11.6" }
+base64 = "0.22"
+ureq = { version = "2", default-features = false, features = ["gzip"] }
+os_info = "3"
+semver = "1"
+regex = "1"
+heck = "0.5"
+dialoguer = "0.11"
+url = { version = "2", features = ["serde"] }
+os_pipe = "1"
+ignore = "0.4"
+ctrlc = "3"
+log = { version = "0.4.21", features = ["kv", "kv_std"] }
+env_logger = "0.11"
 icns = { package = "tauri-icns", version = "0.1" }
 image = { version = "0.25", default-features = false, features = ["ico"] }
-axum = { version = "0.7.9", features = ["ws"] }
-html5ever = { version = "0.29" }
+axum = { version = "0.7", features = ["ws"] }
+html5ever = "0.26"
 kuchiki = { package = "kuchikiki", version = "0.8" }
 tokio = { version = "1", features = ["macros", "sync"] }
 common-path = "1"
-serde-value = "0.7.0"
-itertools = { version = "0.13" }
+serde-value = "0.7"
+itertools = "0.13"
 local-ip-address = "0.6"
 css-color = "0.2"
-resvg = { version = "0.44.0" }
-dunce = { version = "1" }
-glob = { version = "0.3" }
-oxc_parser = { version = "0.38" }
-oxc_span = { version = "0.38" }
-oxc_allocator = { version = "0.38" }
-oxc_ast = { version = "0.38" }
-magic_string = { version = "0.3" }
+resvg = "0.44.0"
+dunce = "1"
+glob = "0.3"
+# 0.39 raised msrv to above 1.78 but 0.37+ can't compile on 1.77.2 either.
+oxc_parser = "0.36"
+oxc_span = "0.36"
+oxc_allocator = "0.36"
+oxc_ast = "0.36"
+magic_string = "0.3"
 phf = { version = "0.11", features = ["macros"] }
 walkdir = { version = "2" }
 elf = { version = "0.7" }
