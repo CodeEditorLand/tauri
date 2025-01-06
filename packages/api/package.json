@@ -57,11 +57,11 @@
 	},
 	"dependencies": {},
 	"devDependencies": {
-		"@playform/build": "0.2.0",
-		"@types/node": "^22.10.1",
+		"@playform/build": "0.2.1",
+		"@types/node": "^22.10.5",
 		"fast-glob": "3.3.3",
-		"globals": "^15.4.0",
-		"tslib": "^2.6.3"
+		"globals": "^15.14.0",
+		"tslib": "^2.8.1"
 	},
 	"publishConfig": {
 		"access": "public"
