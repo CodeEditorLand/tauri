@@ -30,11 +30,11 @@
 		"tauri": "tauri"
 	},
 	"dependencies": {
-		"@codeeditorland/api": "^2.0.0",
+		"@codeeditorland/api": "2.0.0",
 		"@codeeditorland/plugin-{{ plugin_name }}-api": "file:../../"
 	},
 	"devDependencies": {
-		"@codeeditorland/cli": "^2.0.0",
+		"@codeeditorland/cli": "2.0.0",
 		"@playform/build": "0.2.1"
 	},
 	"publishConfig": {
